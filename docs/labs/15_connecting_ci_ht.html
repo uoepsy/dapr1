@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Connecting confidence intervals and hypothesis testing</title>
+
+<script src="site_libs/header-attrs-2.8/header-attrs.js"></script>
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+<script>
+function toggle_visibility(id1, id2) {
+var e = document.getElementById(id1);
+var f = document.getElementById(id2);
+e.style.display = ((e.style.display!='none') ? 'none' : 'block');
+if(f.classList.contains('fa-plus')) {
+    f.classList.add('fa-minus')
+    f.classList.remove('fa-plus')
+} else {
+    f.classList.add('fa-plus')
+    f.classList.remove('fa-minus')
+}
+}
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+<link rel="stylesheet" href="assets/style-labs.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"><strong>DAPR1</strong></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">
+    <span class="fas fa-home"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="intro_r_rstudio_year1.html">DAPR1 starts here</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Intro to data and R
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="01_data_types.html">1/1: Collecting data</a>
+    </li>
+    <li>
+      <a href="02_categorical.html">1/2: Categorical data</a>
+    </li>
+    <li>
+      <a href="03_numerical.html">1/3: Numerical data</a>
+    </li>
+    <li>
+      <a href="04_relationships.html">1/4: Relationships</a>
+    </li>
+    <li>
+      <a href="05_functions.html">1/5: Types of relations</a>
+    </li>
+    <li class="dropdown-header">1/6: Break week!</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Probability &amp; sampling
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="07_probability_basics.html">1/7: Probability basics</a>
+    </li>
+    <li>
+      <a href="08_probability_rules.html">1/8: Probability rules!</a>
+    </li>
+    <li>
+      <a href="09_discrete_distributions.html">1/9: Discrete random variables</a>
+    </li>
+    <li>
+      <a href="10_continuous_distributions.html">1/10: Continuous random variables</a>
+    </li>
+    <li>
+      <a href="11_sampling_distributions.html">1/11: Sampling distributions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Hypothesis testing
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="12_bootstrap_cis.html">2/1: Bootstrap &amp; CIs</a>
+    </li>
+    <li>
+      <a href="13_hypothesis_testing.html">2/2: Hypothesis testing: p-values</a>
+    </li>
+    <li>
+      <a href="14_critical_values.html">2/3: Hypothesis testing: critical values</a>
+    </li>
+    <li>
+      <a href="15_connecting_ci_ht.html">2/4: Hypothesis testing &amp; CIs</a>
+    </li>
+    <li>
+      <a href="16_ht_errors.html">2/5: Making decisions</a>
+    </li>
+    <li class="dropdown-header">2/6: Break week</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Basic tests
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="17_one_sample_mean.html">2/7: Test for one mean</a>
+    </li>
+    <li>
+      <a href="18_two_sample_means.html">2/8: Test for two means</a>
+    </li>
+    <li>
+      <a href="19_paired_t_test.html">2/9: Test for paired samples</a>
+    </li>
+    <li>
+      <a href="20_chi_square.html">2/10: Chi-square</a>
+    </li>
+    <li>
+      <a href="21_covcor.html">2/11: Covariance and correlation</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Connecting confidence intervals and hypothesis testing</h1>
+
+</div>
+
+
+<div class="lo">
+<ol style="list-style-type: decimal">
+<li><p>Interpret a confidence interval as the plausible values of a parameter that would not be rejected in a two-sided hypothesis test</p></li>
+<li><p>Determine the decision for a two-sided hypothesis test from an appropriately constructed confidence interval</p></li>
+<li><p>Be able to explain the potential problem with significant results when doing multiple tests</p></li>
+</ol>
+</div>
+<div id="research-question-and-data" class="section level1">
+<h1>Research question and data</h1>
+<blockquote>
+<p>Do mean hours of exercise per week differ between left-handed and right-handed students?</p>
+</blockquote>
+<p>The data contain 50 observations on a random sample of students on the following 7 variables</p>
+<ul>
+<li><code>year</code>: Year in school</li>
+<li><code>hand</code>: Left (l) or Right (r) handed?</li>
+<li><code>exercise</code>: Hours of exercise per week</li>
+<li><code>tv</code>: Hours of TV viewing per week</li>
+<li><code>pulse</code>: Resting pulse rate (beats per minute)</li>
+<li><code>pierces</code>: Number of body piercings</li>
+</ul>
+<p>You can download the data here: <a href="https://uoepsy.github.io/data/ExerciseHours.csv" class="uri">https://uoepsy.github.io/data/ExerciseHours.csv</a></p>
+</div>
+<div id="null-and-alternative-hypothesis" class="section level1">
+<h1>Null and alternative hypothesis</h1>
+<p>The research question asks whether mean hours of exercise per week differ between left-handed and right-handed students, without specifying a direction. We are both interested in whether right-handed students exercise more than left-handed ones, or the other way around.</p>
+<p>We start by defining the parameters needed to specify the null hypothesis:</p>
+<ul>
+<li><span class="math inline">\(\mu_R\)</span> = mean exercise hours per week for all right-handed students</li>
+<li><span class="math inline">\(\mu_L\)</span> = mean exercise hours per week for all left-handed students</li>
+</ul>
+<p>These are estimated with the corresponding statistics in the sample:</p>
+<ul>
+<li><span class="math inline">\(\bar x_R\)</span> = mean exercise hours per week for right-handed students in the sample</li>
+<li><span class="math inline">\(\bar x_L\)</span> = mean exercise hours per week for left-handed students in the sample</li>
+</ul>
+<p>Hypotheses:</p>
+<p><span class="math display">\[
+H_0: \mu_R = \mu_L \\
+H_1: \mu_R \neq \mu_L
+\]</span>
+Equivalently:
+<span class="math display">\[
+H_0: \mu_R - \mu_L = 0 \\
+H_1: \mu_R - \mu_L \neq 0
+\]</span></p>
+</div>
+<div id="data-exploration" class="section level1">
+<h1>Data exploration</h1>
+<p>First, we will read the data into R:</p>
+<pre class="r"><code>library(tidyverse)
+
+exdata &lt;- read_csv(&#39;https://uoepsy.github.io/data/ExerciseHours.csv&#39;)
+head(exdata)</code></pre>
+<pre><code>## # A tibble: 6 x 6
+##    year hand  exercise    tv pulse pierces
+##   &lt;dbl&gt; &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
+## 1     4 l           15     5    57       0
+## 2     2 l           20    14    70       0
+## 3     3 r            2     3    70       2
+## 4     1 l           10     5    66       3
+## 5     1 r            8     2    62       0
+## 6     1 r           14    14    62       0</code></pre>
+<p>Next, we should make sure that the hand variable is correctly handled as a factor. At the same time, we will only select the columns of interest:</p>
+<pre class="r"><code>exdata &lt;- exdata  %&gt;%
+    select(hand, exercise) %&gt;%
+    mutate(hand = factor(hand))
+
+head(exdata)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   hand  exercise
+##   &lt;fct&gt;    &lt;dbl&gt;
+## 1 l           15
+## 2 l           20
+## 3 r            2
+## 4 l           10
+## 5 r            8
+## 6 r           14</code></pre>
+<p>Visualise the distribution of exercise hours by dominant hand. First, let’s add a column with the mean of each group so that we can show the mean as a vertical green line.</p>
+<pre class="r"><code>exdata_plot &lt;- exdata %&gt;%
+    group_by(hand) %&gt;% 
+    mutate(avg_exercise = mean(exercise))
+
+exdata_plot</code></pre>
+<pre><code>## # A tibble: 50 x 3
+## # Groups:   hand [2]
+##    hand  exercise avg_exercise
+##    &lt;fct&gt;    &lt;dbl&gt;        &lt;dbl&gt;
+##  1 l           15         9.11
+##  2 l           20         9.11
+##  3 r            2        10.9 
+##  4 l           10         9.11
+##  5 r            8        10.9 
+##  6 r           14        10.9 
+##  7 l            2         9.11
+##  8 r           14        10.9 
+##  9 r           10        10.9 
+## 10 l           12         9.11
+## # … with 40 more rows</code></pre>
+<p>Next, display the distribution of exercise hours per week as a dotplot (or a histogram if you prefer) and show the mean with a vertical line <code>geom_vline()</code>:</p>
+<pre class="r"><code>ggplot(exdata_plot, aes(x = exercise)) +
+    geom_dotplot(binwidth = 1, fill = &#39;lightblue&#39;, color = NA) +
+    facet_grid(hand ~ .) +
+    geom_vline(aes(xintercept = avg_exercise),
+               color = &#39;darkolivegreen4&#39;, size = 1) +
+    labs(x = &quot;Exercise per week (Hours)&quot;)</code></pre>
+<p><img src="15_connecting_ci_ht_files/figure-html/unnamed-chunk-5-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>Let’s now create a table displaying, for the left and right handed students in the sample, the average hours of exercise per week and standard deviation:</p>
+<pre class="r"><code>exdata_stats &lt;- exdata %&gt;% 
+    group_by(hand) %&gt;%
+    summarise(count = n(),
+              avg_exercise = mean(exercise),
+              sd_exercise = sd(exercise))
+
+exdata_stats</code></pre>
+<pre><code>## # A tibble: 2 x 4
+##   hand  count avg_exercise sd_exercise
+##   &lt;fct&gt; &lt;int&gt;        &lt;dbl&gt;       &lt;dbl&gt;
+## 1 l         9         9.11        6.83
+## 2 r        41        10.9         8.33</code></pre>
+<p>I will store the difference in sample means into a variable called <code>diff_obs</code> for ease of use later on:</p>
+<pre class="r"><code>diff_obs &lt;- exdata_stats$avg_exercise[2] - exdata_stats$avg_exercise[1]
+diff_obs</code></pre>
+<pre><code>## [1] 1.815718</code></pre>
+<p>Recall we are interested in testing a claim about the (unknown) population difference in means:
+<span class="math display">\[
+\mu_R - \mu_L
+\]</span></p>
+<p>We estimate it with the sample difference in means
+<span class="math display">\[
+\bar x_R - \bar x_L = 1.816 \text{ hrs} \qquad = D_{obs} \text{ in short}
+\]</span></p>
+<p>Let’s now compute the bootstrap distribution. Recall that this will be centred at the sample statistic, i.e. the difference in means in the original sample shown above!</p>
+</div>
+<div id="bootstrap-distribution" class="section level1">
+<h1>Bootstrap distribution</h1>
+<p>First, we should pause a second and reflect on how the data were collected in the first place. This is clearly not a randomized experiment as it is not the case that a sample of participants was collected from a population and then each participant was randomly allocated to either a treatment or another treatment.</p>
+<p>We are, instead, in the presence of an <em>observational study</em>. An observational study is when researchers obtain a sample of units from a population and merely record the value of some variables on those units, without intervening in any way. In other words, they just observe the values that naturally exist in the units, without actively controlling the value of any variable.</p>
+<p>In this case we have a sample of students from a more general population of left-handed students. Similarly, we have another sample of students from another more general population of right-handed students.
+To create the bootstrap distribution, we need to resample in a way that reflects how the data were collected in the first place.</p>
+<p>To obtain a bootstrap distribution, we do the following many times. Sample 9 students, with replacement, from the original sample of left-handed students. Sample 41 students, with replacement, from the original sample of right-handed students. Then, we compute the difference between the means of those 2 samples.</p>
+<p>First, we need to import the <code>rep_sample_n()</code> function, which we will use to sample with replacement:</p>
+<pre class="r"><code>source(&#39;https://uoepsy.github.io/files/rep_sample_n.R&#39;)</code></pre>
+<p>We will also specify the number of samples we want to obtain, 1000 say (you could do more if you wish to have more precision).</p>
+<pre class="r"><code>num_samples &lt;- 1000</code></pre>
+<p>Then we will start by focusing on the left-handed students:</p>
+<pre class="r"><code>l_means &lt;- exdata %&gt;%
+    filter(hand == &#39;l&#39;) %&gt;%
+    rep_sample_n(n = nrow(.), samples = num_samples, replace = TRUE) %&gt;%
+    group_by(hand, sample) %&gt;%
+    summarise(avg = mean(exercise))
+l_means</code></pre>
+<pre><code>## # A tibble: 1,000 x 3
+## # Groups:   hand [1]
+##    hand  sample   avg
+##    &lt;fct&gt;  &lt;dbl&gt; &lt;dbl&gt;
+##  1 l          1  5.44
+##  2 l          2  7.11
+##  3 l          3  5.89
+##  4 l          4 10.3 
+##  5 l          5  6.22
+##  6 l          6  9.56
+##  7 l          7  5.67
+##  8 l          8  9.67
+##  9 l          9 10.1 
+## 10 l         10  6.44
+## # … with 990 more rows</code></pre>
+<p>Now, for the right-handed students:</p>
+<pre class="r"><code>r_means &lt;- exdata %&gt;%
+    filter(hand == &#39;r&#39;) %&gt;%
+    rep_sample_n(n = nrow(.), samples = num_samples, replace = TRUE) %&gt;%
+    group_by(hand, sample) %&gt;%
+    summarise(avg = mean(exercise))
+r_means</code></pre>
+<pre><code>## # A tibble: 1,000 x 3
+## # Groups:   hand [1]
+##    hand  sample   avg
+##    &lt;fct&gt;  &lt;dbl&gt; &lt;dbl&gt;
+##  1 r          1 12.9 
+##  2 r          2  9.37
+##  3 r          3 10.4 
+##  4 r          4 11.3 
+##  5 r          5 11.8 
+##  6 r          6 11.8 
+##  7 r          7  8.56
+##  8 r          8 12.5 
+##  9 r          9  8.61
+## 10 r         10  9.02
+## # … with 990 more rows</code></pre>
+<p>Finally, we combine the means of the left-handed and right-handed students:</p>
+<pre class="r"><code>all_means &lt;- bind_rows(l_means, r_means) %&gt;%
+    pivot_wider(names_from = hand, values_from = avg, names_prefix = &quot;avg_&quot;)
+all_means</code></pre>
+<pre><code>## # A tibble: 1,000 x 3
+##    sample avg_l avg_r
+##     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1      1  5.44 12.9 
+##  2      2  7.11  9.37
+##  3      3  5.89 10.4 
+##  4      4 10.3  11.3 
+##  5      5  6.22 11.8 
+##  6      6  9.56 11.8 
+##  7      7  5.67  8.56
+##  8      8  9.67 12.5 
+##  9      9 10.1   8.61
+## 10     10  6.44  9.02
+## # … with 990 more rows</code></pre>
+<hr />
+<p><code>bind_rows()</code> takes two tibbles and stacks them under each other (they must have the same column names!), while <code>pivot_wider()</code> changes the tibble by expanding one column into multiple columns.
+For example, consider the following data, measuring an outcome “mean” on different subjects (1 and 2) at different recall periods (I = immediate, W = one week later).</p>
+<p>The following data are in “long format”:</p>
+<pre><code>ID Recall Mean
+1  I      6
+1  W      3
+2  I      3
+2  W      1</code></pre>
+<p>and the wide format is:</p>
+<pre><code>ID Mean_I Mean_W
+1  6      3
+2  3      1</code></pre>
+<p>To go from long to wide, use pivot_wider, provide the column which gives the names: names_from = Recall, where the values come from: values_from = Mean, and give a better name to the columns otherwise it would be just I and W, so we do names_prefix = “Mean_.”</p>
+<p>To go from wide to long, we use pivot_longer. You should provide which columns to collapse, how to call the column with the group labels: names_to = “Recall,” and how to call the column with the values: values_to = “Mean”</p>
+<hr />
+<p>Let’s now compute the difference between the mean for right-handed students and left-handed students:</p>
+<pre class="r"><code>boot_dist &lt;- all_means %&gt;%
+    mutate(diff = avg_r - avg_l)
+boot_dist</code></pre>
+<pre><code>## # A tibble: 1,000 x 4
+##    sample avg_l avg_r   diff
+##     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+##  1      1  5.44 12.9   7.48 
+##  2      2  7.11  9.37  2.25 
+##  3      3  5.89 10.4   4.55 
+##  4      4 10.3  11.3   0.984
+##  5      5  6.22 11.8   5.53 
+##  6      6  9.56 11.8   2.25 
+##  7      7  5.67  8.56  2.89 
+##  8      8  9.67 12.5   2.80 
+##  9      9 10.1   8.61 -1.50 
+## 10     10  6.44  9.02  2.58 
+## # … with 990 more rows</code></pre>
+</div>
+<div id="confidence-interval" class="section level1">
+<h1>Confidence interval</h1>
+<div id="percentile-method" class="section level2">
+<h2>Percentile method</h2>
+<p>We can obtain a 95% confidence interval for the difference in means using, for example, the 0.025 and 0.975 quantiles of the bootstrap distribution:</p>
+<pre class="r"><code>boot_quant &lt;- quantile(boot_dist$diff, probs = c(0.025, 0.975))
+boot_quant</code></pre>
+<pre><code>##      2.5%     97.5% 
+## -3.162669  6.546274</code></pre>
+<div class="int">
+<p>We are 95% confident that the mean exercise hours for right-handed students is between 3.2 hours less and and 6.5 hours more than for left-handed students.</p>
+</div>
+<p><img src="15_connecting_ci_ht_files/figure-html/unnamed-chunk-15-1.png" width="70%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="se-method" class="section level2">
+<h2>SE method</h2>
+<p>If the bootstrap distribution is fairly symmetric, we can equivalently construct a 95% confidence interval by using the bootstrap standard error and report:</p>
+<p><span class="math display">\[
+\text{Statistic} \pm 1.96 * SE
+\]</span></p>
+<p>In our case</p>
+<pre class="r"><code>se &lt;- sd(boot_dist$diff)
+se</code></pre>
+<pre><code>## [1] 2.574016</code></pre>
+<p>And the interval goes from and to these two values:</p>
+<pre class="r"><code>diff_obs - 1.96 * se</code></pre>
+<pre><code>## [1] -3.229353</code></pre>
+<pre class="r"><code>diff_obs + 1.96 * se</code></pre>
+<pre><code>## [1] 6.860789</code></pre>
+<div class="int">
+<p>We are 95% confident that the mean exercise hours for right-handed students is between -3.2 hours less and 6.9 hours more than for left-handed students.</p>
+</div>
+<p>In the this section, we have used the bootstrap distribution to provide a range of plausible values for the difference mean exercise hours per week.</p>
+<p>We can see that the interval goes from -3.2 to 6.9 hrs. This means that a hypothetical value of 0 for the difference in means is contained in the interval. In turn, this means that 0 is a plausible value for the population difference in means and for this reason if we were to test such null hypothesis in a two-sided test, we would not reject <span class="math inline">\(H_0 : \mu_R - \mu_L = 0\)</span> at the 5% significance level.</p>
+</div>
+</div>
+<div id="null-distribution" class="section level1">
+<h1>Null distribution</h1>
+<p>We now will perform a 5% test for our hypotheses but using the null distribution approach, rather than a confidence interval.</p>
+<p>Recall that the null distribution must be consistent with the null hypothesis:
+<span class="math display">\[
+H_0: \mu_R = \mu_L \\
+H_1: \mu_R \neq \mu_L
+\]</span></p>
+<p>So we must make the mean of the right-handed students the same as that of left-handed students and sample from these new data.</p>
+<p><strong>Left-handed students</strong></p>
+<div class="question-begin">
+Question 1
+</div>
+<div class="question-body">
+<p>Shift the exercise hours of left-handed students to have the same mean as the right-handed students.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-155" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-155&#39;, &#39;sol-start-155&#39;)"></span>
+</div>
+<div id="sol-body-155" class="solution-body" style="display: none;">
+<pre class="r"><code>l_data &lt;- exdata %&gt;%
+    filter(hand == &#39;l&#39;) %&gt;%
+    mutate(exercise = exercise + diff_obs)
+l_data</code></pre>
+<pre><code>## # A tibble: 9 x 2
+##   hand  exercise
+##   &lt;fct&gt;    &lt;dbl&gt;
+## 1 l        16.8 
+## 2 l        21.8 
+## 3 l        11.8 
+## 4 l         3.82
+## 5 l        13.8 
+## 6 l         3.82
+## 7 l         4.82
+## 8 l        16.8 
+## 9 l         4.82</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 2
+</div>
+<div class="question-body">
+<p>Using <code>rep_sample_n()</code>, compute 1,000 resample means for left-handed students using the shifted exercise column.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-156" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-156&#39;, &#39;sol-start-156&#39;)"></span>
+</div>
+<div id="sol-body-156" class="solution-body" style="display: none;">
+<pre class="r"><code>l_means &lt;- l_data %&gt;%
+    rep_sample_n(n = nrow(.), samples = num_samples, replace = TRUE) %&gt;%
+    group_by(hand, sample) %&gt;%
+    summarise(avg = mean(exercise))
+l_means</code></pre>
+<pre><code>## # A tibble: 1,000 x 3
+## # Groups:   hand [1]
+##    hand  sample   avg
+##    &lt;fct&gt;  &lt;dbl&gt; &lt;dbl&gt;
+##  1 l          1 10.3 
+##  2 l          2 13.8 
+##  3 l          3 10.8 
+##  4 l          4  9.04
+##  5 l          5 15.6 
+##  6 l          6 12.3 
+##  7 l          7 10.9 
+##  8 l          8  8.82
+##  9 l          9  7.37
+## 10 l         10 12.6 
+## # … with 990 more rows</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<p><strong>Right-handed students</strong></p>
+<div class="question-begin">
+Question 3
+</div>
+<div class="question-body">
+<p>Using <code>rep_sample_n()</code>, compute 1,000 resample means for right-handed students.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-157" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-157&#39;, &#39;sol-start-157&#39;)"></span>
+</div>
+<div id="sol-body-157" class="solution-body" style="display: none;">
+<pre class="r"><code>r_data &lt;- exdata %&gt;%
+    filter(hand == &#39;r&#39;)
+
+r_means &lt;- r_data %&gt;%
+    rep_sample_n(n = nrow(.), samples = num_samples, replace = TRUE) %&gt;%
+    group_by(hand, sample) %&gt;%
+    summarise(avg = mean(exercise))
+r_means</code></pre>
+<pre><code>## # A tibble: 1,000 x 3
+## # Groups:   hand [1]
+##    hand  sample   avg
+##    &lt;fct&gt;  &lt;dbl&gt; &lt;dbl&gt;
+##  1 r          1  12.6
+##  2 r          2  10.9
+##  3 r          3  11.1
+##  4 r          4  10.8
+##  5 r          5  11.3
+##  6 r          6  10.2
+##  7 r          7  10.5
+##  8 r          8  11.3
+##  9 r          9  14.8
+## 10 r         10  12.1
+## # … with 990 more rows</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<p><strong>Combine</strong></p>
+<div class="question-begin">
+Question 4
+</div>
+<div class="question-body">
+<p>Combine the left-handed and right-handed means into a single tibble.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-158" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-158&#39;, &#39;sol-start-158&#39;)"></span>
+</div>
+<div id="sol-body-158" class="solution-body" style="display: none;">
+<pre class="r"><code>all_means &lt;- bind_rows(l_means, r_means) %&gt;%
+    pivot_wider(names_from = hand, values_from = avg, names_prefix = &quot;avg_&quot;)
+all_means</code></pre>
+<pre><code>## # A tibble: 1,000 x 3
+##    sample avg_l avg_r
+##     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1      1 10.3   12.6
+##  2      2 13.8   10.9
+##  3      3 10.8   11.1
+##  4      4  9.04  10.8
+##  5      5 15.6   11.3
+##  6      6 12.3   10.2
+##  7      7 10.9   10.5
+##  8      8  8.82  11.3
+##  9      9  7.37  14.8
+## 10     10 12.6   12.1
+## # … with 990 more rows</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 5
+</div>
+<div class="question-body">
+<p>Compute the difference between the mean for right-handed students and left-handed students.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-159" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-159&#39;, &#39;sol-start-159&#39;)"></span>
+</div>
+<div id="sol-body-159" class="solution-body" style="display: none;">
+<pre class="r"><code>null_dist &lt;- all_means %&gt;%
+    mutate(diff = avg_r - avg_l)
+null_dist</code></pre>
+<pre><code>## # A tibble: 1,000 x 4
+##    sample avg_l avg_r   diff
+##     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+##  1      1 10.3   12.6  2.35 
+##  2      2 13.8   10.9 -2.94 
+##  3      3 10.8   11.1  0.282
+##  4      4  9.04  10.8  1.72 
+##  5      5 15.6   11.3 -4.30 
+##  6      6 12.3   10.2 -2.02 
+##  7      7 10.9   10.5 -0.415
+##  8      8  8.82  11.3  2.48 
+##  9      9  7.37  14.8  7.43 
+## 10     10 12.6   12.1 -0.472
+## # … with 990 more rows</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 6
+</div>
+<div class="question-body">
+<p>Using the critical value method, test whether the sample data provide evidence (at the 5% significance level) that the mean exercise hours for right-handed students and left-handed students are not the same.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-160" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-160&#39;, &#39;sol-start-160&#39;)"></span>
+</div>
+<div id="sol-body-160" class="solution-body" style="display: none;">
+<pre class="r"><code>null_crit &lt;- quantile(null_dist$diff, probs = c(0.025, 0.975))
+null_crit</code></pre>
+<pre><code>##      2.5%     97.5% 
+## -4.938821  4.795393</code></pre>
+<div class="int">
+<p>The observed difference in means, <span class="math inline">\(\bar x_R - \bar x_L = 1.816\)</span> falls between the lower (-4.939) and upper critical values (4.795) cutting a 5% area in the tails. For this reason, at the 5% significance level, we do not reject the null hypothesis that the mean exercise hours for right and left-handed students are the same.</p>
+</div>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 7
+</div>
+<div class="question-body">
+<p>Perform the same test using the p-value approach.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-161" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-161&#39;, &#39;sol-start-161&#39;)"></span>
+</div>
+<div id="sol-body-161" class="solution-body" style="display: none;">
+<pre class="r"><code>pvalue &lt;- 2 * sum(null_dist$diff &gt;= diff_obs ) / nrow(null_dist)
+pvalue</code></pre>
+<pre><code>## [1] 0.456</code></pre>
+<div class="int">
+<p>We performed a two-sided test against the null hypothesis that the mean difference in exercise hours per week between right and left-handed students is 0. At the 5% significance level, the p-value of 0.456 indicates that the sample results do not provide sufficient evidence against the null and in favour of the alternative.</p>
+<p>If the mean exercise hours for right and left handed students were the same, we expect to observe a sample difference as extreme as 1.816 in about 46 out of 100 samples.</p>
+</div>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 8
+</div>
+<div class="question-body">
+<p>Does a test of hypothesis provide you information that a confidence interval does not?</p>
+<p>And does a confidence interval provide you information that a test of hypothesis does not?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-162" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-162&#39;, &#39;sol-start-162&#39;)"></span>
+</div>
+<div id="sol-body-162" class="solution-body" style="display: none;">
+<p>An hypothesis test provides us information about strength of evidence.</p>
+<p>In other words, imagine having a virtual population where the mean is actually 0, i.e. where the null <span class="math inline">\(H_0: \mu = 0\)</span> is true. Then you take many samples and compute the sample mean for each sample. The histogram of the sample means shows the null distribution, i.e. the values of the sample mean that you expect to observe when the null hypothesis is true.
+If your original sample mean is not what we expect to observe when the null is true, i.e. when it is extreme in the null distribution, then we might doubt that the original sample came from a population where the mean is 0.</p>
+<p>The probability of a sample mean as extreme or more extreme than the observed sample mean, when the null is true, is known as the p-value. This gives us information about the strength of evidence that the sample data provide in favour of the alternative hypothesis.</p>
+<p>However, a test of hypothesis does not provide us with a range of plausible values for the parameter of interest. This would be especially useful in the case when the test of hypothesis has rejected the null, saying, for example, that we have evidence that the population parameter is not zero.</p>
+<p>However, is it 1, or 5, or 10, or 100? How much different from 0? What’s the magnitude of the difference?</p>
+<p>This is where we gain more information by providing, after a significant hypothesis test, a confidence interval for the population parameter.
+This way, we report evidence that the population parameter is not zero, and also the magnitude of the effect. If a 95% CI is 2.1 to 6, we might say that we are 95% confidence that the population parameter is between 2.1 and 6.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="yellow">
+<p><strong>GOOD PRACTICE</strong></p>
+<p>Whenever you reject a null hypothesis, i.e. you find significant results, it is good practice to follow up your analysis by reporting a confidence interval for your statistic.</p>
+<p>The hypothesis test tells you the strength of evidence that your sample data provide against the null hypothesis, but it does not tell you much about the magnitude of that effect or difference in means. To get the magnitude, you need a confidence interval.</p>
+</div>
+<!-- Formatting -->
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;">
+
+</div>
+</div>
+
+<link rel="stylesheet" href="https://uoepsy.github.io/assets/css/ccfooter.css" />
+<div class="ccfooter"></div>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

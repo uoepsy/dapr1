@@ -1,0 +1,929 @@
+```{r, echo=FALSE}
+HIDDEN_SOLS=FALSE
+TOGGLE=TRUE
+set.seed(15732)
+ggplot2::theme_set(ggplot2::theme_gray(base_size=13))
+
+library(tidyverse)
+```
+
+# Covariance and correlation {#chap-covcor}
+
+
+<div class="lo">
+#### Instructions {-}
+  
+- This week, we will have a walkthrough of some examples, followed by a set of questions for you to attempt on your own. 
+- Please create a new Rmarkdown file and work along with the walkthrough, then complete the lab exercises. 
+
+#### Learning outcomes {-}
+
+**LO1.** Understand when and how to calculate the summary statistics of covariance and correlation, and how to do this in R.
+
+**LO2.** Learn what different strengths and directions of correlation look like when visualised as a scatterplot of two quantitative variables.  
+
+**LO3.** Learn how to conduct a test to determine whether a correlation is different from zero.
+
+<!-- #### Reading {-} -->
+
+</div>
+
+## Recap {-}
+
+In weeks 16-18, we were working with quantitative _response_ variables, and categorical _explanatory_ variables.   
+  
+
+|                    Test |                                                                                                    Description |
+|------------------------:|---------------------------------------------------------------------------------------------------------------:|
+|     One-sample $t$-test |            test for the significance of the difference between<br>one mean ($\mu$) and some hypothesised value |
+|    Two-samples $t$-test |                         test for the significance of the difference between<br>two means ($\mu_1$ and $\mu_2$) |
+| Paired-samples $t$-test | test for the significance of the difference between<br>the mean difference ($\mu_d$) from paired samples and 0 |
+
+---
+
+Last week [(week 19)](#chap-chi-square), we began working with categorical response variables. 
+We discussed the __chi-square goodness-of-fit test__ and the __chi-square test of independence__:  
+
+|  Test                    | Description                                                                    |
+|-------------------------:|-------------------------------------------------------------------------------:|
+|  $\chi^2$ goodness-of-fit| tests whether categorical variable<br>conforms with hypothesized proportions    |
+|  $\chi^2$ independence   | tests whether categorical variable<br>is related to another categorical variable|
+
+---
+
+This week, we will cover associations between two quantitative variables
+
+
+## Walkthrough {-}
+
+### Visualisation {-}
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.1")`
+How would you most often visualise the relationship between two quantitative variables?  
+
+What should we fill this plot with?  
+```{r echo=FALSE}
+tibble(age=runif(100,20,80),height=rnorm(100,160,10)) %>%
+  ggplot(.,aes(x=age,y=height))+
+  labs(x="- Age (years) -",y="Height (cm)")+
+  annotate("text",x=50,y=160,label="?", size=30)+
+  xlim(20,80)+ylim(140,180)+
+  theme_classic()
+```
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+Scatterplot! 
+```{r echo=FALSE, message=FALSE,warning=FALSE}
+tibble(age=runif(100,20,80),height=rnorm(100,160,10)) %>%
+  ggplot(.,aes(x=age,y=height))+
+  geom_point()+
+  labs(x="- Age (years) -",y="Height (cm)")+
+  xlim(20,80)+ylim(140,180)+
+  theme_classic()
+```
+`r msmbstyle::solution_end()`
+---
+```{r include=FALSE}
+set.seed(35967)
+x1<- round(runif(20, 30,100))
+x123 <- cbind(scale(x1),matrix(rnorm(40),ncol=2))
+
+c1 <- var(x123)
+chol1 <- solve(chol(c1))
+newx <-  x123 %*% chol1 
+
+covm<-matrix(c(1,.7,-.3,.7,1,.05,-.3,.05,1), ncol=3)
+chol2 <- chol(covm)
+finalx <- newx %*% chol2 * sd(x1) + mean(x1)
+cor(finalx)
+
+recalldata<-
+  tibble(
+    ppt = paste0("ppt_",1:20),
+    recall_accuracy = finalx[,1],
+    recall_confidence = round(finalx[,2],1)*0.8,
+    age = round(finalx[,3])-20
+  )
+
+write.csv(recalldata,"data/recalldata.csv",row.names=F)
+rm(x1,x123,c1,chol1,newx,covm,chol2,finalx)
+```
+
+Our data for this walkthrough is from a (hypothetical) study on memory. Twenty participants studied passages of text (c500 words long), and were tested a week later. The testing phase presented participants with 100 statements about the text. They had to answer whether each statement was true or false, as well as rate their confidence in each answer (on a sliding scale from 0 to 100). The dataset contains, for each participant, the percentage of items correctly answered, and the average confidence rating. Participants' ages were also recorded.   
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.2")`
+Read in the data from [https://edin.ac/2wHhCej](https://edin.ac/2wHhCej) - it is a __.csv__ file - and look at the dimensions of the data as well as some summary statistics. 
+
+Plot the relationship between the percentage of items answered correctly (`recall_accuracy`) and participants' average self-rating of confidence in their answers (`recall_confidence`).  
+
+Plot the relationship between recall accuracy and age. 
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = FALSE)`
+```{r message=FALSE,warning=FALSE}
+recalldata <- read_csv("https://edin.ac/2wHhCej")
+
+dim(recalldata)
+
+summary(recalldata)
+
+ggplot(recalldata, aes(x=recall_confidence, recall_accuracy))+
+  geom_point()
+
+ggplot(recalldata, aes(x=age, recall_accuracy))+
+  geom_point()
+```
+`r msmbstyle::solution_end()`
+
+These two relationships look quite different.  
+
++ For participants who tended to be more confident in their answers, the percentage of items they correctly answered tends to be higher.  
++ The older participants were, the lower the percentage of items they correctly answered tended to be.  
+
+Which relationship are you more confident in and why? 
+
+Ideally, we would have some means of quantifying this sort of relationship... 
+
+There are two summary statistics which we can use to talk about the relationship between two quantitative variables: __Covariance__ and __Correlation__
+
+The notion of correlation may already be familiar to you, but to understand it better, we need to start with _covariance._ 
+
+### Covariance {-}
+
+<div class="red">
+<br>
+Covariance is the measure of how two variables vary together. 
+It is the change in one variable associated with the change in another variable.   
+
+For samples, covariance is calculated using the following formula:
+
+$$\mathrm{cov}(x,y)=\frac{1}{n-1}\sum_{i=1}^n (x_{i}-\bar{x})(y_{i}-\bar{y})$$
+
+where:
+
+- $x$ and $y$ are two variables; e.g., `age` and `recall_accuracy`;
+- $i$ denotes the observational unit, such that $x_i$ is value that the $x$ variable takes on the $i$th observational unit, and similarly for $y_i$;
+- $n$ is the sample size.
+</div>  
+
+#### A visual explanation {-}  
+```{r echo=FALSE, message=FALSE,warning=FALSE}
+library(patchwork)
+set.seed(7135)
+tibble(x=runif(10,20,80),y=rnorm(10,160,10)) %>%
+  mutate(y=y+x/2,
+         coldir = ifelse( (x>mean(x) & y>mean(y)) | (x<mean(x) & y<mean(y)), "pos","neg")
+  ) -> df
+
+p1<-ggplot(df,aes(x=x,y=y))+
+  geom_point()+
+  theme_classic()
+  
+p2<-ggplot(df,aes(x=x,y=y))+
+  geom_point()+
+  theme_classic()+
+  geom_vline(aes(xintercept=mean(x)), lty="dashed")+
+  annotate("text",x=mean(df$x)+1, y=max(df$y)-5,label=expr(bar("x")))+
+  geom_hline(aes(yintercept=mean(y)), lty="dashed")+
+  annotate("text",x=min(df$x)+5, y=mean(df$y)+1,label=expr(bar("y")))
+  
+p3<-ggplot(df,aes(x=x,y=y))+
+  geom_point()+
+  theme_classic()+
+  geom_vline(aes(xintercept=mean(x)), lty="dashed")+
+  annotate("text",x=mean(df$x)-1, y=max(df$y)-5,label=expr(bar("x")))+
+  geom_hline(aes(yintercept=mean(y)), lty="dashed")+
+  annotate("text",x=min(df$x)+5, y=mean(df$y)+1,label=expr(bar("y")))+
+  annotate("text",x=mean(df$x)+7, y=202,label=expression(x[i]-bar("x")))+
+  annotate("text",x=71.5, y=mean(df$y)+7,label=expression(y[i]-bar("y")))+
+  geom_segment(aes(x = mean(x), y = 200.9559, xend = 69.47989, yend = 200.9559), color="tomato1", data = df)+
+  geom_segment(aes(x = 69.47989, y = mean(y), xend = 69.47989, yend = 200.9559), color="tomato1",data = df)
+
+
+p4<-ggplot(df,aes(x=x,y=y))+
+  geom_point(aes(col=coldir))+
+  scale_color_manual("",values=c("black","red"))+
+  theme_classic()+
+  theme(legend.position = "none")+
+  geom_vline(aes(xintercept=mean(x)), lty="dashed")+
+  annotate("text",x=mean(df$x)-1, y=max(df$y)-5,label=expr(bar("x")))+
+  geom_hline(aes(yintercept=mean(y)), lty="dashed")+
+  annotate("text",x=min(df$x)+5, y=mean(df$y)+1,label=expr(bar("y")))+
+  geom_segment(aes(x = mean(x), y = 200.9559, xend = 69.47989, yend = 200.9559), color="tomato1", data = df)+
+  geom_segment(aes(x = 69.47989, y = mean(y), xend = 69.47989, yend = 200.9559), color="tomato1",data = df)+
+  geom_segment(aes(x = mean(x), y = 211.5757, xend = 56.36053, yend = 211.5757), color="tomato1", data = df)+
+  geom_segment(aes(x = 56.36053, y = mean(y), xend = 56.36053, yend = 211.5757), color="tomato1",data = df)+
+  geom_segment(aes(x = mean(x), y = 180.5799, xend = 44.37031, yend = 180.5799), color="tomato1", data = df)+
+  geom_segment(aes(x = 44.37031, y = mean(y), xend = 44.37031, yend = 180.5799), color="tomato1",data = df)
+
+p5<-ggplot(df,aes(x=x,y=y))+
+  geom_point(aes(col=coldir))+
+  scale_color_manual("",values=c("blue","red"))+
+  theme_classic()+
+  theme(legend.position = "none")+
+  geom_vline(aes(xintercept=mean(x)), lty="dashed")+
+  annotate("text",x=mean(df$x)-1, y=max(df$y)-5,label=expr(bar("x")))+
+  geom_hline(aes(yintercept=mean(y)), lty="dashed")+
+  annotate("text",x=min(df$x)+5, y=mean(df$y)+1,label=expr(bar("y")))+
+  geom_segment(aes(x = mean(x), y = 200.9559, xend = 69.47989, yend = 200.9559), color="tomato1", data = df)+
+  geom_segment(aes(x = 69.47989, y = mean(y), xend = 69.47989, yend = 200.9559), color="tomato1",data = df)+
+  geom_segment(aes(x = mean(x), y = 211.5757, xend = 56.36053, yend = 211.5757), color="tomato1", data = df)+
+  geom_segment(aes(x = 56.36053, y = mean(y), xend = 56.36053, yend = 211.5757), color="tomato1",data = df)+
+  geom_segment(aes(x = mean(x), y = 180.5799, xend = 44.37031, yend = 180.5799), color="tomato1", data = df)+
+  geom_segment(aes(x = 44.37031, y = mean(y), xend = 44.37031, yend = 180.5799), color="tomato1",data = df)+
+  geom_segment(aes(x = mean(x), y = 194.4188, xend = 45.32536, yend = 194.4188), color="skyblue3", data = df)+
+  geom_segment(aes(x = 45.32536, y = mean(y), xend = 45.32536, yend = 194.4188), color="skyblue3",data = df)+
+  geom_segment(aes(x = mean(x), y = 182.6440, xend = 66.73541, yend = 182.6440), color="skyblue3", data = df)+
+  geom_segment(aes(x = 66.73541, y = mean(y), xend = 66.73541, yend = 182.6440), color="skyblue3",data = df)
+```
+
+Consider the following scatterplot:  
+```{r echo=FALSE, message=FALSE}
+p1
+```
+<br>
+Now let's superimpose a vertical dashed line at the mean of $x$ ($\bar{x}$) and a horizontal dashed line at the mean of $y$ ($\bar{y}$):
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+p2
+```
+<br>
+Now let's pick one of the points, call it $x_i$, and show $(x_{i}-\bar{x})$ and $(y_{i}-\bar{y})$.  
+<br>
+Notice that this makes a rectangle.  
+<br>
+As $(x_{i}-\bar{x})$ and $(y_{i}-\bar{y})$ are both positive values, their product -  $(x_{i}-\bar{x})(y_{i}-\bar{y})$ - is positive. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+p3
+```
+<br>
+In fact, for all these points in red, the product $(x_{i}-\bar{x})(y_{i}-\bar{y})$ is positive (remember that a negative multiplied by a negative gives a positive): 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+p4
+```
+<br>
+And for these points in blue, the product $(x_{i}-\bar{x})(y_{i}-\bar{y})$ is negative:  
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+p5
+```
+<br>
+Now take another look at the formula for covariance:  
+
+$$\mathrm{cov}(x,y)=\frac{\sum_{i=1}^n (x_{i}-\bar{x})(y_{i}-\bar{y})}{n-1}$$
+  
+It is the sum of all these products divided by $n-1$. It is the average of the products! 
+  
+#### Manually calculating covariance {-}
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.3")`
+We're going to calculate the covariance between recall accuracy and recall confidence
+Create 2 new columns in the memory recall data, one of which is the mean recall accuracy, and one which is the mean recall confidence. 
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+Remember to assign it using `recalldata <- ...` otherwise it will just print out the data with the new columns, rather than store it anywhere. 
+```{r}
+recalldata <-
+  recalldata %>% mutate(
+    maccuracy = mean(recall_accuracy),
+    mconfidence = mean(recall_confidence)
+  )
+```
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.4")`
+Now create three new columns which are:
+
+i. recall accuracy minus the mean recall accuracy - this is the $(x_i - \bar{x})$ part.   
+ii. confidence minus the mean confidence - and this is the $(y_i - \bar{y})$ part.   
+iii. the product of i. and ii. - this is calculating $(x_i - \bar{x})$$(y_i - \bar{y})$.    
+
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+```{r}
+recalldata <- 
+  recalldata %>% 
+    mutate(
+      acc_minus_mean_acc = recall_accuracy - maccuracy,
+      conf_minus_mean_conf = recall_confidence - mconfidence,
+      prod_acc_conf = acc_minus_mean_acc * conf_minus_mean_conf
+    )
+
+recalldata
+```
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.5")`
+Finally, sum the products, and divide by $n-1$
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+```{r}
+recalldata %>%
+  summarise(
+    prod_sum = sum(prod_acc_conf),
+    n = n()
+  )
+
+2243.46 / (20-1)
+```
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.6")`
+Check that you get the same results using `cov()` function.  
+
+**Hint:** `cov()` can take two variables `cov(x = , y = )`. Think about how you can use the `$` to pull out the variables we are using here.
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+It's the same number!
+```{r}
+cov(recalldata$recall_accuracy, recalldata$recall_confidence)
+```
+`r msmbstyle::solution_end()`
+
+
+<!-- JK remove this bit? -->
+
+<!-- We can also give `cov()` a dataframe of only quantitative variables:  -->
+<!-- ```{r} -->
+<!-- recall_nums <-  -->
+<!--   recalldata %>%  -->
+<!--   select(recall_accuracy, recall_confidence, age) -->
+
+<!-- cov(recall_nums) -->
+<!-- ``` -->
+
+---
+
+---
+
+### Correlation ($r$) {-}
+
+<div class="lo">
+  
+<br>
+You can think of correlation as a standardized covariance. It has a scale from negative one to one, on which the distance from zero indicates the strength of the relationship.  
+Just like covariance, positive/negative values reflect the nature of the relationship.  
+
+The __correlation coefficient__ is a standardised number which quantifies the strength and direction of the **linear** relationship between two variables.    
+ 
++ In a __population__, it is denoted by $\rho$.  
++ In a __sample__, it is denoted by $r$.  
+  
+We saw in the lecture that we can calculate $r$ using the following formula:  
+$$
+r_{(x,y)}=\frac{\mathrm{cov}(x,y)}{s_xs_y}
+$$ 
+
+And we expanded this to:
+
+$$
+r_{(x,y)} = \frac{\frac{\sum_{i=1}^{n}{(x_i - \bar{x})(y_i - \bar{y})}}{n-1}}{\sqrt{\frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}} \sqrt{\frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}}}
+$$
+<br>
+This looks like a lot!  
+But we can actually rearrange it to get the following:  
+<br>
+$$
+r_{(x,y)}=\frac{1}{n-1} \sum_{i=1}^n \left( \frac{x_{i}-\bar{x}}{s_x} \right) \left( \frac{y_{i}-\bar{y}}{s_y} \right)
+$$
+<br>
+Notice that this is very similar to the formula for covariance, but the values $(x_i - \bar{x})$ are divided by the standard deviation ($s_x$), as are the values $(y_i - \bar{y})$ divided by $s_y$.   
+<br>
+This _standardises_ all the values so that they are expressed as the distance _in standard deviations_ from the mean ($\bar x$).  
+
+#### Properties of correlation coefficients {-}  
+
++ $-1 \leq r \leq 1$
++ The sign indicates the direction of association
+  + _positive association_ ($r > 0$) means that values of one variable tend to be higher when values of the other variable are higher
+  + _negative association_ ($r < 0$) means that values of one variable tend to be lower when values of the other variable are higher
+  + _no linear association_ ($r \approx 0$) means that higher/lower values of one variable do not tend to occur with higher/lower values of the other variable 
++ The closer $r$ is to $\pm 1$, the stronger the linear association
++ $r$ has no units and does not depend on the units of measurement
++ The correlation between $x$ and $y$ is the same as the correlation between $y$ and $x$
+
+</div>
+
+---
+  
+---
+
+#### Manually calculating correlation {-}
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.7")`
+We calculated above that $\mathrm{cov}(\texttt{recall_accuracy}, \texttt{recall_confidence})$ = `r cov(recalldata$recall_accuracy, recalldata$recall_confidence) %>% round(3)`.  
+  
+To calculate the _correlation_, we simply divide this by the standard deviations of the two variables.  $s_{\texttt{recall_accuracy}} \times s_{\texttt{recall_confidence}}$
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+```{r}
+recalldata %>% summarise(
+  s_ra = sd(recall_accuracy),
+  s_rc = sd(recall_confidence)
+)
+
+118.08 / (14.527 * 11.622)
+
+```
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.8")`
+However, just like R has a `cov()` function for calculating covariance, there is a `cor()` function for calculating correlation!   
+They work in a similar way. Try using `cor()` now and check that we get the same result as above (or near enough, remember that we rounded some numbers above).  
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+```{r}
+cor(recalldata$recall_accuracy, recalldata$recall_confidence)
+```
+`r msmbstyle::solution_end()`
+  
+---
+  
+---
+
+### <b>Game:</b> Guess the $r$ {-}
+Take a break and play this "guess the correlation" game to get an idea of what different strengths and directions of $r$ can look like.  
+  
+`r knitr::include_url("http://guessthecorrelation.com/", height="650px")`
+**source: [http://guessthecorrelation.com/](http://guessthecorrelation.com/)**
+
+---
+  
+---
+  
+### Testing significance of the correlation coefficient {-}  
+
+<div class="red"> 
+  
+<br>
+Okay, now that we've seen the formulae for _covariance_ and _correlation_, as well as how to quickly calculate them in R using `cov()` and `cor()`, we can use a statistical test to establish the probability of finding an association this strong by chance alone.  
+
+__Hypotheses__ 
+
+_Remember_, hypotheses are about the _population_ parameter (in this case the correlation between the two variables in the population - i.e., $\rho$).  
+
+<div style="margin-left:15px">  
+__Null Hypothesis__  
+
++ There is _not_ a linear relationship between $x$ and $y$ in the population.<br>$H_0: \rho = 0$  
+
+<br>
+__Alternative Hypothesis__  
+
++ There is a _positive_ linear relationship between $x$ and $y$ in the population.<br>$H_1: \rho > 0$  
++ There is a _negative_ linear relationship between $x$ and $y$ in the population.<br>$H_1: \rho < 0$  
++ There is a linear relationship between $x$ and $y$ in the population.<br>$H_1: \rho \neq 0$  
+
+</div>
+
+
+__Test statistic__ 
+
+Our test statistic here is yet _another_ $t$ statistic, the formula for which depends on both the observed correlation ($r$) and the sample size ($n$):  
+
+$$t = r \sqrt{\frac{n-2}{1-r^2}}$$
+
+__$p$-value__
+
+We calculate the p-value for our $t$-statistic in the usual way:  
+
+i. $\mathrm{Pr}(T_{n-2} \leq t)$
+ii. $\mathrm{Pr}(T_{n-2} \geq t)$
+iii. $2 \times \mathrm{Pr}(T_{n-2} \geq |t|)$
+
+where $T_{n-2}$ denotes a $t$-distribution with __n - 2__ degrees of freedom.
+
+#### Assumptions {-}  
+
++ Both variables are quantitative
++ Both variables should be drawn from normally distributed populations.
++ The relationship between the two variables should be linear.  
++ Homoscedasticity 
+
+</div>
+
+In R, we can test the significance of the correlation coefficient really easily with the function `cor.test()`:  
+
+```{r}
+cor.test(recalldata$recall_accuracy, recalldata$recall_confidence)
+```
+
+Or, if we want to calculate our test statistic manually: 
+```{r}
+#calculate r
+r = cor(recalldata$recall_accuracy, recalldata$recall_confidence)
+
+#get n
+n = recalldata %>% 
+  summarise(n=n()) %>% pull(n)
+
+#calculate t
+tstat = r * sqrt((n - 2) / (1 - r^2))
+
+#calculate p-value for t, with df = n-2 
+2*(1-pt(tstat, df=18))
+```
+
+
+### Extras: Correlation matrix {-}  
+
+Lots of psychological datasets will have many many related variables. For instance, if a researcher was interested in job satisfaction, they might give a questionnaire to participants, and we would end up with a dataset with lots of variables (one for each question).  
+
+We will often want to quickly summarise the relationship between all possible pairs of variables. In the lecture, we saw how to do this using the `hetcor()` function from the `polycor` package, giving it a set of variables (or a whole dataset).  
+
+You probably won't have the package `polycor` yet, so you'll need to install it first.  
+
+`r msmbstyle::solution_begin(header = "Refresher: Installing and loading packages", hidden = FALSE)`
+__Installing packages__  
+<div style="margin-left: 15px">
+You can install a package either by using `install.packages()` (for example: `install.packages("polycor")`), or by choosing the Packages tab in the bottom right window of RStudio, and clicking the install button.  
+  
+__Note:__ If you run `install.packages()`, you can do this in the __console__ (the bottom-left window in RStudio).  
+Remember that the console works like scratch-paper in that _nothing you write there is saved._  
+
+But we don't want to save the code which installs packages - if we had it in our RMarkdown document, then _every time that you run your code, you will be reinstalling the package_.  
+So running the `install.packages()` line from a code-chunk in your RMarkdown document is completely fine, just be sure to delete this line of code _after_ you have run it.  
+</div>
+__Loading packages__
+<div style="margin-left: 15px">
+Now that we have installed a package, to use it we need to load it first.  
+This is what we are doing when we use `library()`.  
+  
+This line you __should__ keep in your code, because it ensures that your code is reproducible. If you don't include it, then a reader of your code will not know where you got some of the functions from.  
+</div>
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.9")`
+
+i. Install the `polycor` package.  
+ii. Load the `polycor` package.  
+iii. Read in the job satisfaction data from [https://edin.ac/2UjBai1](https://edin.ac/2UjBai1). It is a __.csv__.  
+iv. Create a correlation matrix using the function `hetcor()`, and name it `cormat`.  
+v. Pull out the correlation matrix using `cormat$correlations`.  
+
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+```{r message=FALSE,warning=FALSE}
+library(polycor)
+
+jobsat<-read_csv("https://edin.ac/2UjBai1") 
+
+cormat <- hetcor(jobsat)
+
+cormat$correlations 
+```
+
+<div style="margin-left:10px">
+As it happens, we don't actually _need_ `hetcor()` here as we can just use `cor()` if we like. However, `hetcor()` can be useful in situations where we want other more complicated types of correlation coefficient to be calculated (see the `type` argument in in `hetcor(x, type = ....)`). 
+```{r eval=FALSE,echo=TRUE}
+cor(jobsat)
+```
+</div>
+
+It's a lot of numbers to look at, but each column and each row is a variable, so the left-most column shows the correlations between `V1` and each of `V1`, `V2`, `V3`, ..., `V8`.  
+`r msmbstyle::solution_end()`
+
+It is often to difficult to get a good view of the strength and direction of correlations when they are all printed out.  
+Luckily, we can easily visualise a correlation matrix as a heatmap.  
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.10")`
+
+i. Install the `pheatmap` package.  
+ii. Load the `pheatmap` package. 
+iii. visualise your correlation matrix using the function `pheatmap()`.  
+
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+```{r}
+library(pheatmap)
+pheatmap(cormat$correlations)
+```
+`r msmbstyle::solution_end()`
+
+---
+
+---
+
+
+### Cautions! {-}  
+
+Correlation is an invaluable tool for quantifying relationships between variables, but __must be used with care__.  
+
+Below are a few things to be aware of when we talk about correlation. 
+
+`r msmbstyle::solution_begin(header = "1 - Correlation can be heavily affected by outliers. Always plot your data!", hidden = FALSE, toggle=FALSE)`  
+
+The two plots below only differ with respect to the inclusion of _one_ observation. However, the correlation coefficient for the two sets of observations is markedly different.  
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+df2<-df
+df2[2,1]<-180
+
+pp1 <- ggplot(df2,aes(x=x,y=y))+
+  geom_point()+
+  theme_classic()+
+  geom_vline(aes(xintercept=mean(x)), lty="dashed")+
+  annotate("text",x=mean(df2$x)+1.5, y=max(df2$y)-5,label=expr(bar("x")))+
+  geom_hline(aes(yintercept=mean(y)), lty="dashed")+
+  annotate("text",x=min(df2$x)+5, y=mean(df2$y)+1,label=expr(bar("y")))+
+  geom_segment(aes(x = mean(x), y = df2[[2,2]], xend = df2[[2,1]], yend = df2[[2,2]]), color="skyblue3", data = df2)+
+  geom_segment(aes(x = df2[[2,1]], y = mean(y), xend = df2[[2,1]], yend = df2[[2,2]]), color="skyblue3",data = df2)+
+  labs(title=paste0("Cov = ",cov(df2[,1],df2[,2]) %>% round(2),"   r = ",cor(df2[,1],df2[,2]) %>% round(2)))+
+  xlim(35,185)
+
+df3<-df2[-2,]
+pp2 <- ggplot(df3,aes(x=x,y=y))+
+  geom_point()+
+  theme_classic()+
+  #geom_vline(aes(xintercept=mean(x)), lty="dashed")+
+  #annotate("text",x=mean(df3$x)+1.5, y=max(df3$y)-5,label=expr(bar("x")))+
+  #geom_hline(aes(yintercept=mean(y)), lty="dashed")+
+  #annotate("text",x=min(df3$x)+5, y=mean(df3$y)+1,label=expr(bar("y")))+
+  #geom_segment(aes(x = mean(x), y = df3[[2,2]], xend = df3[[2,1]], yend = df3[[2,2]]), color="skyblue3", data = df3)+
+  #geom_segment(aes(x = df3[[2,1]], y = mean(y), xend = df3[[2,1]], yend = df3[[2,2]]), color="skyblue3",data = df3)+
+  labs(title=paste0("Cov = ",cov(df3[,1],df3[,2]) %>% round(2),"   r = ",cor(df3[,1],df3[,2]) %>% round(2)))+
+  xlim(35,185)
+
+pp2 / pp1
+```
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::solution_begin(header = "2 - r = 0 means no linear association. The variables could still be otherwise associated. Always plot your data!", hidden = FALSE, toggle=FALSE)` 
+The correlation coefficient in Figure \@ref(fig:joface) below is negligible, suggesting no _linear_ association. The word "linear" here is crucial - the data are very clearly related. 
+
+```{r joface, echo=FALSE,message=FALSE,warning=FALSE, fig.cap="Unrelated data?"}
+faced<-read_csv("data/face.csv")
+
+ggplot(faced,aes(x=lm_x,y=lm_y))+
+  geom_point()+
+  theme_classic()+
+  xlim(-3,3)+
+  labs(title=paste0("Cov = ",cov(faced$lm_x,faced$lm_y) %>% round(2),"   r = ",cor(faced$lm_x,faced$lm_y) %>% round(2)))
+```
+
+Similarly, take look at all the sets of data in Figure \@ref(fig:datasaurus) below. The summary statistics (means and standard deviations of each variable, and the correlation) are almost identical, but the visualisations suggest that the data are very different from one another.
+```{r datasaurus, echo=FALSE, fig.cap="Datasaurus! "}
+knitr::include_graphics("https://media1.giphy.com/media/UN2kVJQeMFUje/source.gif")
+```
+__Source:__ Matejka, J., & Fitzmaurice, G. (2017, May). Same stats, different graphs: generating datasets with varied appearance and identical statistics through simulated annealing. In _Proceedings of the 2017 CHI Conference on Human Factors in Computing Systems_ (pp. 1290-1294).  
+`r msmbstyle::solution_end()`
+
+`r msmbstyle::solution_begin(header = "3 - Correlation does not imply causation!", hidden = FALSE, toggle=FALSE)`
+
+```{r xkcdcor, echo=FALSE, fig.cap="https://imgs.xkcd.com/comics/correlation.png"}
+knitr::include_graphics("https://imgs.xkcd.com/comics/correlation.png")
+```
+
+You will have likely heard the phrase "correlation does not imply causation". There is even a whole [wikipedia entry](https://en.wikipedia.org/wiki/Correlation_does_not_imply_causation) devoted to the topic.  
+
+__Just because you observe an association between x and y, we should not deduce that x causes y__
+
+An often cited paper (See Figure \@ref(fig:choco)) which appears to fall foul of this error took a correlation between a country's chocolate consumption and its number of nobel prize winners to suggest a _causal relationship_ between the two:  
+
+```{r choco,echo=FALSE,warning=FALSE,message=FALSE, fig.cap="Chocolate consumption causes more Nobel Laureates?"}
+knitr::include_graphics("https://pbs.twimg.com/media/D0AS2iEX0AAuMLX.jpg")
+```
+
+_"since chocolate consumption has been documented to improve cognitive function, it seems most likely that in a dose-dependent way, chocolate intake provides the abundant fertile ground needed for the sprouting of Nobel laureates"_    
+[Messerli, Franz. Chocolate Consumption, Cognitive Function, and Nobel Laureates. The New England Journal of Medicine 2012; 367:1562-4, (http://www.nejm.org/doi/full/10.1056/NEJMon1211064)]
+`r msmbstyle::solution_end()`
+
+## Lab {-}  
+
+```{r include=FALSE}
+set.seed(42367)
+
+#just reading this in - i made it in excel as it was easier to see what i was doing :)
+corm<-as.matrix(read.csv("data/cormat.csv",header=F))
+
+mus <- c(8, rnorm(10, 2.5, .8))
+stddev <- c(1.5, rnorm(10, 1, .2))
+covMat <- stddev %*% t(stddev) * corm
+
+covMat <- corpcor::make.positive.definite(covMat, tol=1e-3)
+
+dat1 <- MASS::mvrnorm(n = 50, mu = mus, Sigma = covMat, empirical = TRUE)
+
+dat1<-as.data.frame(cbind(dat1[,1], round(dat1[,2:11])))
+
+names(dat1)<-c("TST",paste0("item_",1:10))
+
+dat1<- dat1 %>% 
+  mutate_at(vars(contains("item")),~ifelse(.>5,5,ifelse(.<1,1,.))) %>%
+  mutate(TST = round(TST,1))
+
+rm(corm,mus,stddev,covMat)
+# psych::describe(dat1)
+# dat1 %>% mutate(
+#   item_4=5-item_4,
+#   item_5=5-item_5,
+#   item_6=5-item_6,
+#   dtf = item_1+item_2+item_3+item_4+item_5+item_6+item_7+item_8+item_9+item_10
+# ) %>% select(TST, dtf) %>% cor
+# 
+# cor(dat1)
+write.csv(dat1,"data/sleepdtf.csv",row.names = FALSE)
+```
+
+
+### Sleep levels and daytime functioning {-}  
+
+<div class="red">
+<br>
+A researcher is interested in the relationship between hours slept per night and self-rated effects of sleep on daytime functioning. 
+She recruited 50 healthy adults, and collected data on the Total Sleep Time (TST) over the course of a seven day period via sleep-tracking devices.  
+<br>
+At the end of the seven day period, participants completed a Daytime Functioning (DTF) questionnaire. This involved participants rating their agreement with ten statements (see Table \@ref(tab:sleepitems)). Agreement was measured on a scale from 1-5.  
+<br>
+An overall score of daytime functioning can be calculated by:  
+  
+1. reversing the scores of items 4, 5 and 6.  
+2. Taking the sum of scores across items.  
+3. Subtracting the summed scores from 50 (the max possible score).  
+  
+<small>
+__Note:__ Step 1 is undertaken because those items reflect agreement with _positive_ statements, whereas the other ones are agreement with _negative_ statements. In step 3, subtracting the summed scores from 50 will simply reverse the overall score, meaning that higher scores will indicate better perceived daytime functioning.
+</small>
+  
+```{r sleepitems, echo=FALSE}
+tibble(
+  Item = paste0("Item_",1:10),
+  Statement = c("I often felt an inability to concentrate","I frequently forgot things","I found thinking clearly required a lot of effort","I often felt happy","I had lots of energy","I worked efficiently","I often felt irritable" ,"I often felt stressed","I often felt sleepy", "I often felt fatigued")
+) %>%
+  knitr::kable(caption="Daytime Functioning Questionnaire")
+```
+
+<br>
+<br>
+The data is available as a __.csv__ at [https://edin.ac/2UCFS9u](https://edin.ac/2UCFS9u)
+
+</div>
+
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.1")`
+Read in the data, and calculate the overall daytime functioning score, following the criteria outlined above. Make this a new column in your dataset.  
+
+_Hint:_ to reverse items 4, 5 and 6, we we need to make all the scores of 1 become 5, scores of 2 become 4, and so on...  
+
+What number satisfies all of these equations?:  
+
++ ? - 5 = 1
++  ? - 4 = 2
++ ? - 3 = 3  
+
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS)`
+```{r message=FALSE}
+sleepdtf <- read_csv("https://edin.ac/2UCFS9u")
+
+# To reverse the items, we can simply do 6 minus the score.   
+sleepdtf <- 
+  sleepdtf %>% mutate(
+    item_4_rev=6-item_4,
+    item_5_rev=6-item_5,
+    item_6_rev=6-item_6
+  ) 
+
+# Now to we add them up (be sure to use  the reversed items 4-6)
+sleepdtf <- 
+  sleepdtf %>% mutate(
+    dtf = item_1+item_2+item_3+item_4_rev+item_5_rev+item_6_rev+item_7+item_8+item_9+item_10
+  )
+```
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.2")`
+Calculate the correlation between the total sleep time (`TST`) and the overall daytime functioning score.  
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS)`
+```{r}
+cor(sleepdtf$TST, sleepdtf$dtf)
+```
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.3")`
+Conduct a test to establish the probability of observing a correlation this strong in a sample of this size assuming the true correlation to be 0.  
+<br>
+Write a sentence or two summarising the results. 
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS)`
+```{r}
+cor.test(sleepdtf$TST, sleepdtf$dtf)
+```
+
+There was a strong negative correlation between total sleep time and self-reported daytime functioning score ($r$ = `r cor(sleepdtf$TST, sleepdtf$dtf) %>% round(2)`, $t(48)$ = `r cor.test(sleepdtf$TST, sleepdtf$dtf)$statistic %>% round(2)`, $p < .001$) in the current sample. As total sleep time increased, levels of self-reported daytime functioning decreased.  
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.4")`
+Create a correlation matrix of the items in the daytime functioning questionnaire.  
+
+You will first need to select the relevant columns. 
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS)`
+To select the relevant columns, there are loads of different methods we can use.  
+We could do this:
+```{r eval=FALSE}
+sleepdtf %>% 
+  select(item_1,item_2,item_3,item_4,item_5,item_6,item_7,item_8,item_9,item_10)
+```
+
+Or, shorthand, because we know the columns are in order, we can use the following to select everything between `item_1` and `item_10`.  
+```{r eval=FALSE}
+sleepdtf %>% 
+  select(item_1:item_10)
+```
+
+Or, yet another option (this one was in the lecture):
+```{r eval=FALSE}
+sleepdtf[,2:11]
+```
+This will keep all columns from the 2nd column (item_1) to the 11th (item_10). 
+
+<div class="noteBox">
+These square brackets `[]` will come in pretty handy, and usign them is called 'indexing'.  
+When you index a dataset, you can specify the rows that you want, and the columns that you want `mydata[rows, columns]`.  
+So we can use:   
+```{r eval=FALSE}
+mydata[1, 4:5]
+```
+To give us the first row, and the 4th and 5th columns.
+</div> 
+
+<!-- **TODO: Is hetcor() really needed? I'd just do `cor(sleepdtf[, 2:11])`** -->
+
+To make the correlation matrix, we just pass any of these to the `hetcor()` function from the `polycor` package!  
+
+```{r}
+dtfmatrix <-
+  sleepdtf %>% 
+  select(item_1:item_10) %>% 
+  hetcor()
+
+dtfmatrix$correlations
+```
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.5")`
+Visualise your correlation matrix using `pheatmap()` from the `pheatmap` package. 
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS)`
+```{r}
+pheatmap(dtfmatrix$correlations)
+```
+
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.6")`
+Spend a bit of time thinking about what this correlation matrix shows you, and read the item statements again (Table \@ref(tab:sleepitems)).  
+
+Try creating and visualising a new correlation matrix using the reversed items 4, 5, and 6. What do you expect to be different?  
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS)`
+Items 4, 5, and 6 are all positively correlated with one another, and negatively correlated with Items 1, 2, and 3.  
+
+This makes sense, because Items 4, 5, and 6 are all the _positive_ statements, so someone who agrees with those is likely to disagree with the more negative statements.  
+
+Furthermore, Items 1, 2, and 3 all seem more strongly correlated with one another than with Items 7, 8, 9 and 10. Are there any differences between these items? It sort of looks like Items 1-3 are all about how well people _functioned_, whereas 7-10 is about how they _felt_. This could flag up interesting avenues for future research.  
+
+If we change to using the reversed Items 4-6, the direction (but not the strength) of the correlations with these items will change:
+```{r}
+# not the most elegant way to do this, but can see clearly what it's doing:
+dtfmatrix2 <-
+  sleepdtf %>% 
+  select(item_1,item_2,item_3,item_4_rev,item_5_rev,item_6_rev,item_7,item_8,item_9,item_10) %>%
+  hetcor()
+
+dtfmatrix2$correlations
+
+pheatmap(dtfmatrix2$correlations)
+```
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.7")`
+What Items on the daytime functioning questionnaire correlate most strongly with the Total Sleep Time (TST)?  
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS)`
+```{r}
+# not the most elegant way to do this, but can see clearly what it's doing:
+dtfmatrix3 <-
+  sleepdtf %>% 
+  select(TST,item_1,item_2,item_3,item_4_rev,item_5_rev,item_6_rev,item_7,item_8,item_9,item_10) %>%
+  hetcor()
+
+dtfmatrix3$correlations
+
+pheatmap(dtfmatrix3$correlations)
+```
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.8")`
+__Open-ended:__ Think about this study in terms of _causation_.  
+<br>
+Claim: _Less sleep causes poorer daytime functioning._  
+<br>
+Why might it be inappropriate to make the claim above based on these data alone? Think about what sort of study could provide stronger evidence for such a claim.  
+
+Things to think about:  
+
++ comparison groups.   
++ random allocation.  
++ measures of daytime functioning.   
++ measures of sleep time.  
++ other (unmeasured) explanatory variables.  
+  
+`r msmbstyle::question_end()`

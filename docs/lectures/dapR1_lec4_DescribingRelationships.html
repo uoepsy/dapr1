@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Week 4: Describing Relationships </title>
+    <meta charset="utf-8" />
+    <meta name="author" content="ALEX DOUMAS &amp; TOM BOOTH" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <script src="libs/kePrint/kePrint.js"></script>
+    <link href="libs/lightable/lightable.css" rel="stylesheet" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# <b>Week 4: Describing Relationships </b>
+## Data Analysis for Psychology in R 1<br><br>
+### ALEX DOUMAS &amp; TOM BOOTH
+### Department of Psychology<br>The University of Edinburgh
+### AY 2020-2021
+
+---
+
+
+
+
+
+
+# Weeks Learning Objectives
+1. Understand the relation between X-Y (explanatory/outcome) specification and practical research questions.
+
+2. Understand how to summarise and visualize categorical-categorical relationships.
+
+3. Understand how to summarise and visualize numeric-categorical relationships.
+
+4. Understand how to summarise and visualize numeric-numeric relationships.
+
+---
+# Topics for today
++ We have looked at how to describe individual variables.
+
+  + Recall: A variable is a symbol specifying a value that may change or that we don't know yet. 
+
++ But we also need to describe the relationships between variables.
+
++ These relationships are also the core of the statistical models we are going to move on to discuss.
+
++ Today we will look at basic descriptions.
+
+
+---
+# What is a relationship?
++ A connection between two or more entities. 
+
+--
+
++ In science, a connection between two things (or a relation between two things) is defined as a mapping between the elements of those two things. 
+
+&lt;img src="./figures/Mapping_example_DAPR1_lect4.png" width="75%" /&gt;
+
+--
+
++ Aside: We will usually prefer to define the relationship using a function (we'll go over what those are next lecture...)
+
+---
+# Why are relationships important?
++ We typically have theories about relationships or predictions between variables.
+
++ Our study designs distinguish between:
+
+--
+
++ **Dependent variables**: The thing we want to predict/understand.
+  + Also referred to as the outcome.
+  + or as `\(y\)` in stats notation
+
+--
+
++ **Independent variables**: The things we hypothesize influence the DV.
+  + Also referred to as the predictor, explanatory variable.
+  + or as `\(x\)` in stats notation
+
+--
+
++ **Covariates**: Things that will influence the outcome, but we may not have a hypothesis about.
+  + Also called nuisance variables.
+  + We typically try and control nuisance variables either statistically or by design, so as to minimize their effect.
+  + These are also `\(x\)`'s
+    
+
+---
+# Why are relationships important?
++ So our questions are built on relationships.
+
++ Before we statistically try to model these, it is important to describe them
+
+  + Note: A model is a representation of a system in formal language. 
+    + In a model we try to represent the important aspects of a system and ignore anything extraneous. 
+
++ Today we will look at how to describe and summarise relationships. 
+
+---
+# Our data
+
+
+
+.pull-left[
+
++ Recall our data: 
+  + `ID` = unique identifier
+  + `Degree` = degree studied
+  + `Year` = year of study
+  + `Score1` = pre-summer school score
+  + `Score2` = post-summer school score 
+]
+
+.pull-right[
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Degree &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Year &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Score1 &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Score2 &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; ID101 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Psych &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 71 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 74 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; ID102 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Ling &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 65 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; ID103 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Ling &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 64 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; ID104 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Phil &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 69 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 74 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; ID105 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Ling &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 62 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 69 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; ID106 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Ling &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 68 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; ID107 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Phil &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 66 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 75 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; ID108 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Psych &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 64 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 71 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; ID109 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Psych &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 65 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 73 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; ID110 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Ling &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 64 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+]
+---
+# Categorical-Categorical
++ Let's look at the association between `Degree` and `Year`.
+
++ When describing a single categorical variable, we used a frequency table.
+
++ The equivalent for two categorical variables is called a **contingency table**
+  + It shows the frequency of one level within levels of the other.
+  + In our example, the number of students from each `Degree` in each `Year`
+  
++ We can then visualize this table as a **mosaic plot**
+
+---
+# Contingency Tables
+
+.pull-left[
+
+
+```r
+ex1 %&gt;%
+* select(.,Degree, Year) %&gt;%
+* table()
+```
+
++ `ex1` is our data set
+
++ `select` is used to pick variables from the data set
+  + `.` is used to indicate that the select function should use the data set passed by the `%&gt;%`
+  + `Degree` and `Year` are names of variables in our data set
+
++ `table()` produces the frequency table
+  + when two variables are given, it produces a contingency table
+  
+]
+
+.pull-right[
+
+
+```
+##        Year
+## Degree   1  2  3  4
+##   Psych  7 17  7  1
+##   Ling  17 42 17  6
+##   Phil   6 10  9  1
+##   Joint  3  2  3  2
+```
+
+]
+
+---
+# Mosaic Plot
+
+.pull-left[
+
+
+```r
+ex1 %&gt;%
+  ggplot(.)+
+* geom_mosaic(aes(x = product(Degree, Year), fill=Degree)) +
+  labs(x = "\n Year")
+```
+
++ `geom_mosaic` is a add-on geom from the `ggmosaic()` library
+  + It makes mosaic plots
+  
++ `product()` is used to indicate which variables to use.
+
+]
+
+.pull-right[
+
+![](dapR1_lec4_DescribingRelationships_files/figure-html/unnamed-chunk-7-1.png)&lt;!-- --&gt;
+
+
+]
+
+
+
+---
+# Categorical-Continuous
++ When describing continuous-categorical pairs, we typically look at grouped statistics.
+
+--
+
++ Specifically,...
+
+--
+
+  + the mean, 
+  + standard deviation, and 
+  + distribution shape 
+
+--
+
++ ...of the continuous variable at each level of the categorical variable.
+
+--
+
++ In our example, what is the mean pre-test score for students from each degree.
+
+---
+# Grouped summary statistics
+
+.pull-left[
+
+
+```r
+ex1 %&gt;%
+* group_by(Degree) %&gt;%
+  summarise(
+    Average = round(mean(Score1),2),
+    SD = round(sd(Score1),2)
+  )
+```
+
++ Key code here is `group_by`
+
++ `group_by` splits the data by the categorical variable stated
+  + It then does the next instructions for each level.
+
+]
+
+.pull-right[
+
+
+```
+## `summarise()` ungrouping output (override with `.groups` argument)
+```
+
+```
+## # A tibble: 4 x 3
+##   Degree Average    SD
+##   &lt;fct&gt;    &lt;dbl&gt; &lt;dbl&gt;
+## 1 Psych     66.4  3.16
+## 2 Ling      65.8  2.58
+## 3 Phil      65.5  3.05
+## 4 Joint     66.4  2.27
+```
+
+]
+
+---
+# Grouped histograms
+
+.pull-left[
+
+
+```r
+ex1 %&gt;%
+  ggplot(., aes(x=Score1)) +
+  geom_histogram(bins = 15, 
+                 color = "white", 
+                 fill = "steelblue4") +
+* facet_wrap(~Degree)
+```
+
++ The top section of code is identical to last week
+
++ `facet_wrap` is used to produce a plot per value of the variable given.
+
++ Notice how different these plots look.
+  + But the mean and SD in each group are quite similar.
+  + **What differs across the groups?**
+
+]
+
+.pull-right[
+
+![](dapR1_lec4_DescribingRelationships_files/figure-html/unnamed-chunk-11-1.png)&lt;!-- --&gt;
+
+]
+
+???
+The shape of the distributions are different. There is positive skew in the psychology students; bimodality in the linguistics students. 
+
+---
+# Continuous-Continuous
++ When describing two continuous variables (`Score1` and `Score2`), we can not compute summary stats of one at each level of the other.
+  + Far too many values!
+  
++ So we want a way to visually and numerically summarise the degree of relatedness.
+
+--
+
++ **Scatterplots** 
+  + lot points at the (x,y) co-ordinates for two measured variables.
+  + We plot these points for each individual in our data set.
+	    + This produces the clouds of points.
+
+---
+# Scatterplot of scores
+
+.pull-left[
+
+
+```r
+ex1 %&gt;%
+* ggplot(., aes(x=Score1, y=Score2)) +
+* geom_point(colour = "steelblue4") +
+  labs(x = "\n Pre Test Score", 
+       y = "Post Test Score \n")
+```
+
+]
+
+.pull-right[
+
+![](dapR1_lec4_DescribingRelationships_files/figure-html/unnamed-chunk-13-1.png)&lt;!-- --&gt;
+
+]
+
+---
+# Understanding a scatterplot
+
+.pull-left[
+
+
+```r
+ex1 %&gt;%
+  slice(1) %&gt;%
+  select(., Score1, Score2)
+```
+
+```
+## # A tibble: 1 x 2
+##   Score1 Score2
+##    &lt;dbl&gt;  &lt;dbl&gt;
+## 1     71     74
+```
+
+
+]
+
+.pull-right[
+
+![](dapR1_lec4_DescribingRelationships_files/figure-html/unnamed-chunk-15-1.png)&lt;!-- --&gt;
+
+]
+
+
+---
+# Understanding a scatterplot
+
+.pull-left[
++ How do we read a scatterplot?
+
++ If the cloud of points goes: 
+  + bottom left to top right, there is a positive relationship
+  + Top left to bottom right, there is a negative relationship
+  + no pattern = no relationship
+  + the closer the points are to a straight line, the closer the relationship
+
+]
+
+.pull-right[
+
+![](./figures/corplot.png)&lt;!-- --&gt;
+
+]
+
+
+---
+# Covariance
+
++ **Covariance**
+  + Numerical value representing the degree to which variables vary in the same way.
+
++ To understand covariance, it is useful to briefly recap the idea of variance.
+
+
+`$$Var_x = \frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}$$`
+
+
++ So variance = deviation around the mean of a single variable.
+
+---
+#  Variance to covariance
+
++ **Co**variance concerns variation in two variables.
+
++ To think about the equation for covariance, suppose we re-write variance as follows:
+
+
+`$$Cov_{xx} = \frac{\sum_{i=1}^{n}{(x_i - \bar{x})(x_i - \bar{x})}}{n-1}$$`
+
+
++ We can then think about covariance of `\(x\)` and `\(y\)` as...
+
+`$$Cov_{xy} = \frac{\sum_{i=1}^{n}{(x_i - \bar{x})(y_i - \bar{y})}}{n-1}$$`
+
+
++ So our covariance is identical to our variance, with the exception that our summed termed is the combined deviance from the respective means of both `\(x\)` and `\(y\)`.
+
+---
+# Calculating Covariance
++ For our data:
+
+
+```r
+cov(ex1$Score1, ex1$Score2)
+```
+
+```
+## [1] 3.359732
+```
+
++ Interpreting covariance can be tricky.
+
++ The scale is dependent on the scale of the original variables
+
++ What is we multiply `Score1` by 100?
+
+
+```r
+cov((ex1$Score1*100), ex1$Score2)
+```
+
+```
+## [1] 335.9732
+```
+
++ Later in the course we will discuss correlation
+  + A standardized covariance
+
+---
+# Descriptive statistics can deceive
+
+
+```
+## `summarise()` ungrouping output (override with `.groups` argument)
+```
+
+&lt;table class="table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; set &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; mean &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; sd &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; x1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.32 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; x2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.32 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; x3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.32 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; x4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.32 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; y1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7.5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.03 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; y2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7.5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.03 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; y3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7.5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.03 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; y4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7.5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.03 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+---
+# Always visualize data
+
+![](dapR1_lec4_DescribingRelationships_files/figure-html/unnamed-chunk-20-1.png)&lt;!-- --&gt;
+
+
+---
+# Summary of today
++ Categorical-categorical
+  + Contingency tables
+  + Mosaic plots
+  
++ Categorical-continuous
+  + Grouped summary stats
+  + Grouped histograms
+  
++ Continuous-Continuous
+  + Scatterplots
+  + Covariance
+
+---
+# Next tasks
++ Next week, we will look at functions.
+  + How we calculate, visualize and use them in statistics.
+
++ This week:
+  + Complete your lab
+  + Come to office hours
+  + Weekly quiz - on weeks 2 and 3 content
+      + Open Monday 09:00
+      + Closes Sunday 17:00
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

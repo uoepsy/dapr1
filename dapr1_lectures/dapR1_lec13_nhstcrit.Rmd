@@ -1,0 +1,1216 @@
+---
+title: "<b>S2W3 - Hypothesis Testing: critical values</b>"
+subtitle: "Data Analysis for Psychology in R 1"
+author: "Umberto Noè"
+institute: "Department of Psychology<br/>The University of Edinburgh"
+date: "AY 2020-2021"
+output:
+  xaringan::moon_reader:
+    lib_dir: jk_libs/libs
+    css: 
+      - xaringan-themer.css
+      - jk_libs/tweaks.css
+    nature:
+      beforeInit: "jk_libs/macros.js"
+      ratio: '16:9'
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+editor_options:
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+options(digits=4,scipen=2)
+options(knitr.table.format="html")
+xaringanExtra::use_xaringan_extra(c("tile_view","animate_css","tachyons"))
+xaringanExtra::use_extra_styles(
+  mute_unhighlighted_code = FALSE
+)
+
+library(knitr)
+library(tidyverse)
+
+knitr::opts_chunk$set(
+  dev = "png",
+  warning = FALSE,
+  message = FALSE,
+  # cache = TRUE,
+  fig.align = 'center',
+  fig.height = 5, fig.width = 6
+)
+
+theme_set(
+  theme_classic(base_size = 18) +
+    theme(plot.title = element_text(hjust = 0.5))
+)
+
+#source('R/myfuncs.R')
+```
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#0F4C81", # DAPR1
+  # base_color = "#BF1932", # DAPR2
+  # base_color = "#88B04B", # DAPR3 
+  # base_color = "#FCBB06", # USMR
+  # base_color = "#a41ae4", # MSMR
+  header_color = "#000000",
+  header_font_google = google_font("Source Sans Pro"),
+  header_font_weight = 400,
+  text_font_google = google_font("Source Sans Pro", "400", "400i", "600", "600i"),
+  code_font_google = google_font("Source Code Pro")
+)
+```
+
+
+
+
+
+```{r preamble, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(kableExtra)
+library(patchwork)
+```
+
+```{r plot-settings, echo=FALSE}
+.FS <- 5
+.PH <- 280
+.QH <- -20
+```
+
+# Learning objectives
+
+1. Recognise the difference between a bootstrap and null distribution.
+
+1. Understand the parallel between p-values and critical values.
+
+1. Be able to perform a one-sided or two-sided hypothesis test using the critical value method.
+
+1. Understand the link between z-scores and critical values.
+
+
+---
+class: inverse, center, middle
+
+# Part 0
+## What you need to know
+
+
+---
+
+# Parameters, statistics, best estimates
+
+- _Parameter_: a number that summarises some aspect of the population.
+
+--
+
+- _Statistic_: a numerical summary of the sample data.
+
+--
+
+- The statistic calculated from the sample is our _best estimate_ of the true but unknown value of the population parameter
+
+
+.footnote[
+To revise [click here](https://uoepsy.github.io/dapr1/labs/11_sampling_distributions.html)
+]
+
+
+
+---
+
+# Normal distributions
+
+.pull-left[
+In a bell-shaped distribution, approximately:
+
+- 68% of the values are within 1 SD of the mean
+
+- 95.4% of the values are within 2 SD of the mean
+
+- 99.7% of the values are within 3 SD of the mean
+]
+
+.pull-right[
+```{r echo=FALSE, out.width='100%'}
+knitr::include_graphics("https://uoepsy.github.io/dapr1/labs/images/prob/normal_rule.png")
+```
+]
+
+To be precise, 95% of the values are within 1.96 SD of the mean:
+```{r}
+qnorm(p = c(0.025, 0.975), mean = 0, sd = 1)
+```
+
+
+
+---
+
+# Quantiles (a.k.a. percentiles)
+
+.pull-left[
+- The $p$-quantile is the value that cuts an area equal to $p$ to its left.
+
+- It is the value $x_p$ such that $P(X \leq x_p) = p$
+
+- We use the term percentile when using _percentages_. The 0.5-quantile is the 50th percentile.
+]
+
+.pull-right[
+```{r echo=FALSE, out.width='90%'}
+knitr::include_graphics("https://uoepsy.github.io/dapr1/labs/images/prob/normal_quantile.png")
+```
+]
+
+
+.footnote[
+To revise [click here](https://uoepsy.github.io/dapr1/labs/10_continuous_distributions.html)
+]
+
+---
+
+# Quantiles (a.k.a. percentiles)
+
+.pull-left[
+**Resampling approach**
+
+With data `df$y`
+  
+```
+quantile(<data>, probs = <probs_to_the_left>)
+
+quantile(df$y, probs = c(0.25, 0.5, 0.75))
+```
+
+With bootstrap means `bootstrap$means`:
+
+```{r echo=FALSE}
+set.seed(1)
+
+bootstrap <- tibble(
+  sample = 1:1000,
+  means = rnorm(1000, 1.3, 1)
+)
+```
+
+```{r}
+quantile(bootstrap$means, probs = 0.5)
+```
+]
+
+.pull-right[
+**Theoretical approach**
+
+Find the quantiles of a probability distribution with the function `q` followed by the distribution name.
+  
+_Example._ Quantiles of a normal distribution:
+```
+qnorm(p = <prob_to_left>, mean, sd)
+```
+
+The 0.025 and 0.975-quantiles of a standard normal distribution are:
+```{r}
+qnorm(p = c(0.025, 0.975), mean = 0, sd = 1)
+```
+]
+
+
+
+---
+
+# Hypothesis testing 101
+
+<!-- - We have a research question or hypothesis about the population. -->
+
+- Pose a question that you would like to investigate or an hypothesis you'd like to empirically check.
+
+--
+
+- Identify the relevant population _parameters_.
+
+--
+
+- Translate that question or hypothesis into null $(H_0)$ and alternative $(H_1)$ hypotheses.
+
+  For example:
+  
+  $$H_0 : \mu = 0$$
+  $$H_1 : \mu > 0$$
+  
+--
+
+- Find or collect data that will help you answer
+this question.
+
+--
+
+- Compute the statistic that estimates the parameter of interest. For example, the sample mean $\bar x$
+
+
+.footnote[
+To revise [click here](https://uoepsy.github.io/dapr1/labs/13_hypothesis_testing.html)
+]
+
+---
+
+# Measuring evidence against $H_0$
+
+- Light blue: _null distribution_ of sample means from samples of size $n = 50$.
+
+- Red line: _observed statistic_.
+
+.pull-left[
+
+```{r echo=FALSE, out.width='70%'}
+set.seed(1)
+
+d1 <- tibble(x = rnorm(1000, 0, 1.1))
+obs <- 1.2
+
+ggplot(d1, aes(x = x)) +
+  geom_histogram(color = 'white', fill = 'lightblue',
+                 boundary = obs) +
+  labs(x = expr(bar(x)~"(when H0 true)"),
+         title = "(a)") +
+  xlim(-4, 6) +
+  geom_vline(xintercept = obs, color = 'red', size = 1) +
+  annotate(
+    geom = "text",
+    x = obs, y = 100, label = paste('bar(x)[obs] ==', obs),
+    color = 'red', hjust = -0.1, size = 6, parse = TRUE
+  )
+```
+
+]
+
+.pull-right[
+
+```{r echo=FALSE, out.width='70%'}
+set.seed(1)
+
+d1 <- tibble(x = rnorm(1000, 0, 1.1))
+obs <- 4.2
+
+ggplot(d1, aes(x = x)) +
+  geom_histogram(color = 'white', fill = 'lightblue',
+                 boundary = obs) +
+  labs(x = expr(bar(x)~"(when H0 true)"),
+         title = "(b)") +
+  xlim(-4, 6) +
+  geom_vline(xintercept = obs, color = 'red', size = 1) +
+  annotate(
+    geom = "text",
+    x = obs, y = 100, label = paste('bar(x)[obs] ==', obs),
+    color = 'red', hjust = 1.1, size = 6, parse = TRUE
+  )
+```
+
+]
+
+Which scenario do you think provides more evidence that the population mean is greater than 0?
+
+
+---
+
+# P-values and statistical significance
+
+.pull-left[
+
+```{r echo=FALSE, out.width = '60%'}
+set.seed(1)
+
+d1 <- tibble(x = rnorm(1000, 0, 1.1))
+obs <- 1.2
+
+ggplot(d1) +
+  geom_histogram(aes(x = x, fill = stat(x) >= obs),
+                 color = 'white', boundary = obs) +
+  labs(x = expr(bar(x)~"(when H0 true)"),
+         title = "(a)") +
+  xlim(-4, 6) +
+  geom_vline(xintercept = obs, color = 'red', size = 1) +
+  annotate(
+    geom = "text",
+    x = obs, y = 100, label = paste('bar(x)[obs] ==', obs),
+    color = 'red', hjust = -0.1, size = 6, parse = TRUE
+  ) +
+  scale_fill_manual(values = c('lightblue', 'red')) +
+  theme(legend.position = 'none')
+
+pvalue <- mean(d1$x >= obs)
+```
+
+$$
+p = `r pvalue %>% signif(3)`
+$$
+
+]
+
+.pull-right[
+
+```{r echo=FALSE, out.width = '60%'}
+set.seed(1)
+
+d1 <- tibble(x = rnorm(1000, 0, 1.1))
+obs <- 4.2
+
+ggplot(d1) +
+  geom_histogram(aes(x = x, fill = stat(x) >= obs),
+                 color = 'white', boundary = obs) +
+  labs(x = expr(bar(x)~"(when H0 true)"),
+       title = "(b)") +
+  xlim(-4, 6) +
+  geom_vline(xintercept = obs, color = 'red', size = 1) +
+  annotate(
+    geom = "text",
+    x = obs, y = 100, label = paste('bar(x)[obs] ==', obs),
+    color = 'red', hjust = 1.1, size = 6, parse = TRUE
+  ) +
+  scale_fill_manual(values = c('lightblue', 'red')) +
+  theme(legend.position = 'none')
+
+pvalue <- mean(d1$x >= obs)
+```
+
+$$
+p < .001
+$$
+
+]
+
+If results as extreme or more extreme than the observed statistic are unlikely to occur by sampling variation alone when the null hypothesis is true, we say the sample results are statistically significant.
+
+Statistical significance means that we have convincing evidence against $H_0$ and in favour of $H_1$.
+
+
+---
+class: inverse, center, middle
+
+# Part A
+## Research question and data
+
+
+---
+
+# Research question
+
+> Is reaction time in identifying ink colours increased when the ink is used to spell a different colour?
+
+Researchers recruited 131 participants for a study. Each participant was asked to complete two tasks, both requiring them to pronounce the _colour_ of words shown on a screen.
+
+In task (a) the colour and words matched, while in task (b) the colour and words did not match.
+
+```{r echo=FALSE, out.width='90%'}
+knitr::include_graphics("https://uoepsy.github.io/dapr1/labs/images/numeric/stroop1.png")
+```
+
+
+---
+
+# Research question
+
+To evaluate whether mismatching words and colours increased participants reaction times, we can compute for each participant the _difference_ between the time to complete the mismatching colour-word task and the matching colour-word task.
+
+If the _average difference_ is larger than 0, then the mismatching colour-word task took _on average_ longer to complete.
+
+We are not interested in whether the mismatching colour-word task took longer to complete than the other task for one particular individual. This might happen by change. What we really want to do is assess if there is a pattern, hence why the mean!
+
+
+---
+
+# Data
+
+The data can be found at: https://uoepsy.github.io/data/stroopexpt2.csv
+
+.pull-left[
+```{r}
+library(tidyverse)
+library(kableExtra)
+
+data <- read_csv("https://uoepsy.github.io/data/stroopexpt2.csv")
+
+dim(data)
+```
+
+```{r eval=FALSE}
+head(data) %>% 
+  kable(digits = 2)
+```
+]
+
+.pull-right[
+```{r echo=FALSE}
+data %>%
+  head() %>%
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
+```
+
+]
+
+
+<br>
+
+where: `stroop_effect = mismatching - matching`
+
+
+---
+
+# Data
+
+Visualise the distribution of the `stroop_effect` variable in the sample data:
+
+.pull-left[
+```{r eval=FALSE}
+ggplot(data) +
+  geom_histogram(aes(x = stroop_effect), 
+                 color = 'white') +
+  labs(x = 'Stroop effect')
+```
+
+It is not very symmetric and bell-shaped...
+
+```{r}
+data %>%
+  summarise(Mean = mean(stroop_effect),
+            SD = sd(stroop_effect)) %>%
+  kable(digits = 3)
+```
+
+]
+
+.pull-right[
+```{r echo=FALSE}
+ggplot(data) +
+  geom_histogram(aes(x = stroop_effect), 
+                 binwidth = 1.5,
+                 color = 'white') +
+  labs(x = 'Stroop effect')
+```
+]
+
+
+
+---
+
+# Parameters and hypotheses
+
+- $\texttt{mismatching}_i$ = time participant $i$ took to complete the _mismatching_ colour-word task
+
+- $\texttt{matching}_i$ = time participant $i$ took to complete the _matching_ colour-word task
+
+--
+
+- $D_i = \texttt{mismatching}_i - \texttt{matching}_i$ = difference in completion times ("_Stroop effect_")
+
+--
+
+- $\mu$ = population mean difference in completion times
+
+--
+
+We wish to test whether the population mean difference in completion times is larger than 0. 
+
+--
+
+That is, if the mean completion time of the mismatching colour-word task is higher than the matching colour-word task.
+
+--
+
+$$H_0 : \mu = 0$$
+$$H_1 : \mu > 0$$
+
+---
+
+# Sample statistic
+
+The observed sample mean difference in completion times is:
+```{r}
+xbar_obs <- mean(data$stroop_effect)
+xbar_obs
+```
+
+
+<br>
+
+This is just the mean of the differences (`stroop_effect`) in the sample data:
+
+$$\bar{x}_{obs} = \frac{ \sum_{i=1}^n D_i }{ n }$$
+
+
+---
+class: inverse, center, middle
+
+# Part B
+## Bootstrap distribution vs Null distribution
+
+
+---
+
+# Bootstrap distribution
+
+```{r}
+source('https://uoepsy.github.io/files/rep_sample_n.R')
+```
+
+Set the random seed:
+```{r}
+set.seed(1)
+```
+
+Generate the bootstrap distribution:
+```{r}
+n <- nrow(data)
+n
+```
+
+```{r}
+boot_dist <- data %>%
+  rep_sample_n(n = n, samples = 5000, replace = TRUE) %>%
+  group_by(sample) %>%
+  summarise(xbar = mean(stroop_effect))
+```
+
+
+---
+
+# Bootstrap distribution
+
+.pull-left[
+
+```{r}
+head(boot_dist)
+```
+
+]
+
+.pull-right[
+```{r echo=FALSE, out.width = '80%'}
+ggplot(boot_dist) +
+  geom_histogram(aes(x = xbar), 
+                 color = 'white', fill = 'lightblue') +
+  geom_vline(xintercept = xbar_obs, 
+             color = 'black', linetype = 2) +
+  labs(x = expr(bar(x)))
+```
+]
+
+- Centre = mean of bootstrap distribution = `r signif(xbar_obs, 3)` = observed sample mean
+
+- Spread = standard deviation of bootstrap distribution = `r signif(sd(boot_dist$xbar), 3)` = bootstrap standard error
+
+<!-- - **Theoretical SE**: Recall the SD of the data is $s =$ `r round(sd(data$stroop_effect),3)`. The SE of the mean is $s / \sqrt{n}$ = `r round(sd(data$stroop_effect) / sqrt(nrow(data)), 3)`. -->
+
+
+---
+
+# Null distribution: Resampling approach
+
+Centred at the value specified in the null hypothesis!
+
+```{r}
+data <- data %>%
+  mutate(
+    stroop_effect_shifted = stroop_effect - xbar_obs
+  )
+
+mean(data$stroop_effect_shifted) %>% 
+  round(digits = 3)
+```
+
+```{r}
+null_dist <- data %>%
+  rep_sample_n(n = n, samples = 5000, replace = TRUE) %>%
+  group_by(sample) %>%
+  summarise(xbar = mean(stroop_effect_shifted))
+```
+
+
+---
+
+# Null distribution: Resampling approach
+
+.pull-left[
+Centre and spread
+```{r}
+# mean
+mu <- mean(null_dist$xbar)
+# standard error
+se <- sd(null_dist$xbar)
+
+tibble(mu, se) %>%
+    kable(digits = 3)
+```
+]
+
+.pull-right[
+```{r echo=FALSE}
+ggplot(null_dist) +
+  geom_histogram(aes(x = xbar), 
+                 color = 'white', fill = 'lightblue') +
+  labs(x = expr(bar(x)~"(when H0 true)"))
+```
+]
+
+
+---
+
+# Null distribution: Theoretical approach
+
+
+Recall:
+$$
+\bar X \sim N(\mu, SE), \qquad \qquad SE = \frac{s}{\sqrt{n}}
+$$
+
+--
+
+<br>
+
+But under the null hypothesis we assume that $H_0: \mu = 0$, so
+$$
+\bar X \sim N(0, SE), \qquad \qquad SE = \frac{s}{\sqrt{n}}
+$$
+
+---
+
+# Null distribution: Theoretical approach
+
+.pull-left[
+In R:
+```{r}
+mu_theory <- 0
+se_theory <- 
+  sd(data$stroop_effect) / sqrt(n)
+
+tibble(mu_theory, se_theory) %>%
+    kable(digits = 3)
+```
+
+Then use `dnorm` for the density, `qnorm` for the quantiles, and `pnorm` for the probabilities of a normal distribution having mean and SE computed above.
+]
+
+.pull-right[
+```{r echo=FALSE}
+ggplot() +
+  xlim(mu_theory - 3.5 * se_theory, 
+       mu_theory + 3.5 * se_theory) + 
+  geom_histogram(data = null_dist, aes(x = xbar, y = ..density..),
+                 color = 'white', fill = 'lightblue', alpha = 0.5) +
+  geom_function(fun = dnorm, 
+                args = list(mean = mu_theory, sd = se_theory),
+                color = 'darkorange', size = 1) +
+  labs(x = expr(bar(x)~"(when H0 true)"))
+```
+]
+
+
+
+---
+class: inverse, center, middle
+
+# Part C
+## Critical values (one-sided $H_1$)
+
+$$H_0: \mu = 0$$
+$$H_1: \mu > 0$$
+
+
+---
+
+# Recap of p-values!
+
+.pull-left[
+```{r}
+pvalue <- 
+  sum(null_dist$xbar >= xbar_obs) / 
+  nrow(null_dist)
+
+pvalue
+```
+
+The probability of observing a sample mean as large as `r signif(xbar_obs, 3)` or larger, when the null hypothesis is true, is `r signif(pvalue, 3)`.
+
+At the 5% significance level, the sample results provide strong evidence that the population mean difference in completion times is larger than 0.
+
+]
+
+
+
+.pull-right[
+```{r echo=FALSE}
+ggplot(null_dist) +
+  geom_histogram(aes(x = xbar,
+                     fill = stat(x) >= xbar_obs), 
+                 color = 'white') +
+  scale_fill_manual(values = c('lightgray', 'red')) +
+  theme(legend.position = 'none') +
+  labs(x = expr(bar(x)~"(when H0 true)"))
+```
+]
+
+
+---
+
+# Recap of p-values!
+
+
+```{r echo=FALSE, out.width = '55%'}
+ggplot(null_dist) +
+  geom_histogram(aes(x = xbar,
+                     fill = stat(x) > quantile(null_dist$xbar, 0.95)), 
+                 color = 'white') +
+  geom_histogram(aes(x = xbar,
+                     fill = ifelse(stat(x) >= xbar_obs, 'A', 'B')), 
+                 color = 'white',
+                 alpha = 0.5) +
+  scale_fill_manual(values = c('red', 'gray', 'gray', 'darkorange')) +
+  theme(legend.position = 'none') +
+  geom_vline(xintercept = quantile(null_dist$xbar, 0.95), 
+             color = 'darkorange', linetype = 1) +
+  geom_vline(xintercept = xbar_obs, color = 'red', linetype = 2) +
+  annotate(geom = "label", x = quantile(null_dist$xbar, 0.95) + 0.05, y = 300,
+           label = "alpha == 0.05", color = 'darkorange', hjust  = 0, size = .FS,
+           fill = 'white', parse = TRUE) +
+  annotate(geom = "label", x = xbar_obs + 0.05, y= 200, hjust = 0, size = .FS,
+           label = paste("p =", signif(pvalue,3)), color = 'red') +
+  labs(x = expr(bar(x)~"(when H0 true)"))
+```
+
+
+---
+
+# Critical values: Resampling approach
+
+.pull-left[
+```{r}
+q0.95 <- quantile(null_dist$xbar, 
+                  probs = 0.95)
+q0.95
+
+tibble(q0.95, 
+       xbar_obs, 
+       xbar_obs >= q0.95) %>%
+  kable()
+```
+]
+
+.pull-right[
+```{r echo=FALSE}
+# limits of x-axis
+Min <- min(null_dist$xbar)
+Max <- max(null_dist$xbar)
+
+# null distribution
+null_dist %>%
+  ggplot() +
+  geom_histogram(aes(x = xbar, 
+                     fill = stat(x) >= q0.95), 
+                 color = 'white',
+                 binwidth = 0.1, 
+                 boundary = q0.95,
+                 alpha = 0.5) +
+  labs(x = expr(bar(x)~"(when H0 true)")) +
+  geom_vline(xintercept = xbar_obs, size = 1, linetype = 2, 
+             color = 'black') +
+  scale_fill_manual(values = c("lightgray", "red")) +
+  theme(legend.position = 'none') +
+  annotate(geom="label", x=1, y=.PH, label = '0.05', hjust = 0, 
+           color = 'red', size = .FS, fontface = 'bold') +
+  annotate(geom="label", x=0, y=.PH, label = '0.95', 
+           color = 'darkgray', size = .FS, fontface = 'bold') +
+  annotate(geom="text", x=q0.95, y=.QH, label = round(q0.95, 3),
+           hjust = 1, size = .FS, color = 'red') +
+  annotate(geom="text", x=xbar_obs + 0.05, y=.QH, 
+           label = round(xbar_obs, 3), hjust = 0, size = .FS,
+           color = 'black') +
+  geom_segment(aes(x = Min, xend = q0.95,
+                   y = 0, yend = 0), color = 'gray', size = 1) + 
+  geom_segment(aes(x = q0.95, xend = Max,
+                   y = 0, yend = 0), color = 'red', size = 1)
+```
+]
+
+
+---
+
+# Critical values: Theoretical approach
+
+.pull-left[
+```{r}
+# Resampling
+quantile(null_dist$xbar, probs = 0.95)
+# Theoretical
+q0.95_theory <- qnorm(p = 0.95, mu_theory, se_theory)
+q0.95_theory
+```
+
+```{r echo=FALSE}
+tibble(q0.95_theory, xbar_obs, 
+       xbar_obs >= q0.95_theory) %>%
+  kable()
+```
+]
+
+.pull-right[
+```{r echo=FALSE}
+null_dist %>%
+  ggplot() +
+  geom_histogram(aes(x = xbar, y = ..density..), 
+                 color = 'white', fill = 'lightblue', 
+                 alpha = 0.5) +
+  geom_function(fun = dnorm, 
+                args = list(mean = mu_theory, sd = se_theory), 
+                color = 'darkorange', size = 2) +
+  geom_vline(xintercept = xbar_obs, size = 1, linetype = 2, 
+             color = 'black') + 
+  geom_area(stat = "function", fun = dnorm, 
+            args = list(mean = mu_theory, sd = se_theory),
+            fill = "red", alpha = 0.5, 
+            xlim = c(qnorm(p = 0.95, mu_theory, se_theory), 
+                     3.5 * se_theory)) +
+  geom_area(stat = "function", fun = dnorm, 
+            args = list(mean = mu_theory, sd = se_theory),
+            fill = "lightgray", alpha = 0.5, 
+            xlim = c(-3.5 * se_theory, 
+                     qnorm(p = 0.95, mu_theory, se_theory))) +
+  annotate(geom='label', x=1, y=0.5, label = '0.05', hjust = 0, 
+            color = 'red', size = .FS, fontface = 'bold') +
+  annotate(geom='label', x=0, y=0.5, label = '0.95', 
+            color = 'darkgray', size = .FS, fontface = 'bold') +
+  labs(x = expr(bar(x)~"(when H0 true)"))
+```
+]
+
+
+---
+class: inverse, center, middle
+
+# Part D
+## Critical values (two-sided $H_1$)
+
+$$H_0: \mu = 0$$
+$$H_1: \mu \neq 0$$
+
+
+---
+
+# Critical values: Resampling approach
+
+.pull-left[
+```{r}
+quantile(null_dist$xbar, 
+         probs = c(0.025, 0.975))
+
+# Observed statistic
+xbar_obs
+```
+
+The observed statistic $\bar x_{obs}$ is larger than the 97.5th percentile, so we reject the null hypothesis.
+
+People often say that the observed statistic falls in the rejection region (the red intervals).
+
+]
+
+.pull-right[
+```{r echo=FALSE}
+q <- quantile(null_dist$xbar, probs = c(0.025, 0.975))
+
+q0.025 <- q[1]
+q0.975 <- q[2]
+
+null_dist %>%
+  ggplot() +
+  geom_histogram(aes(x = xbar, 
+                     fill = stat(x) >= q0.025 & stat(x) <= q0.975), 
+                 color = 'white',
+                 binwidth = 0.1, 
+                 boundary = q0.975,
+                 alpha = 0.5) +
+  labs(x = expr(bar(x)~"(when H0 true)")) +
+  geom_vline(xintercept = xbar_obs, size = 1, linetype = 2, 
+             color = 'black') +
+  scale_fill_manual(values = c("red", "lightgray")) +
+  theme(legend.position = 'none') +
+  annotate(geom='label', x=-1.2, y=.PH, label = '0.025', 
+           color = 'red', size = .FS, fontface = 'bold') +
+  annotate(geom='label', x=1, y=.PH, label = '0.025', hjust = 0,
+           color = 'red', size = .FS, fontface = 'bold') +
+  annotate(geom='label', x=0, y=.PH, label = '0.95', 
+           color = 'darkgray', size = .FS, fontface = 'bold') +
+  annotate(geom='text', x=q0.025, y=.QH, label = round(q0.025, 3),
+           hjust = 0, color = 'red', size = .FS) +
+  annotate(geom='text', x=q0.975, y=.QH, label = round(q0.975, 3),
+           hjust = 1, color = 'red', size = .FS) +
+  annotate(geom='text', x=xbar_obs + 0.05, y=.QH, 
+           label = round(xbar_obs, 3), hjust = 0, 
+           color = 'black', size = .FS) +
+  geom_segment(aes(x = Min, xend = q0.025,
+                   y = 0, yend = 0), color = 'red', size = 1) +
+  geom_segment(aes(x = q0.975, xend = Max,
+                   y = 0, yend = 0), color = 'red', size = 1) +
+  geom_segment(aes(x = q0.025, xend = q0.975,
+                   y = 0, yend = 0), color = 'gray', size = 1)
+```
+]
+
+
+---
+
+# Critical values: Theoretical approach
+
+.pull-left[
+```{r}
+# Resampling
+quantile(null_dist$xbar, 
+         probs = c(0.025, 0.975))
+# Theoretical
+qnorm(p = c(0.025, 0.975), 
+      mean = mu_theory, sd = se_theory)
+# Observed statistic
+xbar_obs
+```
+]
+
+.pull-right[
+```{r echo=FALSE}
+Q <- qnorm(p = c(0.025, 0.975), mu_theory, se_theory)
+
+null_dist %>%
+  ggplot() +
+  geom_histogram(aes(x = xbar, y = ..density..), 
+                 color = 'white', fill = 'lightblue', 
+                 alpha = 0.5) +
+  geom_function(fun = dnorm, 
+                args = list(mean = mu_theory, sd = se_theory), 
+                color = 'darkorange', size = 2) +
+  geom_vline(xintercept = xbar_obs, size = 1, linetype = 2, 
+             color = 'black') +
+  geom_area(stat = "function", fun = dnorm, 
+            args = list(mean = mu_theory, sd = se_theory),
+            fill = "red", alpha = 0.5, 
+            xlim = c(Q[2], Max)) +
+  geom_area(stat = "function", fun = dnorm, 
+            args = list(mean = mu_theory, sd = se_theory),
+            fill = "red", alpha = 0.5, 
+            xlim = c(Min, Q[1])) +
+  geom_area(stat = "function", fun = dnorm, 
+            args = list(mean = mu_theory, sd = se_theory),
+            fill = "lightgray", alpha = 0.5, 
+            xlim = Q) +
+  annotate(geom='label', x=1, y=0.5, label = '0.025', hjust = 0, 
+           color = 'red', size = .FS, fontface = 'bold') +
+  annotate(geom='label', x=-1, y=0.5, label = '0.025', hjust = 1, 
+           color = 'red', size = .FS, fontface = 'bold') +
+  annotate(geom='label', x=0, y=0.5, label = '0.95', 
+           color = 'darkgray', size = .FS, fontface = 'bold') +
+  geom_segment(aes(x = Min, xend = Q[1],
+                   y = 0, yend = 0), color = 'red', size = 1) +
+  geom_segment(aes(x = Q[2], xend = Max,
+                   y = 0, yend = 0), color = 'red', size = 1) +
+  geom_segment(aes(x = Q[1], xend = Q[2],
+                   y = 0, yend = 0), color = 'gray', size = 1) +
+  labs(x = expr(bar(x)~"(when H0 true)"))
+```
+]
+
+
+
+---
+class: inverse, center, middle
+
+# Part E
+## Standardized statistics (a.k.a. z-scores)
+
+
+---
+
+# Z-scores
+
+- For data $x_1, ..., x_n$, the z-score is
+$$
+z_i = \frac{x_i - \mu}{\sigma}
+$$
+
+
+--
+
+- For our 5,000 means $\bar x_1, ..., \bar x_{5000}$ from the null distribution, we compute the z-score as:
+$$
+z_i = \frac{\bar x_i - 0}{SE} = \frac{\bar x_i - \text{hypothesised value}}{ SE }
+$$
+
+  where $SE$ = standard error of the mean.
+
+--
+
+- Don't forget to also transform the observed statistic to standard units! We need to z-score the observed statistic to bring it to the same scale:
+
+$$z_{obs} = \frac{\bar x_{obs} - \text{hypothesised value}}{ SE }$$
+
+---
+
+# Z-scores
+
+How is the standard error computed?
+
+- **Resampling approach**: $SE$ = standard deviation of the null distribution
+
+- **Theoretical approach**: $SE = \frac{s}{\sqrt{n}}$
+
+
+---
+
+# Resampling approach
+
+
+.pull-left[
+```{r}
+hypothesised_value <- 0
+
+null_dist$z <- 
+  (null_dist$xbar - hypothesised_value) /
+  sd(null_dist$xbar)
+
+z_obs <- (xbar_obs - hypothesised_value) / 
+  sd(null_dist$xbar)
+z_obs
+```
+
+```{r}
+quantile(null_dist$z, probs = c(0.025, 0.975))
+```
+
+```{r eval=FALSE, echo=FALSE}
+mean(null_dist$z >= -2 & null_dist$z <= 2)
+```
+
+]
+
+
+.pull-right[
+```{r echo=FALSE}
+library(ggridges)
+
+ggplot(null_dist) +
+  stat_density_ridges(
+    aes(x = z, y = 0, fill = factor(stat(quantile))),
+    alpha = 0.5,
+    geom = "density_ridges_gradient",
+    calc_ecdf = TRUE,
+    quantiles = c(0.025, 0.975),
+    size = 1,
+    color = 'lightblue3'
+  ) +
+  scale_fill_manual(
+    values = c(alpha("red", 0.5), 
+               alpha("lightgray", 0.5), alpha("red", 0.5))
+  ) +
+  geom_vline(xintercept = z_obs, size = 1, linetype = 2, 
+             color = 'black') +
+  annotate(geom='label', x=3, y=0.45, label = '0.025', hjust = 0.5, 
+           color = 'red', size = .FS, fontface = 'bold') +
+  annotate(geom='label', x=-3, y=0.45, label = '0.025', hjust = 0.5, 
+           color = 'red', size = .FS, fontface = 'bold') +
+  annotate(geom='label', x=0, y=0.45, label = '0.95', 
+           color = 'darkgray', size = .FS, fontface = 'bold') +
+  theme(legend.position = 'none') +
+  labs(x = 'z-score (when H0 true)', y = 'density') +
+  xlim(-4, 4)
+```
+]
+
+
+---
+
+# Theoretical approach
+
+.pull-left[
+```{r}
+# Resampling
+quantile(null_dist$z, 
+         probs = c(0.025, 0.975))
+# Theoretical
+q <- qnorm(c(0.025, 0.975), mean=0, sd=1)
+q
+# Observed z-score
+z_obs_theory <- (xbar_obs - hypothesised_value) / 
+  se_theory
+z_obs_theory
+```
+
+<!-- Check the probability to the left of the theoretical quantiles: -->
+```{r echo=FALSE, eval=FALSE}
+# pnorm(q, mean = 0, sd = 1)
+pnorm(q)
+```
+]
+
+.pull-right[
+```{r echo=FALSE}
+null_dist %>%
+  ggplot() +
+  geom_density(aes(x = z), size = 1, color = 'lightblue3') +
+  geom_function(fun = dnorm, args = list(mean = 0, sd = 1), 
+                color = 'darkorange', size = 1) +
+  geom_vline(xintercept = z_obs, size = 1, linetype = 2, 
+             color = 'black') +
+  geom_area(stat = "function", fun = dnorm, 
+            args = list(mean = 0, sd = 1),
+            fill = "red", alpha = 0.5,
+            xlim = c(qnorm(p = 0.975, 0, 1), 3.5 * 1)) +
+  geom_area(stat = "function", fun = dnorm, 
+            args = list(mean = 0, sd = 1),
+            fill = "red", alpha = 0.5,
+            xlim = c(-3.5 * 1, qnorm(p = 0.025, 0, 1))) +
+  geom_area(stat = "function", fun = dnorm, 
+            args = list(mean = 0, sd = 1),
+            fill = "lightgray", alpha = 0.5,
+            xlim = c(qnorm(p = 0.025, 0, 1), 
+                     qnorm(p = 0.975, 0, 1))) +
+  annotate(geom='label', x=3, y=0.25, label = '0.025', hjust = 0.5, 
+           color = 'red', size = .FS, fontface = 'bold') +
+  annotate(geom='label', x=-3, y=0.25, label = '0.025', hjust = 0.5, 
+           color = 'red', size = .FS, fontface = 'bold') +
+  annotate(geom='label', x=0, y=0.25, label = '0.95', 
+           color = 'darkgray', size = .FS, fontface = 'bold') +
+  labs(x = 'z-score (when H0 true)') +
+  xlim(-4, 4)
+```
+]
+
+
+---
+
+# What if you don't want to z-score $\bar x_{obs}$?
+
+- Recall that
+$$
+\text{When } H_0 : \mu = 0 \text{ is true:} \qquad \bar X \sim N(0, SE)
+$$
+
+--
+
+- We also know that for a normal distribution, 95% of the values lie within 1.96 SE of the mean (= 0 in this case). 
+
+--
+
+- So, we would reject the null hypothesis if the observed sample mean is smaller than $-1.96 \cdot SE$ or larger than $1.96 \cdot SE$.
+
+--
+
+- If we use the absolute value to ignore the sign, we can simply refer to the upper tail and
+
+$$\text{Reject } H_0 \text{ if:} \qquad |\bar x_{obs}| \geq 1.96 \cdot SE$$
+
+
+---
+
+class: inverse, center, middle, animated, rotateInDownLeft
+
+# End
+

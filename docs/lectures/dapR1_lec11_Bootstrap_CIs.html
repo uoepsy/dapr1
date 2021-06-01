@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Semester 2, Week 1: Bootstrapping and Confidence Intervals</title>
+    <meta charset="utf-8" />
+    <script src="jk_libs/libs/header-attrs/header-attrs.js"></script>
+    <link href="jk_libs/libs/tile-view/tile-view.css" rel="stylesheet" />
+    <script src="jk_libs/libs/tile-view/tile-view.js"></script>
+    <link href="jk_libs/libs/animate.css/animate.xaringan.css" rel="stylesheet" />
+    <link href="jk_libs/libs/tachyons/tachyons.min.css" rel="stylesheet" />
+    <link href="jk_libs/libs/xaringanExtra-extra-styles/xaringanExtra-extra-styles.css" rel="stylesheet" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+    <link rel="stylesheet" href="jk_libs/tweaks.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# <b>Semester 2, Week 1: Bootstrapping and Confidence Intervals</b>
+## Data Analysis for Psychology in R 1
+### 
+### Department of Psychology<br/>The University of Edinburgh
+### AY 2020-2021
+
+---
+
+
+
+
+
+
+
+# This Week's Learning Objectives
+
+1. Understand how bootstrap resampling with replacement can be used to approximate a sampling distribution. 
+
+2. Understand how the bootstrap distribution can be used to construct a range of highly plausible values (a confidence interval).  
+
+3. Understand the link between simulation-based standard errors and theory-based standard errors. 
+
+---
+class: inverse, center, middle
+
+# Part 1
+## Bootstrapping
+
+---
+
+# Samples
+&lt;center&gt;
+&lt;img src="jk_img_sandbox/statistical_inference.png" width="600" height="500" /&gt;
+&lt;/center&gt;
+---
+
+# Good Samples  
+
+- If a sample of `\(n\)` is drawn at **random**, it will be unbiased and representative of `\(N\)`
+- Point estimates from such samples will be good estimates of the population parameter.
+    - Without the need for census.
+
+![](jk_img_sandbox/sampling_bias.png)
+
+---
+
+# Recap on sampling distributions
+.pull-left[
+- We have a population.
+- We take a sample of size `\(n\)` from it, and calculate our statistic
+    - The statistic is our estimate of the population parameter.
+    
+- We do this repeatedly, and we can construct a sampling distribution.
+
+- The mean of the sampling distribution will be a good approximation to the population parameter.
+
+- To quantify sampling variation we can refer to the standard deviation of the sampling distribution (the **standard error**) 
+]
+.pull-right[
+{{content}}
+]
+--
++ University students
+{{content}}
+--
+
++ We take a sample of 30 students, calculate the mean height. 
+{{content}}
+--
+    + This is our estimate of the mean height of all university students.
+{{content}}
+--
+
++ Do this repeatedly (take another sample of 30, calculate mean height).
+{{content}}
+--
+
++ The mean of these sample means will be a good approximation of the population mean.
+{{content}}
+--
+
++ To quantify sampling variation in mean heights of 30 students, we can refer to the standard deviation of these sample means.
+{{content}}
+
+
+---
+
+# Practical problem:
+
+.pull-left[
+![](dapR1_lec11_Bootstrap_CIs_files/figure-html/unnamed-chunk-2-1.png)&lt;!-- --&gt;
+]
+.pull-right[
+- This process allows us to get an estimate of the sampling variability, **but is this realistic?**
+    
+- Can I really go out and collect 500 samples of 30 students from the population?
+    
+    - Probably not...
+{{content}}    
+]
+
+--
+
+- So how else can I get a sense of the variability in my sample estimates? 
+
+---
+
+.pull-left[
+## Solution 1  
+### Theoretical  
+
+- Collect one sample.
+
+- Estimate the Standard Error using the formula:  
+  &lt;br&gt;
+`\(\text{SE} = \frac{\sigma}{\sqrt{n}}\)`  
+
+]
+.pull-right[
+## Solution 2  
+### Bootstrap
+
+- Collect one sample.
+
+- Mimick the act of repeated sampling from the population by repeated **resampling with replacement** from the original sample. 
+
+- Estimate the standard error using the standard deviation of the distribution of **resample** statistics. 
+
+]
+
+
+
+---
+
+# Resampling 1: The sample
+
+
+
+
+.pull-left[
+&lt;img src="jk_img_sandbox/sample.png" width="350" /&gt;
+
+Suppose I am interested in the mean age of all characters in The Simpsons, and I have collected a sample of `\(n=10\)`. 
+{{content}}
+]
+
+
+--
+
++ The mean age of my sample is 44.9. 
+
+--
+
+.pull-right[
+
+```
+## # A tibble: 10 x 2
+##    name                 age
+##    &lt;chr&gt;              &lt;dbl&gt;
+##  1 Homer Simpson         39
+##  2 Ned Flanders          60
+##  3 Chief Wiggum          43
+##  4 Milhouse              10
+##  5 Patty Bouvier         43
+##  6 Janey Powell           8
+##  7 Montgomery Burns     104
+##  8 Sherri Mackleberry    10
+##  9 Krusty the Clown      52
+## 10 Jacqueline Bouvier    80
+```
+
+```r
+simpsons_sample %&gt;%
+  summarise(mean_age = mean(age))
+```
+
+```
+## # A tibble: 1 x 1
+##   mean_age
+##      &lt;dbl&gt;
+## 1     44.9
+```
+
+]
+
+---
+
+# Resampling 2: The **re**sample
+
+.pull-left[
+
+I randomly draw out one person from my original sample, I note the value of interest, and then I put that person "back in the pool" (i.e. I sample with replacement). 
+&lt;br&gt;
+&lt;br&gt;
+&lt;img src="jk_img_sandbox/resample1.png" width="350" /&gt;
+
+]
+.pull-right[
+
+```
+## # A tibble: 1 x 2
+##   name           age
+##   &lt;chr&gt;        &lt;dbl&gt;
+## 1 Chief Wiggum    43
+```
+]
+
+---
+
+# Resampling 2: The **re**sample
+
+.pull-left[
+Again, I draw one person at random again, note the value of interest, and replace them.  
+&lt;br&gt;
+&lt;br&gt;
+&lt;img src="jk_img_sandbox/resample2.png" width="350" /&gt;
+
+]
+.pull-right[
+
+```
+## # A tibble: 2 x 2
+##   name           age
+##   &lt;chr&gt;        &lt;dbl&gt;
+## 1 Chief Wiggum    43
+## 2 Ned Flanders    60
+```
+]
+
+---
+
+# Resampling 2: The **re**sample
+
+.pull-left[
+And again...   
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+&lt;img src="jk_img_sandbox/resample3.png" width="350" /&gt;
+
+]
+.pull-right[
+
+```
+## # A tibble: 3 x 2
+##   name           age
+##   &lt;chr&gt;        &lt;dbl&gt;
+## 1 Chief Wiggum    43
+## 2 Ned Flanders    60
+## 3 Janey Powell     8
+```
+]
+
+---
+
+# Resampling 2: The **re**sample
+
+.pull-left[
+And again...  
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+&lt;img src="jk_img_sandbox/resample4.png" width="350" /&gt;
+
+]
+.pull-right[
+
+```
+## # A tibble: 4 x 2
+##   name           age
+##   &lt;chr&gt;        &lt;dbl&gt;
+## 1 Chief Wiggum    43
+## 2 Ned Flanders    60
+## 3 Janey Powell     8
+## 4 Ned Flanders    60
+```
+]
+
+---
+
+# Resampling 2: The **re**sample
+
+.pull-left[
+Repeat until I have a the same number as my original sample ( `\(n = 10\)` ).  
+&lt;br&gt;
+&lt;br&gt;
+&lt;img src="jk_img_sandbox/resample.png" width="350" /&gt;
+{{content}}
+]
+.pull-right[
+
+```
+## # A tibble: 10 x 2
+##    name                 age
+##    &lt;chr&gt;              &lt;dbl&gt;
+##  1 Chief Wiggum          43
+##  2 Ned Flanders          60
+##  3 Janey Powell           8
+##  4 Ned Flanders          60
+##  5 Patty Bouvier         43
+##  6 Chief Wiggum          43
+##  7 Jacqueline Bouvier    80
+##  8 Montgomery Burns     104
+##  9 Sherri Mackleberry    10
+## 10 Patty Bouvier         43
+```
+]
+--
+- This is known as a **resample**
+{{content}}
+--
+- The mean age of the resample is 49.4  
+
+---
+
+# Bootstrapping: Resample&lt;sub&gt;1&lt;/sub&gt;, ..., Resample&lt;sub&gt;k&lt;/sub&gt;
+
+- If I repeat this whole process many times, say k=1000, I will have 1000 means from 1000 resamples.
+    - Note these are entirely derived from the original sample.
+
+- This is known as called **bootstrapping**, and the resultant distribution of statistics (in our example, the distribution of 1000 resample means) is known as a **bootstrap distribution.** 
+
+&lt;div style="border-radius: 5px; 
+    padding: 20px 20px 10px 20px; 
+    margin-top: 20px; 
+    margin-bottom: 20px; 
+    background-color:#fcf8e3 !important;"&gt; 
+**Bootstrapping**   
+The process of resampling *with replacement* from the original data to generate a multiple resamples of the same `\(n\)` as the original data.
+
+
+---
+
+# Bootstrap distribution 
+
+- Start with an initial sample of size `\(n\)`.  
+
+- Take `\(k\)` resamples (sampling with replacement) of size `\(n\)`, and calculate your statistic on each one. 
+
+- As `\(k\to\infty\)`, the distribution of the `\(k\)` resample statistics begins to approximate the sampling distribution. 
+    - Note, this is just the same exercise as we did with samples from the population in previous weeks.
+
+
+---
+
+# k = 20, 50, 200, 2000, ...
+
+![](dapR1_lec11_Bootstrap_CIs_files/figure-html/unnamed-chunk-17-1.png)&lt;!-- --&gt;
+
+
+---
+
+# Bootstrap Standard Error
+
+
+- Previously we spoke about the standard error as the measure of sampling variability.  
+
+--
+
+    - We stated that this was just the SD of the sampling distribution.
+    
+--
+
+- In the same vein, we can calculate a bootstrap standard error - the SD of the bootstrap distribution.
+    
+![](dapR1_lec11_Bootstrap_CIs_files/figure-html/unnamed-chunk-18-1.png)&lt;!-- --&gt;
+
+---
+class: inverse, center, middle, animated, rotateInDownLeft
+
+# End of Part 1
+
+---
+class: inverse, center, middle
+
+# Part 2
+## Confidence Intervals
+
+---
+
+# Confidence interval
+
+- Remember, usually we do not know the value of a population parameter.  
+
+    - We are trying to estimate this from our data.  
+  
+--
+
+- A confidence interval defines a plausible range of values for our population parameter.  
+
+- To estimate we need:  
+
+    - A **confidence level**  
+    - A measure of sampling variability (e.g. SE/bootstrap SE).
+
+---
+
+# Confidence interval &amp; level
+
+&lt;div style="border-radius: 5px; 
+    padding: 20px 20px 10px 20px; 
+    margin-top: 20px; 
+    margin-bottom: 20px; 
+    background-color:#fcf8e3 !important;"&gt;
+**x% Confidence interval**   
+across repeated samples, [x]% confidence intervals would be expected to contain the true population parameter value.&lt;/div&gt;
+x% is the *confidence level*.  
+Commonly, you will use and read about **95%** confidence intervals. If we were to take 100 samples, and calculate a 95% CI on each of them, approx 95 of them would contain the true population mean.  
+
+--
+
+- What are we 95% confident *in?*  
+
+    - We are 95% confident that our interval [lower, upper] contains the true population mean. 
+    - This is subtly different from saying that we are 95% confident that the true mean is inside our interval. The 95% probability is related to the long-run frequencies of our intervals.  
+
+
+
+---
+
+# Simple Visualization 
+
+.pull-left[
+![](dapR1_lec11_Bootstrap_CIs_files/figure-html/unnamed-chunk-19-1.png)&lt;!-- --&gt;
+]
+
+.pull-right[
+
+- The confidence interval works outwards from the centre  
+
+- As such, it "cuts-off" the tails.  
+
+    - E.g. the most extreme estimates will not fall within the interval
+
+]
+
+---
+
+# Calculating CI  
+
+- We want to identify the upper and lower bounds of the interval (i.e. the red lines from previous slide)  
+
+- These need to be positioned so that 95% of all possible sample mean estimates fall within the bounds.
+
+---
+
+# Calculating CI: 68/95/99 Rule  
+
+- Remember that sampling distributions become normal...  
+
+- There are fixed properties of normal distributions.  
+
+--
+
+- Specifically:  
+
+    - 68% of density falls within 1 SD of the mean
+    - 95% of density falls with 1.96 SD of the mean
+    - 99.7% of density falls within 3 SD of the mean
+    
+- Remember the standard error = SD of the bootstrap (or sampling distribution)...
+
+---
+
+# Calculating CI  
+
+- ... the bounds of the 95% CI for a mean are:  
+
+$$
+\text{Lower Bound} = mean - 1.96 \cdot SE
+$$
+$$
+\text{Upper Bound} = mean + 1.96 \cdot SE 
+$$
+---
+
+
+# Calculating CI - Example
+
+
+
+```r
+simpsons_sample &lt;- read_csv("https://uoepsy.github.io/data/simpsons_sample.csv")
+mean(simpsons_sample$age)
+```
+
+```
+## [1] 44.9
+```
+
+---
+
+# Calculating CI - Example
+
+
+```r
+# Theoretical approach
+mean(simpsons_sample$age) - 1.96*(sd(simpsons_sample$age)/sqrt(10))
+```
+
+```
+## [1] 25.47
+```
+
+```r
+mean(simpsons_sample$age) + 1.96*(sd(simpsons_sample$age)/sqrt(10))
+```
+
+```
+## [1] 64.33
+```
+
+---
+
+# Calculating CI - Example
+
+
+```r
+# Bootstrap Approach
+source('https://uoepsy.github.io/files/rep_sample_n.R')
+
+resamples2000 &lt;- rep_sample_n(simpsons_sample, n = 10, samples = 2000, replace = TRUE) 
+
+bootstrap_dist &lt;- resamples2000 %&gt;%
+  group_by(sample) %&gt;%
+  summarise(resamplemean = mean(age))
+
+sd(bootstrap_dist$resamplemean)
+```
+
+```
+## [1] 9.334
+```
+
+```r
+mean(simpsons_sample$age) - 1.96*sd(bootstrap_dist$resamplemean)
+```
+
+```
+## [1] 26.6
+```
+
+```r
+mean(simpsons_sample$age) + 1.96*sd(bootstrap_dist$resamplemean)
+```
+
+```
+## [1] 63.2
+```
+
+---
+
+# Sampling Distributions and CIs are not just for means.  
+
+For a 95% Confidence Interval around a statistic: 
+
+$$
+\text{Lower Bound} = statistic - 1.96 \cdot SE
+$$
+$$
+\text{Upper Bound} = statistic + 1.96 \cdot SE
+$$
+
+
+---
+
+# Summary  
+
+- Good samples are representative, random and unbiased.  
+
+- Bootstrap resampling is a tool to construct a *bootstrap distribution* of any statistic which, with sufficient resamples, will approximate the *sampling distribution* of the statistic.  
+
+- Confidence Intervals are a tool for considering the plausible value for an unknown population parameter.  
+
+- We can use bootstrap SE to calculate CI.  
+
+
+---
+
+class: inverse, center, middle, animated, rotateInDownLeft
+
+# End
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="jk_libs/macros.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

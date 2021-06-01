@@ -1,0 +1,261 @@
+---
+title: "Lecture 6: Functions"
+subtitle: Data Analysis for Psychology in R 1
+author: Tom Booth
+---
+```{r premable, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(kableExtra)
+library(cowplot)
+```
+
+
+## Today
+- What are functions?
+  - How do we use them?
+  - How do we visualize them?
+
+## Learning objectives
+- Understand the basic principles of functions.
+- Be able to calculate functions by hand and in R
+- Be able to visualize functions
+- Begin a appreciation of their usefulness for statistics
+
+## What is a function?
+- A function maps one set of values to some other set of values.
+- Put differently, a function takes an input, does something, and provides an output.
+
+$$
+x = \begin{bmatrix}
+1 \\ 
+2 \\ 
+3 \\ 
+\end{bmatrix}
+$$
+
+$$
+f(x) = x-2
+$$
+
+$$
+f(x) = \sqrt{x}
+$$
+
+## What is a function?
+
+![](function.png)
+
+## Visualising Simple Functions
+- An important tool in understanding functions is to plot them.
+  - This helps us both understand plots
+  - And gain intuition about functions.
+- So let's look at the following:
+
+$$
+f(x) = 10 + 2x
+$$
+
+## Visualising Simple Functions
+
+- Where $x$ is:
+
+$$
+x = \begin{bmatrix}
+1 \\ 
+2 \\ 
+3 \\
+4 \\
+5 \\ 
+6 \\ 
+7 \\
+8 \\
+\end{bmatrix}
+$$
+
+## Visualising Simple Functions
+
+```{r, echo=FALSE}
+func_x <- tibble(
+  x = c(1,2,3,4,5,6,7,8), 
+  fx = 10 + (2*x) 
+)
+  
+kable(func_x) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+
+
+```
+
+## Visualising Simple Functions
+
+```{r, echo=FALSE}
+ggplot(func_x[1,], aes(x, fx)) + 
+  xlim(0, 10) +
+  ylab("f(x)") +
+  ylim(0, 30) 
+```
+
+
+
+## Visualising Simple Functions
+
+```{r, echo=FALSE}
+ggplot(func_x[1,], aes(x, fx)) + 
+  xlim(0, 10) +
+  ylab("f(x)") +
+  ylim(0, 30) +
+  geom_point(colour = "red", size = 2) +
+  geom_segment(aes(x = x, y = fx, xend = x, yend = 0), 
+               arrow=arrow(type = "closed", length = unit(0.25, "cm"))) +
+  geom_segment(aes(x = x, y = fx, xend = 0, yend = fx), 
+               arrow=arrow(type = "closed", length = unit(0.25, "cm")))
+```
+
+## Visualising Simple Functions
+
+```{r, echo=FALSE}
+ggplot(func_x, aes(x, fx)) + 
+  xlim(0, 10) +
+  ylab("f(x)") +
+  ylim(0, 30) +
+  geom_point(colour = "red", size = 2)
+```
+
+```{r, echo=FALSE}
+fun1 <- function(x) 10+(2*x)
+
+ggplot(func_x, aes(x, fx)) + 
+  geom_point(colour = "red", size = 2) +
+  stat_function(fun = fun1) +
+  xlim(0, 10) +
+  ylab("f(x)") +
+  ylim(0, 30)
+```
+
+## Briefly: Functions and R?
+- As an aside, we see this logic in R.
+
+```{r, eval=FALSE}
+# in general
+function([some data], do some things)
+```
+
+## Multiple arguments
+- Functions can take multiple arguments. Consider:
+
+$$
+f(x,y) = 10 + (x*y)
+$$
+- Where:
+
+$$
+x = \begin{bmatrix}
+1 \\ 
+2 \\ 
+3 \\ 
+\end{bmatrix}
+$$
+
+$$
+y = \begin{bmatrix}
+1 \\ 
+2 \\ 
+3 \\ 
+\end{bmatrix}
+$$
+
+## Multiple arguments
+```{r,echo=FALSE}
+func_xy <- tibble(
+  x = c(1,1,1,2,2,2,3,3,3),
+  y = c(1,2,3,1,2,3,1,2,3)
+)
+
+kable(func_xy) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+## Multiple arguments
+```{r,echo=FALSE}
+func_xy2 <- tibble(
+  x = c(1,1,1,2,2,2,3,3,3),
+  y = c(1,2,3,1,2,3,1,2,3),
+  "f(x,y)" = 10 + (x*y)
+)
+
+kable(func_xy2) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+## Why are functions important?
+- There are going to be lots of examples of functions in action.
+- Two primary examples are:
+    - **Data transformations**
+    - **Describing formal models**
+- We will be using both of these frequently from now on. 
+- But let's take a look at transformations (models next lecture)
+
+## Transformations
+- You already know lots of these:
+    - Centimetres to metres
+    - Kilograms to pounds
+- But there are some common transforms we use in statistics:
+    - Scaling (like the examples above)
+    - Centering - making a new 0 point
+    - Non-linear transformations (Square, square root, log, exponentials)
+
+## Why do we use transformations?
+- Scaling/Centering: 
+    - Almost always about interpretation.
+    - Often used to provide common scale (e.g. z-scores, see normal distribution)
+- Non-linear transforms:
+    - These change the shape of a distribution...
+    
+## Non-linear transforms
+
+```{r, echo=FALSE}
+tran <- tibble(
+  x = c(rbeta(10000, 2,5)),
+  x2 = log(x)
+)
+
+
+log1 <- function(x) log(x)
+datX <- tibble(
+  x = c(1:100)
+)
+
+func_plot <- ggplot(datX, aes(x)) + 
+  stat_function(fun = log1, size = 1.25) +
+  xlab("X") +
+  ylab("Log(x)")
+
+px <- ggplot(tran, aes(x=x)) +
+  geom_density(alpha = .5, colour = "blue", fill = "blue") +
+  ylab("Density \n") +
+  xlab("X")
+
+px2 <- ggplot(tran, aes(x=x2)) +
+  geom_density(alpha = .5, colour = "green", fill = "green") +
+  ylab("Density \n") +
+  xlab("log(X)")
+
+plot_grid(func_plot, px, px2, label_size = 12)
+```
+
+    
+
+## Tasks for this week...
+1. Finish any existing tasks from lab 5.
+2. Reading: Chapter on LEARN written by Alex Doumas for our textbook.
+3. Quiz 6: Central tendency, variability and R
+    - Live now.
+    - Close Sunday at 17:00
+    
+## Recommendations of the week
+- Podcast: [No such thing as a fish](https://www.nosuchthingasafish.com/)
+- Recipe: [Home made protein balls](https://www.myfoodandhappiness.com/the-perfect-protein-energy-balls/)
+- Book: 12 Maps that Changed the World, Jerry Brotton
+- Thing to do: [Water of Leith Walk](http://www.waterofleith.org.uk/)   
+- Coffee/food Place: Sausage roll guy (Meadows)
+

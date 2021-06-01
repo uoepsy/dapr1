@@ -1,0 +1,195 @@
+---
+title: "S2W4 Lecture code"
+author: "Umberto Noe"
+output: 
+  bookdown::html_document2:
+    theme: cosmo
+    number_sections: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE,
+                      fig.align = 'center',
+                      # fig.height = 6, fig.width = 7,
+                      out.width = '70%')
+```
+
+
+```{r}
+rm(list = ls())
+setwd("~/R/uoepsy/dapr1/dapr1_lectures")
+```
+
+```{r}
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+
+theme_set(theme_classic(base_size = 12) + 
+              theme(plot.title = element_text(hjust = 0.5)))
+```
+
+```{r}
+exdata <- read_csv('https://uoepsy.github.io/data/ExerciseHours.csv')
+head(exdata)
+
+exdata <- exdata  %>%
+    select(hand, exercise) %>%
+    mutate(hand = factor(hand))
+head(exdata)
+```
+
+```{r}
+exdata_stats <- exdata %>% 
+    group_by(hand) %>%
+    summarise(count = n(),
+              avg_exercise = mean(exercise))
+
+exdata_stats %>%
+    kable(digits = 2) %>% 
+    kable_styling(full_width = FALSE)
+
+# Observed difference in means
+diff_obs <- exdata_stats$avg_exercise[2] - exdata_stats$avg_exercise[1]
+diff_obs
+```
+
+
+```{r}
+ggplot(exdata, aes(x = exercise)) +
+    geom_dotplot(binwidth = 1, fill = 'lightblue', color = NA) +
+    facet_grid(hand ~ .) +
+    geom_vline(data = filter(exdata, hand == 'l'), 
+               aes(xintercept = mean(exercise)),
+               color = 'darkolivegreen3', size = 1) +
+    geom_vline(data = filter(exdata, hand == 'r'), 
+               aes(xintercept = mean(exercise)),
+               color = 'darkolivegreen3', size = 1) +
+    theme_light()
+```
+
+
+```{r}
+source('https://uoepsy.github.io/files/rep_sample_n.R')
+```
+
+```{r}
+num_samples <- 1000
+
+l_means <- exdata %>%
+    filter(hand == 'l') %>%
+    rep_sample_n(n = nrow(.), samples = num_samples, replace = TRUE) %>%
+    group_by(hand, sample) %>%
+    summarise(avg = mean(exercise))
+l_means
+
+r_means <- exdata %>%
+    filter(hand == 'r') %>%
+    rep_sample_n(n = nrow(.), samples = num_samples, replace = TRUE) %>%
+    group_by(hand, sample) %>%
+    summarise(avg = mean(exercise))
+r_means
+
+all_means <- bind_rows(l_means, r_means) %>%
+    pivot_wider(names_from = hand, values_from = avg, names_prefix = "avg_")
+all_means
+
+boot_dist <- all_means %>%
+    mutate(diff = avg_r - avg_l) %>%
+    select(sample, diff)
+boot_dist
+```
+
+```{r}
+diff_crit_b <- quantile(boot_dist$diff, probs = c(0.025, 0.975))
+
+bplt <- ggplot(boot_dist) +
+    geom_histogram(aes(x = diff, y = ..density.., 
+                       fill = stat(x) <= diff_crit_b[1] | stat(x) >= diff_crit_b[2]),
+                   color = 'white', alpha = 0.5) +
+    geom_vline(xintercept = diff_obs, color = 'darkolivegreen3', size = 1) +
+    annotate(geom = 'text', x = diff_obs, y = -0.01, hjust = -0.1,
+             label = round(diff_obs, 3), color = 'darkolivegreen3', size = 5) +
+    scale_fill_manual(values = c('gray', 'red', 'red')) +
+    theme(legend.position = 'none') +
+    labs(x = "Difference in means", title = "Bootstrap distribution")
+bplt
+```
+
+# Null distribution
+
+```{r}
+num_samples <- 1000
+
+l_means <- exdata %>%
+    filter(hand == 'l') %>%
+    mutate(exercise = exercise + diff_obs) %>%
+    rep_sample_n(n = nrow(.), samples = num_samples, replace = TRUE) %>%
+    group_by(hand, sample) %>%
+    summarise(avg = mean(exercise))
+l_means
+
+r_means <- exdata %>%
+    filter(hand == 'r') %>%
+    rep_sample_n(n = nrow(.), samples = num_samples, replace = TRUE) %>%
+    group_by(hand, sample) %>%
+    summarise(avg = mean(exercise))
+r_means
+
+all_means <- bind_rows(l_means, r_means) %>%
+    pivot_wider(names_from = hand, values_from = avg, names_prefix = "avg_")
+all_means
+
+null_dist <- all_means %>%
+    mutate(diff = avg_r - avg_l) %>%
+    select(sample, diff)
+null_dist
+```
+
+```{r}
+diff_crit_n <- quantile(null_dist$diff, probs = c(0.025, 0.975))
+
+nplt <- ggplot(null_dist) +
+    geom_histogram(aes(x = diff, y = ..density.., 
+                       fill = stat(x) <= diff_crit_n[1] | stat(x) >= diff_crit_n[2]),
+                   color = 'white', alpha = 0.5) +
+    geom_vline(xintercept = 0, color = 'dodgerblue', size = 1) +
+    geom_vline(xintercept = diff_obs, color = 'darkolivegreen3', size = 1) +
+    annotate(geom = 'text', x = diff_obs, y = -0.01, hjust = -0.1,
+             label = round(diff_obs, 3), color = 'darkolivegreen3', size = 5) +
+    scale_fill_manual(values = c('gray', 'red', 'red')) +
+    labs(x = "Difference in means", title = "Null distribution") +
+    theme(legend.position = 'none')
+nplt
+```
+
+
+```{r}
+both <- bind_rows(
+    boot_dist %>% mutate(type = 'Bootstrap'),
+    null_dist %>% mutate(type = 'Null')
+)
+```
+
+```{r}
+ggplot(both) +
+    geom_histogram(data = filter(both, type == 'Null'), 
+                   aes(x = diff, y = ..density..,
+                       fill = stat(x) <= diff_crit_n[1] | stat(x) >= diff_crit_n[2]),
+                   color = 'white') +
+    geom_histogram(data = filter(both, type == 'Bootstrap'), 
+                   aes(x = diff, y = ..density..,
+                       fill = stat(x) <= diff_crit_b[1] | stat(x) >= diff_crit_b[2]),
+                   color = 'white') +
+    facet_grid(type ~ .) +
+    geom_vline(data = filter(both, type == 'Null'), aes(xintercept = 0),
+               color = 'dodgerblue', size = 1) +
+    geom_vline(data = filter(both, type == 'Bootstrap'), aes(xintercept = diff_obs),
+               color = 'darkolivegreen3', size = 1) +
+    theme_light(base_size = 15) +
+    scale_fill_manual(values = c('lightgray', 'red2')) +
+    theme(legend.position = 'none')
+
+```
+
+

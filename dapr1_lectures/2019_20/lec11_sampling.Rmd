@@ -1,0 +1,388 @@
+---
+title: "Lecture 11: Sampling"
+subtitle: Data Analysis for Psychology in R 1
+author: Tom Booth
+---
+```{r premable, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(kableExtra)
+library(cowplot)
+```
+
+## Course feedback
+- Thank-you for all the course feedback.
+    - Lots of positives and lots of things to think about developing.
+- Some quick changes for the rest of this year:
+    - Slight changes to labs 
+    - Improve the consistency of lecture and lab code
+    - Fuller code explanations
+    - Add links to more detailed statistical material
+
+## Administrative matters
+- Times and locations for both lectures and labs have changed.
+- Please check carefully.
+- If you can not make your new lab, let us know.
+
+## Concepts to carry forward
+- Data can be of different types.
+- Dependent on type (continuous vs. categorical), we can visualise and describe the distribution of data differently.
+- When thinking about events ("things happening") we can assign probabilities to the event.
+- We can then define a probability distribution that describes the probability of all possible events.
+
+## In Psych Stats
+- In psychology, we design a study, to calculate a value that carries some meaning.
+    - Reaction time of one group vs another.
+- Given it has meaning based on the study design, we want to know something about the number:
+    - Is it unusual or not?
+- This is the task for the next 4-5 weeks. 
+
+## Today
+- We will talk about populations, samples and sampling.
+- Basic concepts of sampling may seem simple and intuitive
+- But these concepts are very useful when we start talking about statistical inference
+    - Statistical inference = how we make decisions about statistics we calculate.
+
+## Learning objectives
+- Understand the concept principles sampling from populations.
+- Be familiar with the specific statistical terminology for sampling.
+- Understand the concept of a sampling distribution.
+
+## A question
+- Suppose I wanted to know the proportion of UG students at the University of Edinburgh were born in Scotland?
+    - In stats talk, all UG at the UoE are our **population**.
+    - The proportion of Scottish students is the **population parameter** (the thing we are interested in).
+- What is the best way to find this out exactly?
+- What else might we do?
+
+## Let's try
+- Sample the class
+
+## Sampling distribution (1)
+- What we have just drawn is a **sampling distribution** for the proportion of Scottish students
+    - This is just a histogram.
+    - Each data point is a guess based on some data of the proportion of students that are Scottish at UoE. 
+
+## Parameter vs point-estimate
+- Key idea: 
+    - There is population parameter (proportion of Scottish students at UoE) we are interested in.
+    - We can draw a sample, and calculate this proportion (statistic) in the sample.
+    - In a single sample, this **point-estimate** is our best guess at the population parameter.
+
+## 2017/18 actual proportion
+
+```{r, echo=FALSE}
+#sim data
+set.seed(7284)
+Edinburgh <- tibble(
+    Scottish = factor(sample(c("No", "Yes"), 25951, replace = T, prob = c(0.54, 0.46)))
+) 
+UoE_prop <- Edinburgh %>%
+    group_by(Scottish) %>%
+    summarise(n = n()) %>%
+    mutate(Freq = round(n / sum(n),2))
+
+kable(UoE_prop) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+- To save time, we are going to automate the process of looking at samples from now on.
+- So let's look at a few more examples.
+
+## Visualizing sampling distributions
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+B <- 10
+N <- 10
+sample_props <- tibble(
+    Prop = replicate(B, {
+  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
+  mean(as.numeric(x)-1)
+})
+)
+sample_props %>%
+    ggplot(., aes(x=Prop)) +
+    geom_histogram(breaks = c(seq(0,1,0.1)), colour='black', fill='gray') +
+    xlim(0,1) +
+    xlab("Proportion") +
+    ylab("Frequency") +
+    geom_vline(xintercept = 0.46, col = "red") +
+    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
+    ggtitle("Histogram of 10 samples of n=10 (1)")
+```
+
+## Visualizing sampling distributions
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+B <- 10
+N <- 10
+sample_props <- tibble(
+    Prop = replicate(B, {
+  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
+  mean(as.numeric(x)-1)
+})
+)
+sample_props %>%
+    ggplot(., aes(x=Prop)) +
+    geom_histogram(breaks = c(seq(0,1,0.1)), colour='black', fill='gray') +
+    xlim(0,1) +
+    xlab("Proportion") +
+    ylab("Frequency") +
+    geom_vline(xintercept = 0.46, col = "red") +
+    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
+    ggtitle("Histogram of 10 samples of n=10 (2)")
+```
+
+## Visualizing sampling distributions
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+B <- 10
+N <- 10
+sample_props <- tibble(
+    Prop = replicate(B, {
+  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
+  mean(as.numeric(x)-1)
+})
+)
+sample_props %>%
+    ggplot(., aes(x=Prop)) +
+    geom_histogram(breaks = c(seq(0,1,0.1)), colour='black', fill='gray') +
+    xlim(0,1) +
+    xlab("Proportion") +
+    ylab("Frequency") +
+    geom_vline(xintercept = 0.46, col = "red") +
+    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
+    ggtitle("Histogram of 10 samples of n=10 (3)")
+```
+
+## Sampling distributions (2)
+- We have just calculated three sampling distributions
+- Each of these look different.
+- Each sampling distribution is characterising the **sampling variability** in our **estimate** of the **parameter** of interest (proportion of Scottish students at UoE).
+
+## More samples
+- So far we have just taken 10 samples.
+- What if we took more?
+
+## More samples
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+B <- 1000
+N <- 10
+sample_props <- tibble(
+    Prop = replicate(B, {
+  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
+  mean(as.numeric(x)-1)
+})
+)
+sample_props %>%
+    ggplot(., aes(x=Prop)) +
+    geom_histogram(breaks = c(seq(0,1,0.1)), colour='black', fill='gray') +
+    xlim(0,1) +
+    xlab("Proportion") +
+    ylab("Frequency") +
+    geom_vline(xintercept = 0.46, col = "red") +
+    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
+    ggtitle("Histogram of 1000 samples of n=10 (1)")
+```
+
+## More samples
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+B <- 1000
+N <- 10
+sample_props <- tibble(
+    Prop = replicate(B, {
+  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
+  mean(as.numeric(x)-1)
+})
+)
+sample_props %>%
+    ggplot(., aes(x=Prop)) +
+    geom_histogram(breaks = c(seq(0,1,0.1)), colour='black', fill='gray') +
+    xlim(0,1) +
+    xlab("Proportion") +
+    ylab("Frequency") +
+    geom_vline(xintercept = 0.46, col = "red") +
+    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
+    ggtitle("Histogram of 1000 samples of n=10 (2)")
+```
+
+
+## More samples
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+B <- 1000
+N <- 10
+sample_props <- tibble(
+    Prop = replicate(B, {
+  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
+  mean(as.numeric(x)-1)
+})
+)
+sample_props %>%
+    ggplot(., aes(x=Prop)) +
+    geom_histogram(breaks = c(seq(0,1,0.1)), colour='black', fill='gray') +
+    xlim(0,1) +
+    xlab("Proportion") +
+    ylab("Frequency") +
+    geom_vline(xintercept = 0.46, col = "red") +
+    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
+    ggtitle("Histogram of 1000 samples of n=10 (3)")
+```
+
+- What do you notice about the plots on the last three slides?
+
+## Frequency = probability
+- At this point lets pause and remember some things from probability.
+- When we spoke about probability, we spoke about the relation to frequency.
+- If something did not happen very often, it has a lower probability.
+    - Now think about our sampling distributions of the proportion of Scottish students
+
+## Frequency = probability
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+B <- 1000
+N <- 10
+sample_props <- tibble(
+    Prop = replicate(B, {
+  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
+  mean(as.numeric(x)-1)
+})
+)
+sample_props %>%
+    ggplot(., aes(x=Prop)) +
+    geom_histogram(breaks = c(seq(0,1,0.1)), colour='black', fill='gray') +
+    xlim(0,1) +
+    xlab("Proportion") +
+    ylab("Frequency") +
+    ggtitle("Histogram of 1000 samples of n=10")
+```
+
+## Bigger samples
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+B <- 1000
+N <- 10
+sample_props <- tibble(
+    Prop = replicate(B, {
+  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
+  mean(as.numeric(x)-1)
+})
+)
+sample_props %>%
+    ggplot(., aes(x=Prop)) +
+    geom_histogram(breaks = c(seq(0,1,0.1)), colour='black', fill='gray') +
+    xlim(0,1) +
+    xlab("Proportion") +
+    ylab("Frequency") +
+    geom_vline(xintercept = 0.46, col = "red") +
+    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
+    ggtitle("Histogram of 1000 samples of n=10")
+```
+
+- So above is a frequency distribution for $n$=10.
+- Let's see what happens when we make $n$ bigger.
+
+## Bigger samples
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+B <- 1000
+N <- 100
+sample_props <- tibble(
+    Prop = replicate(B, {
+  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
+  mean(as.numeric(x)-1)
+})
+)
+sample_props %>%
+    ggplot(., aes(x=Prop)) +
+    geom_histogram(colour='black', fill='gray') +
+    xlim(0,1) +
+    xlab("Proportion") +
+    ylab("Frequency") +
+    geom_vline(xintercept = 0.46, col = "red") +
+    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
+    ggtitle("Histogram of 1000 samples of n=100")
+```
+
+## Bigger samples
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+B <- 1000
+N <- 1000
+sample_props <- tibble(
+    Prop = replicate(B, {
+  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
+  mean(as.numeric(x)-1)
+})
+)
+sample_props %>%
+    ggplot(., aes(x=Prop)) +
+    geom_histogram(colour='black', fill='gray') +
+    xlim(0,1) +
+    xlab("Proportion") +
+    ylab("Frequency") +
+    geom_vline(xintercept = 0.46, col = "red") +
+    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
+    ggtitle("Histogram of 1000 samples of n=1000")
+```
+
+- What do you notice about the last three slides?
+
+## What does it mean to be narrow?
+- Remember: frequency distributions are characterising the variability in sample estimates.
+- Variability can be thought of as the spread in data/plots.
+- So as we increase $n$ we are getting....
+
+## What does it mean to be narrow?
+- To think about this in probability language, as $n$ increases, the probability of observing an estimate in a sample that is a long way from the population parameter (here 0.46) decreases (becomes less probable).
+- So when we have large samples, our estimates from those samples are likely to be closer to the population value.
+    - This is a good thing.
+
+## Standard error
+- We can formally calculate the "narrowness" of a sampling distribution. 
+    - This is essentially calculating the standard deviation (as we have done before) of the sampling distribution.
+    - Or at least approximating it!
+- In the context of sampling distributions, this is called the **standard error**
+
+## Mean & SE of sampling distribution
+- Mean of the sampling distribution is close to the population parameter.
+    - Even with a small number of samples.
+- As the number of samples increases, the sampling distribution approaches a normal distribution.
+    - Point-estimates pile up around the population value.
+- As the n per sample increases, the SE of the sampling distribution decreases (becomes narrower).
+    - With large n, all our point-estimates are closer to the population parameter.
+
+## Central Limit Theorem
+- What we have seen throughout this lecture is a demonstration of an important concept in statistics - namely, **central limit theorem**.  
+- The central limit theorem (roughly) states that when estimates of sample means are based on increasingly large samples ($n$), the sampling distribution of means becomes more normal (symmetric), and narrower (quantified by the standard error).
+
+## Key terminology
+- **Census**: process of asking every member of a population.
+- **Sampling**: process of selecting subsets of populations.
+- **Population**: the complete set of units of interest.
+- **Sample**: A subset of the population
+
+## Key terminology
+- **Parameter**: value of of interest in the population.
+- **Point estimate**: our "best guess" at the parameter of interest from a sample.
+- **Sampling distribution**: the distribution of estimates of the population parameter.
+- **Standard error**: quantification of the variation in estimates.
+
+## Features of samples
+- Is our sample...
+    - Biased?
+    - Representative?
+    - Random?
+
+## Good samples
+- If a sample of $n$ is drawn at random, it will be unbiased and representative of $N$
+- Our point estimates from such samples will be good guesses at the population parameter.
+    - Without the need for census.
+
+## Tasks for this week...
+1. Look back over any material from last term.
+2. Reading: Can be found [here](https://moderndive.com/7-sampling.html)
+3. Quiz 11: Semester 1 R
+    - Live now.
+    - Close Sunday at 17:00
+    
+## Recommendations of the week
+- These will start again next week.

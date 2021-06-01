@@ -1,0 +1,246 @@
+---
+title: "Models"
+subtitle: Data Analysis for Psychology in R 1
+author: Tom Booth
+---
+
+```{r premable, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(kableExtra)
+```
+
+## Today
+- Introduce the idea of models in statistics
+- Think through models as functions
+- Consider how models, plots and functions relate.
+- **Admin**: I want to talk through the lab tests
+
+## Learning objectives
+- Understand the general concept of a model.
+- Understand how a model relates to a function.
+- Understand how a model provides predictions about the world
+
+## What is a model?
+- Pretty much all statistics is about models.
+- A model is a formal representation of a system.
+- Put another way, a model is an idea about the way the world is.
+
+## Models in psychology
+- Rescorla-Wagner Model: classical conditioning
+
+$$
+\Delta V_{X}^{n+1} = \alpha_X \beta(\lambda - V_{tot})
+$$
+
+- $\Delta V_{X}^{n+1}$ = change in strength of an association.
+- $\alpha_x$ = Salience of X (CS)
+- $\beta$ = salience of US
+- $\lambda$ = maximum possible conditioning for US
+- $V_{tot}$ = strength between CS and US for all possible stimuli
+
+## Models in Psychology
+
+$$
+\Delta V_{X}^{n+1} = \alpha_X \beta(\lambda - V_{tot})
+$$
+
+- As a function:
+
+$$
+f(\alpha, \beta, \lambda, z = [V_{tot}]) = \alpha_X \beta(\lambda - V_{tot})
+$$
+
+## A model as a function
+- We tend to represent mathematical models as functions.
+  - which can be very helpful.
+- It allows for the precise specification about what is important (arguments) and what those things do (operations)
+  - This leads to predictions
+  - And these predictions can be tested.
+
+## An Example
+- To think through these relations, we can use a simpler example.
+- Suppose I have a model for growth of babies.
+
+$$
+Length = 55 + 4*month
+$$
+
+## Visualizing a model
+
+```{r, warning=FALSE, message=FALSE}
+fun1 <- function(x) 55 + (4*x)
+m1 <- ggplot(data = data.frame(x=0), aes(x=x)) +
+  stat_function(fun = fun1) +
+  xlim(0,24) +
+  ylim(0,150) +
+  ylab("Length (cm)") +
+  xlab("Age (months)")
+```
+
+## Visualizing a model
+```{r, warning=FALSE, message=FALSE}
+m1
+```
+
+## Models as "a state of the world"
+- Let's suppose my model is true.
+  - That is, it is a perfect representation of how babies grow.
+- What are the implications of this?
+
+## Models and predictions
+- My models creates predictions.
+- **IF** my model is a true representation of the world, **THEN** data from the world should closely match my predictions.
+  - Sometimes this is referred to as my model matching the *data generation process*
+
+
+## Predictions and data
+
+```{r, eval=FALSE}
+tibble(
+  Age = seq(10, 12, 0.25)
+) %>%
+  mutate(
+    Prediction = 55 + (Age*4)
+  ) %>%
+  kable(.) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+
+## Predictions and data
+
+```{r, echo=FALSE}
+tibble(
+  Age = seq(10, 12, 0.25)
+) %>%
+  mutate(
+    Prediction = 55 + (Age*4)
+  ) %>%
+  kable(.) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+- Our predictions are points which fall on our line (representing the model, as a function)
+
+
+## Predictions and data
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+m1
+```
+
+- Consider the predictions when the children get a lot older...
+
+## Predictions and data
+
+```{r, eval=FALSE}
+tibble(
+  Age = seq(216,300, 12)
+) %>%
+  mutate(
+    Year = Age/12,
+    Prediction = 55 + (Age*4),
+    Predction_M = Prediction/100
+  ) %>%
+  kable(.) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+
+## Predictions and data
+
+```{r, echo=FALSE}
+tibble(
+  Age = seq(216,300, 12)
+) %>%
+  mutate(
+    Year = Age/12,
+    Prediction = 55 + (Age*4),
+    Predction_M = Prediction/100
+  ) %>%
+  kable(.) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+- What do you think this would mean for our actual data?
+- Will the data fall on the line?
+
+## How good is my model?
+- How might we judge how good our model is?
+
+1. Model is represented as a function
+2. We see that as a line (or surface if we have more things to consider)
+3. That yields predictions (or values we expect if our model is true)
+4. We can collect data
+5. If the predictions do not match the data (points deviate from our line), that says something about our model.
+
+
+## Models and Statistics
+- In statistics we (roughly) follow this process.
+- We define a model that represents one state of the world (probabilistically)
+- We then collect data to compare to it.
+- These comparisons lead us to make inferences about how the world actually is, by comparison to a world that we specify by our model. 
+
+## Length & Age is non-linear
+
+```{r, eval=FALSE, warning=FALSE, message=FALSE}
+df <- read_csv("length_age.csv", col_names = c("Month", "Mean", "SD", "Lower", "Upper"))
+m1 + 
+  geom_line(data = df, aes(x=Month, y = Mean), colour = "red") + 
+  geom_line(data = df, aes(x=Month, y = Lower), colour = "red", linetype = "dashed") +
+  geom_line(data = df, aes(x=Month, y = Upper), colour = "red", linetype = "dashed")
+```
+
+
+## Length & Age is non-linear
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+df <- read_csv("length_age.csv", col_names = c("Month", "Mean", "SD", "Lower", "Upper"))
+m1 + 
+  geom_line(data = df, aes(x=Month, y = Mean), colour = "red") + 
+  geom_line(data = df, aes(x=Month, y = Lower), colour = "red", linetype = "dashed") +
+  geom_line(data = df, aes(x=Month, y = Upper), colour = "red", linetype = "dashed")
+```
+
+- Our red line is plotted based on the mean length for different ages [real data](https://www.cdc.gov/growthcharts/who/boys_length_weight.htm)
+
+# Lab tests
+
+## What to expect...
+- You will be assigned to either the first or second hour of your normal lab.
+- You will come in, have 10 minutes to settle, open computers etc.
+- You will open an .rmd file that will contain questions and empty code chunks
+- You will need to write some R-code to answer the question
+  - You will knit your .rmd file
+  - And hand in the .rmd and the knitted file via LEARN
+
+## Types of question
+- Question will draw on the content of the course up to the point where the test.
+- They will focus mainly on recent material, but may have some things repeated (like sorting data)
+- Examples for test 1:
+  - Make a plot
+  - Produce summary statistics for variable X
+  - How many subjects are there in the data that meet conditions A, B and C
+- There will be 4 or 5 questions in each lab test.
+  - The last of which will be hard.
+
+## Final things
+- If you have adjustments, you will have extra time as if this is an exam.
+- You can have all your notes and the internet
+- The admin for the test in week 10 will happen next week
+- There will be a practice submission during the lab before the first test.
+
+## Tasks for this week...
+1. Finish any existing tasks from labs.
+2. Reading: See LEARN
+3. Quiz 7 on functions
+    - **This quiz counts**
+    - Live now (as of Monday at 09:00).
+    - Closes Sunday at 17:00
+
+## Recommendations of the week
+- Podcast: [Another In Our Time](https://www.bbc.co.uk/programmes/b00qj2nq)
+- Recipe: [Breakfast Egg Muffins](https://cafedelites.com/breakfast-egg-muffins-3-ways/)
+- Book: [SPQR, Mary Beard](https://www.goodreads.com/book/show/28789711-spqr)
+- Thing to do: [St. Giles Cathedral](https://stgilescathedral.org.uk/music/)
+- Coffee/food Place: [Miros Portobello Beach](http://www.mirosportobello.co.uk/)

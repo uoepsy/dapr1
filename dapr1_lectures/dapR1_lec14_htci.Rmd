@@ -1,0 +1,946 @@
+---
+title: "<b>Connecting confidence intervals and hypothesis testing</b>"
+subtitle: "S2W4 - Data Analysis for Psychology in R 1"
+author: "Umberto Noè"
+institute: "Department of Psychology<br/>The University of Edinburgh"
+date: "AY 2020-2021"
+output:
+  xaringan::moon_reader:
+    lib_dir: jk_libs/libs
+    css: 
+      - xaringan-themer.css
+      - jk_libs/tweaks.css
+    nature:
+      beforeInit: "jk_libs/macros.js"
+      ratio: '16:9'
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+editor_options:
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+options(digits=4,scipen=2)
+options(knitr.table.format="html")
+xaringanExtra::use_xaringan_extra(c("tile_view","animate_css","tachyons"))
+xaringanExtra::use_extra_styles(
+  mute_unhighlighted_code = FALSE
+)
+
+library(knitr)
+library(tidyverse)
+
+knitr::opts_chunk$set(
+  dev = "png", dpi = 300,
+  warning = FALSE,
+  message = FALSE,
+  # cache = TRUE,
+  fig.align = 'center',
+  fig.height = 5, fig.width = 6
+)
+
+theme_set(
+  theme_classic(base_size = 18) +
+    theme(plot.title = element_text(hjust = 0.5))
+)
+
+#source('R/myfuncs.R')
+```
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#0F4C81", # DAPR1
+  # base_color = "#BF1932", # DAPR2
+  # base_color = "#88B04B", # DAPR3 
+  # base_color = "#FCBB06", # USMR
+  # base_color = "#a41ae4", # MSMR
+  header_color = "#000000",
+  header_font_google = google_font("Source Sans Pro"),
+  header_font_weight = 400,
+  text_font_google = google_font("Source Sans Pro", "400", "400i", "600", "600i"),
+  code_font_google = google_font("Source Code Pro")
+)
+```
+
+
+
+
+
+```{r preamble, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(kableExtra)
+library(patchwork)
+
+set.seed(1)
+```
+
+
+
+# Learning objectives
+
+- Interpret a confidence interval as the plausible values of a parameter that would not be rejected in a two-sided hypothesis test
+
+- Determine the decision for a two-sided hypothesis test from an appropriately constructed confidence interval
+
+- Be able to explain the potential problem with significant results when doing multiple tests
+
+
+
+---
+class: inverse, center, middle
+
+# Part A
+## Research question and data
+
+
+---
+
+# Research question and data
+
+> Do mean hours of exercise per week differ between left-handed and right-handed students?
+
+<br>
+
+The data we will be using contain measurements on the following 7 variables for a random sample of 50 students:
+
+- `year`: Year in school
+- `hand`: Left (l) or right (r) handed?
+- `exercise`: Hours of exercise per week
+- `tv`: Hours of TV viewing per week
+- `pulse`: Resting pulse rate (beats per minute)
+- `pierces`: Number of body piercings
+
+<br>
+
+Downloadable here: https://uoepsy.github.io/data/ExerciseHours.csv
+
+
+---
+
+# Hypotheses
+
+First, the parameters of interest are:
+
+- $\mu_R$ = mean exercise hours per week for all right-handed students
+- $\mu_L$ = mean exercise hours per week for all left-handed students
+
+--
+
+These are estimated with the corresponding statistics in the sample:
+
+- $\bar x_R$ = mean exercise hours per week for the right-handed students in the sample
+- $\bar x_L$ = mean exercise hours per week for the left-handed students in the sample
+
+--
+
+.pull-left[
+Hypotheses:
+
+$$H_0: \mu_R = \mu_L$$
+$$H_1: \mu_R \neq \mu_L$$
+]
+
+.pull-right[
+Equivalently:
+$$H_0: \mu_R - \mu_L = 0$$
+$$H_1: \mu_R - \mu_L \neq 0$$
+]
+
+
+---
+
+# Data
+
+.pull-left[
+
+The entire data:
+
+```{r echo=FALSE}
+library(tidyverse)
+
+exdata <- read_csv('https://uoepsy.github.io/data/ExerciseHours.csv')
+kable(head(exdata), align = 'c')
+```
+]
+
+.pull-right[
+The research question only focuses on `hand` and `exercise`:
+```{r echo=FALSE}
+exdata <- exdata  %>%
+    select(hand, exercise) %>%
+    mutate(hand = factor(hand))
+kable(head(exdata), align = 'c')
+```
+]
+
+
+
+---
+
+# Distribution of Exercise Hours
+
+```{r echo=FALSE, fig.height = 6, fig.width = 7, out.width='50%'}
+exdata %>%
+  group_by(hand) %>%
+  mutate(avg_exercise = mean(exercise)) %>%
+  ggplot(., aes(x = exercise)) +
+  geom_dotplot(binwidth = 1, fill = 'lightblue', color = NA) +
+  facet_wrap(hand ~ ., ncol = 1, labeller = label_both) +
+  geom_vline(aes(xintercept = avg_exercise),
+             color = 'darkolivegreen4', size = 1) +
+  geom_text(aes(x = avg_exercise, y = 0.5, 
+                label = round(avg_exercise, 3)), hjust = -0.3,
+            color = 'darkolivegreen4', size = 5) +
+  geom_vline(aes(xintercept = avg_exercise),
+             color = 'darkolivegreen4', size = 1) +
+  geom_text(aes(x = avg_exercise, y = 0.5, 
+                label = round(avg_exercise, 3)), hjust = -0.3, 
+            color = 'darkolivegreen4', size = 5) +
+  theme_light(base_size = 15) +
+  theme(axis.ticks.y = element_blank(),
+        axis.text.y = element_blank()) +
+  labs(x = "Exercise per week (Hours)", y = "")
+```
+
+
+
+---
+
+# Descriptive statistics
+
+Display for the left and right handed students in the sample the average hours of exercise per week and standard deviation:
+
+```{r echo=FALSE}
+exdata_stats <- exdata %>% 
+    group_by(hand) %>%
+    summarise(count = n(),
+              avg_exercise = mean(exercise),
+              sd_exercise = sd(exercise))
+
+exdata_stats %>%
+    kable(digits = 3, align = 'c')
+```
+
+```{r echo=FALSE, results='hide'}
+diff_obs <- 
+    exdata_stats$avg_exercise[2] - 
+    exdata_stats$avg_exercise[1]
+diff_obs
+```
+
+--
+
+Recall we are interested in testing a claim about the (unknown) population difference in means
+$$\mu_R - \mu_L$$
+
+--
+
+We estimate it with the sample difference in means
+
+$$\bar x_R - \bar x_L = `r round(diff_obs, 3)` \text{ hrs} \qquad = D_{obs} \text{ in short}$$
+
+
+
+
+---
+class: inverse, center, middle
+
+# Part B
+## Connecting bootstrap and null distributions
+
+
+
+---
+
+# Confidence intervals
+
+- **Goal: providing a range of plausible values for a population parameter.**
+
+--
+
+- Instead of giving a single estimate $(\bar x_R - \bar x_L = `r round(diff_obs, 3)`)$ for the population parameter, we might want to give a range of plausible values, e.g. a 95% confidence interval.
+
+--
+
+- Sample with replacement from the original sample to create a _bootstrap distribution_ of possible values of the sample statistic
+
+--
+
+- Use the bootstrap distribution to provide a range of plausible values for the population parameter
+
+--
+
+- Construct the interval of plausible values in a way that gives a fairly high confidence in the fact that the provided range of values will contain the actual value of the parameter
+
+
+---
+
+# Confidence intervals
+
+For a 95% confidence interval:
+
+- **Method 1**: $\text{Statistic} \pm 1.96 \cdot SE$
+
+--
+
+- **Method 2**: From the 2.5th to the 97.5th percentiles
+
+--
+
+- Use the bootstrap distribution!
+
+
+
+---
+
+# Bootstrap distribution
+
+```{r echo=FALSE, results='hide'}
+source('https://uoepsy.github.io/files/rep_sample_n.R')
+
+num_samples <- 1000
+
+l_means <- exdata %>%
+    filter(hand == 'l') %>%
+    rep_sample_n(n = nrow(.), samples = num_samples, replace = TRUE) %>%
+    group_by(hand, sample) %>%
+    summarise(avg = mean(exercise))
+l_means
+
+r_means <- exdata %>%
+    filter(hand == 'r') %>%
+    rep_sample_n(n = nrow(.), samples = num_samples, replace = TRUE) %>%
+    group_by(hand, sample) %>%
+    summarise(avg = mean(exercise))
+r_means
+
+all_means <- bind_rows(l_means, r_means) %>%
+    pivot_wider(names_from = hand, values_from = avg, names_prefix = "avg_")
+all_means
+
+boot_dist <- all_means %>%
+    mutate(diff = avg_r - avg_l) %>%
+    select(sample, diff)
+boot_dist
+```
+
+
+.pull-left[
+```{r echo=FALSE, results='hide', out.width='100%'}
+se <- sd(boot_dist$diff)
+
+bplt <- ggplot(boot_dist) +
+    geom_histogram(
+        aes(x = diff, y = ..density.., 
+            fill = stat(x) <= diff_obs - 1.96 * se | stat(x) >= diff_obs + 1.96 * se),
+        color = 'white', alpha = 0.5) +
+    geom_vline(xintercept = diff_obs, color = 'darkolivegreen4', size = 1) +
+    annotate(geom = 'text', x = diff_obs, y = -0.01, hjust = -0.1,
+             label = round(diff_obs, 3), color = 'darkolivegreen4', size = 5) +
+    annotate(geom = 'text', x = diff_obs - 1.96 * se, y = -0.01, hjust = 1.1,
+             label = round(diff_obs - 1.96 * se, 3), color = 'red', size = 5) +
+    annotate(geom = 'text', x = diff_obs + 1.96 * se, y = -0.01, hjust = -0.1,
+             label = round(diff_obs + 1.96 * se, 3), color = 'red', size = 5) +
+    geom_vline(xintercept = diff_obs - 1.96 * se, color = 'red', size = 1, linetype = 2) +
+    geom_vline(xintercept = diff_obs + 1.96 * se, color = 'red', size = 1, linetype = 2) +
+    scale_fill_manual(values = c('gray', 'red', 'red')) +
+    theme(legend.position = 'none') +
+    labs(x = "Difference in means", title = "") +
+    annotate(geom = 'label', x = diff_obs, y = 0.10, label = '0.95',
+             color = 'darkgray', fontface = 'bold', size = 5)
+bplt
+```
+]
+
+.pull-right[
+**Method 1:**
+$$\text{Statistic} \pm 1.96 \cdot SE$$
+$$`r round(diff_obs, 3)` \pm 1.96 \cdot `r round(sd(boot_dist$diff), 3)`$$
+
+We are 95% confident that the mean difference in exercise hours per week between right and left-handed students is between `r round(diff_obs - 1.96 * sd(boot_dist$diff), 3)` and `r round(diff_obs + 1.96 * sd(boot_dist$diff), 3)` hrs.
+
+]
+
+---
+
+# Bootstrap distribution
+
+.pull-left[
+```{r echo=FALSE, results='hide', out.width='100%'}
+diff_crit_b <- quantile(boot_dist$diff, probs = c(0.025, 0.975))
+
+bplt <- ggplot(boot_dist) +
+    geom_histogram(aes(x = diff, y = ..density.., 
+                       fill = stat(x) <= diff_crit_b[1] | stat(x) >= diff_crit_b[2]),
+                   color = 'white', alpha = 0.5) +
+    geom_vline(xintercept = diff_obs, color = 'darkolivegreen4', size = 1) +
+    annotate(geom = 'text', x = diff_obs, y = -0.01, hjust = -0.1,
+             label = round(diff_obs, 3), color = 'darkolivegreen4', size = 5) +
+    annotate(geom = 'text', x = diff_crit_b[1], y = -0.01, hjust = 1.1,
+             label = round(diff_crit_b[1], 3), color = 'red', size = 5) +
+    annotate(geom = 'text', x = diff_crit_b[2], y = -0.01, hjust = -0.1,
+             label = round(diff_crit_b[2], 3), color = 'red', size = 5) +
+    geom_vline(xintercept = diff_crit_b[1], color = 'red', size = 1, linetype = 2) +
+    geom_vline(xintercept = diff_crit_b[2], color = 'red', size = 1, linetype = 2) +
+    scale_fill_manual(values = c('gray', 'red', 'red')) +
+    theme(legend.position = 'none') +
+    labs(x = "Difference in means", title = "") +
+    annotate(geom = 'label', x = diff_obs, y = 0.10, label = '0.95',
+             color = 'darkgray', fontface = 'bold', size = 5)
+bplt
+```
+]
+
+.pull-right[
+**Method 2:**
+
+```{r}
+quantile(boot_dist$diff, 
+         probs = c(0.025, 0.975))
+```
+
+We are 95% confident that the mean difference in exercise hours per week between right and left-handed students is between `r round(diff_crit_b[1], 3)` hours and `r round(diff_crit_b[2], 3)` hrs.
+
+]
+---
+
+# Hypothesis testing
+
+- **Goal: Testing a claim about a population.**
+
+--
+
+1. Specify null and alternative hypotheses
+
+2. Assess the evidence the sample brings against $H_0$ by constructing a null distribution of possible sample statistics that we might see by sampling variation, if the null hypothesis were true. 
+
+3. Check where the observed statistic for the original sample is located on the null distribution.
+
+4. Formally quantify the evidence against $H_0$ either using p-value or critical values.
+
+--
+
+- If the original sample statistic falls in an unlikely location of the null distribution, we have evidence to reject the null hypothesis in favour of the alternative.
+
+
+---
+
+# Null distribution
+
+
+```{r echo=FALSE, results='hide'}
+num_samples <- 1000
+
+l_means <- exdata %>%
+    filter(hand == 'l') %>%
+    mutate(exercise = exercise + diff_obs) %>%
+    rep_sample_n(n = nrow(.), samples = num_samples, replace = TRUE) %>%
+    group_by(hand, sample) %>%
+    summarise(avg = mean(exercise))
+l_means
+
+r_means <- exdata %>%
+    filter(hand == 'r') %>%
+    rep_sample_n(n = nrow(.), samples = num_samples, replace = TRUE) %>%
+    group_by(hand, sample) %>%
+    summarise(avg = mean(exercise))
+r_means
+
+all_means <- bind_rows(l_means, r_means) %>%
+    pivot_wider(names_from = hand, values_from = avg, names_prefix = "avg_")
+all_means
+
+null_dist <- all_means %>%
+    mutate(diff = avg_r - avg_l) %>%
+    select(sample, diff)
+null_dist
+```
+
+.pull-left[
+```{r echo=FALSE, results='hide'}
+diff_crit_n <- quantile(null_dist$diff, probs = c(0.025, 0.975))
+
+nplt <- ggplot(null_dist) +
+    geom_histogram(aes(x = diff, y = ..density.., 
+                       fill = stat(x) <= diff_crit_n[1] | stat(x) >= diff_crit_n[2]),
+                   color = 'white', alpha = 0.5) +
+    geom_vline(xintercept = 0, color = 'dodgerblue', size = 1) +
+    # geom_vline(xintercept = diff_obs, color = 'darkolivegreen3', size = 1) +
+    # annotate(geom = 'text', x = diff_obs, y = -0.01, hjust = -0.1,
+    #          label = round(diff_obs, 3), color = 'darkolivegreen3', size = 5) +
+    annotate(geom = 'text', x = diff_crit_n[1], y = -0.01, hjust = 1.1,
+             label = round(diff_crit_n[1], 3), color = 'red', size = 5) +
+    annotate(geom = 'text', x = diff_crit_n[2], y = -0.01, hjust = -0.1,
+             label = round(diff_crit_n[2], 3), color = 'red', size = 5) +
+    geom_vline(xintercept = diff_crit_n[1], color = 'red', size = 1, linetype = 2) +
+    geom_vline(xintercept = diff_crit_n[2], color = 'red', size = 1, linetype = 2) +
+    scale_fill_manual(values = c('gray', 'red', 'red')) +
+    labs(x = "Difference in means", title = "") +
+    theme(legend.position = 'none') +
+    annotate(geom = 'label', x = 0, y = 0.10, label = '0.95',
+             color = 'darkgray', fontface = 'bold', size = 5)
+nplt
+```
+]
+
+.pull-right[
+- Centre = value in the null hypothesis
+
+  Shown as blue vertical line in the plot
+
+
+- In our case
+$$H_0 : \mu_R - \mu_L = 0$$
+]
+
+
+---
+
+# Bootstrap vs Null distribution: Similarities
+
+- Both bootstrap and null distributions use resampling or randomization to simulate many samples and then compute the value of a sample statistic for each of those samples to form a distribution.
+
+- In both cases we are generally concerned with distinguishing between "typical" values in the middle of a distribution and "unusual" values in one or both tails. 
+
+--
+
+- A bootstrap distribution is an approximation to the distribution of sample statistics for samples from a specific population. Unlike the sampling distribution, the bootstrap distribution is generally centred at the value of the original sample statistic.
+
+- A null distribution shows the distribution of sample statistics for a population in which the null hypothesis is true, and is generally centred at the value specified in the null hypothesis.
+
+
+---
+
+# Similarities
+
+- We said that a confidence interval reports the plausible values of the population parameter.
+
+--
+
+- We use a hypothesis test to determine whether a hypothesised value for the parameter (in the null hypothesis) is plausible or not.
+
+--
+
+- Idea: we could use a confidence interval to make a decision in a hypothesis test, and we would use a hypothesis test to determine whether a given value will be inside a confidence interval.
+
+---
+
+# Similarities
+
+
+```{r echo=FALSE, results='hide'}
+both <- bind_rows(
+    boot_dist %>% mutate(type = 'Bootstrap'),
+    null_dist %>% mutate(type = 'Null')
+)
+both
+```
+
+.pull-left[
+```{r echo=FALSE, results='hide', fig.height = 5.5, fig.width = 7, out.width = '100%'}
+ggplot(both) +
+    geom_histogram(data = filter(both, type == 'Null'), 
+                   aes(x = diff, y = ..density..,
+                       fill = stat(x) <= diff_crit_n[1] | stat(x) >= diff_crit_n[2]),
+                   color = 'white') +
+    geom_histogram(data = filter(both, type == 'Bootstrap'), 
+                   aes(x = diff, y = ..density..,
+                       fill = stat(x) <= diff_crit_b[1] | stat(x) >= diff_crit_b[2]),
+                   color = 'white') +
+    facet_grid(type ~ .) +
+    geom_vline(aes(xintercept = 0),
+               color = 'dodgerblue', size = 0.5) +
+    geom_vline(aes(xintercept = diff_obs),
+               color = 'darkolivegreen4', size = 0.5) +
+    annotate(geom = 'label', x = 0, y = 0.025, label = '0', color = 'dodgerblue') +
+    annotate(geom = 'label', x = diff_obs, y = 0.05, label = round(diff_obs, 3), color = 'darkolivegreen4') +
+    theme_light(base_size = 15) +
+    scale_fill_manual(values = c('lightgray', 'red2')) +
+    theme(legend.position = 'none') +
+    labs(x = "Difference in means")
+
+```
+]
+
+
+.pull-right[
+The decision in a two-sided hypothesis test is related to whether or not the value of the parameter in the null hypothesis falls within a confidence interval:
+
+- When the null value falls inside of a 95% confidence interval, the null value is a plausible value for the parameter and we should not reject $H_0$ at the 5% significance level in a two-sided test.
+
+<!-- - When the null value falls outside the 5% confidence interval, the null value is not a plausible value for the parameter and we should reject $H_0$ at the 5% significance level in a two-sided test. -->
+]
+
+
+
+---
+
+# Similarities (continued)
+
+.pull-left[
+```{r echo=FALSE, results='hide', fig.height = 5.5, fig.width = 7, out.width = '100%'}
+tmp <- both %>%
+  mutate(diff = ifelse(type == 'Bootstrap', diff + 4, diff))
+
+ggplot(tmp) +
+    geom_histogram(data = filter(tmp, type == 'Null'), 
+                   aes(x = diff, y = ..density..,
+                       fill = stat(x) <= diff_crit_n[1] | stat(x) >= diff_crit_n[2]),
+                   color = 'white') +
+    geom_histogram(data = filter(tmp, type == 'Bootstrap'), 
+                   aes(x = diff, y = ..density..,
+                       fill = stat(x) <= 4 + diff_crit_b[1] | stat(x) >= 4 + diff_crit_b[2]),
+                   color = 'white') +
+    facet_grid(type ~ .) +
+    geom_vline(aes(xintercept = 0),
+               color = 'dodgerblue', size = 0.5) +
+    geom_vline(aes(xintercept = diff_obs + 4),
+               color = 'darkolivegreen4', size = 0.5) +
+    annotate(geom = 'label', x = 0, y = 0.035, label = '0', color = 'dodgerblue') +
+    annotate(geom = 'label', x = diff_obs + 4, y = 0.05, label = round(diff_obs + 4, 3), color = 'darkolivegreen4') +
+    theme_light(base_size = 15) +
+    scale_fill_manual(values = c('lightgray', 'red2')) +
+    theme(legend.position = 'none') +
+    labs(x = "Difference in means")
+
+```
+]
+
+
+.pull-right[
+The decision in a two-sided hypothesis test is related to whether or not the value of the parameter in the null hypothesis falls within a confidence interval:
+
+<!-- - When the null value falls inside of a 95% confidence interval, the null value is a plausible value for the parameter and we should not reject $H_0$ at the 5% significance level in a two-sided test. -->
+
+- When the null value falls outside the 95% confidence interval, the null value is not a plausible value for the parameter and we should reject $H_0$ at the 5% significance level in a two-sided test.
+]
+
+
+---
+
+# Why both then?
+
+- If we can reach to the same conclusion either via a CI or an hypothesis test, why not just using one rather than the other?
+
+--
+
+- The answer is that both provide useful information.
+
+--
+
+- If you just perform a test of hypothesis, you have the important information about the _strength of evidence_, but you do not have an indication of the magnitude of the "effect".
+
+--
+
+- If you just compute a CI, you would be able to make a reject / not reject decision but you would loose the strength of evidence.
+
+--
+
+- **Good practice:** when you find a significant effect, i.e. you reject the null hypothesis, always follow-up with a confidence interval to report on the magnitude of that effect.
+
+
+---
+class: inverse, center, middle
+
+# Part C
+## Creating null distributions
+
+
+---
+
+# Creating null distributions
+
+Key principles:
+
+1. Be consistent with the null hypothesis
+
+--
+
+2. Use the data in the original sample
+
+--
+
+3. Try to mimic the way in which the original data were collected
+
+
+<br>
+
+Fundamental idea:
+
+<center><strong>
+The population is to the sample <br>
+as <br>
+the sample is to the bootstrap samples.
+</strong></center>
+
+
+---
+
+# Testing $\mu$
+
+.pull-left[
+**How the data were collected**
+
+Sample $n$ units from a population, record the values of a variable of interest on those sampled units.
+
+**Hypotheses**
+$$H_0 : \mu = 0 \\H_1 : \mu \neq 0$$
+]
+
+.pull-right[
+**How to generate the null distribution**
+
+Shift the original sample data to have a mean equal to the value specified in the null hypothesis.
+
+Then, do the following many times:
+
+- Sample with replacement from these shifted values using the same sample size as the original sample. 
+- Compute the mean $\bar x$ of this resample.
+
+Use `rep_sample_n()`
+]
+
+
+---
+
+# Testing $\mu_1 - \mu_2$ (Randomized experiment)
+
+.pull-left[
+**How the data were collected**
+
+Sample $n$ units from a population. Randomly assign each unit to either treatment A or treatment B. Record the outcome interest for each unit.
+
+**Hypotheses**
+$$H_0 : \mu_1 = \mu_2 \\H_1 : \mu_1 \neq \mu_2$$
+or 
+$$H_0 : \mu_1 - \mu_2 = 0\\H_1 : \mu_1 - \mu_2 \neq 0$$
+]
+
+.pull-right[
+
+**How to generate the null distribution**
+
+Do the following many times:
+
+- Take the original sample. Keeping the outcome variable the same, randomize the treatment allocation of each unit. In other words, deal all the outcome values randomly to the two treatments, matching the two sample sizes in the original sample.
+  
+- Compute the difference in sample means $\bar x_A - \bar x_B$.
+
+Use `rep_randomize()`
+
+]
+
+
+---
+
+# Testing $\mu_1 - \mu_2$ (Observational study)
+
+.pull-left[
+**How the data were collected**
+
+Sample $n_A$ units from population $A$, and sample $n_B$ units from population B. Record some outcome variable of interest.
+
+**Hypotheses**
+$$H_0 : \mu_1 = \mu_2 \\H_1 : \mu_1 \neq \mu_2$$
+or 
+$$H_0 : \mu_1 - \mu_2 = 0\\H_1 : \mu_1 - \mu_2 \neq 0$$
+]
+
+.pull-right[
+**How to generate the null distribution**
+
+Shift the values in sample $A$ to have the same mean as sample $B$. 
+
+Then, do the following many times:
+
+- Sample with replacement $n_A$ units from sample $A$. Compute the sample mean $\bar x_A$.
+- Sample with replacement $n_B$ units from sample $B$. Compute the sample mean $\bar x_B$.
+- Compute the difference in sample means $\bar x_A - \bar x_B$.
+
+Use `rep_sample_n()`
+]
+
+
+---
+class: inverse, center, middle
+
+# Part D
+## The problem of multiple testing
+
+
+---
+
+# Confidence intervals
+
+- A 95% CI will capture the true parameter 95% of the time.
+
+--
+
+- This also means that 5% of the intervals will miss the true parameter.
+
+--
+
+**Example:**
+
+- On day 1, you collect data and construct a 95% CI for a parameter.
+
+--
+
+- On day 2, you collect new data and construct a 95% CI for an unrelated parameter.
+
+--
+
+- On day 3, you collect new data and construct a 95% CI for an unrelated parameter.
+
+--
+
+- You continue this way constructing confidence intervals for a sequence of unrelated parameter.
+
+--
+
+**Then 95% of your intervals will capture the true parameter value.**
+
+
+---
+
+# Hypothesis tests
+
+- On day 1, using $\alpha = 0.05$, you collect data and perform a hypothesis test for a parameter, when in fact the null is true in the population.
+
+- On day 2, using $\alpha = 0.05$, you collect new data and perform a hypothesis test for an unrelated parameter, when in fact the null is true in the population.
+
+- On day 3, using $\alpha = 0.05$, you collect new data and perform a hypothesis test for an unrelated parameter, when in fact the null is true in the population.
+
+- You continue this way performing hypothesis tests for a sequence of unrelated parameters.
+
+__Then 5% of your tests will reject the null hypothesis when in reality it was true.__
+
+--
+
+If the null hypotheses are all true, a proportion $\alpha$ of the tests will yield statistically significant results just by sampling variation.
+
+---
+
+# Hypothesis tests
+
+- If you were to conduct many hypothesis tests for a _true_ null hypothesis $H_0$ using a significance level $\alpha = 0.05$, then 5% of the tests will lead to rejecting the null hypothesis.
+
+--
+
+- If you do 100 hypothesis tests all testing for an effect that really doesn't exist, about 5% of them will incorrectly reject the null.
+
+--
+
+- When we perform multiple hypothesis tests, the chance that **at least one** test incorrectly rejects a true null hypothesis increases with the number of tests.
+
+---
+
+# Hypothesis tests
+
+$$\begin{aligned}P(\text{at least one test inc. rej.}) &= 1 - P(\text{no test inc. rej.}) \\
+&= 1 - \big[P(\text{no inc. rej.}) * \dots * P(\text{no inc. rej.}) \big] \\
+&= 1 - \big[P(\text{no inc. rej.})\big]^{\text{num. tests}} \\
+&= 1 - \big[1 - P(\text{inc. rej.})\big]^{\text{num. tests}} \\
+&= 1 - (1 - \alpha)^{\text{num. tests}}
+\end{aligned}$$
+
+--
+
+What does that mean?
+
+$$
+\begin{matrix}
+1 - (1 - 0.05)^2 = 0.0975    & \qquad & 1 - (1 - 0.05)^5 = 0.2262 \\
+1 - (1 - 0.05)^{10} = 0.4013 & \qquad & 1 - (1 - 0.05)^{100} = 0.9941 \\
+\end{matrix}
+$$
+--
+
+
+
+
+---
+
+# An example
+
+> Is it really true that opening an umbrella indoors is bad luck? 
+
+--
+
+- Imagine that researchers all over the world decided to formally test this conjecture, each randomly assigning participants to either open an umbrella indoors or open an umbrella outdoors. Then, the researchers followed up the participants for a specified period in order to obtain some measure of "luck".
+
+--
+
+- Using a 5% significance level, if there are 100 researchers all testing this same hypothesis, and if opening an umbrella indoors really _does not_ bring bad luck, then about 5% of the hypothesis tests will get p-values less than 0.05 just due to variability of random samples.
+
+--
+
+- In other words, about 5 researchers out of 100 all studying the same non-existing phenomenon, will find a significant result.
+
+
+---
+
+# The problem of multiple testing
+
+- When multiple hypothesis tests are conducted, the chance that _at least one_ test incorrectly rejects a true null hypothesis increases with the number of tests.
+
+--
+
+- If the null hypotheses are all true, $\alpha$ of the tests will yield statistically significant results just by sampling variability (and not because of a true effect).
+
+
+---
+
+# Publication bias
+
+- The problem of multiple testing is made even worse by the fact that usually only significant results are published.
+
+--
+
+- This issue is known as **publication bias**.
+
+> **Publication bias**. Usually only significant results are published, while no one knows of all the studies which were performed but produced not significant results. 
+
+---
+
+
+# Publication bias
+
+- Consider again the umbrella example. If the five statistically significant studies are all published, and we do not know about the 95 not significant studies, we might take this as convincing evidence that opening an umbrella indoors really does cause bad luck.
+
+--
+
+- Unfortunately this is a very real problem with scientific research: often, only significant results are published.
+
+--
+
+- If many tests are conducted, some of them will be significant just by chance, and it may be only these studies that we hear about.
+
+--
+
+- The problem of multiple testing can also occur when one researcher is testing multiple hypotheses on the same data.
+
+
+
+---
+
+# Final remarks
+
+- There are many ways of dealing with the problem of multiple testing, but those methods will be discussed in the second-year course DAPR2. 
+
+--
+
+- The most important thing is to be aware of the problem, and to realise that when doing multiple hypothesis tests, some are likely to be significant just by random chance.
+
+
+---
+
+class: inverse, center, middle, animated, rotateInDownLeft
+
+# End
+
+

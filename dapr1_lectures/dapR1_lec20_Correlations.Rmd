@@ -1,0 +1,809 @@
+---
+title: "<b>Correlations </b>"
+subtitle: "Data Analysis for Psychology in R 1<br><br> "
+author: "dapR1 Team"
+institute: "Department of Psychology<br>The University of Edinburgh"
+date: "AY 2020-2021"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: xaringan-themer.css
+    nature:
+      ratio: '16:9'
+      highlightStyle: github
+      highlightLines: TRUE
+      countIncrementalSlides: FALSE
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+```
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+style_mono_accent(
+    base_color = "#0F4C81", # DAPR1
+  # base_color = "#BF1932", # DAPR2
+  # base_color = "#88B04B", # DAPR3 
+  # base_color = "#FCBB06", # USMR
+  # base_color = "#a41ae4", # MSMR
+  header_color = "#000000",
+  header_font_google = google_font("Source Sans Pro"),
+  header_font_weight = 400,
+  text_font_google = google_font("Source Sans Pro", "400", "400i", "600", "600i"),
+  code_font_google = google_font("Source Code Pro")
+)
+```
+
+```{r premable, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(kableExtra)
+library(patchwork)
+library(moderndive)
+library(MASS)
+library(polycor)
+library(psych)
+```
+
+
+# Weeks Learning Objectives
+1. Understand how to calculate covariance and correlation.
+
+2. Understand how to interpret the magnitude and direction of correlation coefficients.#
+
+3. Understand which form of correlation to compute for different types of data.
+
+
+---
+# Topics for today
+
+- Recording 1: What is a correlation?
+
+--
+
+- Recording 2: Variance, covariance and correlation
+
+--
+
+- Recording 3: Pearson correlation
+
+--
+
+- Recording 4: Other forms of correlation
+
+---
+# Purpose
+- Correlations measure the degree of association between two variables.
+	- If one goes up does the other go up (positive association)?
+	- If one variable changes (varies) does the other change (vary) too.
+	- If one goes up does the other go down (negative association)?
+	
+- The value ranges from -1 to 1.
+  - Values close to |1| indicate stronger associations.
+	- Values close to 0 indicate no association.
+
+
+---
+# Data Requirements
+
+
+| Variable 1  | Variable 2  | Correlation Type |
+|-------------|-------------|------------------|
+| Continuous  | Continuous  | Pearson          |
+| Continuous  | Categorical | Polyserial       |
+| Continuous  | Binary      | Biserial         |
+| Categorical | Categorical | Polychoric       |
+| Binary      | Binary      | Tetrachoric      |
+| Rank        | Rank        | Spearman         |
+| Nominal     | Nominal     | Chi-square       |
+
+
+- There is a form of correlation for almost all data types.
+
+---
+# Scatterplots
+- Typical visualization of correlations is through scatterplots.
+- Scatterplots plot points at the (x,y) co-ordinates for two measured variables.
+- We plot these points for each individual in our data set.
+	- This produces the clouds of points.
+
+
+---
+# Simple Data
+```{r}
+data <- tibble(
+  name = as_factor(c("John", "Peter","Robert","David","George","Matthew", "Bradley")),
+  height = c(1.52,1.60,1.68,1.78,1.86,1.94,2.09),
+  weight = c(54,49,50,67,70,110,98)
+)
+```
+
+```{r, echo = FALSE}
+head(data)
+```
+
+
+---
+# Scatterplot
+
+```{r, echo=FALSE}
+John <- ggplot(data[1,], aes(height, weight)) + 
+  xlim(1.50, 2.15) +
+  ylim(45, 115) +
+  geom_point() +
+  geom_text(aes(label = name), nudge_x = 0.025) +
+  geom_segment(aes(x = height, y = weight, xend = height, yend = 45), 
+               arrow=arrow(type = "closed", length = unit(0.25, "cm"))) +
+  geom_segment(aes(x = height, y = weight, xend = 1.5, yend = weight), 
+               arrow=arrow(type = "closed", length = unit(0.25, "cm")))
+John
+```
+
+---
+# Scatterplot
+
+```{r, echo=FALSE}
+ggplot(data, aes(height, weight)) + 
+  xlim(1.50, 2.15) +
+  ylim(45, 115) +
+  geom_point() +
+  geom_text(aes(label = name), nudge_x = 0.035)
+```
+
+
+---
+# Strength of correlation
+
+```{r, echo=FALSE}
+cor <- c(0.90, 0.50, 0.20, 0.00, -0.20, -0.50, -0.90)
+plot_list <- list()
+
+for(i in 1:7) {
+  dat <- mvrnorm(500, mu = c(0,0), Sigma = matrix(c(1, cor[i], cor[i], 1),nrow=2), empirical = T)
+  dat <- data.frame(dat)
+  colnames(dat) <- c("Variable1", "Variable2")
+  
+  out <- ggplot(dat, aes(Variable1, Variable2))+
+    geom_point() +
+    stat_ellipse(geom = "polygon", alpha = 0.25)
+  plot_list[[i]] = out
+
+}
+
+(plot_list[[1]] + plot_list[[2]] + plot_list[[3]]) / (plot_list[[5]] + plot_list[[6]] + plot_list[[7]])
+
+```
+
+
+---
+class: center, middle
+# Time for a break
+
+---
+class: center, middle
+# Welcome Back!
+
+**We have discussed what a correlation is and how to visualize it. Now let's move on to consider the relation to variance and covariance**
+
+
+---
+#  Variance 
+
+$$Var_x = \frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}$$
+
+- Variance is the mean squared deviation from the mean.
+
+---
+# Variance
+
+.pull-left[
+```{r, echo=FALSE}
+mean_vec2 <- rep(mean(data$weight), 7)
+x <- 1:7
+data$Name <- factor(data$name, levels = data$name)
+deviance2 <- round((data$weight - mean(data$weight)), 2)
+
+weight_var <- ggplot(data, aes(name, weight))+
+  geom_point(size = 2) +
+  geom_hline(yintercept = mean(data$weight), size = 1) +
+  geom_segment(x = x, y = data$weight , xend = x, yend = mean_vec2, linetype = "dashed") +
+  theme(axis.title = element_text(face="bold")) +
+  geom_text(aes(label = deviance2), nudge_y = c(rep(-2, 5), rep(2, 2))) 
+
+weight_var
+```
+]
+
+.pull-right[
+- On the plot on the left we see the raw deviations for weight (y-axis) for each person (x-axis).
+  - Each point is a person's weight.
+  - The solid black line is the average weight.
+  - The dashed lines highlight the distance from the mean of the individual weights.
+  - The raw deviations are show by each point.
+
+- Raw deviations are the distance of each person's weight from the average weight.
+
+- To get the variance, we square each value (to get rid of the negative values) and sum them up.
+
+]
+
+---
+# Variance
+
+.pull-left[
+```{r,echo=FALSE}
+mean_vec <- rep(mean(data$height), 7)
+x <- 1:7
+data$name <- factor(data$name, levels = data$name)
+deviance <- round((data$height - mean(data$height)), 2)
+
+height_var <- ggplot(data, aes(name, height))+
+  geom_point(size = 2) +
+  geom_hline(yintercept = mean(data$height), size = 1) +
+  geom_segment(x = x, y = data$height , xend = x, yend = mean_vec, linetype = "dashed") +
+  theme(axis.title = element_text(face="bold")) +
+  geom_text(aes(label = deviance), nudge_y = c(rep(-0.02, 4), rep(0.02, 3))) 
+height_var
+```
+]
+
+.pull-right[
+
+- On the left is the same figure but for height.
+
+]
+
+---
+# Covariance
+- So variance = deviation around the mean of a single variable.
+- **Co**variance concerns variation in two variables.
+- To think about the equation for covariance, suppose we re-write variance as follows. Instead of:
+
+$$Var_x = \frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}$$
+
+- we use
+
+$$Cov_{xx} = \frac{\sum_{i=1}^{n}{(x_i - \bar{x})(x_i - \bar{x})}}{n-1}$$
+
+---
+# Covariance
+
+$$Cov_{xy} = \frac{\sum_{i=1}^{n}{(x_i - \bar{x})(y_i - \bar{y})}}{n-1}$$
+
+- So our covariance is identical to our variance, with the exception that our summed termed is the combined deviance from the respective means of both $x$ and $y$.
+
+
+---
+# Covariance
+- For our data:
+
+```{r}
+round(cov(data$height, data$weight),4)
+```
+
+---
+# Scale & Covariance
+- So what does a covariance of 4.1681 between height and weight mean?
+	- I have no idea!
+	
+- Covariance is related to the scale of the variables we are analysing.
+	- Makes sense right? variance was just the same.
+	
+- What about if we had measured height in centimetres not metres?
+
+```{r}
+round(cov(data$height*100, data$weight),2)
+```
+
+
+---
+# Correlation
+- How do we deal with problems of scale?
+  - We standardize.
+  
+- And how do we standardize?
+  - We divide by an estimate of the variability.
+	- Here, the product of standard deviations of $x$ and $y$.
+	
+- The resulting statistic is the Pearson Product Moment Correlation ( $r$ )
+
+
+---
+# Correlation
+$$r = \frac{Cov_{xy}}{SD_xSD_y}$$
+
+- Or in full
+
+$$r = \frac{\frac{\sum_{i=1}^{n}{(x_i - \bar{x})(y_i - \bar{y})}}{n-1}}{\sqrt{\frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}} \sqrt{\frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}}}$$
+
+---
+# Correlation
+- In our data:
+
+```{r}
+cov(data$height, data$weight)/ (sd(data$height)*sd(data$weight))
+```
+
+- or we can use built in functions:
+
+```{r}
+cor(data$height, data$weight)
+```
+
+
+---
+# Correlation = ES
+- For some other tests we have discussed associated measures of effect size.
+- Remember, an effect size is a standardized measures of the type relationship of interest.
+  - So Cohen's D is a standardize raw mean difference.
+
+- Well our correlation **is** standardized
+  - It is a standardized covariance.
+  - Or a standardize measure of association
+
+---
+class: center, middle
+# Time for a break
+
+---
+class: center, middle
+# Welcome Back!
+
+**In the last recording we considered the relationships between variance, covariance and correlation. Now we will consider inferential tests for the Pearson's correlation.**
+ 
+---
+# Hypotheses
+- For many people, correlations are descriptive statistics.
+  - As such, they do not require significance tests.
+
+- But in other circumstances a correlation may be a test of interest, and we can formulate associated hypothesis tests.
+
+---
+# Hypotheses
+- The association between two random variables = 0.
+
+- This leads to the null for a correlation being:
+
+$$
+H_0: r = 0
+$$
+
+- And the two-tailed alternative:
+
+$$
+H_1: r \neq 0
+$$
+
+- The sampling distribution of $r$ is approximately normal with large N, and is $t$ distributed when N is small.
+	- Thus we assess the significance using the $t$-distribution with n-2 degrees of freedom.
+	- The minus 2 is because we have had to calculate the means of both variables from our data.
+
+---
+#  Hypothesis testing & significance 
+- The $t$-statistic for a given correlation is calculated as:
+
+$$
+t = r \sqrt \frac{n-2}{1 - r^2}
+$$
+
+- So for our data:
+
+$$
+t = r \sqrt \frac{n-2}{1 - r^2} = 0.87 \sqrt \frac{5}{1 - 0.87^2} = 0.87\sqrt \frac{5}{0.2431} = 0.87*4.535 = 3.95
+$$
+
+
+---
+# Is our test significant?
+- So the $t$ associated with our correlation is 3.95
+	- Our degrees of freedom are n-2 = 7-2 = 5
+	- We will use two-tailed $\alpha = .05$
+
+---
+# Is our test significant?
+```{r, echo=FALSE}
+ggplot(tibble(x=c(-6,6)), aes(x = x)) +
+  stat_function(fun=dt,
+                geom = "line",
+                args = list(df=5)) +
+  stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(qt(0.975,5), 6),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=4)) +
+    stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(qt(0.025,5), -6),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=5)) +
+  geom_vline(xintercept = 3.95, col="red") +
+  xlab("\n t") +
+  ylab("") +
+  ggtitle("t-distribution (df=5); t-statistic (3.95; red line)")
+```
+
+```{r, echo=FALSE}
+tibble(
+  LowerCrit = round(qt(0.025, 5),2),
+  UpperCrit = round(qt(0.975, 5),2),
+)
+```
+
+---
+# In R
+```{r}
+cor.test(data$height, data$weight)
+```
+
+---
+#  Write up 
+- Write up is very simple for small number of variables.
+
+> There was a strong positive correlation between height and weight ( $r$ = .87, $t$(5) = 3.92, $p$<.05) in the current sample. As height increased, so did weight.
+
+
+- Often we report lots of correlations and do so in a correlation matrix.
+
+
+---
+# Correlation matrices
+- Off-diagonal values show the correlations between the variables.
+  - Range from -1 to 1.
+
+- Values in diagonal are correlations of each variable with itself.
+	- Always 1.00
+	- Not informative
+	- Can omit or replace with e.g. reliability
+	
+- Symmetric.
+	- Above and below diagonal = same values.
+	- Do not need both.
+	- Could switch with p-values or leave empty
+
+
+---
+# Correlation matrices
+```{r}
+pers_items <- bfi[,c(1:5)]
+pers_cors <- hetcor(pers_items)
+```
+
+```{r}
+round(pers_cors$correlations, 2)
+```
+
+
+---
+# Assumptions: Pearson correlation
+1. Variables must be interval or ratio (continuous)
+	- No test: about design.
+	
+2. Variables must be normally distributed.
+	- Histograms, skew, QQ-Plots, Shapiro-Wilks.
+	
+3. Homoscedasticity (homogeneity of variance)
+
+4. The relationship between the two variables must be linear.
+	- Visualize: scatterplots.
+
+
+---
+# Anscombe Quartet
+
+- Anscombe quartet is a set of data designed to show the importance of visualizing data.
+
+- There are four pairs of $x$ and $y$ variables.
+  - Each $x$ variable has the same mean and standard deviation.
+  - Each $y$ variable has the same mean and standard deviation.
+  - Each pair has the same correlation.
+  
+- In other words, if you calculate descriptive statistics only, each pair is identical.
+
+- BUT......
+
+---
+# Anscombe Quartet
+
+.pull-left[
+```{r}
+round(cor(anscombe$x1, anscombe$y1),2)
+round(cor(anscombe$x2, anscombe$y2),2)
+round(cor(anscombe$x3, anscombe$y3),2)
+round(cor(anscombe$x4, anscombe$y4),2)
+```
+]
+
+.pull-right[
+```{r, echo=FALSE}
+a <- ggplot(anscombe, aes(x=x1, y=y1)) +
+  geom_point(size = 2) +
+  xlab("X1") +
+  ylab("Y1")
+
+b <- ggplot(anscombe, aes(x=x2, y=y2)) +
+  geom_point(size = 2) +
+  xlab("X2") +
+  ylab("Y2")
+
+c <- ggplot(anscombe, aes(x=x3, y=y3)) +
+  geom_point(size = 2) +
+  xlab("X3") +
+  ylab("Y3")
+
+d <- ggplot(anscombe, aes(x=x4, y=y4)) +
+  geom_point(size = 2) +
+  xlab("X4") +
+  ylab("Y4")
+
+(a +b) / (c + d)
+```
+
+]
+
+---
+class: center, middle
+# Time for a break
+
+---
+class: center, middle
+# Welcome Back!
+
+**We have now looked at the Pearson correlation, but what about different data types?**
+
+---
+# Types of correlation
+
+| Variable 1  | Variable 2  | Correlation Type |
+|-------------|-------------|------------------|
+| Continuous  | Continuous  | Pearson          |
+| Continuous  | Categorical | Polyserial       |
+| Continuous  | Binary      | Biserial         |
+| Categorical | Categorical | Polychoric       |
+| Binary      | Binary      | Tetrachoric      |
+| Rank        | Rank        | Spearman         |
+| Nominal     | Nominal     | Chi-square       |
+
+
+---
+# Spearman correlation
+- Spearman's $\rho$ (or rank-order correlation) uses data on the rank-ordering of $x$, $y$ responses for each individual.
+  
+- When would we choose to use the Spearman correlation?
+	- If our data are naturally ranked data (e.g. imagine a survey where the task is to rank foods and drinks in terms of preference).
+	- If the data are non-normal or skewed.
+	- If the data shows evidence of non-linearity.
+
+---
+# Spearman correlation
+- Spearman's is not testing for linear relations, it is testing for increasing monotonic relationship.
+  - Huh?
+ 
+---
+# Linear vs. monotonic
+
+.pull-left[
+```{r, echo=FALSE}
+mono <- tibble(
+  A = c(1,2,3,4,5,6,7,8,9,10),
+  B = c(1,2,3,4,5,6,7,8,9,10),
+  C = c(1,4,5,6,8,9,10,13,15,16)
+)
+
+p1 <- mono %>%
+  ggplot(., aes(x=A, y=B)) +
+  geom_point() + 
+  geom_line() +
+  ggtitle("Linear")
+
+p2 <- mono %>%
+  ggplot(., aes(x=A, y=C)) +
+  geom_point() + 
+  geom_line() +
+  ggtitle("Increasing Monotonic")
+
+p1 + p2
+
+```
+]
+
+.pull-right[
+
+- Left-hand plot shows a perfectly linear relationship between A and B.
+
+- Right-hand plot shows a perfectly increasingly monotinic relationship between A and C.
+  - The rank position of all observations on A, is the same a the rank position of all observations on C.
+  
+]
+
+---
+# Linear vs. monotonic
+
+.pull-left[
+```{r, echo=FALSE}
+mono <- tibble(
+  A = c(1,2,3,4,5,6,7,8,9,10),
+  B = c(1,2,3,4,5,6,7,8,9,10),
+  C = c(1,4,5,6,8,9,10,13,15,16)
+)
+
+p1 <- mono %>%
+  ggplot(., aes(x=A, y=B)) +
+  geom_point() + 
+  geom_line() +
+  ggtitle("Linear")
+
+p2 <- mono %>%
+  ggplot(., aes(x=A, y=C)) +
+  geom_point() + 
+  geom_line() +
+  ggtitle("Increasing Monotonic")
+
+p1 + p2
+
+```
+]
+
+.pull-right[
+
+```{r, echo=FALSE}
+tibble(
+  A = c(1,2,3,4,5,6,7,8,9,10),
+  B = c(1,2,3,4,5,6,7,8,9,10),
+  C = c(1,4,5,6,8,9,10,13,15,16)
+) %>%
+  mutate(
+    ID = paste("ID", 1:10, sep = ""),
+    Rank_A = rank(A),
+    Rank_C = rank(C)
+  ) %>%
+  dplyr::select(., ID, A, C, Rank_A, Rank_C) %>%
+  kable() %>%
+  kable_styling(full_width = F)
+
+```
+
+  
+]
+
+
+
+---
+# Steps in Spearman's
+$$
+\rho = 1 - \frac{6\Sigma{d^2_i}}{n(n^2-1)}
+$$
+
+- Calculation steps:
+	- Rank each variable from largest to smallest.
+	- If there are ties in ranks, assign the average of the rankings to each case.
+	- Calculate the difference in rank for each person on the two variables.
+	- Square the difference.
+	- Sum the squared values.
+
+
+---
+# Quick example
+
+```{r}
+rank <- tibble(
+  ID = paste("ID", 1:6, sep = ""),
+  RT =c(.264, .311, .265, .291, .350, .500),
+  Caff = c(210,280,150,90,200,450)
+)
+rank
+```
+
+
+---
+# Calculation
+```{r}
+rank_calc <- rank %>%
+  mutate(
+    RT_rank = rank(RT),
+    Caff_rank = rank(Caff),
+    di = RT_rank - Caff_rank,
+    di2 = di^2
+  )
+rank_calc
+```
+
+---
+# Calculation
+```{r, echo=FALSE}
+rank_calc
+```
+
+$$\rho = 1 - \frac{6\Sigma{d^2_i}}{n(n^2-1)} = 1 - \frac{6*18}{6(6^2-1)} = 1 - \frac{108}{210} = 1 - 0.514 = 0.486$$
+
+
+---
+# In R
+```{r}
+round(cor(rank$RT, rank$Caff, method = "spearman"),3)
+```
+
+
+---
+# Other forms
+.pull-left[
+- General principle (simplified a little) of the other forms of correlation is roughly the same.
+
+- We assume that the categorical variable is a crude measurement of an underlying normal variable.
+
+- Aiming to provide an estimate of the association between these underlying variables.
+]
+
+.pull-right[
+
+```{r, echo=FALSE}
+dat <- tibble(
+  x = factor(sample(c("Disagree", "Neither Agree/Disagree", "Agree"), 
+                       500, replace = T, prob = c(0.3, 0.5, 0.2)), 
+             levels = c("Disagree", "Neither Agree/Disagree", "Agree")
+             )
+  )
+p3 <- dat %>% 
+  ggplot(., aes(x=x)) +
+  geom_bar() 
+
+p4 <- ggplot(NULL, aes(x = c(-5,5))) +
+  stat_function(fun=dnorm,
+                geom = "line") +
+  theme_void()
+
+p3+p4
+```
+
+]
+
+---
+# In R
+- Estimating correlation is straight forward.
+
+- All we need to do is make sure R knows the type of data we have, then use `hetcor`
+
+```{r}
+pers_items <- bfi[,c(1:5)]
+pers_items <- pers_items %>%
+  mutate(
+    A1 = as_factor(A1)
+  )
+pers_cors <- hetcor(pers_items)
+```
+
+
+---
+# In R
+
+```{r}
+round(pers_cors$correlations,2)
+```
+
+
+```{r}
+pers_cors$type
+```
+
+---
+# Correlation and causation
+- You will talk more about this point in lab.
+  - And forever more when discussing statistical results.
+  
+- Typically we hope to be able to explain *why* things happen.
+
+- Though correlation is a fundamental metric in statistics, it actually does not help us (on it's own) with this.
+
+- An association between two things does not mean it **causes** the other.
+  - Much more on this to come in lab and next year.
+
+
+---
+# Summary of today
+- In these recordings we have discussed:
+  - The basic principle and interpretation of correlations
+  - The importance of visualization and how to "read" scatterplots.
+  - Calculation of Pearson's and other forms of correlation
+  - Inferential tests and effect sizes for correlations.
+

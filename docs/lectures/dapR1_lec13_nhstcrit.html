@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>S2W3 - Hypothesis Testing: critical values</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Umberto Noè" />
+    <link href="jk_libs/libs/tile-view/tile-view.css" rel="stylesheet" />
+    <script src="jk_libs/libs/tile-view/tile-view.js"></script>
+    <link href="jk_libs/libs/animate.css/animate.xaringan.css" rel="stylesheet" />
+    <link href="jk_libs/libs/tachyons/tachyons.min.css" rel="stylesheet" />
+    <link href="jk_libs/libs/xaringanExtra-extra-styles/xaringanExtra-extra-styles.css" rel="stylesheet" />
+    <script src="jk_libs/libs/kePrint/kePrint.js"></script>
+    <link href="jk_libs/libs/lightable/lightable.css" rel="stylesheet" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+    <link rel="stylesheet" href="jk_libs/tweaks.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# <b>S2W3 - Hypothesis Testing: critical values</b>
+## Data Analysis for Psychology in R 1
+### Umberto Noè
+### Department of Psychology<br/>The University of Edinburgh
+### AY 2020-2021
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Learning objectives
+
+1. Recognise the difference between a bootstrap and null distribution.
+
+1. Understand the parallel between p-values and critical values.
+
+1. Be able to perform a one-sided or two-sided hypothesis test using the critical value method.
+
+1. Understand the link between z-scores and critical values.
+
+
+---
+class: inverse, center, middle
+
+# Part 0
+## What you need to know
+
+
+---
+
+# Parameters, statistics, best estimates
+
+- _Parameter_: a number that summarises some aspect of the population.
+
+--
+
+- _Statistic_: a numerical summary of the sample data.
+
+--
+
+- The statistic calculated from the sample is our _best estimate_ of the true but unknown value of the population parameter
+
+
+.footnote[
+To revise [click here](https://uoepsy.github.io/dapr1/labs/11_sampling_distributions.html)
+]
+
+
+
+---
+
+# Normal distributions
+
+.pull-left[
+In a bell-shaped distribution, approximately:
+
+- 68% of the values are within 1 SD of the mean
+
+- 95.4% of the values are within 2 SD of the mean
+
+- 99.7% of the values are within 3 SD of the mean
+]
+
+.pull-right[
+&lt;img src="https://uoepsy.github.io/dapr1/labs/images/prob/normal_rule.png" width="100%" style="display: block; margin: auto;" /&gt;
+]
+
+To be precise, 95% of the values are within 1.96 SD of the mean:
+
+```r
+qnorm(p = c(0.025, 0.975), mean = 0, sd = 1)
+```
+
+```
+## [1] -1.96  1.96
+```
+
+
+
+---
+
+# Quantiles (a.k.a. percentiles)
+
+.pull-left[
+- The `\(p\)`-quantile is the value that cuts an area equal to `\(p\)` to its left.
+
+- It is the value `\(x_p\)` such that `\(P(X \leq x_p) = p\)`
+
+- We use the term percentile when using _percentages_. The 0.5-quantile is the 50th percentile.
+]
+
+.pull-right[
+&lt;img src="https://uoepsy.github.io/dapr1/labs/images/prob/normal_quantile.png" width="90%" style="display: block; margin: auto;" /&gt;
+]
+
+
+.footnote[
+To revise [click here](https://uoepsy.github.io/dapr1/labs/10_continuous_distributions.html)
+]
+
+---
+
+# Quantiles (a.k.a. percentiles)
+
+.pull-left[
+**Resampling approach**
+
+With data `df$y`
+  
+```
+quantile(&lt;data&gt;, probs = &lt;probs_to_the_left&gt;)
+
+quantile(df$y, probs = c(0.25, 0.5, 0.75))
+```
+
+With bootstrap means `bootstrap$means`:
+
+
+
+
+```r
+quantile(bootstrap$means, probs = 0.5)
+```
+
+```
+##   50% 
+## 1.265
+```
+]
+
+.pull-right[
+**Theoretical approach**
+
+Find the quantiles of a probability distribution with the function `q` followed by the distribution name.
+  
+_Example._ Quantiles of a normal distribution:
+```
+qnorm(p = &lt;prob_to_left&gt;, mean, sd)
+```
+
+The 0.025 and 0.975-quantiles of a standard normal distribution are:
+
+```r
+qnorm(p = c(0.025, 0.975), mean = 0, sd = 1)
+```
+
+```
+## [1] -1.96  1.96
+```
+]
+
+
+
+---
+
+# Hypothesis testing 101
+
+&lt;!-- - We have a research question or hypothesis about the population. --&gt;
+
+- Pose a question that you would like to investigate or an hypothesis you'd like to empirically check.
+
+--
+
+- Identify the relevant population _parameters_.
+
+--
+
+- Translate that question or hypothesis into null `\((H_0)\)` and alternative `\((H_1)\)` hypotheses.
+
+  For example:
+  
+  `$$H_0 : \mu = 0$$`
+  `$$H_1 : \mu &gt; 0$$`
+  
+--
+
+- Find or collect data that will help you answer
+this question.
+
+--
+
+- Compute the statistic that estimates the parameter of interest. For example, the sample mean `\(\bar x\)`
+
+
+.footnote[
+To revise [click here](https://uoepsy.github.io/dapr1/labs/13_hypothesis_testing.html)
+]
+
+---
+
+# Measuring evidence against `\(H_0\)`
+
+- Light blue: _null distribution_ of sample means from samples of size `\(n = 50\)`.
+
+- Red line: _observed statistic_.
+
+.pull-left[
+
+&lt;img src="dapR1_lec13_nhstcrit_files/figure-html/unnamed-chunk-7-1.png" width="70%" style="display: block; margin: auto;" /&gt;
+
+]
+
+.pull-right[
+
+&lt;img src="dapR1_lec13_nhstcrit_files/figure-html/unnamed-chunk-8-1.png" width="70%" style="display: block; margin: auto;" /&gt;
+
+]
+
+Which scenario do you think provides more evidence that the population mean is greater than 0?
+
+
+---
+
+# P-values and statistical significance
+
+.pull-left[
+
+&lt;img src="dapR1_lec13_nhstcrit_files/figure-html/unnamed-chunk-9-1.png" width="60%" style="display: block; margin: auto;" /&gt;
+
+$$
+p = 0.14
+$$
+
+]
+
+.pull-right[
+
+&lt;img src="dapR1_lec13_nhstcrit_files/figure-html/unnamed-chunk-10-1.png" width="60%" style="display: block; margin: auto;" /&gt;
+
+$$
+p &lt; .001
+$$
+
+]
+
+If results as extreme or more extreme than the observed statistic are unlikely to occur by sampling variation alone when the null hypothesis is true, we say the sample results are statistically significant.
+
+Statistical significance means that we have convincing evidence against `\(H_0\)` and in favour of `\(H_1\)`.
+
+
+---
+class: inverse, center, middle
+
+# Part A
+## Research question and data
+
+
+---
+
+# Research question
+
+&gt; Is reaction time in identifying ink colours increased when the ink is used to spell a different colour?
+
+Researchers recruited 131 participants for a study. Each participant was asked to complete two tasks, both requiring them to pronounce the _colour_ of words shown on a screen.
+
+In task (a) the colour and words matched, while in task (b) the colour and words did not match.
+
+&lt;img src="https://uoepsy.github.io/dapr1/labs/images/numeric/stroop1.png" width="90%" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Research question
+
+To evaluate whether mismatching words and colours increased participants reaction times, we can compute for each participant the _difference_ between the time to complete the mismatching colour-word task and the matching colour-word task.
+
+If the _average difference_ is larger than 0, then the mismatching colour-word task took _on average_ longer to complete.
+
+We are not interested in whether the mismatching colour-word task took longer to complete than the other task for one particular individual. This might happen by change. What we really want to do is assess if there is a pattern, hence why the mean!
+
+
+---
+
+# Data
+
+The data can be found at: https://uoepsy.github.io/data/stroopexpt2.csv
+
+.pull-left[
+
+```r
+library(tidyverse)
+library(kableExtra)
+
+data &lt;- read_csv("https://uoepsy.github.io/data/stroopexpt2.csv")
+
+dim(data)
+```
+
+```
+## [1] 131   5
+```
+
+
+```r
+head(data) %&gt;% 
+  kable(digits = 2)
+```
+]
+
+.pull-right[
+&lt;table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; id &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; age &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; matching &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; mismatching &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; stroop_effect &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 40 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 12.61 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14.00 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.39 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 48 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14.84 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14.87 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.03 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 35 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15.94 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 19.60 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.66 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 47 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9.73 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.64 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -5.09 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 27 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14.71 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14.65 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.06 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 55 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 20.20 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 17.10 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -3.10 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+]
+
+
+&lt;br&gt;
+
+where: `stroop_effect = mismatching - matching`
+
+
+---
+
+# Data
+
+Visualise the distribution of the `stroop_effect` variable in the sample data:
+
+.pull-left[
+
+```r
+ggplot(data) +
+  geom_histogram(aes(x = stroop_effect), 
+                 color = 'white') +
+  labs(x = 'Stroop effect')
+```
+
+It is not very symmetric and bell-shaped...
+
+
+```r
+data %&gt;%
+  summarise(Mean = mean(stroop_effect),
+            SD = sd(stroop_effect)) %&gt;%
+  kable(digits = 3)
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Mean &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; SD &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.884 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.737 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+]
+
+.pull-right[
+&lt;img src="dapR1_lec13_nhstcrit_files/figure-html/unnamed-chunk-17-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+
+
+---
+
+# Parameters and hypotheses
+
+- `\(\texttt{mismatching}_i\)` = time participant `\(i\)` took to complete the _mismatching_ colour-word task
+
+- `\(\texttt{matching}_i\)` = time participant `\(i\)` took to complete the _matching_ colour-word task
+
+--
+
+- `\(D_i = \texttt{mismatching}_i - \texttt{matching}_i\)` = difference in completion times ("_Stroop effect_")
+
+--
+
+- `\(\mu\)` = population mean difference in completion times
+
+--
+
+We wish to test whether the population mean difference in completion times is larger than 0. 
+
+--
+
+That is, if the mean completion time of the mismatching colour-word task is higher than the matching colour-word task.
+
+--
+
+`$$H_0 : \mu = 0$$`
+`$$H_1 : \mu &gt; 0$$`
+
+---
+
+# Sample statistic
+
+The observed sample mean difference in completion times is:
+
+```r
+xbar_obs &lt;- mean(data$stroop_effect)
+xbar_obs
+```
+
+```
+## [1] 0.8843
+```
+
+
+&lt;br&gt;
+
+This is just the mean of the differences (`stroop_effect`) in the sample data:
+
+`$$\bar{x}_{obs} = \frac{ \sum_{i=1}^n D_i }{ n }$$`
+
+
+---
+class: inverse, center, middle
+
+# Part B
+## Bootstrap distribution vs Null distribution
+
+
+---
+
+# Bootstrap distribution
+
+
+```r
+source('https://uoepsy.github.io/files/rep_sample_n.R')
+```
+
+Set the random seed:
+
+```r
+set.seed(1)
+```
+
+Generate the bootstrap distribution:
+
+```r
+n &lt;- nrow(data)
+n
+```
+
+```
+## [1] 131
+```
+
+
+```r
+boot_dist &lt;- data %&gt;%
+  rep_sample_n(n = n, samples = 5000, replace = TRUE) %&gt;%
+  group_by(sample) %&gt;%
+  summarise(xbar = mean(stroop_effect))
+```
+
+
+---
+
+# Bootstrap distribution
+
+.pull-left[
+
+
+```r
+head(boot_dist)
+```
+
+```
+## # A tibble: 6 x 2
+##   sample  xbar
+##    &lt;dbl&gt; &lt;dbl&gt;
+## 1      1 1.24 
+## 2      2 0.797
+## 3      3 1.10 
+## 4      4 0.267
+## 5      5 0.901
+## 6      6 1.07
+```
+
+]
+
+.pull-right[
+&lt;img src="dapR1_lec13_nhstcrit_files/figure-html/unnamed-chunk-24-1.png" width="80%" style="display: block; margin: auto;" /&gt;
+]
+
+- Centre = mean of bootstrap distribution = 0.884 = observed sample mean
+
+- Spread = standard deviation of bootstrap distribution = 0.411 = bootstrap standard error
+
+&lt;!-- - **Theoretical SE**: Recall the SD of the data is `\(s =\)` 4.737. The SE of the mean is `\(s / \sqrt{n}\)` = 0.414. --&gt;
+
+
+---
+
+# Null distribution: Resampling approach
+
+Centred at the value specified in the null hypothesis!
+
+
+```r
+data &lt;- data %&gt;%
+  mutate(
+    stroop_effect_shifted = stroop_effect - xbar_obs
+  )
+
+mean(data$stroop_effect_shifted) %&gt;% 
+  round(digits = 3)
+```
+
+```
+## [1] 0
+```
+
+
+```r
+null_dist &lt;- data %&gt;%
+  rep_sample_n(n = n, samples = 5000, replace = TRUE) %&gt;%
+  group_by(sample) %&gt;%
+  summarise(xbar = mean(stroop_effect_shifted))
+```
+
+
+---
+
+# Null distribution: Resampling approach
+
+.pull-left[
+Centre and spread
+
+```r
+# mean
+mu &lt;- mean(null_dist$xbar)
+# standard error
+se &lt;- sd(null_dist$xbar)
+
+tibble(mu, se) %&gt;%
+    kable(digits = 3)
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; mu &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; se &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.006 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.411 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+.pull-right[
+&lt;img src="dapR1_lec13_nhstcrit_files/figure-html/unnamed-chunk-28-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+
+---
+
+# Null distribution: Theoretical approach
+
+
+Recall:
+$$
+\bar X \sim N(\mu, SE), \qquad \qquad SE = \frac{s}{\sqrt{n}}
+$$
+
+--
+
+&lt;br&gt;
+
+But under the null hypothesis we assume that `\(H_0: \mu = 0\)`, so
+$$
+\bar X \sim N(0, SE), \qquad \qquad SE = \frac{s}{\sqrt{n}}
+$$
+
+---
+
+# Null distribution: Theoretical approach
+
+.pull-left[
+In R:
+
+```r
+mu_theory &lt;- 0
+se_theory &lt;- 
+  sd(data$stroop_effect) / sqrt(n)
+
+tibble(mu_theory, se_theory) %&gt;%
+    kable(digits = 3)
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; mu_theory &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; se_theory &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.414 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+Then use `dnorm` for the density, `qnorm` for the quantiles, and `pnorm` for the probabilities of a normal distribution having mean and SE computed above.
+]
+
+.pull-right[
+&lt;img src="dapR1_lec13_nhstcrit_files/figure-html/unnamed-chunk-30-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+
+
+---
+class: inverse, center, middle
+
+# Part C
+## Critical values (one-sided `\(H_1\)`)
+
+`$$H_0: \mu = 0$$`
+`$$H_1: \mu &gt; 0$$`
+
+
+---
+
+# Recap of p-values!
+
+.pull-left[
+
+```r
+pvalue &lt;- 
+  sum(null_dist$xbar &gt;= xbar_obs) / 
+  nrow(null_dist)
+
+pvalue
+```
+
+```
+## [1] 0.0152
+```
+
+The probability of observing a sample mean as large as 0.884 or larger, when the null hypothesis is true, is 0.0152.
+
+At the 5% significance level, the sample results provide strong evidence that the population mean difference in completion times is larger than 0.
+
+]
+
+
+
+.pull-right[
+&lt;img src="dapR1_lec13_nhstcrit_files/figure-html/unnamed-chunk-32-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+
+---
+
+# Recap of p-values!
+
+
+&lt;img src="dapR1_lec13_nhstcrit_files/figure-html/unnamed-chunk-33-1.png" width="55%" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Critical values: Resampling approach
+
+.pull-left[
+
+```r
+q0.95 &lt;- quantile(null_dist$xbar, 
+                  probs = 0.95)
+q0.95
+```
+
+```
+##    95% 
+## 0.6755
+```
+
+```r
+tibble(q0.95, 
+       xbar_obs, 
+       xbar_obs &gt;= q0.95) %&gt;%
+  kable()
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; q0.95 &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; xbar_obs &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; xbar_obs &amp;gt;= q0.95 &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.6755 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.8843 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; TRUE &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+.pull-right[
+&lt;img src="dapR1_lec13_nhstcrit_files/figure-html/unnamed-chunk-35-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+
+---
+
+# Critical values: Theoretical approach
+
+.pull-left[
+
+```r
+# Resampling
+quantile(null_dist$xbar, probs = 0.95)
+```
+
+```
+##    95% 
+## 0.6755
+```
+
+```r
+# Theoretical
+q0.95_theory &lt;- qnorm(p = 0.95, mu_theory, se_theory)
+q0.95_theory
+```
+
+```
+## [1] 0.6808
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; q0.95_theory &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; xbar_obs &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; xbar_obs &amp;gt;= q0.95_theory &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.6808 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.8843 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; TRUE &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+.pull-right[
+&lt;img src="dapR1_lec13_nhstcrit_files/figure-html/unnamed-chunk-38-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+
+---
+class: inverse, center, middle
+
+# Part D
+## Critical values (two-sided `\(H_1\)`)
+
+`$$H_0: \mu = 0$$`
+`$$H_1: \mu \neq 0$$`
+
+
+---
+
+# Critical values: Resampling approach
+
+.pull-left[
+
+```r
+quantile(null_dist$xbar, 
+         probs = c(0.025, 0.975))
+```
+
+```
+##    2.5%   97.5% 
+## -0.8074  0.7998
+```
+
+```r
+# Observed statistic
+xbar_obs
+```
+
+```
+## [1] 0.8843
+```
+
+The observed statistic `\(\bar x_{obs}\)` is larger than the 97.5th percentile, so we reject the null hypothesis.
+
+People often say that the observed statistic falls in the rejection region (the red intervals).
+
+]
+
+.pull-right[
+&lt;img src="dapR1_lec13_nhstcrit_files/figure-html/unnamed-chunk-40-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+
+---
+
+# Critical values: Theoretical approach
+
+.pull-left[
+
+```r
+# Resampling
+quantile(null_dist$xbar, 
+         probs = c(0.025, 0.975))
+```
+
+```
+##    2.5%   97.5% 
+## -0.8074  0.7998
+```
+
+```r
+# Theoretical
+qnorm(p = c(0.025, 0.975), 
+      mean = mu_theory, sd = se_theory)
+```
+
+```
+## [1] -0.8112  0.8112
+```
+
+```r
+# Observed statistic
+xbar_obs
+```
+
+```
+## [1] 0.8843
+```
+]
+
+.pull-right[
+&lt;img src="dapR1_lec13_nhstcrit_files/figure-html/unnamed-chunk-42-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+
+
+---
+class: inverse, center, middle
+
+# Part E
+## Standardized statistics (a.k.a. z-scores)
+
+
+---
+
+# Z-scores
+
+- For data `\(x_1, ..., x_n\)`, the z-score is
+$$
+z_i = \frac{x_i - \mu}{\sigma}
+$$
+
+
+--
+
+- For our 5,000 means `\(\bar x_1, ..., \bar x_{5000}\)` from the null distribution, we compute the z-score as:
+$$
+z_i = \frac{\bar x_i - 0}{SE} = \frac{\bar x_i - \text{hypothesised value}}{ SE }
+$$
+
+  where `\(SE\)` = standard error of the mean.
+
+--
+
+- Don't forget to also transform the observed statistic to standard units! We need to z-score the observed statistic to bring it to the same scale:
+
+`$$z_{obs} = \frac{\bar x_{obs} - \text{hypothesised value}}{ SE }$$`
+
+---
+
+# Z-scores
+
+How is the standard error computed?
+
+- **Resampling approach**: `\(SE\)` = standard deviation of the null distribution
+
+- **Theoretical approach**: `\(SE = \frac{s}{\sqrt{n}}\)`
+
+
+---
+
+# Resampling approach
+
+
+.pull-left[
+
+```r
+hypothesised_value &lt;- 0
+
+null_dist$z &lt;- 
+  (null_dist$xbar - hypothesised_value) /
+  sd(null_dist$xbar)
+
+z_obs &lt;- (xbar_obs - hypothesised_value) / 
+  sd(null_dist$xbar)
+z_obs
+```
+
+```
+## [1] 2.152
+```
+
+
+```r
+quantile(null_dist$z, probs = c(0.025, 0.975))
+```
+
+```
+##   2.5%  97.5% 
+## -1.965  1.947
+```
+
+
+
+]
+
+
+.pull-right[
+&lt;img src="dapR1_lec13_nhstcrit_files/figure-html/unnamed-chunk-46-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+
+---
+
+# Theoretical approach
+
+.pull-left[
+
+```r
+# Resampling
+quantile(null_dist$z, 
+         probs = c(0.025, 0.975))
+```
+
+```
+##   2.5%  97.5% 
+## -1.965  1.947
+```
+
+```r
+# Theoretical
+q &lt;- qnorm(c(0.025, 0.975), mean=0, sd=1)
+q
+```
+
+```
+## [1] -1.96  1.96
+```
+
+```r
+# Observed z-score
+z_obs_theory &lt;- (xbar_obs - hypothesised_value) / 
+  se_theory
+z_obs_theory
+```
+
+```
+## [1] 2.136
+```
+
+&lt;!-- Check the probability to the left of the theoretical quantiles: --&gt;
+
+]
+
+.pull-right[
+&lt;img src="dapR1_lec13_nhstcrit_files/figure-html/unnamed-chunk-49-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+
+---
+
+# What if you don't want to z-score `\(\bar x_{obs}\)`?
+
+- Recall that
+$$
+\text{When } H_0 : \mu = 0 \text{ is true:} \qquad \bar X \sim N(0, SE)
+$$
+
+--
+
+- We also know that for a normal distribution, 95% of the values lie within 1.96 SE of the mean (= 0 in this case). 
+
+--
+
+- So, we would reject the null hypothesis if the observed sample mean is smaller than `\(-1.96 \cdot SE\)` or larger than `\(1.96 \cdot SE\)`.
+
+--
+
+- If we use the absolute value to ignore the sign, we can simply refer to the upper tail and
+
+`$$\text{Reject } H_0 \text{ if:} \qquad |\bar x_{obs}| \geq 1.96 \cdot SE$$`
+
+
+---
+
+class: inverse, center, middle, animated, rotateInDownLeft
+
+# End
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="jk_libs/macros.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

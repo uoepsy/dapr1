@@ -1,0 +1,219 @@
+---
+title: "Lecture 13: Hypothesis testing"
+subtitle: Data Analysis for Psychology in R 1
+author: Tom Booth
+---
+```{r premable, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(kableExtra)
+library(patchwork)
+library(moderndive)
+```
+
+## Today
+- Introduce hypothesis testing
+- Discuss the different elements of a hypothesis test
+- Particular focus on the idea of a null distribution.
+
+## Learning objectives
+- Understand the structure of a hypothesis test.
+- Develop familiarity with key terminology of hypothesis testing.
+
+## Example
+- Suppose Umberto and I taught dapR to two separate cohorts of students.
+    - Umberto taught one class
+    - I taught the other
+- We measure how well each student does with the course grade.
+- We want to know if Umberto or I are the better teacher.
+    - So, is there a difference in the average grade of Umberto's class vs my class.
+    
+## Data
+```{r}
+class <- tibble(
+    ID = paste(rep("ID", 300), 1:300, sep = ""),
+    grade = round(rnorm(300, 55, 15),0),
+    teacher = as_factor(sample(c("Umberto", "Tom"), 300, replace = T, prob = (c(.5,.5))))
+)
+head(class)
+```
+
+## The ideal
+- We have some exact predictions to compare
+    - Person 1: There will be a 5 point difference in grades.
+    - Person 2: There will be a 15 point difference in grades.
+- But what happens if the difference is 8 points?
+    - Neither is right
+    - But the grades still differ
+
+## The reality
+- We have a sample of data
+- From which we calculate a statistic
+- And we need some way to make a decision about the value of that statistic.
+    - Enter hypothesis testing.
+
+## Questions vs hypotheses
+- Research question.
+    - Statement on the expected relations between variables of interest.
+    - Can be "messy" (not precisely stated)
+- Statistical hypothesis
+    - Precise mathematical statement
+    - Testable!
+
+## Hypotheses
+- The typically applied hypothesis testing framework in psychology has two hypotheses.
+    - $H_0$ : the null hypothesis
+    - $H_1$ : the alternative hypothesis
+- Note the similarity to our ideal:
+    - $H_0$ : Person 1
+    - $H_1$ : Person 2
+- But we said this was not the reality...so what is different?
+
+## Defining H0 
+- Assume that Umberto and I were equally good teachers.
+- And that there was nothing systematic about how students were assigned to classes.
+    - So the students were essentially random samples of the population of students.
+- What would we expect the difference in average score of classes to be?
+
+## Defining H0
+- By chance, $\Delta\bar{x} = 0$.
+- This is perhaps the simplest way to think of defining H0.
+    - What would the result be if only chance were at play?
+- So if I were trying to guess the card you drew from a deck, by chance I would get this right $\frac{1}{52}$ times.
+    - If this was my study, my null would be the proportion $\frac{1}{52} = 0.019$
+
+## Defining H0
+- $H_0$ is a very specific hypothesis.
+- It states that the population value of a statistic is **equal** to specific value.
+
+## Defining H1
+- $H_1$ is the opposing position to $H_0$.
+    - Specifying $H_1$ is where we see the difference to the ideal case.
+- $H_1$ claims "some other state of the world" is true.
+    - But is broader with respect to what this might be.
+
+## Defining H1
+- $H_1$ can be **one-sided** or **two-sided**
+- Two-sided:
+    - The difference in grades $\neq 0$
+- One-sided
+    - The difference in grades is $< 0$
+    - The difference in grades is $> 0$
+    - These correspond a belief in who would be a better teacher.
+
+## Test Statistic
+- A test statistic is a calculation that provides a value in keeping with our research question.
+    - It is calculated on a sample of data.
+- We have been implicitly talking about the test statistic for our example.
+    - The difference in means.
+    - Aside: We are currently talking about a raw difference in means.
+    - Formally the test statistic here is a $t$-statistic (we will talk about this in full in a couple of weeks)
+
+## Point-estimates
+- A point estimate, as we have discussed, is simply a value of a statistic calculated in a sample.
+
+## Point-estimates
+```{r}
+class %>% 
+    group_by(teacher) %>%
+    summarise(
+        mean = round(mean(grade),1)
+        )
+```
+
+- $\Delta\bar{x}$ = `r round(mean(class$grade[class$teacher=="Umberto"]) - mean(class$grade[class$teacher=="Tom"]),1)`
+
+## Null Distribution
+- A key point about a test statistic is that it must have a calculable sampling distribution under the null.
+    - Ooft, sounds heavy!
+    - It is, but we have covered all we need to know.
+- In week 11 we saw exactly how we can construct sampling distributions.
+- This is no different.
+    - **IF** the null is true, what would the variation around the null hypothesis look like.
+    
+## Null Distribution
+
+```{r, echo = FALSE, warning = FALSE, message=FALSE}
+B <- 10000
+N <- 300
+
+dif <- tibble(
+    delta = replicate(B, {
+        grade <- round(rnorm(N, 55, 15),0)
+        teacher <- as_factor(sample(c("Umberto", "Tom"), N, replace = T, prob = (c(.5,.5))))
+        round(mean(grade[teacher=="Umberto"]) - mean(grade[teacher=="Tom"]),1)
+    })
+)
+
+obs_delta <- round(mean(class$grade[class$teacher=="Umberto"]) - mean(class$grade[class$teacher=="Tom"]),1)
+
+dif %>%
+    ggplot(., aes(x=delta)) +
+    geom_histogram(aes(y=stat(density), ), colour = "white", alpha = 0.3) +
+    xlab("Mean Difference") +
+    geom_vline(xintercept = mean(dif$delta), col = "red") +
+    geom_vline(xintercept = obs_delta, col = "blue") +
+    stat_function(fun = dnorm, args = list(mean = mean(dif$delta), sd = sd(dif$delta))) 
+```
+
+## Probability and the null
+- To recap again, the area under the curve provides us with probability.
+- We can calculate the probability at the point where the blue line (our sample estimate), is on our x-axis.
+- This probability is what is referred to as the $p$-value.
+
+## p-value
+```{r}
+dif %>%
+    summarise(
+        pvalue = sum(delta >= obs_delta)/n()
+    )
+```
+
+- The $p$-value represents the chance of obtaining a statistic as extreme or more extreme than the observed statistic, if the null hypothesis were true.
+- This represents the area under the curve to the right of the blue line.
+    - The area furthest from the null (red line)
+
+## Significance Level
+- So we know the exact probability of our point estimate, given the sampling distribution for the null.
+- How can we evaluate it?
+- We do this by assigning a significance level, or $\alpha$ level.
+    - $\alpha$ is cut-off point.
+    - If our $p$-value is $< \alpha$ we make one decision. 
+    - If our $p$-value is $\geq \alpha$ we make another decision
+- We typically use $\alpha$ = 0.05
+
+## Interpreting test result
+- $p$-value is $< \alpha$: We reject the null hypothesis
+- $p$-value is $\geq \alpha$: We fail to reject the null hypothesis
+- Odd language:
+    - Why don't we accept the null?
+    - Or accept the alternative?
+
+## Interpreting test result
+- Accepting the null:
+    - To accept the null would be like saying we believe the null is true.
+    - We believe the difference is 0.
+    - We don't actually know this. 
+    - All we know is that given our data, we do not have enough evidence to suggest it is not true.
+
+## Interpreting test result
+- Accepting the alternative:
+    - This is trickier, and we will come back to it next week.
+    - Short answer: we have not tested the alternative.
+    - Our sampling distribution was built around the null.
+    - And the alternative was not precisely stated.
+
+## Summary
+- Structure of a Hypothesis Test
+    1. A hypothesis
+    2. A hypothesis test
+    3. Test statistic
+    4. Observed test statistic (point estimate from sample)
+    5. Null distribution
+    6. $p$-value
+    7. Significance level
+
+## Tasks for this week...
+1. Finish tasks from last week. 
+2. Quiz 13: Bootstrapping and R
+    - Today at 17:00.
+    - Close Monday 3rd at 17:00

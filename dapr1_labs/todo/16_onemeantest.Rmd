@@ -1,0 +1,806 @@
+```{r, echo=FALSE}
+HIDDEN_SOLS=FALSE
+set.seed(15732)
+ggplot2::theme_set(ggplot2::theme_gray(base_size=13))
+
+library(tidyverse)
+```
+
+# One Sample Mean Test {#chap-one-mean-test}
+
+
+<div class="lo">
+#### Instructions {-}
+  
+- In this two-hour lab we will go through worked examples in the first hour, and you will attempt to answer some questions in the second hour.
+- The Rmarkdown file for this week is [here](https://uoe-psychology.github.io/uoe_psystats/dapr1/labsheets/week_16_practice.Rmd).
+
+
+#### Learning outcomes {-}
+
+**LO1.** Understand the t-test for one mean.
+
+**LO2.** Understand the t distribution and the concept of degrees of freedom.
+
+**LO3.** Understand how to assess normality.
+
+<!-- #### Reading {-} -->
+
+
+</div>
+
+
+## Recap
+
+Over the last 5 weeks, we have started to look at how we can use a sample from a population to draw inferences about the population.  
+<br>  
+Some key things which we have learned:  
+
+<div class="noteBox"> 
+#### Week 11 {-} 
+
++ Distinction between **population** and **sample**.  
++ Use of sample statistics to draw infereces about population parameters.  
++ **Sampling variability** leads a statistic to vary from sample to sample.
++ The **sampling distribution** of a statistic is the distribution of the values that a statistic takes for *all possible samples of the same size* from the same population.  
++ To quantify the accuracy of our statistic, we calculate the standard deviation of its sampling distribution. This we call the **standard error** of the statistic.
+
+</div>
+<hr />
+<div class="noteBox"> 
+#### Week 12 {-}  
+
++ In practice we cannot take lots and lots of samples in order to build up a picture of the sampling distribution of a statistic.  
++ We can approximate this process by **bootstrap resampling** our original sample (repeated random sampling *with replacement* from the original sample, *using the same sample size.*).  
+  
+</div>
+<hr />
+<div class="noteBox">   
+#### Weeks 13 and 14 {-}  
+
++ Introduced hypothesis testing, statistical significance and statistical power. 
++ These concepts relied on us having some measure of sampling variability. 
++ In order to test hypotheses or construct confidence intervals, we *simulated* sampling distributions under different hypothetical parameters, against which we could then compare an observed statistic. 
++ We also introduced the concept of a **standardised statistic**, typically denoted by $z$.
+This measures how many standard deviations away from the mean of the null distribution the observed statistic is.  
++ $\textrm{standardised statistic} = z = \frac{\textrm{statistic} - \textrm{mean of null distribution}}{\textrm{standard deviation of null distribution}}$  
+
+</div>
+<hr />  
+<div class="noteBox"> 
+#### Week 15 {-}  
+
++ Things got a bit abstract.  
++ Constructing a sampling distribution ourselves requires simulate 1000's of samples (only possible with a computer).  
++ We can also work with a *theoretical* sampling distribution. 
++ If we *assume* that the sampling distribution is **normal** (symmetric and bell-shaped), we can approximate the standard error using a formula: $SE(\bar{x}) = \frac{\sigma}{\sqrt{n}}$
+  
+</div> 
+
+## Where we are now    
+ 
+#### Two ways of estimating the standard error {-}  
+
+```{r echo=FALSE, out.width="1200px"}
+knitr::include_graphics("images/bootstrapvsformula.png")
+```
+
+## Where we are going  
+
+For the next couple of weeks, we are going to learn about some specific statistical tests we can perform, when we would use them, how to calculate them, and what assumptions we make when we use them.   
+We are going to focus on the theoretical approach, and use the formula for the standard error, rather than bootstrapping.   
+   
+This week, we're going to look at the *one sample mean test*.  
+
+## One sample mean test  
+
+The "one sample mean test" does pretty much what it says - if you have one sample and you have a mean, you can perform a statistical test in order to evaluate how likely it is that the population mean (which the sample mean is your estimate of) is equal to a specific value.  
+
+### Example questions {-}
+
+Questions which can be answered by a one sample mean test often take the form:  
+
++ Is the average weight of a dog greater than 20kg?  
++ Is the mean body temperature not equal to 37 degrees C?  
++ On the Beck Depression Inventory (BDI), a score of >25 is considered clinical diagnosis of depression. Is the average score of our population of interest (for instance, people with a specific disease) significantly above this cutoff?  
+
+### Hypotheses {-}  
+
+**Null hypothesis:**  
+
++ The population mean ($\mu_1$) is equal to some pre-specified number ($\mu_{0}$).  
+  + $H_0: \mu_1 = \mu_{0}$  
+  (*Note* that this is the same as $\mu_1 - \mu_{0} = 0$)  
+
+**Alternative hypothesis:** 
+
++ The population mean ($\mu_1$) is not equal to/is less than/is greater than some pre-specified number ($\mu_{0}$).  
+  + $H_1: \mu_1 \neq \mu_{0}$  
+  + $H_1: \mu_1 > \mu_{0}$  
+  + $H_1: \mu_1 < \mu_{0}$  
+
+### Formula {-}  
+
+#### Standardised statistic $(z)$ {-}
+
+<!-- Recall that in [Week 13](#chap-hyp-test),  -->
+
+<!-- ```{r w16-standardised-statistic, fig.height=3, echo=FALSE, fig.align='center'} -->
+<!-- xg = seq(-4, 4, by = 0.001) -->
+<!-- yg = dnorm(xg) -->
+<!-- dfg = tibble(xg, yg) -->
+
+<!-- ggplot(dfg, aes(x = xg, y = yg, ymin = 0, ymax = yg)) + -->
+<!--   geom_line() + -->
+<!--   geom_ribbon(fill = 'lightyellow') +  -->
+<!--   geom_ribbon(data=subset(dfg, xg<0.01 & xg>-0.01), aes(ymax=yg), ymin=0, fill="darkblue") + -->
+<!--   geom_ribbon(data=subset(dfg, xg<3.01 & xg>2.99), aes(ymax=yg), ymin=0, fill="darkblue") + -->
+<!--   geom_ribbon(data=subset(dfg, xg > -3.01 & xg < -2.99), aes(ymax=yg), ymin=0, fill="darkblue") + -->
+<!--   geom_ribbon(data=subset(dfg, xg<2.01 & xg>1.99), aes(ymax=yg), ymin=0, fill="darkblue") + -->
+<!--   geom_ribbon(data=subset(dfg, xg > -2.01 & xg < -1.99), aes(ymax=yg), ymin=0, fill="darkblue") + -->
+<!--   geom_ribbon(data=subset(dfg, xg<1.51 & xg>1.49), aes(ymax=yg), ymin=0, fill="darkblue") + -->
+<!--   geom_ribbon(data=subset(dfg, xg > -1.51 & xg < -1.49), aes(ymax=yg), ymin=0, fill="darkblue") + -->
+<!--   theme_minimal(base_size = 15) + -->
+<!--   scale_x_continuous(breaks = c(-3, -2, -1.5, 0, 1.5, 2, 3)) + -->
+<!--   scale_y_continuous(breaks = NULL) + -->
+<!--   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + -->
+<!--   labs(x = NULL, y = NULL) -->
+<!-- ``` -->
+
+<!-- _**Reminder:** The sampling distribution is the distribution of the values that a statistic takes on different samples of the same size and from the same population._   -->
+
+When we introduced the notion of a standardised statistic in [Week 13](#making-a-formal-decision), we had simulated the null sampling distribution by constructing repeated random samples and calculating a statistic for each one. This allowed us to see how these statistics would vary due to random sampling, assuming the null hypothesis to be true. We could quantify this directly by calculating the standard deviation of the simulated null distribution - the standard error.  
+
+_**Reminder:** The standard deviation of the sampling distribution of a statistic (e.g. the mean) is also known as the standard error (SE) of the statistic._
+
+Using our theoretical approach to approximating the standard error, we can calculate the standard error of the statistic, for a sample of size $n$ using the formula: $SE(\bar{x}) = \frac{\sigma}{\sqrt{n}}$.  
+Including this in our formula for the standardised statistic becomes:  
+$$
+z = \frac{\textrm{statistic} - \textrm{mean of null distribution}}{\textrm{standard deviation of null distribution}} =  \frac{\textrm{statistic} - \textrm{mean of null distribution}}{\sigma/\sqrt{n}} = \frac{\bar{x} - \mu_{0}}{\sigma/\sqrt{n}}
+$$
+
+
+#### Standardised statistic ($t$) {-}
+
+In the formula for $z$ above, $\sigma$ denotes the population standard deviation. But to calculate this we need to have data on the whole population.  
+  
+When the population standard deviation ($\sigma$) is *unknown*, we estimate it using the sample standard deviation ($s$):
+
+$$ 
+t = \frac{\bar{x} - \mu_{0}}{s/\sqrt{n}}
+$$
+
+Note that when we use the sample standard deviation $s$ in this formula, the standardised statistic we calculate gets denoted as $t$, rather than $z$.   
+  
+If we were to draw multiple random samples of the same size from the same population, and perform the same calculation of a $t$-value for each sample, then the values we would obtain would follow a $t$-distribution.  
+  
+### $t$-distributions {-}
+
+The particular shape of the $t$-distribution is determined by the **degrees of freedom**.   
+By 'degrees of freedom' we refer to the number of independent observations in a set of data. 
+
+When we are estimating a mean from a single sample, the degrees of freedom is equal to the sample size minus one.  
+This means that the sampling distribution of $t$-statistics from samples of size 10, would follow a $t$-distribution with $10-1$ degrees of freedom.  
+  
+
+<div class="red">
+##### Degrees of freedom (df) {-}
+
+`r msmbstyle::question_begin()`
+Suppose we have four unkown numbers ($a$, $b$, $c$ and $d$) which *must* have a mean of 5.  
+
+Do the following, *in order:*  
+
+1. Choose a value for $a$.
+1. Choose a value for $b$.
+1. Choose a value for $c$.
+1. Can you choose a value for $d$ while ensuring the mean of the four numbers you have chosen is 5?
+
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=FALSE)`
+You a free to choose anything you like for $a$, $b$ and $c$.  
+But once those are fixed, you have no freedom to choose $d$.  
+
+Example:  
+
++ $a$ = 1  
++ $b$ = 2  
++ $c$ = 3  
+
+We know that $\frac{1+2+3+d}{4} = 5$
+So there is only one possible value for $d$:  
+$\frac{1+2+3+d}{4} = 5$  
+$1+2+3+d = 5*4$  
+$1+2+3+d = 20$  
+$d = 20-3-2-1$   
+$d = 14$  
+`r msmbstyle::solution_end()`
+</div>
+
+You can see the $t$-distribution for different degrees of freedom below.  
+Notice that as the degrees of freedom ($\nu$ in the plot below) gets bigger (so as $n$ gets bigger), the more the $t$-distibution fits a normal distribution.  
+
+![](https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Student_t_pdf.svg/1024px-Student_t_pdf.svg.png)
+(Source: https://en.wikipedia.org/wiki/Student%27s_t-distribution)
+
+### Critical values & significance {-}
+
+In order to test the significance of a given $t$-statistic, we therefore need to assess the probability of obtaining our $t$-statistic (or one at least as extreme) against a $t$-distribution with degrees of freedom $n-1$.   
+
+We can do this in `R` using the `pt()` function with `pt(x, df)`.  
+Remember that last week we used the function `pnorm(x, mean, sd)` to compute the area to the left of `x` in a normal curve centred at `mean` and having standard deviation `sd`.  
+Similarly, `pt(x, df)` computes the area to the left of `x` in a $t$-distribution curve with degrees of freedom `df`.  
+
+`r msmbstyle::question_begin()`
+Looking at the plot above, for a $t$-distribution with degrees of freedom of 5 (the blue line), what proportion of the curve is to the left of -2?  
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=FALSE,toggle=FALSE)`
+```{r}
+pt(-2, df = 5)
+```
+
+From this, we can say that assuming the null hypothesis to be true, the probability of obtaining a $t$-statistic with 5 degrees of freedom of $\leq -2$ is `r round(pt(-2,5),4)`.
+`r msmbstyle::solution_end()`
+
+We can also find the critical values of a $t$-distribution using the function `qt(p, df)`. This will return the values of $t$ for which $p$% of the distribution lies to the left.  
+
+This way, we can find the values of $t$ at which we will reject the null hypothesis (for a given $\alpha$ level).
+
+`r msmbstyle::question_begin()`
+At what value of $t$ does 5% of the $t$-distribution with 5 degrees of freedom lie to the left?  
+At what value**s** of $t$ do 5% of the $t$-distribution with 5 degrees of freedom lie in either tail?
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=FALSE,toggle=FALSE)`
+```{r}
+qt(.05, df = 5)
+```
+
+If we perform a one-tailed test of $\mu_1 < \mu_{0}$ on a sample of 6 (so our degrees of freedom is 5), we will reject the null hypothesis ($\mu_1 = \mu_{0}$) if our corresponding $t$-statistic is $\leq -2.015$.  
+
+```{r}
+qt(.025, df = 5)
+qt(.975, df = 5) 
+# remember that the t-distribution is symmetric and centred on 0! 
+```
+If we perform a *two*-tailed test of $\mu_1 \neq \mu_{0}$ on a sample of 6, we will reject the null hypothesis ($\mu_1 = \mu_{0}$) if the **absolute magnitude** of our corresponding $t$-statistic is $\geq 2.571$.  
+
+`r msmbstyle::solution_end()`
+
+<hr />
+
+## Walkthrough - Tempo of rock music on Spotify  
+
+<div class="red">
+#### Research Question {-}
+
+Is the average tempo of music classified as "rock" by Spotify greater than 125 beats per minute (BPM).  
+</div>
+
+`r msmbstyle::question_begin(header = "&#x25BA; Step 1 - Hypotheses")`
+Write out the null and alternative hypotheses, and specify our $\alpha$ level.  
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden=HIDDEN_SOLS)`
+Null hypothesis ($H_0$):   
+$\mu_1 = 125$  
+  
+Alternative hypothesis ($H_1$):   
+$\mu_1 > 125$  
+
+We will use $\alpha = 0.05$  
+`r msmbstyle::solution_end()`
+
+<hr />
+
+`r msmbstyle::question_begin(header = "&#x25BA; Step 2 - Data")`
+Get the data!  
+
+Our hypothesis is about $\mu_1$, the mean of *all* rock songs on Spotify. 
+To investigate this, we have a sample of 200 rock songs from Spotify, available at [https://edin.ac/2wC5rz3](https://edin.ac/2wC5rz3)
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden=HIDDEN_SOLS)`
+```{r message=FALSE}
+spotify_songs <- read_csv("https://edin.ac/2wC5rz3")
+
+summary(spotify_songs)
+```
+`r msmbstyle::solution_end()`
+
+<hr />
+
+`r msmbstyle::question_begin(header = "&#x25BA; Step 3 - Sample mean")`
+Which line of code will give us our sample statistic?  
+
+A.
+```{r eval=FALSE}
+spotify_songs %>%
+  group_by(tempo) %>%
+  summarise(
+    xbar = mean(rock)
+  )
+```
+
+B.
+```{r eval=FALSE}
+spotify_songs %>%
+  summarise(
+    xbar = mean(tempo)
+  )
+```
+
+C.
+```{r eval=FALSE}
+spotify_songs %>%
+  group_by(rock) %>%
+  count(tempo)
+```
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=HIDDEN_SOLS)`
+Note that the entire sample contains only rock songs, so we can simply find the mean of the `tempo` variable. 
+
+B.
+```{r}
+spotify_songs %>%
+  summarise(
+    xbar = mean(tempo)
+  )
+```
+`r msmbstyle::solution_end()`
+
+<hr />
+
+`r msmbstyle::question_begin(header = "&#x25BA; Step 4 - Sample sd")`
+Do we know the population standard deviation ($\sigma$)? That is, do we know the standard deviation of tempos of *all* rock songs on Spotify?  
+
+No, so we estimate it with the sample standard deviation ($s$).  
+Calculate this now. 
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=HIDDEN_SOLS)`
+```{r}
+spotify_songs %>%
+  summarise(
+    s = sd(tempo)
+  )
+```
+`r msmbstyle::solution_end()`
+
+<hr />
+
+`r msmbstyle::question_begin(header = "&#x25BA; Step 5 - Calculate t")`
+Fill in the blanks:  
+$$
+\begin{aligned}
+\bar{x}  &= \ ? \\
+\mu_{0}  &= \ ? \\
+s  &= \ ? \\
+n  &= \ ? \\
+SE(\bar{x}) &= \ ?
+\end{aligned}
+$$
+and write out the $t$-statistic: 
+$$
+t_{obs} \qquad = \qquad \frac{? \qquad - \qquad ?}{?}
+$$
+  
+Finally, calculate your $t$-statistic in `R`.  
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=HIDDEN_SOLS)`
+Fill in the blanks:  
+$$
+\begin{aligned}
+\bar{x} &= \  128.9\\
+\mu_{0} &= \  125\\
+s &= \  26.5\\
+n &= \  200\\
+SE(\bar{x}) &= 26.5 / \sqrt{200}
+\end{aligned}
+$$
+and write out the $t$-statistic: 
+$$
+t_{obs}  =  \frac{128.9 - 125}{26.5 / \sqrt{200}}
+$$
+
+We can do this quickly using `R` just like a calculator:
+```{r}
+t_obs = (128.9 - 125) / (26.5 / sqrt(200))
+t_obs
+```
+`r msmbstyle::solution_end()`
+
+`r msmbstyle::solution_begin(header = "&#x25BA; New R stuff!",  hidden=FALSE)`
+<div class="noteBox">  
+#### New R stuff! {-}
+
+Going back to the start, we can use our skills with `summarise()` to calculate all the terms we need for our $t$-statistic: 
+```{r}
+terms <- spotify_songs %>%
+  summarise(
+    xbar = mean(tempo),
+    s = sd(tempo),
+    mu_0 = 125,
+    n = n()
+  )
+
+terms
+```
+
+And then we can plug in these numbers to our equation.    
+
+**We now introduce a new technique: the `$` operator. This is similar to the `pull()` function we previously used, as it pulls out the column from a tibble.**
+
+```{r}
+(terms$xbar - terms$mu_0) / (terms$s / sqrt(terms$n))
+```
+
+</div>
+
+`r msmbstyle::solution_end()`
+
+<hr />
+
+`r msmbstyle::question_begin(header = "&#x25BA; Step 6 - Critical t value")`
+Using the `qt()` function, calculate the critical value for $\alpha$ = 0.05. This is the smallest *absolute* value of $t$ at which you will reject the null hypothesis.  
+
++ You'll need to work out the degrees of freedom  
++ You'll also need to think about whether we are performing a two-tailed test or a one-tailed test. If a two-tailed test, then remember that the $\alpha$ is split between the two tails (and so we would reject anything in the most extreme 2.5%)    
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=HIDDEN_SOLS)`
+The degrees of freedom are $n-1 = 200-1 = 199$  
+  
+We're performing a one-tailed test here because our alternative hypothesis ($H_1$) is that the mean tempo is > 125.  
+
+So we will reject a $t$-statistic which falls in the upper 5% of the distribution. 
+
+<!-- Note that while we are interested in the top 5%, we are assuming a completely symmetric distribution, centered on 0, so the following two commands return the same (apart from the +/-) -->
+
+```{r}
+qt(.95, df = 199) # 5% to the right
+```
+We will reject a $t$-statistic which is greater (in magnitude) than 1.65.  
+`r msmbstyle::solution_end()`
+
+<hr />
+
+`r msmbstyle::question_begin(header = "&#x25BA; Step 7 - Probability of observed t-statistic")`
+We have our observed $t$-statistic of 2.1. We know that this is greater than the critical value of 1.65.  
+
+What is the probability of obtaining a $t$-statistic at least as extreme as 2.1, assuming the null hypothesis to be true? In other words, what is the p-value?
+
+Things you'll need to work out:  
+
++ Do we want the area under the curve which is to the *left* or to the *right* of $t = 2.1$? Remember that the total area under probability curves such as the normal and the $t$ is always equal to 1, so **area to the right = 1 - area to the left**.  
+
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=HIDDEN_SOLS)`
+The degrees of freedom is $n-1 = 200-1 = 199$  
+
+We want to look at the area to the *right*, because we are testing whether 128.9 (our sample mean) is significantly *greater than* 125 (our null hypothesis mean).  
+```{r}
+pvalue = 1 - pt(2.1, df = 199)
+
+pvalue
+```
+`r msmbstyle::solution_end()`
+
+## ALL IN ONE LINE OF CODE! {-}
+
+Now that we've gone through all that, you'll be happy to know that we can do all of what we just did above (and more!) using just one simple function in `R`, called `t.test()`.  
+  
+The `t.test()` function takes several arguments, but for the current purposes, we are interested in `t.test(x, mu, alternative)`.  
+
++ `x` is the data  
++ `mu` is the hypothesized value of the mean in $H_0$  
++ `alternative` is either `"two.sided"` (default), `"less"`, or `"greater"`, and specifies the direction of the alternative hypothesis.
+
+*Note* again that we can use the `pull()` and `%>%`:
+```{r eval=FALSE}
+spotify_songs %>% 
+   pull(tempo) %>%
+   t.test(mu = 125, alternative = "greater")
+```
+
+or we can use our new friend, the `$` operator:
+```{r}
+t.test(x = spotify_songs$tempo, mu = 125, alternative = "greater")
+```
+```{r echo=FALSE}
+res <- t.test(x = spotify_songs$tempo, mu = 125, alternative = "greater")
+```
+
+Hooray!! We can see this gives us the same results - it shows us the mean of our sample (`r res$estimate %>% round(.,4)`), it writes out our alternative hypothesis for us, and returns our $t$ value of `r res$statistic %>% round(.,4)` and our p-value of `r res$p.value %>% round(.,4)`.  
+
+Additionally, it even gives us some 95% confidence intervals for the population mean!  
+
+## Assumptions {-}  
+
+One last important thing to note is that when we perform a one sample mean tests, we assume a few basic things:
+
+1. The data are continuous (not discrete);
+2. The data are normally distributed __OR__ the sample size is large enough (rule-of-thumb $n$ = 20) and the data are not strongly skewed;
+3. The data are randomly sampled from a population.  
+  
+If any of these assumptions are not met, the results of the test are unreliable.  
+
+We can assess whether a set of numbers are normally distributed (assumption 2, above) by:
+
+`r msmbstyle::solution_begin(header="Producing an appropriate plot", hidden=FALSE)`
+Plots such as the histogram, or density plots, showing us the shape of our distribution: 
+
+```{r}
+ggplot(spotify_songs, aes(x=tempo))+
+  geom_histogram()+
+  labs(title="Histogram")
+
+ggplot(spotify_songs, aes(x=tempo))+
+  geom_density()+
+  labs(title="Density plot")
+```
+
+We can also use a plot called a QQplot (Quantile-Quantile plot), which orders the data and plots it against the equivalent quantile of the normal distribution: 
+```{r}
+ggplot(spotify_songs, aes(sample = tempo))+
+  geom_qq()+
+  stat_qq_line()+
+  labs(title="QQplot", subtitle="The closer the data fit to the line the more normally distributed they are.")
+```
+`r msmbstyle::solution_end()`
+`r msmbstyle::solution_begin(header="Conducting a test of normality", hidden=FALSE)`
+We can also conduct a formal hypothesis test for normality, such as the Shapiro-Wilk test. 
+
+The null hypothesis of the Shapiro-Wilk test is that the sample came from a population that is normally distributed.  
+The alternative hypothesis is that the sample came from a population that is *not* normally distributed.  
+
+The test returns a test statistic W, and a p-value.  
+The p-value corresponds to the probability of observing data of this shape of distribution, assuming the data are drawn from a normally distributed population (i.e., assuming the null hypothesis to be true).  
+
+In R:  
+```{r}
+shapiro.test(spotify_songs$tempo)
+```
+
+The p-value here is `r shapiro.test(spotify_songs$tempo)$p.value %>% round(.,3)`, which is greater than $\alpha = 0.05$. We therefore fail to reject the null hypothesis of the Shapiro-Wilk test that the sample came from a population that is normally distributed.  
+  
+So our assumption for the one sample mean test holds!
+`r msmbstyle::solution_end()`
+
+## Summary  
+
++ A standardised statistic is the relative location of a statistic to the mean of the null distribution, in terms of standard deviations.  
++ When we do not know the population standard deviation ($\sigma$), we compute the standardised $t$-statistic using the formula $t = \frac{\bar{x} - \mu_{0}}{s/\sqrt{n}}$.  
++ The sampling distribution of $t$ follows a $t$-distribution.
++ The shape of the $t$-distribution varies depending upon the *degrees of freedom* (the number of independent observations free to vary - for a one sample mean test, this is $n-1$). 
++ To assess the statistical significance of an observed $t$-statistic, we compute the critical values for a $t$-distribution with the appropriate degrees of freedom. If our observed $t$ is farther away from 0 than our critical value, we have reason to reject the null.  
++ To calculate the p-value for a given $t$, we compute the area of the $t$-distribution curve to the left/right of $t$ (depending on whether our hypothesis is one or two-tailed). 
++ We need to make sure we assess whether our data violates the assumptions for our test (for instance by using `shapiro.test()` to test whether our data come from a normally distributed population).  
+
+
+## Lab  
+  
+_Please attempt the questions **before** looking at the solutions. Copy & pasting the solutions will not help with learning!_  
+  
+  
+### Pets' weights   
+
+Data for a sample of 2000 licensed pets from the city of Seattle, USA, can be found at the following url: [https://edin.ac/2VfPzg7](https://edin.ac/2VfPzg7).  
+It contains information on the license numbers, issue date and zip-code, as well as data on the species, breeds and weights (in kg) of each pet.  
+We are interested in whether the average weight of a dog is different from 20kg.  
+  
++ Null hypothesis, $H_0: \mu_1 = 20$  
++ Alternative hypothesis, $H_1: \mu_1 \neq 20$  
+  
+`r msmbstyle::question_begin(header = "&#x25BA; Question 1")`
+Read in the data from the url using `read_csv()`.  
+Make sure to *assign* it as an object, using `[yourdataname] <- read_csv(...)` (choose your own name for the data).  
+ 
+Use `summary()` to have a look at your data.  
+Which variables are you going to need for our analysis?  
+Does anything jump out as relevant?  
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=FALSE)`
+```{r}
+pets <- read_csv("https://edin.ac/2VfPzg7")
+
+summary(pets)
+```
+
+We're going to need the `weight_kg` variable. Notice that there are some missing values (you can see that there are 15 `NA`'s). We will need to decide what to do with them.  
+
+Also, there are some cats in our data as well as the dogs which we are interested in. There are even a couple of goats! We will want to get rid of them..    
+
+`r msmbstyle::solution_end()`
+
+<hr />
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question 2")`
+Some of the 2000 pets are not the ones of interest (they aren't dogs).  
+
+Create a new dataset and call it `dogs`, which only has the dogs in it.  
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=FALSE)`
+```{r}
+dogs <- pets %>% filter(species == "Dog")
+```
+`r msmbstyle::solution_end()`
+
+<hr />
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question 3")` 
+What does the following command appear to do, and how?  
+```{r}
+dogs <- dogs %>% filter(!is.na(weight_kg))
+```
+  
+*Tip:* look at the help documentation for `is.na` (search in the bottom right window of Rstudio, or type `?is.na`)
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=FALSE)`
+
+It takes the `dogs` dataset, and it filters so that it will keep any rows where `!is.na(weight_kg)` is TRUE.  
+The `is.na(weight_kg)` will be TRUE wherever `weight_kg` is an `NA` and FALSE otherwise.  
+
+The `!` before it flips the TRUEs and FALSEs, so that we have TRUE wherever `weight_kg` is a value other than `NA`, and FALSE if it *is* `NA`.   
+
+You can read it as "keep all rows where there isn't an NA in the `weight_kg` variable".  
+`r msmbstyle::solution_end()`
+
+<hr />
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question 4")` 
+Using `summarise()`, calculate $\bar{x}$, $s$ and $n$.  
+  
+What is $\mu_{0}$, and what are our degrees of freedom ($df$)?  
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=FALSE)`
+
+```{r}
+dogstats <- dogs %>% 
+  summarise(
+    xbar = mean(weight_kg),
+    s = sd(weight_kg),
+    n = n()
+  )
+dogstats
+```
+$\mu_{0}$ is 20kg, and our degrees of freedom is $n-1$, which is $1333-1 = 1332$.
+`r msmbstyle::solution_end()`
+
+<hr />
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question 5")`
+Calculate the standardised statistic $t$, using `$` to access the numbers you just calculated above.
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=FALSE)`
+```{r}
+t_obs = (dogstats$xbar - 20) / (dogstats$s / sqrt(dogstats$n))
+t_obs
+```
+`r msmbstyle::solution_end()`
+
+<hr />
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question 6")`
+Calculate the p-value using `pt()`.  
+
++ Our degrees of freedom are $n-1$  
++ Remember that the total area under a probability curve is equal to 1. `pt()` gives us the area to the *left*, but we want the area in the smaller tail (if $\bar{x}$ is greater than $\mu_{0}$, we want the area to the *right* of $t_{obs}$ (see [Week 15](#chap-normal)).  
++ Is our hypothesis one- or two-sided? If it is two-sided, what do we need to do to get our p-value?  
+
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=FALSE)`
+Our sample statistic ($\bar{x}$ = `r round(dogstats$xbar,3)`kg) is greater than the hypothesised mean ($\mu_{0}$ = 20kg), so we want the area to the *right*.  
+
+_**Reminder:** For a probability distribution, the area under the curve to the right of x is 1 minus the area to the left. This is equivalent to saying that the probability of observing a value greater than x is 1 minus the probability of observing a value less than x._
+
+```{r}
+p_righttail = 1 - pt(t_obs, df = 1332)
+
+```
+
+Because our alternative hypothesis is two-tailed ($H_1: \mu_1 \neq 20$), we will reject the null hypothesis for extreme $t$-statistics *in either direction*. So we are calculating the probability of observing a value at least as extreme in either direction, and must multiply the one tail by 2. 
+```{r}
+p2tail = 2 * p_righttail
+
+p2tail
+```
+`r msmbstyle::solution_end()`
+
+<hr />
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question 7")`
+Finally, use the `t.test()` function.  
+Check that the results match the ones you just calculated.  
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=FALSE)`
+```{r}
+t.test(x = dogs$weight_kg, mu = 20, alternative = "two.sided")
+```
+`r msmbstyle::solution_end()`
+
+
+`r msmbstyle::solution_begin(header = "&#x25BA; Look at all the funny names!", hidden=FALSE)`
+For fun, take a look at some of the names of pets in the dataset. This is actually real data, apart from the `weights_kg` variable.  
+
+You can see a humerous visualisation of some of the more unusual names for pets below:
+![](https://pbs.twimg.com/media/D2r1WLAWoAIG25x?format=jpg&name=4096x4096)
+(Pet names in Seattle, from [@W_R_Chase](https://twitter.com/W_R_Chase))
+`r msmbstyle::solution_end()`
+
+### Procrastination scores  
+
+The Procrastination Assessment Scale for Students (PASS) was designed to assess how individuals approach decision situations, specifically the tendency of individuals to postpone decisions (see [Solomon & Rothblum, 1984](http://dx.doi.org/10.1037/0022-0167.31.4.503)).  
+
+The PASS assesses the prevalence of procrastination in six areas: writing a paper; studying for an exam; keeping up with reading; administrative tasks; attending meetings; and performing general tasks. 
+For a measure of total endorsement of procrastination, responses to 18 questions (each measured on a 1-5 scale) are summed together, providing a single score for each participant (range 0 to 90). 
+The mean score from Solomon & Rothblum, 1984 was 33. 
+
+<div class="red">
+#### Research Question {-}
+
+Do Edinburgh University students report endorsing procrastination to less than the norm of 33?  
+
+</div>
+
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question 8")`  
+Read in the data (a .csv is at [https://edin.ac/2wJgYwL](https://edin.ac/2wJgYwL)), produce some descriptive statistics, and conduct a one sample mean test to evaluate whether Edinburgh University students' average score on the PASS is not equal to 33.  
+
++ Remember about the assumptions of your test!  
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=FALSE)`
+
+```{r}
+pass_scores <- read_csv("https://edin.ac/2wJgYwL") 
+
+shapiro.test(pass_scores$PASS)
+
+t.test(pass_scores$PASS, mu = 33, alternative = "less")
+```
+`r msmbstyle::solution_end()`
+
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question 9")`
+Write up the results from Question 8.  
+  
+*Hint:* See the lecture slides!
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=FALSE)`
+```{r include=FALSE}
+res2<-t.test(pass_scores$PASS, mu = 33, alternative = "less")
+```
+A one-sided one-sample t-test was conducted in order to determine if the average score on the Procrastination Assessment Scale for Students (PASS) for a sample of `r nrow(pass_scores)` students at Edinburgh University was significantly ($\alpha = .05$) lower than the average score obtained during development of the PASS. 
+
+Edinburgh University students scored lower (Mean=`r mean(pass_scores$PASS) %>% round(2)`, SD=`r sd(pass_scores$PASS) %>% round(2)`) than the score reported by the authors of the PASS (Mean = 33). This difference was statistically significant (t(`r nrow(pass_scores)-1`)=`r res2$statistic %>% round(2)`, p < .05, one-tailed).  
+`r msmbstyle::solution_end()`
+
+
+### Cat weights!    
+
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question 10")`
+_**Without looking** at the data_(and without googling either), do you think that the average weight of a pet cat more than/less than/equal to 4.5kg?   
+
+Write out your null and alternative hypotheses, and conduct the appropriate test.    
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden=FALSE)`
+
+```{r}
+cats <- pets %>% filter(species == "Cat", !is.na(weight_kg))
+
+shapiro.test(cats$weight_kg)
+
+qqnorm(cats$weight_kg)
+
+t.test(cats$weight_kg, mu=4.5, alternative="greater")
+```
+`r msmbstyle::solution_end()`
+
+
+
+
+### Glossary  
+
+- _Degrees of freedom._ The number of independent observations in a set of data. Often the total number of datapoints ($n$) minus the number of parameters being estimated.  
+- _One-sample t-test/One-sample mean test._ Compare the mean in a sample to a known (or hypothesised) mean.  
+- _Assumptions._ Requirements of the data in order to ensure that our test is appropriate. Violation of assumptions changes the conclusion of the research and interpretation of the results.  
+- _Shapiro-Wilks._ Tests whether sample is drawn from a population which is normally distributed.   
+- _QQplot/Quantile-Quantile plot._ Displays the quantiles of the sample against the quantiles of a normal distribution. If the data points fall on the diagonal line, the sample is normally distributed.

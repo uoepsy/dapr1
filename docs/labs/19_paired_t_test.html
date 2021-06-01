@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Paired sample t-test</title>
+
+<script src="site_libs/header-attrs-2.8/header-attrs.js"></script>
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+<script>
+function toggle_visibility(id1, id2) {
+var e = document.getElementById(id1);
+var f = document.getElementById(id2);
+e.style.display = ((e.style.display!='none') ? 'none' : 'block');
+if(f.classList.contains('fa-plus')) {
+    f.classList.add('fa-minus')
+    f.classList.remove('fa-plus')
+} else {
+    f.classList.add('fa-plus')
+    f.classList.remove('fa-minus')
+}
+}
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+<link rel="stylesheet" href="assets/style-labs.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"><strong>DAPR1</strong></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">
+    <span class="fas fa-home"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="intro_r_rstudio_year1.html">DAPR1 starts here</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Intro to data and R
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="01_data_types.html">1/1: Collecting data</a>
+    </li>
+    <li>
+      <a href="02_categorical.html">1/2: Categorical data</a>
+    </li>
+    <li>
+      <a href="03_numerical.html">1/3: Numerical data</a>
+    </li>
+    <li>
+      <a href="04_relationships.html">1/4: Relationships</a>
+    </li>
+    <li>
+      <a href="05_functions.html">1/5: Types of relations</a>
+    </li>
+    <li class="dropdown-header">1/6: Break week!</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Probability &amp; sampling
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="07_probability_basics.html">1/7: Probability basics</a>
+    </li>
+    <li>
+      <a href="08_probability_rules.html">1/8: Probability rules!</a>
+    </li>
+    <li>
+      <a href="09_discrete_distributions.html">1/9: Discrete random variables</a>
+    </li>
+    <li>
+      <a href="10_continuous_distributions.html">1/10: Continuous random variables</a>
+    </li>
+    <li>
+      <a href="11_sampling_distributions.html">1/11: Sampling distributions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Hypothesis testing
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="12_bootstrap_cis.html">2/1: Bootstrap &amp; CIs</a>
+    </li>
+    <li>
+      <a href="13_hypothesis_testing.html">2/2: Hypothesis testing: p-values</a>
+    </li>
+    <li>
+      <a href="14_critical_values.html">2/3: Hypothesis testing: critical values</a>
+    </li>
+    <li>
+      <a href="15_connecting_ci_ht.html">2/4: Hypothesis testing &amp; CIs</a>
+    </li>
+    <li>
+      <a href="16_ht_errors.html">2/5: Making decisions</a>
+    </li>
+    <li class="dropdown-header">2/6: Break week</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Basic tests
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="17_one_sample_mean.html">2/7: Test for one mean</a>
+    </li>
+    <li>
+      <a href="18_two_sample_means.html">2/8: Test for two means</a>
+    </li>
+    <li>
+      <a href="19_paired_t_test.html">2/9: Test for paired samples</a>
+    </li>
+    <li>
+      <a href="20_chi_square.html">2/10: Chi-square</a>
+    </li>
+    <li>
+      <a href="21_covcor.html">2/11: Covariance and correlation</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Paired sample t-test</h1>
+
+</div>
+
+
+<div class="lo">
+<ol style="list-style-type: decimal">
+<li>To understand the t-test for paired samples</li>
+<li>Learn how to compute Cohen’s <span class="math inline">\(D\)</span> for different types of t-test.</li>
+<li>Be able to report the results of paired-sample t-test</li>
+</ol>
+</div>
+<p>One of the assumptions of the t-test is that the data are independently sampled. Sometimes this assumptions does not hold. A clear example is the case of <em>paired data</em>. These may consist of two measurements on each unit, such as the same unit being measured under two different conditions, or measurements on a pair of units that go together, such as twin studies.</p>
+<p>The paired sample t-test (also known as the “dependent samples t-test”) is used in scenarios such as:</p>
+<ul>
+<li><p>Same units observed on two occasions: A measurement is taken on the same subject before and after some treatment, or at two different timepoints - e.g. response times to a task before and after ingesting a caffeine drink.</p></li>
+<li><p>Same units observed on a pair of variables: A measurement is taken under two different conditions - e.g. response time of the same subject is measured on two different drugs.</p></li>
+<li><p>Pairs of people: A measurement is taken of the same variable but from different people from a dyad (pair of people) - e.g. do store employees work different amount of hours to their bosses?</p></li>
+</ul>
+<p>In all these scenarios, we are interested in comparing the measurements between two groups in which each observation in one group can be paired with an observation in the other group.</p>
+<p>The following table gives an example where 10 subjects have their heartbeats per minute measured in two occasions, in the morning (<span class="math inline">\(HB_M\)</span>) and in the afternoon (<span class="math inline">\(HB_A\)</span>) .
+<span class="math display">\[
+\begin{matrix}
+\text{Subject} &amp; HB_M &amp; HB_A \\
+1  &amp; 71 &amp; 83 \\
+2  &amp; 64 &amp; 78 \\
+\vdots &amp; \vdots &amp; \vdots \\
+10 &amp; 85 &amp; 97
+\end{matrix}
+\]</span></p>
+<p>Clearly the data aren’t independent. Some people might typically have higher heartbeats than others, and for this reason the data corresponding to the same subject are dependent.
+However, the data between different people should be independent.</p>
+<p>We can get rid of the by-subject dependence by computing, for each subject, the difference!</p>
+<p><span class="math display">\[
+\begin{matrix}
+\text{Subject} &amp; HB_M &amp; HB_A &amp; d = HB_A - HB_M \\
+1  &amp; 71 &amp; 83 &amp; 12 \\
+2  &amp; 64 &amp; 78 &amp; 14 \\
+\vdots &amp; \vdots &amp; \vdots &amp; \vdots \\
+10 &amp; 85 &amp; 97 &amp; 12
+\end{matrix}
+\]</span></p>
+<p>and we are interested in whether the difference is, on average, equal to some hypothesised value, such as 0 for example.
+If this were the case, on average the heartbeats in the morning would be the same as the heartbeats in the afternoon.</p>
+<div id="the-paired-t-test" class="section level1">
+<h1>The paired t-test</h1>
+<p><strong>Null hypothesis</strong></p>
+<p>A paired sample t-test has a familiar null hypothesis:</p>
+<p><span class="math display">\[H_0: \mu_d = 0\]</span></p>
+<p>i.e. the population mean difference is 0.</p>
+<p><strong>Alternative hypotheses</strong></p>
+<p>The alternative hypotheses can be two-sided, or one-sided (left-tailed or right-tailed).</p>
+<ul>
+<li>(two-sided) <span class="math inline">\(H_1 : \mu_d \neq 0\)</span> (the population mean difference is 0)</li>
+<li>(left-tailed) <span class="math inline">\(H_1 : \mu_d &lt; 0\)</span> (the population mean difference is smaller than 0)</li>
+<li>(right-sided) <span class="math inline">\(H_1 : \mu_d &gt; 0\)</span> (the population mean difference is greater than 0)</li>
+</ul>
+<p>But what does that mean that the population mean difference is smaller (larger) than 0? It means that the measurements in group 1 are, on average, smaller (larger) than group 2.</p>
+<p><strong>Test statistic</strong></p>
+<p><span class="math display">\[
+t_{obs} = \frac{\bar{d}}{SE}, \qquad \text{where } SE = \frac{s_d}{\sqrt{n}}
+\]</span></p>
+<p>in the formula above:</p>
+<ul>
+<li><span class="math inline">\(\bar{d}\)</span> = sample mean of the differences</li>
+<li><span class="math inline">\(s_d\)</span> = sample standard deviation of the differences</li>
+<li><span class="math inline">\(n\)</span> = sample size (number of <em>unique pairs</em>)</li>
+</ul>
+<p><strong>Confidence interval</strong></p>
+<p>A 95% confidence interval for the population mean difference <span class="math inline">\(\mu_d\)</span> is:</p>
+<p><span class="math display">\[
+\bar{d} \pm t_{0.975} \cdot SE
+\]</span>
+where</p>
+<ul>
+<li><span class="math inline">\(\bar{d}\)</span> is the mean of the differences in the sample</li>
+<li><span class="math inline">\(t_{0.975}\)</span> is the 0.975-quantile of a t-distribution with <span class="math inline">\(n - 1\)</span> degrees of freedom</li>
+<li><span class="math inline">\(SE = \frac{s_d}{\sqrt{n}}\)</span> is the standard error of the mean (of the differences)</li>
+</ul>
+<p><em>Note:</em> For a 99% confidence interval, remember to change the quantile to <span class="math inline">\(t_{0.995}\)</span>!</p>
+</div>
+<div id="assumptions" class="section level1">
+<h1>Assumptions</h1>
+<p>For the results of a paired t-test to be valid, the following assumptions should be met:</p>
+<ol style="list-style-type: decimal">
+<li>Your dependent variable (DV) is measured on a numeric scale (discrete/continuous level)</li>
+<li>Your independent variable (IV) should consist of two categorical, ‘matched pairs’ (see example above)</li>
+<li>The differences between the pairs should be approximately normally distributed (i.e. the distribution of the differences in the DV between the two groups)</li>
+<li>There should be no extreme outliers in the differences</li>
+</ol>
+<p><strong>Checking assumptions</strong></p>
+<ol style="list-style-type: decimal">
+<li>This is a design issue - which level of data should be confirmed before data collection/during study design period.</li>
+<li>This is a design issue.</li>
+<li>This can be tested using the Shapiro-Wilk test of normality and/or also assessed visually with plots (such as histograms and density plots). A QQplot can also be used.</li>
+<li>Outliers can be identified using boxplots. The <code>indentify_outliers()</code> function in the <code>{rstatix}</code> package can extract rows suspected as outliers.</li>
+</ol>
+</div>
+<div id="one-sample-t-test-in-disguise" class="section level1">
+<h1>One sample t-test in disguise</h1>
+<p>The paired-sample t-test is very similar to the one sample t-test covered in <a href="https://uoepsy.github.io/dapr1/labs/17_one_sample_mean.html">Week 7</a>.</p>
+<p>The steps for the one sample t-test are:</p>
+<ol style="list-style-type: decimal">
+<li>calculate the sample mean (<span class="math inline">\(\bar{x}\)</span>)</li>
+<li>calculate the sample standard deviation (<span class="math inline">\(s_x\)</span>)</li>
+<li>calculate the standard error <span class="math inline">\(SE = s_x / \sqrt{n}\)</span></li>
+<li>calculate <span class="math inline">\(t_{obs} = (\text{estimate} - \text{null}) / SE = (\bar{x} - 0) / SE\)</span></li>
+<li>calculate the probability of observing a <span class="math inline">\(t\)</span>-statistic at least as extreme, assuming the null hypothesis (<span class="math inline">\(H_0: \mu = 0\)</span>) is true.</li>
+</ol>
+<p>The steps for the paired t-test are:</p>
+<ol style="list-style-type: decimal">
+<li><strong>calculate the difference score for each pairs</strong>: <span class="math inline">\(d_i = x_{i1} - x_{i2}\)</span></li>
+<li>calculate the sample mean of the differences: <span class="math inline">\(\bar{d} = \sum d_i / n\)</span></li>
+<li>calculate the sample standard deviation of the differences: <span class="math inline">\(s_d\)</span></li>
+<li>calculate the standard error <span class="math inline">\(SE = s_d / \sqrt{n}\)</span></li>
+<li>calculate <span class="math inline">\(t_{obs} = (\text{estimate} - \text{null}) / SE = (\bar{d} - 0) / SE\)</span></li>
+<li>calculate the probability of observing a <span class="math inline">\(t\)</span>-statistic at least as extreme, assuming the null hypothesis (<span class="math inline">\(H_0: \mu_d = 0\)</span>) is true.</li>
+</ol>
+<p>The formula for the t-statistic, assessing statistical significance, and constructing confidence intervals is identical to the one-sample t-test.</p>
+<p>We have just changed the notation - instead of talking about a population mean <span class="math inline">\(\mu\)</span> of a variable <span class="math inline">\(x\)</span>, which is estimated by a sample mean (<span class="math inline">\(\bar{x}\)</span>), we are talking about a population mean of differences (<span class="math inline">\(\mu_d\)</span>) which is estimated by the sample mean of the differences (<span class="math inline">\(\bar{d}\)</span>). We are testing whether the population mean difference (<span class="math inline">\(\mu_d\)</span>) is different from 0.</p>
+</div>
+<div id="questions" class="section level1">
+<h1>Questions</h1>
+<div id="change-in-score-on-the-ace-iii" class="section level2">
+<h2>Change in score on the ACE-III</h2>
+<p>Addenbrooke’s Cognitive Examination-III (ACE-III) is a brief cognitive test that assesses five cognitive domains: attention, memory, verbal fluency, language and visuospatial abilities. The total score is 100 with higher scores indicating better cognitive functioning.
+A research project is examining changes in cognitive functioning with age, and administers the ACE-III to a set of participants at age 60, then again at age 70.</p>
+<p>How is the data from this study paired?</p>
+<p>The same people have the same variable (ACE-III score) measured at different time points (age 60 then age 70).</p>
+<div id="hypotheses" class="section level3">
+<h3>Hypotheses</h3>
+<p>Now, we write the null and alternative hypothesis:</p>
+<p>As the research project is examining ‘changes’ without specifying which direction, we can write a null hypothesis and a two-sided alternative hypothesis.</p>
+<p>Our null hypothesis is that the population means in scores on the ACE-III between ages 60 and 70 are the same (i.e. no change/the difference in means is = 0).</p>
+<p>Our alternative hypothesis is that the population means in scores on the ACE-III between ages 60 and 70 is not equal (i.e. scores at age 70 are different from scores at age 60).</p>
+<p>By taking the difference in the cognitive scores at age 70 and 60, we can assess this by testing whether</p>
+<p><span class="math display">\[
+H_0: \mu_d = 0 \\
+H_1: \mu_d \neq 0
+\]</span></p>
+</div>
+<div id="read-in-the-data" class="section level3">
+<h3>Read in the data</h3>
+<p>Next, we read in the data and make a new column of the difference in scores for each pair.</p>
+<pre class="r"><code>acedata &lt;- read_csv(&quot;https://uoepsy.github.io/data/acedata.csv&quot;)
+
+acedata &lt;- acedata %&gt;%
+  mutate(diff_score = ace_70 - ace_60)
+
+head(acedata) # look at the &quot;head&quot; of the data frame </code></pre>
+<pre><code>## # A tibble: 6 x 4
+##   participant ace_60 ace_70 diff_score
+##   &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;
+## 1 sub1            93     85         -8
+## 2 sub2            95     92         -3
+## 3 sub3            93     90         -3
+## 4 sub4            93     95          2
+## 5 sub5            96     88         -8
+## 6 sub6            91     85         -6</code></pre>
+</div>
+<div id="performing-a-one-sample-t-test" class="section level3">
+<h3>Performing a one-sample t-test</h3>
+<p>To assess if there is a significant difference in ACE-III scores for particpants at ages 60 and 70, we must calculate the mean difference (<span class="math inline">\(\bar{d}\)</span>), our sample standard deviation (<span class="math inline">\(s_d\)</span>) and our sample size (<span class="math inline">\(n\)</span>).</p>
+<pre class="r"><code>aceterms &lt;- acedata %&gt;% 
+  summarise(
+    dbar = mean(diff_score),
+    s_d = sd(diff_score),
+    n = n()
+  )
+
+aceterms</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##    dbar   s_d     n
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+## 1 -2.48  5.50    25</code></pre>
+</div>
+<div id="calculate-the-t-statistic" class="section level3">
+<h3>Calculate the t-statistic</h3>
+<p>Let’s recall the formula for the observed t-statistic:
+<span class="math display">\[
+t_{obs} = \frac{\bar d}{SE}, \qquad \text{where }SE = \frac{s_d}{\sqrt n}
+\]</span></p>
+<p>In R:</p>
+<pre class="r"><code>SE &lt;- aceterms$s_d / sqrt(aceterms$n)
+t_stat &lt;- (aceterms$dbar - 0) / SE
+t_stat</code></pre>
+<pre><code>## [1] -2.254173</code></pre>
+</div>
+<div id="calculate-the-p-value" class="section level3">
+<h3>Calculate the p-value</h3>
+<p>The t-statistic is negative, so we can make it positive via <code>abs(t_stat)</code> and then compute it as twice the proportion as larger as, or larger than, <code>abs(t_stat)</code>:</p>
+<pre class="r"><code>2 * (1 - pt(abs(t_stat), df = 24))</code></pre>
+<pre><code>## [1] 0.03358854</code></pre>
+<p>Equivalently, you could have computed it as twice the proportion in the lower tail:</p>
+<pre class="r"><code>2 * pt(t_stat, df = 24)</code></pre>
+<pre><code>## [1] 0.03358854</code></pre>
+</div>
+<div id="calculate-the-95-confidence-interval" class="section level3">
+<h3>Calculate the 95% confidence interval</h3>
+<pre class="r"><code># mean difference between measurements
+aceterms$dbar</code></pre>
+<pre><code>## [1] -2.48</code></pre>
+<pre class="r"><code># standard error
+SE &lt;- aceterms$s_d / sqrt(aceterms$n)
+SE</code></pre>
+<pre><code>## [1] 1.100182</code></pre>
+<pre class="r"><code># upper critical value of a t-distribution (alpha = 0.05) with df = 24
+upper_crit &lt;- qt(.975, df = 24) 
+upper_crit</code></pre>
+<pre><code>## [1] 2.063899</code></pre>
+<pre class="r"><code># lower interval limit
+ci_lower &lt;- aceterms$dbar - upper_crit * SE 
+# upper interval limit
+ci_upper &lt;- aceterms$dbar + upper_crit * SE
+# display the interval
+c(ci_lower, ci_upper)</code></pre>
+<pre><code>## [1] -4.7506636 -0.2093364</code></pre>
+<p>What does all this mean?</p>
+<div class="int">
+<p>At the 5% significance level, we performed a paired sample t-test to determine whether cognitive functioning<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> differs, on average, between the ages of 60 and 70 (<span class="math inline">\(t(24) = -2.25, p = .034\)</span>, two-tailed).</p>
+<p>The mean difference in ACE-III scores for ages 70 and 60 is -2.48 (95% CI [-4.75, -0.21]).
+The small p-value (0.034) indicates that if the difference in cognitive scores was, on average, truly equal zero, we would expect to observe a sample difference as large as -2.48 only in 3 samples out of 100. Hence, the sample data provide strong evidence against the null hypothesis and in favour of the alternative that the difference is cognitive scores is on average different from zero.</p>
+</div>
+<p>However, the result of the t-test doesn’t help us interpret whether cognitive scores are higher at 60 or 70 years. To understand that, we interpret the confidence interval paying particular attention to whether it is entirely positive or negative.</p>
+<div class="int">
+<p>A 95% confidence interval for the difference in cognitive scores at 70 and 60 years is [ -4.75 -0.21]. We are 95% confidence that at 70 years the cognitive score is, on average, between 0.21 and 4.75 less than at 60 years.</p>
+</div>
+</div>
+<div id="in-one-function" class="section level3">
+<h3>In one function</h3>
+<pre class="r"><code>t.test(acedata$ace_70, acedata$ace_60, paired = TRUE) # remember the default setting is two-sided</code></pre>
+<pre><code>## 
+##  Paired t-test
+## 
+## data:  acedata$ace_70 and acedata$ace_60
+## t = -2.2542, df = 24, p-value = 0.03359
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -4.7506636 -0.2093364
+## sample estimates:
+## mean of the differences 
+##                   -2.48</code></pre>
+<p>Looks like all the values match up!</p>
+<p><br></p>
+<div class="optional-begin">
+Reshaping data frames<span id="opt-start-196" class="fa fa-plus optional-icon clickable" onclick="toggle_visibility(&#39;opt-body-196&#39;, &#39;opt-start-196&#39;)"></span>
+</div>
+<div id="opt-body-196" class="optional-body" style="display: none;">
+<p>Your data frames can be reshaped from ‘wide’ to ‘long’ formats, and vice versa. What’s the difference?</p>
+<p>Wide data is where you have repeated measurements in separate columns of the same record i.e. what the <code>acedata</code> currently is.</p>
+<pre class="r"><code>head(acedata)</code></pre>
+<pre><code>## # A tibble: 6 x 4
+##   participant ace_60 ace_70 diff_score
+##   &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;
+## 1 sub1            93     85         -8
+## 2 sub2            95     92         -3
+## 3 sub3            93     90         -3
+## 4 sub4            93     95          2
+## 5 sub5            96     88         -8
+## 6 sub6            91     85         -6</code></pre>
+<p>As we can see, there are separate columns for <code>age_60</code> and <code>age_70</code> and each participant has one row.</p>
+<p>In comparison, the long format has repeated measurements gathers columns into rows.</p>
+<pre class="r"><code>acedata_long &lt;- acedata %&gt;%
+    pivot_longer(ace_60:ace_70, names_to = &quot;age&quot;, values_to = &quot;ace_score&quot;)
+
+head(acedata_long)</code></pre>
+<pre><code>## # A tibble: 6 x 4
+##   participant diff_score age    ace_score
+##   &lt;chr&gt;            &lt;dbl&gt; &lt;chr&gt;      &lt;dbl&gt;
+## 1 sub1                -8 ace_60        93
+## 2 sub1                -8 ace_70        85
+## 3 sub2                -3 ace_60        95
+## 4 sub2                -3 ace_70        92
+## 5 sub3                -3 ace_60        93
+## 6 sub3                -3 ace_70        90</code></pre>
+<p>Now we can see that in the ‘participant’ column, each subject now has 2 rows - as the new column <code>age</code> has collapsed the <code>age_60</code> and <code>age_70</code> columns into a singular column.</p>
+<p>The <code>pivot_longer</code> function used above too columns <code>ace_60</code> to <code>ace_70</code> (and anything in between), puts the names (variable names) into a new column called <code>age</code>, and puts the values into a column called <code>ace_score</code>.</p>
+<div id="t-test-using-long-data" class="section level2">
+<h2>t-test using long data</h2>
+<p>Now, we can run the same paired t-test using:</p>
+<pre><code>t.test(y ~ group, paired = TRUE, data = data)
+t.test(data$y ~ data$group, paired = TRUE)</code></pre>
+<p>That is,</p>
+<pre class="r"><code>t.test(acedata_long$ace_score ~ acedata_long$age, paired = TRUE)</code></pre>
+<pre><code>## 
+##  Paired t-test
+## 
+## data:  acedata_long$ace_score by acedata_long$age
+## t = 2.2542, df = 24, p-value = 0.03359
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  0.2093364 4.7506636
+## sample estimates:
+## mean of the differences 
+##                    2.48</code></pre>
+<p>But wait… Why are the numbers different from what we had before???</p>
+<p>Remember we computed the difference as <code>ace_70 - ace_60</code>. However, R doesn’t know if we want <code>ace_70 - ace_60</code> or <code>ace_60 - ace_70</code>! R will always do the first level in alphabetical (<code>ace_60</code> in this case) order - the second level in alphabetical order (<code>ace_70</code> in this case).</p>
+<p>If you want to do the other way around you need to swap the levels of the factor.</p>
+<pre class="r"><code>acedata_long$age &lt;- as.factor(acedata_long$age)
+levels(acedata_long$age)</code></pre>
+<pre><code>## [1] &quot;ace_60&quot; &quot;ace_70&quot;</code></pre>
+<pre class="r"><code>acedata_long$age &lt;- fct_relevel(acedata_long$age, &#39;ace_70&#39;)
+levels(acedata_long$age)</code></pre>
+<pre><code>## [1] &quot;ace_70&quot; &quot;ace_60&quot;</code></pre>
+<pre class="r"><code>t.test(acedata_long$ace_score ~ acedata_long$age, paired = TRUE)</code></pre>
+<pre><code>## 
+##  Paired t-test
+## 
+## data:  acedata_long$ace_score by acedata_long$age
+## t = -2.2542, df = 24, p-value = 0.03359
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -4.7506636 -0.2093364
+## sample estimates:
+## mean of the differences 
+##                   -2.48</code></pre>
+<pre class="r"><code># equivalent
+# t.test(ace_score ~ age, paired = TRUE, data = acedata_long)</code></pre>
+<p>There you go!!! Now R did <code>ace_70 - ace_60</code>.</p>
+</div>
+<div id="converting-back-to-wide-format" class="section level2">
+<h2>Converting back to wide format</h2>
+<pre class="r"><code>acedata_long %&gt;%
+    pivot_wider(names_from = age, values_from = ace_score)</code></pre>
+<pre><code>## # A tibble: 25 x 4
+##    participant diff_score ace_60 ace_70
+##    &lt;chr&gt;            &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+##  1 sub1                -8     93     85
+##  2 sub2                -3     95     92
+##  3 sub3                -3     93     90
+##  4 sub4                 2     93     95
+##  5 sub5                -8     96     88
+##  6 sub6                -6     91     85
+##  7 sub7                -2     94     92
+##  8 sub8                 0     90     90
+##  9 sub9                 2     90     92
+## 10 sub10               -5     96     91
+## # … with 15 more rows</code></pre>
+<p>Tah-dah! The <code>age_60</code> and <code>age_70</code> variables are back in their own columns :)</p>
+</div>
+</div>
+<p class="optional-end">
+</p>
+</div>
+<div id="plots" class="section level3">
+<h3>Plots</h3>
+<p>Visualising the data is always useful! Here, a boxplot is a good option as we can visualise the difference in means across the two time points.</p>
+<pre class="r"><code>ggplot(data = acedata_long, aes(x = age, y = ace_score)) +
+    geom_boxplot()</code></pre>
+<p><img src="19_paired_t_test_files/figure-html/unnamed-chunk-15-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<div class="yellow">
+<p>Note that we’re using the long data format here (see the optional box above if you skipped it!). We’re telling the <code>ggplot</code> function to put age on the x-axis and ace_score on the y axis. As age (x-axis) has two levels, it allows us to view the distributions of the ace_60 and ace_70 scores side-by-side.</p>
+</div>
+</div>
+</div>
+</div>
+<div id="effect-sizes" class="section level1">
+<h1>Effect sizes</h1>
+<p>Cohen’s <span class="math inline">\(D\)</span> is an effect size used to indicate the standardised difference between two means. For an interactive tool which allows you to change effect sizes, check out this link: <a href="https://rpsychologist.com/cohend/">https://rpsychologist.com/cohend/</a>.</p>
+<p>The formula for Cohen’s <span class="math inline">\(D\)</span> are as follow for the different types of t-tests we’ve looked at:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="center">Test</th>
+<th align="center">Cohen’s <span class="math inline">\(D\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">One-sample t-test</td>
+<td align="center"><span class="math inline">\(D = \frac{\bar{x} - 0}{s_x}\)</span></td>
+</tr>
+<tr class="even">
+<td align="center">Independent samples t-test</td>
+<td align="center"><span class="math inline">\(D = \frac{(\bar{x}_1-\bar{x}_2) - 0}{s_p}\)</span></td>
+</tr>
+<tr class="odd">
+<td align="center">Paired t-test</td>
+<td align="center"><span class="math inline">\(D = \frac{\bar{d} - 0}{s_d}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>Interpreting Cohen’s <span class="math inline">\(D\)</span>:</p>
+<ul>
+<li>approx. 0.2 = small effect</li>
+<li>approx. 0.5 = medium effect</li>
+<li>approx. 0.8 = large effect</li>
+</ul>
+<div class="yellow">
+<p>Check out the link above with the interactive tool. Change the Cohen’s <span class="math inline">\(D\)</span> to 0.2, 0.5 and 0.8 to compare the standardised differences between the two groups!</p>
+</div>
+<p>In practice, we already have the figures we need, stored in <code>aceterms</code>:</p>
+<pre class="r"><code>aceterms</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##    dbar   s_d     n
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+## 1 -2.48  5.50    25</code></pre>
+<pre class="r"><code>(aceterms$dbar - 0) / (aceterms$s_d)</code></pre>
+<pre><code>## [1] -0.4508346</code></pre>
+<p>Look like we have a small-to-medium effect size.</p>
+</div>
+<div id="questions-1" class="section level1">
+<h1>Questions</h1>
+<div id="age-differences-in-heterosexual-marriages" class="section level2">
+<h2>Age differences in heterosexual marriages</h2>
+<p>Is there an age difference in heterosexual married couples (and in which direction)?</p>
+<p>Data is available at: <a href="https://uoepsy.github.io/data/marriageages.csv" class="uri">https://uoepsy.github.io/data/marriageages.csv</a></p>
+<div class="question-begin">
+Question 1
+</div>
+<div class="question-body">
+<p>First, we must read in our data. Then, create a new column which is the husband’s age minus the wife’s age (i.e. the difference).</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-197" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-197&#39;, &#39;sol-start-197&#39;)"></span>
+</div>
+<div id="sol-body-197" class="solution-body" style="display: none;">
+<pre class="r"><code>marriage_age &lt;- read.csv(&quot;https://uoepsy.github.io/data/marriageages.csv&quot;)
+
+marriage_age &lt;- marriage_age %&gt;%
+    mutate(age_diff = Husband - Wife)
+head(marriage_age)</code></pre>
+<pre><code>##   Husband Wife age_diff
+## 1      53   50        3
+## 2      38   34        4
+## 3      46   44        2
+## 4      30   36       -6
+## 5      31   23        8
+## 6      26   31       -5</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 2
+</div>
+<div class="question-body">
+<p>As we are testing the differences, what assumptions are we making? And, what assumption checks can we do?
+(Remember, this is a one-sample t-test in disguise!)</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-198" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-198&#39;, &#39;sol-start-198&#39;)"></span>
+</div>
+<div id="sol-body-198" class="solution-body" style="display: none;">
+<p>As the repeated t-test is a one-sample t-test in disguise, we are assuming that the <em>differences</em> come from a normal distribution.</p>
+<p>We can check this with visualisations, such as histograms and density plots:</p>
+<pre class="r"><code>ggplot(marriage_age, aes(x = age_diff)) +
+    geom_histogram(binwidth = 1, color = &#39;white&#39;)</code></pre>
+<p><img src="19_paired_t_test_files/figure-html/unnamed-chunk-18-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(marriage_age, aes(x = age_diff)) +
+    geom_density()</code></pre>
+<p><img src="19_paired_t_test_files/figure-html/unnamed-chunk-18-2.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>We can also check using the <code>shapiro.test()</code> to test for normality:</p>
+<pre class="r"><code>shapiro.test(marriage_age$age_diff)</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  marriage_age$age_diff
+## W = 0.98079, p-value = 0.1444</code></pre>
+<p>Remember, the Shapiro-Wilks test null hypothesis is that the distribution is normal (i.e. we want a <em>non-significant p-value</em>).</p>
+<p>Looks like our data is consistent with the null hypothesis that the population is normally distributed!</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 3
+</div>
+<div class="question-body">
+<p>If we’re about to conduct a t-test on the difference scores, what will the results mean?</p>
+<p>If we get a <em>positive</em> t-statistic <span class="math inline">\((t_{obs} &gt; 0)\)</span>, what direction is the difference?
+I.e. who is older? The husbands or the wives?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-199" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-199&#39;, &#39;sol-start-199&#39;)"></span>
+</div>
+<div id="sol-body-199" class="solution-body" style="display: none;">
+<p>As we calculated the Husband - Wife age, a positive t-statistic will indicate that this value is &gt; 0. Therefore, our sample shows that the husbands tend to be older than the wives.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 4
+</div>
+<div class="question-body">
+<p>Conduct a one-sample t-test, testing that the age differences are not equal to 0.</p>
+<div class="yellow">
+<p>If you’re confused about one-sample t-tests, look back at Week 7’s lab!</p>
+</div>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-200" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-200&#39;, &#39;sol-start-200&#39;)"></span>
+</div>
+<div id="sol-body-200" class="solution-body" style="display: none;">
+<pre class="r"><code>t.test(marriage_age$age_diff, mu = 0)</code></pre>
+<pre><code>## 
+##  One Sample t-test
+## 
+## data:  marriage_age$age_diff
+## t = 5.596, df = 101, p-value = 1.888e-07
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  1.531495 3.213603
+## sample estimates:
+## mean of x 
+##  2.372549</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 5
+</div>
+<div class="question-body">
+<p>Now, run a t-test using the <code>paired = TRUE</code> argument of the <code>t.test()</code> function. Remember, as we have a column for husbands and a column for wives.</p>
+<p>Compare the output with the output performed above - are they the same?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-201" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-201&#39;, &#39;sol-start-201&#39;)"></span>
+</div>
+<div id="sol-body-201" class="solution-body" style="display: none;">
+<pre class="r"><code>t.test(marriage_age$Husband, marriage_age$Wife, paired = TRUE)</code></pre>
+<pre><code>## 
+##  Paired t-test
+## 
+## data:  marriage_age$Husband and marriage_age$Wife
+## t = 5.596, df = 101, p-value = 1.888e-07
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  1.531495 3.213603
+## sample estimates:
+## mean of the differences 
+##                2.372549</code></pre>
+<p>Looks like they produce the same output! It really is a one-sample t-test in disguise.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 6
+</div>
+<div class="question-body">
+<p>Calculate Cohen’s <span class="math inline">\(D\)</span></p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-202" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-202&#39;, &#39;sol-start-202&#39;)"></span>
+</div>
+<div id="sol-body-202" class="solution-body" style="display: none;">
+<p>Recall the formula for Cohen’s <span class="math inline">\(D\)</span> is:
+<span class="math display">\[
+D = \frac{\bar d - 0}{s_d}
+\]</span></p>
+<p>Using R,</p>
+<pre class="r"><code>mean(marriage_age$age_diff) / sd(marriage_age$age_diff)</code></pre>
+<pre><code>## [1] 0.5540817</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 7
+</div>
+<div class="question-body">
+<p>Write a brief summary of the findings, using inline code (include mean ages, t-test output and Cohen’s <span class="math inline">\(D\)</span>).</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-203" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-203&#39;, &#39;sol-start-203&#39;)"></span>
+</div>
+<div id="sol-body-203" class="solution-body" style="display: none;">
+<p>In our sample of married, heterosexual couples, the average age of the husbands is 33.92 (SD = 11.52), whilst the average age of the wives is 31.55 (SD = 10.41).</p>
+<p>Based on our sample of heterosexual couples, the husband, on average, is 2.37 [95% CI 1.53, 3.21] years older than their wife and this difference is signficant <span class="math inline">\(t\)</span>(101) = 5.6, <span class="math inline">\(p\)</span> &lt; .001. Further, Cohen’s effect size (<span class="math inline">\(D\)</span> = 0.55) suggests a moderate effect.</p>
+</div>
+<p class="solution-end">
+</p>
+</div>
+<div id="smoking-interventions" class="section level2">
+<h2>Smoking interventions</h2>
+<p>A researcher has developed a cognitive behavioural therapy (CBT) based on a smartphone app, and is testing how effective it is in helping people to stop smoking.</p>
+<p>The researcher recruited 60 participants who were trying to stop smoking. Over the course of a week, the researcher recorded the average number of cigarettes smoked per day, per participant. Thirty participants were given the app, and were asked every time they felt like smoking to open the app on and complete a five-minute task. All 60 participants were followed up a month later. The average number of cigarettes smoked per day (over a week) was recorded.</p>
+<p>The data is available at: <a href="https://uoepsy.github.io/data/cbtsmoke.csv" class="uri">https://uoepsy.github.io/data/cbtsmoke.csv</a></p>
+<!-- The questions the researcher wishes to address are:  -->
+<div class="question-begin">
+Question 8
+</div>
+<div class="question-body">
+<p>Read the data into R.</p>
+<p>What was the average number of cigarettes smoked per day at both time-points for each group?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-204" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-204&#39;, &#39;sol-start-204&#39;)"></span>
+</div>
+<div id="sol-body-204" class="solution-body" style="display: none;">
+<pre class="r"><code>smoking &lt;- read_csv(&quot;https://uoepsy.github.io/data/cbtsmoke.csv&quot;)
+
+smoking %&gt;%
+    group_by(app_group) %&gt;%
+    summarise(
+        initial = mean(cigs_pday),
+        follow_up = mean(cigs_pday_1month)
+    )</code></pre>
+<pre><code>## # A tibble: 2 x 3
+##   app_group initial follow_up
+##   &lt;chr&gt;       &lt;dbl&gt;     &lt;dbl&gt;
+## 1 no           14.8      12.7
+## 2 yes          14.8       9.7</code></pre>
+<p>From the sample data, the average number of cigarettes smoked by the group which <em>did not</em> receive the app appears to be similar in the initial and follow-up time points.</p>
+<p>The group which did receive the app, appears to have reduced their average consumption of cigarettes.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 9
+</div>
+<div class="question-body">
+<p>At the point of recruitment, did the 60 participants smoke more of less than 20 cigarettes per day?</p>
+<p>This is asking whether the <em>mean</em> number of cigarettes per day is <em>different</em> to 20. Thus, we are asking whether a mean is different from a hypothesised number i.e. a one-sample t-test!</p>
+<p>P.S. Don’t forget to check your assumptions!</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-205" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-205&#39;, &#39;sol-start-205&#39;)"></span>
+</div>
+<div id="sol-body-205" class="solution-body" style="display: none;">
+<pre class="r"><code>shapiro.test(smoking$cigs_pday) # checking our normality assumption </code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  smoking$cigs_pday
+## W = 0.97845, p-value = 0.3666</code></pre>
+<p>At the 5% significance level, we performed a Shapiro-Wilk test against the null that the data came from a normal distribution.
+The large p-value (<span class="math inline">\(p = .37\)</span>) indicates that we do not have sufficient evidence to reject the null hypothesis.
+Thus, our data are consistent with a normal population and we can go ahead to perform the one-sample t-test.</p>
+<pre class="r"><code>t.test(smoking$cigs_pday, mu = 20) # default is a two-sided alternative </code></pre>
+<pre><code>## 
+##  One Sample t-test
+## 
+## data:  smoking$cigs_pday
+## t = -11.095, df = 59, p-value = 4.544e-16
+## alternative hypothesis: true mean is not equal to 20
+## 95 percent confidence interval:
+##  13.86217 15.73783
+## sample estimates:
+## mean of x 
+##      14.8</code></pre>
+<p>At the 5% significance level, we performed a two-sided, one-sample t-test against the null hypothesis that the mean number of cigarettes smoked per day at the time of recruitment was equal to 20. (<span class="math inline">\(t\)</span>(59) = -11.1, <span class="math inline">\(p\)</span> &lt; .001, two-sided.)
+The large t-statistic (-11.1) leads to a small p-value, indicating that we have very strong evidence against the null and in favour of the alternative that at time of recruitment the individuals did not smoke 20 cigaretts per day, on average.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 10
+</div>
+<div class="question-body">
+<p>Did the average number of cigarettes smoked per day differ between the groups at the initial recruitment?</p>
+<p>These observations (from the different groups) are independent, so we are going to perform an independent samples t-test.</p>
+<p>And don’t forget, check your assumptions! (Look back to last weeks lab for independent sample t-tests if you’re stuck)</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-206" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-206&#39;, &#39;sol-start-206&#39;)"></span>
+</div>
+<div id="sol-body-206" class="solution-body" style="display: none;">
+<p>First, we need to check the assumption of equal variances between groups.</p>
+<pre class="r"><code>var.test(smoking$cigs_pday ~ smoking$app_group) # this function is looking at the variance of cigaretters smoked on average, predicted by the group</code></pre>
+<pre><code>## 
+##  F test to compare two variances
+## 
+## data:  smoking$cigs_pday by smoking$app_group
+## F = 0.72721, num df = 29, denom df = 29, p-value = 0.3961
+## alternative hypothesis: true ratio of variances is not equal to 1
+## 95 percent confidence interval:
+##  0.3461274 1.5278697
+## sample estimates:
+## ratio of variances 
+##          0.7272121</code></pre>
+<p>Again, the null hypothesis for this test is that the variances <em>are</em> equal. As we have a p-value greater than our alpha level of 0.05, we fail to reject the null hypothesis and conclude the variances between groups are equal across the two populations.</p>
+<p>It’s also worth checking our normality assumption. We can do this with visualisations such as histograms and density plots.</p>
+<pre class="r"><code>ggplot(smoking, aes(x = cigs_pday, col = app_group)) + # plotting average number of cigarettes smoked per day on the x-axis and giving different colours for each app group 
+    geom_density() # telling R we want a density plot</code></pre>
+<p><img src="19_paired_t_test_files/figure-html/unnamed-chunk-27-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>All looks good (no skew and both look relatively normal), we can go ahead and perform the t-test.</p>
+<pre class="r"><code>t.test(smoking$cigs_pday ~ smoking$app_group, var.equal = TRUE)</code></pre>
+<pre><code>## 
+##  Two Sample t-test
+## 
+## data:  smoking$cigs_pday by smoking$app_group
+## t = -0.070519, df = 58, p-value = 0.944
+## alternative hypothesis: true difference in means between group no and group yes is not equal to 0
+## 95 percent confidence interval:
+##  -1.959022  1.825689
+## sample estimates:
+##  mean in group no mean in group yes 
+##          14.76667          14.83333</code></pre>
+<p>We performed an independent samples-test to assess if there was a significant difference between the average number of cigarettes smoked per day between the groups at the initial time point. A two-sample t-test revealed there was no significant difference between the two groups <span class="math inline">\(t\)</span>(58) = -0.07, <span class="math inline">\(p\)</span> = 0.944, two-sided. Thus, the sample data do not provide enough evidence against the null hypothesis that the population mean difference is 0.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 11
+</div>
+<div class="question-body">
+<p>Did the group given the app change their smoking habits from the intial time point to the one-month follow up? If so, was there a big change?</p>
+<p>Here, we need to focus on the data from those who were given the app. The second question is asking about effect size.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-207" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-207&#39;, &#39;sol-start-207&#39;)"></span>
+</div>
+<div id="sol-body-207" class="solution-body" style="display: none;">
+<p>As we’re only interested in the group given the app, we can create a new data set which only contains the participants assigned to the experimental condition.</p>
+<pre class="r"><code>smoking_app &lt;- smoking %&gt;%
+    filter(app_group == &quot;yes&quot;) # telling R we want to look inside the original data set &#39;smoking&#39; and extract those with &#39;yes&#39; in the app_group column </code></pre>
+<p>Now, we can perform the paired-test.</p>
+<p>Remember, the question is asking about the <em>same</em> participants: they provided data at two time points and we’re interested to see if there is a significant difference between these points.</p>
+<pre class="r"><code>t.test(smoking_app$cigs_pday, smoking_app$cigs_pday_1month, paired = TRUE)</code></pre>
+<pre><code>## 
+##  Paired t-test
+## 
+## data:  smoking_app$cigs_pday and smoking_app$cigs_pday_1month
+## t = 5.0883, df = 29, p-value = 1.985e-05
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  3.070004 7.196663
+## sample estimates:
+## mean of the differences 
+##                5.133333</code></pre>
+<p>Alternatively, you can address this question with a one-sample t-test, focusing on the difference scores.</p>
+<pre class="r"><code>smoking_app &lt;- # overwriting the dataset which only contains participants assigned to the app condition and adding a new column which is the difference in cigarettes smoked at time point 1 and time point 2 
+    smoking_app %&gt;%
+    mutate(difference = cigs_pday - cigs_pday_1month)
+
+t.test(smoking_app$difference, mu = 0) # assessing if this difference is signficantly different from 0 </code></pre>
+<pre><code>## 
+##  One Sample t-test
+## 
+## data:  smoking_app$difference
+## t = 5.0883, df = 29, p-value = 1.985e-05
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  3.070004 7.196663
+## sample estimates:
+## mean of x 
+##  5.133333</code></pre>
+<p>Looks like the numbers from both variations of the t-test match up, wahoo!</p>
+<p>The researchers were also interested in the effect size.</p>
+<pre class="r"><code>smoking_app %&gt;%
+    summarise(
+        dbar = mean(difference),
+        s = sd(difference)
+    )</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##    dbar     s
+##   &lt;dbl&gt; &lt;dbl&gt;
+## 1  5.13  5.53</code></pre>
+<pre class="r"><code>5.133333/5.525698</code></pre>
+<pre><code>## [1] 0.9289927</code></pre>
+<div id="writing-up" class="section level3">
+<h3>Writing-up</h3>
+<p>A paired-test was performed to assess if there was a significant difference in the average number of cigarettes smoked in participants who were in the experimental (app) condition. On average, smokers smoked more cigarettes at the intitial time point (<span class="math inline">\(M\)</span> = 14.83), than at the one-month follow-up (<span class="math inline">\(M\)</span> = 9.70). This difference 5.13 [95% CI 3.01, 7.20], was statistically significant <span class="math inline">\(t\)</span>(29) = 5.09, <span class="math inline">\(p\)</span> &lt; .001, two-sided.
+This difference between time points was large (<span class="math inline">\(d\)</span> = 0.93).</p>
+</div>
+</div>
+<p class="solution-end">
+</p>
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;">
+
+</div>
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>as measured using the total scores on the ACE-III.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+
+<link rel="stylesheet" href="https://uoepsy.github.io/assets/css/ccfooter.css" />
+<div class="ccfooter"></div>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

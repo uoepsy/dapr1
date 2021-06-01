@@ -1,0 +1,670 @@
+---
+title: "<b>Semester 2, Week 1: Bootstrapping and Confidence Intervals</b>"
+subtitle: "Data Analysis for Psychology in R 1"
+author: ""
+institute: "Department of Psychology<br/>The University of Edinburgh"
+date: "AY 2020-2021"
+output:
+  xaringan::moon_reader:
+    lib_dir: jk_libs/libs
+    css: 
+      - xaringan-themer.css
+      - jk_libs/tweaks.css
+    nature:
+      beforeInit: "jk_libs/macros.js"
+      ratio: '16:9'
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+editor_options:
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+options(digits=4,scipen=2)
+options(knitr.table.format="html")
+xaringanExtra::use_xaringan_extra(c("tile_view","animate_css","tachyons"))
+xaringanExtra::use_extra_styles(
+  mute_unhighlighted_code = FALSE
+)
+library(knitr)
+library(tidyverse)
+library(ggplot2)
+knitr::opts_chunk$set(
+  dev = "png",
+  warning = FALSE,
+  message = FALSE,
+  cache = TRUE,
+  fig.showtext = TRUE
+)
+#source('jk_R/myfuncs.R')
+```
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#0F4C81", # DAPR1
+  # base_color = "#BF1932", # DAPR2
+  # base_color = "#88B04B", # DAPR3 
+  # base_color = "#FCBB06", # USMR
+  # base_color = "#a41ae4", # MSMR
+  header_color = "#000000",
+  header_font_google = google_font("Source Sans Pro"),
+  header_font_weight = 400,
+  text_font_google = google_font("Source Sans Pro", "400", "400i", "600", "600i"),
+  code_font_google = google_font("Source Code Pro")
+)
+theme_set(theme_xaringan())
+```
+
+# This Week's Learning Objectives
+
+1. Understand how bootstrap resampling with replacement can be used to approximate a sampling distribution. 
+
+2. Understand how the bootstrap distribution can be used to construct a range of highly plausible values (a confidence interval).  
+
+3. Understand the link between simulation-based standard errors and theory-based standard errors. 
+
+---
+class: inverse, center, middle
+
+# Part 1
+## Bootstrapping
+
+---
+
+# Samples
+<center>
+```{r echo=FALSE,out.height=500, out.width=600}
+knitr::include_graphics("jk_img_sandbox/statistical_inference.png")
+```
+</center>
+---
+
+# Good Samples  
+
+- If a sample of $n$ is drawn at **random**, it will be unbiased and representative of $N$
+- Point estimates from such samples will be good estimates of the population parameter.
+    - Without the need for census.
+
+![](jk_img_sandbox/sampling_bias.png)
+
+---
+
+# Recap on sampling distributions
+.pull-left[
+- We have a population.
+- We take a sample of size $n$ from it, and calculate our statistic
+    - The statistic is our estimate of the population parameter.
+    
+- We do this repeatedly, and we can construct a sampling distribution.
+
+- The mean of the sampling distribution will be a good approximation to the population parameter.
+
+- To quantify sampling variation we can refer to the standard deviation of the sampling distribution (the **standard error**) 
+]
+.pull-right[
+{{content}}
+]
+--
++ University students
+{{content}}
+--
+
++ We take a sample of 30 students, calculate the mean height. 
+{{content}}
+--
+    + This is our estimate of the mean height of all university students.
+{{content}}
+--
+
++ Do this repeatedly (take another sample of 30, calculate mean height).
+{{content}}
+--
+
++ The mean of these sample means will be a good approximation of the population mean.
+{{content}}
+--
+
++ To quantify sampling variation in mean heights of 30 students, we can refer to the standard deviation of these sample means.
+{{content}}
+
+
+---
+
+# Practical problem:
+
+.pull-left[
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+theme_set(
+  theme_bw(base_size = 15) + 
+    theme(plot.title = element_text(hjust = 0.5))
+)
+set.seed(942)
+pd<-tibble(x=rnorm(500, 170, 10))
+ggplot(pd, aes(x=x))+
+  geom_dotplot(dotsize = .5)+
+  labs(x="Mean height of sample of size 30", title="500 samples of 30 students")+
+  scale_y_continuous(NULL,breaks=NULL)+
+  geom_label(aes(x = 140, y = 0.95, label = "Each dot is the mean\nheight of 30\nrandomly sampled\nstudents"),
+             hjust = 0, vjust = 1, lineheight = 0.8, colour = "tomato1", fill=NA,
+             label.size = NA, size = 7) +
+  geom_curve(aes(x = 145, y = 0.75, xend = 159, yend = 0.45), 
+             colour = "tomato1", 
+             size=0.5, 
+             curvature = 0.2,
+             arrow = arrow(length = unit(0.03, "npc")))+
+  geom_vline(aes(xintercept=mean(x)), lty="dashed", color="tomato1")+
+  geom_label(aes(x = mean(x)+5, y = 1, label = "The mean of the\nsample means"),
+             hjust = 0, vjust = 1, lineheight = 0.8, colour = "tomato1", fill=NA,
+             label.size = NA, size = 7)+
+  geom_segment(aes(x = mean(x)+4.5, y = .97, xend = mean(x)+.1, yend = .97), 
+             colour = "tomato1", size=0.5, 
+             arrow = arrow(length = unit(0.03, "npc")))
+```
+]
+.pull-right[
+- This process allows us to get an estimate of the sampling variability, **but is this realistic?**
+    
+- Can I really go out and collect 500 samples of 30 students from the population?
+    
+    - Probably not...
+{{content}}    
+]
+
+--
+
+- So how else can I get a sense of the variability in my sample estimates? 
+
+---
+
+.pull-left[
+## Solution 1  
+### Theoretical  
+
+- Collect one sample.
+
+- Estimate the Standard Error using the formula:  
+  <br>
+$\text{SE} = \frac{\sigma}{\sqrt{n}}$  
+
+]
+.pull-right[
+## Solution 2  
+### Bootstrap
+
+- Collect one sample.
+
+- Mimick the act of repeated sampling from the population by repeated **resampling with replacement** from the original sample. 
+
+- Estimate the standard error using the standard deviation of the distribution of **resample** statistics. 
+
+]
+
+
+
+---
+
+# Resampling 1: The sample
+
+```{r echo=FALSE}
+simpsons_sample <- 
+  tibble(
+  name = c("Homer Simpson","Ned Flanders","Chief Wiggum","Milhouse","Patty Bouvier", "Janey Powell", "Montgomery Burns", "Sherri Mackleberry","Krusty the Clown","Jacqueline Bouvier"),
+  age = c(39, 60, 43, 10, 43, 8, 104, 10, 52, 80)
+)
+```
+
+
+.pull-left[
+```{r echo=FALSE, out.width=350}
+knitr::include_graphics("jk_img_sandbox/sample.png")
+```
+
+Suppose I am interested in the mean age of all characters in The Simpsons, and I have collected a sample of $n=10$. 
+{{content}}
+]
+
+
+--
+
++ The mean age of my sample is `r round(mean(simpsons_sample$age),1)`. 
+
+--
+
+.pull-right[
+```{r echo=FALSE}
+simpsons_sample
+```
+```{r}
+simpsons_sample %>%
+  summarise(mean_age = mean(age))
+```
+
+]
+
+---
+
+# Resampling 2: The **re**sample
+
+.pull-left[
+
+I randomly draw out one person from my original sample, I note the value of interest, and then I put that person "back in the pool" (i.e. I sample with replacement). 
+<br>
+<br>
+```{r echo=FALSE, out.width=350}
+knitr::include_graphics("jk_img_sandbox/resample1.png")
+```
+
+]
+.pull-right[
+```{r echo=FALSE}
+set.seed(193)
+sample_n(simpsons_sample, size = 1)
+```
+]
+
+---
+
+# Resampling 2: The **re**sample
+
+.pull-left[
+Again, I draw one person at random again, note the value of interest, and replace them.  
+<br>
+<br>
+```{r echo=FALSE, out.width=350}
+knitr::include_graphics("jk_img_sandbox/resample2.png")
+```
+
+]
+.pull-right[
+```{r echo=FALSE}
+set.seed(193)
+sample_n(simpsons_sample, size = 10, replace = TRUE) %>% head(n=2L)
+```
+]
+
+---
+
+# Resampling 2: The **re**sample
+
+.pull-left[
+And again...   
+<br>
+<br>
+<br>
+```{r echo=FALSE, out.width=350}
+knitr::include_graphics("jk_img_sandbox/resample3.png")
+```
+
+]
+.pull-right[
+```{r echo=FALSE}
+set.seed(193)
+sample_n(simpsons_sample, size = 10, replace = TRUE) %>% head(n=3L)
+```
+]
+
+---
+
+# Resampling 2: The **re**sample
+
+.pull-left[
+And again...  
+<br>
+<br>
+<br>
+```{r echo=FALSE, out.width=350}
+knitr::include_graphics("jk_img_sandbox/resample4.png")
+```
+
+]
+.pull-right[
+```{r echo=FALSE}
+set.seed(193)
+sample_n(simpsons_sample, size = 10, replace = TRUE) %>% head(n=4L)
+```
+]
+
+---
+
+# Resampling 2: The **re**sample
+
+.pull-left[
+Repeat until I have a the same number as my original sample ( $n = 10$ ).  
+<br>
+<br>
+```{r echo=FALSE, out.width=350}
+knitr::include_graphics("jk_img_sandbox/resample.png")
+```
+{{content}}
+]
+.pull-right[
+```{r echo=FALSE}
+set.seed(193)
+sample_n(simpsons_sample, size = 10, replace = TRUE)
+```
+]
+--
+- This is known as a **resample**
+{{content}}
+--
+- The mean age of the resample is `r set.seed(193);sample_n(simpsons_sample, size = 10, replace = TRUE) %>% pull(age) %>% mean() %>% round(.,1)`  
+
+---
+
+# Bootstrapping: Resample<sub>1</sub>, ..., Resample<sub>k</sub>
+
+- If I repeat this whole process many times, say k=1000, I will have 1000 means from 1000 resamples.
+    - Note these are entirely derived from the original sample.
+
+- This is known as called **bootstrapping**, and the resultant distribution of statistics (in our example, the distribution of 1000 resample means) is known as a **bootstrap distribution.** 
+
+<div style="border-radius: 5px; 
+    padding: 20px 20px 10px 20px; 
+    margin-top: 20px; 
+    margin-bottom: 20px; 
+    background-color:#fcf8e3 !important;"> 
+**Bootstrapping**   
+The process of resampling *with replacement* from the original data to generate a multiple resamples of the same $n$ as the original data.
+
+
+---
+
+# Bootstrap distribution 
+
+- Start with an initial sample of size $n$.  
+
+- Take $k$ resamples (sampling with replacement) of size $n$, and calculate your statistic on each one. 
+
+- As $k\to\infty$, the distribution of the $k$ resample statistics begins to approximate the sampling distribution. 
+    - Note, this is just the same exercise as we did with samples from the population in previous weeks.
+
+
+---
+
+# k = 20, 50, 200, 2000, ...
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=12, fig.height=6}
+source('https://uoepsy.github.io/files/rep_sample_n.R')
+library(patchwork)
+set.seed(136)
+df <- tibble(
+  scores = round(rnorm(n = 10,
+                       mean = 44.9, 
+                       sd = 31.35), 0)
+)
+
+
+k20 <- df %>% 
+  rep_sample_n(n = 10, replace = TRUE, samples = 20) %>%
+  group_by(sample) %>%
+  summarise(Avg_age = mean(scores)) %>%
+  ggplot(., aes(x = Avg_age)) + 
+  xlab("Resample mean") +
+  geom_histogram(colour = "white") + 
+  ggtitle("20 Resamples")
+
+k50 <- df %>% 
+  rep_sample_n(n = 10, replace = TRUE, samples = 50) %>%
+  group_by(sample) %>%
+  summarise(Avg_age = mean(scores)) %>%
+  ggplot(., aes(x = Avg_age)) + 
+  xlab("Resample mean") + 
+  geom_histogram(colour = "white") + 
+  ggtitle("50 Resamples")
+
+k200 <- df %>% 
+  rep_sample_n(n = 10, replace = TRUE, samples = 200) %>%
+  group_by(sample) %>%
+  summarise(Avg_age = mean(scores)) %>%
+  ggplot(., aes(x = Avg_age)) + 
+  xlab("Resample mean") + 
+  geom_histogram(colour = "white") + 
+  ggtitle("200 Resamples")
+
+k2000 <- df %>% 
+  rep_sample_n(n = 10, replace = TRUE, samples = 2000) %>%
+  group_by(sample) %>%
+  summarise(Avg_age = mean(scores)) %>%
+  ggplot(., aes(x = Avg_age)) + 
+  xlab("Resample mean") + 
+  geom_histogram(colour = "white") + 
+  ggtitle("2000 Resamples")
+
+(k20 | k50) /( k200 | k2000)
+
+```
+
+
+---
+
+# Bootstrap Standard Error
+
+
+- Previously we spoke about the standard error as the measure of sampling variability.  
+
+--
+
+    - We stated that this was just the SD of the sampling distribution.
+    
+--
+
+- In the same vein, we can calculate a bootstrap standard error - the SD of the bootstrap distribution.
+    
+```{r echo=FALSE, message=FALSE,warning=FALSE, fig.width=12, fig.height=3}
+df %>% 
+  rep_sample_n(n = 10, replace = TRUE, samples = 2000) %>%
+  group_by(sample) %>%
+  summarise(mean_score = mean(scores)) %>%
+  ggplot(., aes(x = mean_score)) + 
+  xlab("Resample mean") + 
+  geom_histogram(colour = "white") + 
+  ggtitle("Bootstrap Distribution, K=2000")+ 
+  geom_vline(aes(xintercept=mean(mean_score)-sd(mean_score)), lty="dashed",col="tomato1",lwd=2)+
+  geom_vline(aes(xintercept=mean(mean_score)+sd(mean_score)), lty="dashed",col="tomato1",lwd=2)+
+  geom_vline(aes(xintercept=mean(mean_score)), lty="solid",col="tomato1",lwd=2)
+```
+
+---
+class: inverse, center, middle, animated, rotateInDownLeft
+
+# End of Part 1
+
+---
+class: inverse, center, middle
+
+# Part 2
+## Confidence Intervals
+
+---
+
+# Confidence interval
+
+- Remember, usually we do not know the value of a population parameter.  
+
+    - We are trying to estimate this from our data.  
+  
+--
+
+- A confidence interval defines a plausible range of values for our population parameter.  
+
+- To estimate we need:  
+
+    - A **confidence level**  
+    - A measure of sampling variability (e.g. SE/bootstrap SE).
+
+---
+
+# Confidence interval & level
+
+<div style="border-radius: 5px; 
+    padding: 20px 20px 10px 20px; 
+    margin-top: 20px; 
+    margin-bottom: 20px; 
+    background-color:#fcf8e3 !important;">
+**x% Confidence interval**   
+across repeated samples, [x]% confidence intervals would be expected to contain the true population parameter value.</div>
+x% is the *confidence level*.  
+Commonly, you will use and read about **95%** confidence intervals. If we were to take 100 samples, and calculate a 95% CI on each of them, approx 95 of them would contain the true population mean.  
+
+--
+
+- What are we 95% confident *in?*  
+
+    - We are 95% confident that our interval [lower, upper] contains the true population mean. 
+    - This is subtly different from saying that we are 95% confident that the true mean is inside our interval. The 95% probability is related to the long-run frequencies of our intervals.  
+
+
+
+---
+
+# Simple Visualization 
+
+.pull-left[
+```{r, echo=FALSE, message=FALSE}
+df_k5000 <- df %>% 
+  rep_sample_n(n = 10, replace = TRUE, samples = 1000) %>%
+  group_by(sample) %>%
+  summarise(avg_score = mean(scores)) %>%
+  mutate(
+    class = if_else(avg_score < (mean(avg_score) - 1.96*sd(avg_score)) | avg_score > (mean(avg_score) + 1.96*sd(avg_score)), 1, 0)
+  )
+
+df_k5000 %>%
+  ggplot(., aes(x=avg_score)) +
+  #geom_histogram(aes(y=stat(density), ), colour = "white", alpha = 0.3) +
+  stat_function(fun = dnorm, args = list(mean = mean(df_k5000$avg_score), sd = sd(df_k5000$avg_score)), lwd=2, alpha=.3) +
+  geom_vline(xintercept = (mean(df_k5000$avg_score) - 1.96*sd(df_k5000$avg_score)), colour = "tomato1", lwd=2) +
+  geom_vline(xintercept = (mean(df_k5000$avg_score) + 1.96*sd(df_k5000$avg_score)), colour = "tomato1", lwd=2) +
+  xlab("Average Age of Simpsons Characters") +
+  ggtitle("Sampling Distribution Mean Age with 95% CI (inside red lines)")+
+  geom_label(x=39, y=0.025,label="Sampling Distribution of Mean Age")+
+  geom_curve(x=44,y=0.024,xend=55, yend=0.02,curvature = 0.2)
+```
+]
+
+.pull-right[
+
+- The confidence interval works outwards from the centre  
+
+- As such, it "cuts-off" the tails.  
+
+    - E.g. the most extreme estimates will not fall within the interval
+
+]
+
+---
+
+# Calculating CI  
+
+- We want to identify the upper and lower bounds of the interval (i.e. the red lines from previous slide)  
+
+- These need to be positioned so that 95% of all possible sample mean estimates fall within the bounds.
+
+---
+
+# Calculating CI: 68/95/99 Rule  
+
+- Remember that sampling distributions become normal...  
+
+- There are fixed properties of normal distributions.  
+
+--
+
+- Specifically:  
+
+    - 68% of density falls within 1 SD of the mean
+    - 95% of density falls with 1.96 SD of the mean
+    - 99.7% of density falls within 3 SD of the mean
+    
+- Remember the standard error = SD of the bootstrap (or sampling distribution)...
+
+---
+
+# Calculating CI  
+
+- ... the bounds of the 95% CI for a mean are:  
+
+$$
+\text{Lower Bound} = mean - 1.96 \cdot SE
+$$
+$$
+\text{Upper Bound} = mean + 1.96 \cdot SE 
+$$
+---
+
+
+# Calculating CI - Example
+
+
+```{r message=FALSE,warning=FALSE}
+simpsons_sample <- read_csv("https://uoepsy.github.io/data/simpsons_sample.csv")
+mean(simpsons_sample$age)
+```
+
+---
+
+# Calculating CI - Example
+
+```{r message=FALSE,warning=FALSE}
+# Theoretical approach
+mean(simpsons_sample$age) - 1.96*(sd(simpsons_sample$age)/sqrt(10))
+mean(simpsons_sample$age) + 1.96*(sd(simpsons_sample$age)/sqrt(10))
+```
+
+---
+
+# Calculating CI - Example
+
+```{r message=FALSE,warning=FALSE}
+# Bootstrap Approach
+source('https://uoepsy.github.io/files/rep_sample_n.R')
+
+resamples2000 <- rep_sample_n(simpsons_sample, n = 10, samples = 2000, replace = TRUE) 
+
+bootstrap_dist <- resamples2000 %>%
+  group_by(sample) %>%
+  summarise(resamplemean = mean(age))
+
+sd(bootstrap_dist$resamplemean)
+
+mean(simpsons_sample$age) - 1.96*sd(bootstrap_dist$resamplemean)
+mean(simpsons_sample$age) + 1.96*sd(bootstrap_dist$resamplemean)
+```
+
+---
+
+# Sampling Distributions and CIs are not just for means.  
+
+For a 95% Confidence Interval around a statistic: 
+
+$$
+\text{Lower Bound} = statistic - 1.96 \cdot SE
+$$
+$$
+\text{Upper Bound} = statistic + 1.96 \cdot SE
+$$
+
+
+---
+
+# Summary  
+
+- Good samples are representative, random and unbiased.  
+
+- Bootstrap resampling is a tool to construct a *bootstrap distribution* of any statistic which, with sufficient resamples, will approximate the *sampling distribution* of the statistic.  
+
+- Confidence Intervals are a tool for considering the plausible value for an unknown population parameter.  
+
+- We can use bootstrap SE to calculate CI.  
+
+
+---
+
+class: inverse, center, middle, animated, rotateInDownLeft
+
+# End
+

@@ -1,0 +1,278 @@
+---
+title: "Central Tendency"
+subtitle: Data Analysis for Psychology in R 1
+author: Tom Booth
+---
+
+```{r premable, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(kableExtra)
+```
+
+## Today
+- Introduce frequency distribution
+- Discuss measures of central tendency
+    - Mode
+    - Median
+    - Mean
+
+## Learning objectives
+- Understand visualizations of frequency distributions.
+- Be able to define the mode, median and mean.
+- Understand how to calculate these values by hand and in R.
+- Understand which statistic to use for different types of data.
+
+## Frequency Distribution
+
+*"a mathematical function showing the number of instances in which a variable takes each of its possible values."*
+
+## Simple example
+
+```{r, echo=FALSE}
+set.seed(1066)
+df <- tibble(
+    dat = factor(rbinom(10, 1, 0.5))
+)
+bp <- df %>%
+    ggplot(., aes(x=dat)) +
+    geom_bar() +
+    labs(x = "Coin toss result", y = "Count") +
+    scale_x_discrete(labels = c("Heads", "Tails"))
+
+
+bp
+```
+
+- I toss a coin 10 times, and I plot the number of instances of head and tails.
+
+## Graphs 
+- There are many types of graph, all of which are intended to summarise different types of data, or the relations between data.
+- We are going to spend a lot of time dealing with plots this semester.
+- Let's pause for a moment and consider the basic structure
+
+## Structure of graphics
+- Data
+- Axes 
+    - (aesthetics in `ggplot` language - also includes size, colours etc.)
+- Axes have scales
+- Geometric objects 
+    - (`geoms` in `ggplot` language; i.e. bars, points, lines)
+    
+## Bar plot
+```{r, echo = FALSE}
+bp
+```
+
+- Bar plots are used to show frequency distributions of categorical variables.
+
+## Bar plot
+- Our example:
+    - Data = result of our 10 coin tosses.
+    - X-axis: values of variable (here "Heads" or "Tails)
+        - Scale = two discrete values
+    - Y-axis: Frequency
+        - Scale = count 
+
+## Our example: Bar plot
+```{r, echo = FALSE}
+bp
+```
+
+## Histogram
+
+```{r, echo=FALSE}
+set.seed(1984)
+df2 <- tibble(
+    dat = rnorm(225, 155, 15)
+)
+hp <- df2 %>%
+    ggplot(., aes(x=dat)) +
+    geom_histogram(bins = 20) +
+    labs(x = "Height (cm)", y = "Count") +
+    scale_x_continuous(breaks = c(120, 130, 140, 150, 160, 170, 180, 190, 200))
+
+hp
+```
+
+
+- A histogram is used to show the frequency distribution for continuous variables
+
+## Histogram
+- Our example:
+    - Data = heights of the class
+    - X-axis: possible values of height.
+        - Commonly presented in "bins" 
+        - A bin represents a range of scores (plot can look very different dependent on this)
+        - Scale = dependent on the form of measurement, here centimetres 
+    - Y-axis: frequency of a given value or values within "bins"
+
+## Describing in numbers
+- So how do we describe a frequency distribution numerically?
+- We typically want to know something about the;
+    - central point, and
+    - the spread (or dispersion around centre point)
+    
+## Central tendency
+- Central tendency measures are a set of statistics that describe the central point of data.
+    - Or the central point of our frequency distributions.
+- Measures of central tendency are typically referred to as "averages"
+    - But this can have many meanings.
+
+## Some data...
+```{r}
+ex1 <- tibble(
+    ID = c(paste("ID", 101:250, sep = "")),
+    Degree = factor(sample(c("Psych", "Ling", "Phil", "Joint"), 
+                           150, replace=T, prob=c(.3,.3,.3,.1))),
+    StatsScore = round(rnorm(150, 66, 7),0)
+)
+```
+
+## Some data...
+```{r}
+ex1[1:10,]
+```
+
+## Some data...
+```{r, echo=FALSE}
+kableExtra::kable_styling(knitr::kable(ex1[1:10,]), font_size = 22)
+```
+
+
+##  Central Tendency: Mode 
+- One way to consider the average value is the **mode.**
+- **Mode**: The most commonly observed value in the data set.
+- It is of course possible that we observe two (or more) values with equal frequency.
+- We then have a **multi-modal** distribution.
+
+##  Central Tendency: Mode 
+
+```{r}
+table(ex1$Degree)
+```
+
+##  Central Tendency: Median 
+- A second measure of average observation is the **median.**
+- **Median:** is the value for which half the data falls above, and half below the given value.
+
+##  Central Tendency: Median 
+- To calculate the median:
+    - Rank order the data.
+    - Find the middle value.
+
+## Hand calculation
+- When we have an odd number of observations:
+
+
+$$
+\frac{1}{2}(N+1)
+$$
+
+- [10,40,30,25,15,5,65]
+
+
+## Hand calculation
+- When we have an even number of observations:
+
+
+$$
+\frac{\frac{1}{2}N + (\frac{1}{2}N+1)}{2}
+$$
+
+- [10,40,25,15,5,30]
+
+
+##  Median in R 
+
+```{r}
+ex1 %>%
+    summarise(
+        median = median(StatsScore)
+    )
+```
+
+
+##  Central Tendency: Mean 
+- A third measure of average observation is the **arithmetic mean.**
+- **Mean:** is the sum of all values, divided by the total number of observations.
+    - I.e. this is the average as most people think about the average.
+
+$$
+\bar{x} = \frac{\sum_{i=1}^{N}{x_i}}{N}
+$$
+
+##  Central Tendency: Mean 
+
+$$
+\bar{x} = \frac{\sum_{i=1}^{N}{x_i}}{N}
+$$
+
+- $\bar{x}$ = estimate of mean of variable x
+- $x_i$ = individual values of x
+- $N$ = sample size
+
+## Hand calculation
+
+$$
+\bar{x} = \frac{\sum_{i=1}^{N}{x_i}}{N}
+$$
+
+- [10,40,30,25,15,5]
+
+##  Central Tendency: Arithmetic Mean 
+
+```{r}
+ex1 %>%
+    summarise(
+        median = median(StatsScore),
+        mean = mean(StatsScore)
+    )
+```
+
+##  Strengths and weaknesses 
+
+```{r, echo = FALSE}
+tbl16 <- tibble::tribble(
+~`Measure`, ~`Strength`, ~`Weakness`,
+"Mode","Actually occurs in our data","Not algebraically calculable",
+" ","Unaffected by extreme values","Probably does not exist for true continuous data (think reaction time)",
+"Median","No assumptions about interval value of data","Not relatable to measures of dispersion (see next week)",
+" ","Unaffected by extreme values"," ",
+"Mean","Algebraically tractable","Sensitive to extreme values",
+" ","Related to measures of dispersion (see next week)","Assumes data are interval or better",
+" "," ","Possible no case in your data takes the value of the mean"
+)
+
+kableExtra::kable_styling(knitr::kable(tbl16), font_size = 22)
+```
+
+##  Which measure should we use? 
+
+```{r, echo = FALSE}
+tbl18 <- tibble::tribble(
+~`Variable Type`, ~`Central Tendency`,
+"Categorical (Nominal)","Mode",
+"Categorical (Ordered)","Mode/Median",
+"Continuous","Mean (any in fact)",
+"Count","Mode (mean)"
+)
+
+kableExtra::kable_styling(knitr::kable(tbl18), font_size = 26)
+```
+
+- Depends on the level of measurement.
+
+## Tasks for this week...
+1. Finish any existing tasks from lab 3.
+2. Reading: See LEARN
+3. Quiz 4
+    - **This quiz counts**
+    - Live now (as of Monday at 09:00).
+    - Closes Sunday at 17:00
+
+## Recommendations of the week
+- Podcast: [History of Rome](https://thehistoryofrome.typepad.com/) (find it on usual podcast site)
+- Recipe: [Cullen Skink](https://www.bbcgoodfood.com/recipes/899633/cullen-skink) 
+- Book: *Lucky Jim* by Kingsley Amis (In Main Library)
+- Coffee/food Place: [Bearded Barista](https://twitter.com/beardedbarista_?lang=en)
+

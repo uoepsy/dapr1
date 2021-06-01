@@ -1,0 +1,393 @@
+---
+title: "Lecture 17: Independent t-test"
+subtitle: Data Analysis for Psychology in R 1
+author: Tom Booth
+---
+```{r premable, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(kableExtra)
+library(patchwork)
+library(moderndive)
+library(moments)
+```
+
+## Today
+- Discuss in detail independent sample $t$-tests
+	- When to use
+	- Tested hypotheses
+	- Calculation
+	- Doing in R
+	- Write up
+- $t$-test assumptions
+	
+## Learning objectives
+- Understand when to use an independent sample $t$-test
+- Understand the null hypothesis for an independent sample $t$-test
+- Understand how to calculate the test statistic
+- Know how to conduct the test in R
+- Understand the assumptions for $t$-tests
+
+## Purpose & Data
+- The independent or Student's $t$-test is used when we want to test the difference in mean between two measured groups.
+- The groups must be independent:
+	- No person can be in both groups.
+- Examples:
+	- Treatment versus control group in an experimental study.
+	- Married versus not married
+- Data Requirements
+  - A continuously measured variable.
+  - A binary variable denoting groups
+
+## Hypotheses
+- Identical to one-sample, only now we are comparing two measured groups.
+- Two-tailed:
+
+$$
+\begin{matrix}
+H_0: \mu_1 = \mu_2 \\
+H_1: \mu_1 \neq \mu_2
+\end{matrix}
+$$
+
+- One-tailed:
+
+$$
+\begin{matrix}
+H_0: \mu_1 = \mu_2 \\
+H_1: \mu_1 < \mu_2 \\
+H_1: \mu_1 > \mu_2
+\end{matrix}
+$$
+
+## Example
+- Example taken from Howell, D.C. (2010). *Statistical Methods for Psychology, 7th Edition*. Belmont, CA: Wadsworth Cengage Learning.
+- Data from Aronson, Lustina , Good, Keough , Steele and Brown (1998). Experiment on stereotype threat.
+	- Two independent groups college students (n=12 control; n=11 threat condition). 
+	- Both samples excel in maths.
+	- Threat group told certain students usually do better in the test
+
+
+## Data
+```{r, echo = FALSE}
+threat <- tibble(
+  Group = as_factor(c(rep("Threat", 11), rep("Control", 12))),
+  Score = c(7,5,6,5,6,5,4,7,4,3,6,10,11,8,9,12,11,10,9,8,7,11,9)
+)
+```
+
+```{r, echo=FALSE}
+kable(threat[c(1:4, 12:15),]) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, font_size = 18)
+```
+
+## Visualizing data 
+- We spoke earlier in the course about the importance of visualizing our data.
+- Here, we want to show the mean and distribution of scores by group.
+- So we want a.....
+
+## Visualizing data 
+```{r}
+ggplot(data = threat, aes(x = Group, y = Score, fill = Group)) +
+  geom_boxplot(alpha = 0.3) + 
+  geom_jitter(width = 0.1)+
+  theme_minimal()  
+```
+
+## Hypotheses
+- My hypothesis is that the threat group will perform worse than the control group.
+  - This is a one-tailed, or directional hypothesis.
+- And I will use an alpha = .05
+
+## t-statistic
+
+$$
+t = \frac{\bar{x}_1 - \bar{x}_2}{SE(\bar{x}_1 - \bar{x}_2)}
+$$
+
+- Where
+  - $\bar{x}_1$ and $\bar{x}_2$ are the sample means in each group
+  - $SE(\bar{x}_1 - \bar{x}_2)$ is standard error of the difference
+- Sampling distribution is a $t$-distribution with $n-2$ degrees of freedom.
+
+## Standard Error Difference
+- First calculate the pooled standard deviation. 
+
+$$
+S_p = \sqrt\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2}
+$$
+
+- Then use this to calculate the SE of the difference.
+
+$$
+SE(\bar{x}_1 - \bar{x}_2) = S_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}
+$$
+
+## Calculation
+- Steps in my calculations:
+  - Calculate the sample mean in both groups.
+  - Calculate the pooled SD.
+  - Check I know my n.
+  - Calculate the standard error.
+  - Use all this to calculate $t$.
+
+## Calculation
+```{r}
+calc <- threat %>%
+  group_by(Group) %>%
+  summarise(
+    Mean = round(mean(Score),2),
+    SD = round(sd(Score),2),
+    N = n()
+  ) 
+```
+
+```{r, echo=FALSE}
+calc
+```
+
+## Calculation
+```{r, echo=FALSE}
+calc
+```
+
+- Calculate pooled standard deviation
+
+$$
+S_p = \sqrt\frac{(n_1 - 1)s_1^2 + n_2 - 1)s_2^2}{n_1 + n_2 - 2} = \sqrt{\frac{10*1.27 + 11*1.51}{11+12-2}} = \sqrt{\frac{29.31}{21}} = 1.396 
+$$
+
+
+## Calculation
+- Calculate pooled standard deviation
+
+$$
+S_p = \sqrt\frac{(n_1 - 1)s_1^2 + n_2 - 1)s_2^2}{n_1 + n_2 - 2} = \sqrt{\frac{10*1.27 + 11*1.51}{11+12-2}} = \sqrt{\frac{29.31}{21}} = 1.396 
+$$
+
+- Calculate the standard error.
+
+$$
+SE(\bar{x}_1 - \bar{x}_2) = S_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}} = 1.396\sqrt{\frac{1}{11}+\frac{1}{12}} = 1.396*0.417 = 0.583
+$$
+
+
+## Calculation
+- Use all this to calculate $t$.
+
+$$
+t = \frac{\bar{x}_1 - \bar{x}_2}{SE(\bar{x}_1 - \bar{x}_2)} = \frac{5.27-9.58}{0.583} = -7.39 
+$$
+
+- Note: There is a small amount of rounding error when we compare to $t$ calculated in R.
+  - Actual value = -7.38
+
+## Is my test significant?
+- Steps:
+  - Calculate my degrees of freedom $n-2 = 23-2 = 21$
+  - Check my value of $t$ against the $t$-distribution with the appropriate df and make my decision
+
+## Is our test significant?
+
+```{r, echo=FALSE}
+ggplot(NULL, aes(x = c(-8,8))) +
+  stat_function(fun=dt,
+                geom = "line",
+                args = list(df=21)) +
+  stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(qt(0.05, 21), -8),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=21)) +
+  geom_vline(xintercept = -7.38, col="red") +
+  xlab("\n t") +
+  ylab("") +
+  ggtitle("t-distribution (df=21); t-statistic (-7.38; red line)")
+```
+
+```{r}
+tibble(
+  LowerCrit = round(qt(0.05, 21),2)
+)
+```
+
+## Is my test significant?
+- So our critical value is -1.72
+	- Our t-statistic is larger than this, -7.38.
+	- So we reject the null hypothesis.
+- $t$(21)= -7.38, $p$ <.05, one-tailed.
+
+## In R
+```{r}
+res <- t.test(Score ~ Group, 
+       var.equal = TRUE,
+       alternative = "less",
+       data = threat)
+```
+
+```{r, echo=FALSE}
+res
+```
+
+
+## Exact p-values
+
+```{r}
+tibble(
+  Exactp = 1-pt(7.3817, 21)
+)
+```
+
+## Write up
+An independent sample $t$-test was used to assess whether the maths score mean of the control group (`r calc[[2,4]]`) was higher than that of the stereotype threat group (`r calc[[1,4]]`). There was a significant difference in test score between the control (Mean=`r calc[[2,2]]`; SD=`r calc[[2,3]]`) and threat (Mean=`r calc[[1,2]]`; SD=`r calc[[1,3]]`) groups ($t$(`r res$parameter`)=`r round(res$statistic,2)`, $p$< .05, one-tailed). Therefore, we reject the null hypothesis. The direction of effect supports our directional hypothesis and indicates that the threat group performed more poorly than the control group.
+
+## Assumptions
+- The independent sample $t$-test has the following assumptions:
+	- Independence of observations within and across groups.
+	- Continuous variable is approximately normally distribution **within both groups**.
+	  - Equivalently, that the difference in means is normally distributed.
+	- Homogeneity of variance across groups.
+
+## Assumption checks summary 
+
+```{r tbl7, echo = FALSE}
+tbl7 <- tibble::tribble(
+~` `, ~`Description`, ~`One-Sample  t-test`, ~`Independent Sample t-test`, ~`Paired Sample t-test`,
+"Normality","Continuous variable (and difference) is normally distributed.","Yes (Population)","Yes (Both groups/ Difference)","Yes (Both groups/ Difference)",
+"Tests:","Descriptive Statistics; Shapiro-Wilks Test; QQ-plot"," "," "," ",
+"Independence","Observations are sampled independently.","Yes","Yes (within and across groups)","Yes (within groups)",
+"Tests:","None. Design issue."," "," "," ",
+"Homogeneity of variance","Population level standard deviation is the same in both groups.","NA","Yes","Yes",
+"Tests:","F-test"," "," "," ",
+"Matched Pairs in data","For paired sample, each observation must have matched pair.","NA","NA","Yes",
+"Tests:","None. Data structure issue."," "," "," "
+)
+
+
+kable(tbl7) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, font_size = 18)
+```
+
+##  Assumption checks: Normality 
+- Descriptive statistics:
+	- Skew: No strict cuts for skew.
+		- Skew < |1| generally not problematic
+		- |1| < skew > |2| slight concern
+		- Skew > |2| investigate impact
+
+## Histograms
+
+```{r}
+threat %>%
+  ggplot(., aes(x=Score)) +
+  geom_histogram(bins = 20) +
+  facet_wrap(~ Group)
+```
+
+
+## Skew
+
+```{r}
+library(moments)
+threat %>%
+  group_by(Group) %>%
+  summarise(
+    skew = round(skewness(Score),2)
+  )
+```
+
+##  Assumption checks: Normality 
+- QQ-plots:
+	- Plots the sorted quantiles of one data set (distribution) against sorted quantiles of data set (distribution).
+	- Quantile = the percent of points falling below a given value.
+	- For a normality check, we can compare our own data to data drawn from a normal distribution
+
+## QQ-plots 
+```{r}
+threat %>%
+  ggplot(., aes(sample = Score, colour = Group)) +
+  stat_qq() +
+  stat_qq_line()
+
+```
+
+##  Assumption checks: Normality 
+- Shapiro-Wilks test:
+	- Checks properties of the observed data against properties we would expected from normally distributed data.
+	- Statistical test of normality.
+	- $H_0$: data = a normal distribution.
+	- $p$-value $< \alpha$ = reject the null, data are not normal.
+		- Sensitive to N as all p-values will be.
+		- In very large N, normality should also be checked with QQ-plots alongside statistical test.
+
+##  Shapiro-Wilks R
+```{r}
+con <- threat %>% filter(Group == "Control") %>% select(Score)
+shapiro.test(con$Score)
+```
+
+```{r}
+thr <- threat %>% filter(Group == "Threat") %>% select(Score)
+shapiro.test(thr$Score)
+```
+
+##  Assumption checks: Homogeneity of variance 
+- Levene's test:
+	- Statistical test for the equality (or homogeneity) of variances across groups (2+).
+	- Test statistic is essentially a ratio of variance estimates calculated based on group means versus 
+	grand mean.
+- The $F$-test is a related test that compares the variances of two groups.
+  - This test is preferable for $t$-test.
+	- $H_0$: Population variances are equal.
+	- $p$-value $< \alpha$ = reject the null, the variances differ across groups.
+
+##  F-test R
+```{r}
+var.test(threat$Score ~ threat$Group, ratio = 1, conf.level = 0.95)
+```
+
+##  Violation of homogeneity of variance 
+- If the variances differ, we can use a Welch test.
+- Conceptually very similar, but we do not use a pooled standard deviation.
+	- As such our estimate of the SE of the difference changes
+	- As do our degrees of freedom
+
+##  Welch test
+- If the variances differ, we can use a Welch test.
+- Test statistic = same
+- SE calculation:
+
+$$
+SE(\bar{x}_1 - \bar{x}_2) = \sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}
+$$
+
+- And degrees of freedom (don't worry, not tested)
+
+$$
+df = \frac{(\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2})^2}{\frac{(\frac{s_1^2}{n_1})^2}{n_1 -1} + \frac{(\frac{s_2^2}{n_2})^2}{n_2 -1}} 
+$$
+
+## Welch in R
+```{r}
+welch <- t.test(Score ~ Group, 
+       var.equal = FALSE, #default, only here to highlight difference
+       alternative = "less",
+       data = threat)
+```
+
+## Welch in R
+
+```{r}
+welch
+```
+
+## A comment on sample size 
+- In class we have been using examples with very small N.
+	- This is purely so we can show working on slides etc.
+- Typically, even with simple tests like we have discussed so far, with n ~20, you should think carefully about whether statistical analyses are appropriate.
+
+## Tasks for this week...
+1. Finish tasks from last week. 
+2. Quiz 17: One-sample $t$-tests
+    - Today at 17:00.
+    - Close Monday 3rd at 17:00
