@@ -1,0 +1,365 @@
+---
+title: "Making decisions: errors, power, and effect size"
+bibliography: references.bib
+biblio-style: apalike
+link-citations: yes
+params: 
+    SHOW_SOLS: TRUE
+    TOGGLE: TRUE
+---
+
+```{r setup, include=FALSE}
+source('assets/setup.R')
+```
+
+
+```{r include=FALSE}
+knitr::opts_chunk$set(fig.align = 'center', 
+                      fig.height = 7, fig.width = 8.2, 
+                      out.width = '70%')
+
+set.seed(1)
+
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+
+theme_set(theme_light(base_size = 15))
+```
+
+:::lo
+
+1. Be able to interpret type I and type II errors in hypothesis tests.
+1. Recognising the significance level as measuring the tolerable chance of committing a type I error.
+1. Understand that statistical significance is not always the same as practical
+significance.
+1. Recognise that larger sample sizes make it easier to achieve statistical significance if the alternative hypothesis is true.
+
+:::
+
+
+# Research question and data
+
+
+> Has the average body temperature for healthy humans changed from the long-thought 37 °C?
+
+
+In today's lab we will investigate the average body temperature for healthy humans.
+You might probably be thinking that the average is about 37 °C, and this is what most people would answer as this has been taken as granted for many years.
+However, could it be possible that the average body temperature for healthy humans has changed over time? Perhaps this could be due to the climate change?
+
+We will use data^[Shoemaker, A. L. (1996). _What’s Normal: Temperature, Gender and Heartrate. Journal of Statistics Education, 4_(2), 4.] comprising measurements on body temperature and pulse rate for a sample of $n = 50$ healthy subjects. The data are stored at the following address: https://uoepsy.github.io/data/BodyTemp.csv
+
+Using the concepts from hypothesis testing that we learned in the previous weeks, the research question means:
+_do the sample data provide significant evidence (at the 5% level) that the average body temperature is really different from the long-thought 37 °C?_
+
+This can be translated into null and alternative hypotheses:
+$$
+H_0 : \mu = 37 °C \\
+H_1 : \mu \neq 37 °C
+$$
+
+First, we read the data into R:
+```{r}
+library(tidyverse)
+bodytmp <- read_csv('https://uoepsy.github.io/data/BodyTemp.csv')
+dim(bodytmp)
+head(bodytmp)
+```
+
+We have measurements of the body temperature (in Celsius) and pulse rate for a sample of 50 healthy individuals.
+
+The average body temperature in the sample is:
+```{r}
+xbar_obs <- mean(bodytmp$BodyTemp)
+xbar_obs
+```
+$$
+\bar{x}_{obs} = `r round(xbar_obs, 2)` °C
+$$
+
+# Hypothesis test
+
+Let's construct the null distribution. We do this by computing the sample mean for many samples (10,000 say) each of size $n = 50$, sampled with replacement from a shifted version of the original body temperature data so that they have a mean of 37 (the value specified in the null hypothesis):
+
+```{r}
+bodytmp <- bodytmp %>%
+    mutate(BodyTemp_shifted = BodyTemp - mean(BodyTemp) + 37)
+```
+
+Next, we load the `rep_sample_n()` function:
+```{r}
+source("https://uoepsy.github.io/files/rep_sample_n.R")
+```
+
+Set the seed, for reproducibility, you can use any other seed but you'll get slightly different results:
+```{r}
+set.seed(1)
+```
+
+Compute the null distribution:
+```{r}
+null_dist <- bodytmp %>%
+    rep_sample_n(n = 50, samples = 10000, replace = TRUE) %>%
+    group_by(sample) %>%
+    summarise(xbar = mean(BodyTemp_shifted))
+```
+
+We can plot the null distribution an locate the observed mean body temperature in the null distribution:
+```{r}
+ggplot(null_dist, aes(x = xbar)) +
+    geom_histogram(color = 'white', binwidth = 0.01) +
+    geom_vline(xintercept = xbar_obs, color = 'darkolivegreen4') +
+    labs(x = "Sample means (when H0 true)")
+```
+
+The p-value is the proportion of sample means in the null distribution that are as extreme as, or more extreme than, the observed mean.
+
+"Extreme" is interpreted as **in the direction specified by the alternative hypothesis**. In this case, we evidence against a population mean of 37 °C either when the sample mean is "too large" or "too small" than the hypothesised 37 °C.
+
+In this case, we have an observed mean of `r round(xbar_obs, 2)`, which is smaller than the hypothesised 37 °C. To compute the p-value we find the proportion to its left, and multiply it by two. 
+This accounts for extreme values in both tails, and is then compared to the 5% threshold (which also covers both tails). 
+
+```{r}
+pvalue <- 2 * sum(null_dist$xbar <= xbar_obs) / 10000
+pvalue
+```
+
+
+:::yellow
+In a two-sided hypothesis test, we double the proportion in one tail as we compare the p-value with $\alpha$, which specifies "extreme statistics" in both tails.
+
+If you don't double the proportion in one tail, you need to compare it with half $\alpha$!
+
+Is:
+$$
+2 * \text{proportion to the left of 36.81} \leq \alpha \ ? \\
+\text{proportion to the left of 36.81} \leq \frac{\alpha}{2} \ ?
+$$
+:::
+
+The probability of observing a sample mean body temperature as extreme as, or more extreme than `r round(xbar_obs, 2)`, when the population mean body temperature is in fact 37 °C, is $p < .001$.
+The sample results provide very strong evidence that the population mean body temperature for healthy individuals is 36.8 °C.
+
+<br>
+
+The same conclusion would have been reached by comparing the observed sample mean with the two critical values.
+In the figure below you can see on the observed sample mean (vertical solid green line), and the lower and upper critical values (vertical red lines) corresponding to an $\alpha = 0.05$.
+
+The observed mean is smaller than the lower critical value, i.e. it falls in the rejection region. For this reason, we have evidence against the null hypothesis.
+```{r echo=FALSE}
+CV <- quantile(null_dist$xbar, c(0.025, 0.975))
+
+ggplot(null_dist, aes(x = xbar)) +
+    geom_histogram(color = 'white', binwidth = 0.01, boundary = CV[1],
+                   aes(fill = ..x.. >= CV[2] |
+                           ..x.. <= CV[1]), size = 0.05) +
+    geom_vline(xintercept = CV, color = 'red', linetype = 1) +
+    annotate(geom = 'text', x = CV, y = 400, 
+             label = 'critical \n value', size = 6,
+             hjust = -0.1, color = 'red', linetype = 1) +
+    geom_vline(xintercept = xbar_obs, color = 'darkolivegreen4') +
+    annotate(geom = 'text', x = xbar_obs, y = 200, 
+             label = 'observed \n value', size = 6,
+             hjust = -0.1, color = 'darkolivegreen4', linetype = 1) +
+    labs(x = "Sample means (when H0 true)") +
+    scale_fill_manual(values = c('lightgray', alpha('red',0.5))) +
+    theme(legend.position = 'none')
+
+```
+
+
+
+:::yellow
+**Statistical significance vs practical significance**
+
+As you can see, the results are statistically significant at the 5% significance level, as the p-value is smaller than $\alpha = 0.05$.
+
+In turn, this means we have very strong evidence that the population mean body temperature for healthy individuals in reality is 36.8 °C rather than 37 °C.
+
+However, is that a difference of practical concern? If you said no, I shall agree.
+It won't make much of a difference to decision makers whether it's 36.8 °C or 37 °C.
+
+The lesson is that: while some small differences may be important and large samples can help reveal the true effects, we should not make the mistake of automatically assuming that anything that is statistically significant is practically significant.
+
+Also, remember that by increasing the sample size, you make it easier to reject the null hypothesis as the null distribution is less variable!
+:::
+
+
+# Confidence interval
+
+We have now found a significant result, meaning that there is strong evidence that the population mean body temperature for healthy individuals is not 37 °C.
+
+It is good practice to follow up a significant hypothesis test with a confidence interval.
+
+`r qbegin(1)`
+Using the formula $$\text{Statistic} \pm 1.96 * SE$$ provide a 95% confidence interval for the population mean body temperature.
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+upperci <- xbar_obs + 1.96 * sd(null_dist$xbar)
+upperci
+
+lowerci <- xbar_obs - 1.96 * sd(null_dist$xbar)
+lowerci
+```
+
+We are 95% confident that the population mean body temperature is between `r round(lowerci, 2)` °C and `r round(upperci, 2)` °C.
+`r solend()`
+
+
+`r qbegin(2)`
+Imagine you didn't perform a hypothesis test and immediately calculated the confidence interval. Does the 95% confidence interval lead to the same conclusion of the two-sided hypothesis test?
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+Yes, the 95% confidence interval does not list the value 37 °C among the plausible values for the population mean body temperature for healthy individuals.
+
+Hence, we would still reject the null hypothesis.
+`r solend()`
+
+
+<!-- # Errors and power -->
+
+<!-- ## A. One-sided alternative -->
+
+<!-- - Shared red area = P(type I error) -->
+<!-- - Shared blue area = P(type II error) -->
+<!-- - Shared green area = power = P(rejecting the null when it is false) -->
+
+<!-- ```{r echo=FALSE, out.width = '95%'} -->
+<!-- knitr::include_graphics('images/hyp_test/power-one-sided.png') -->
+<!-- knitr::include_graphics('images/hyp_test/power-one-sided-2.png') -->
+<!-- ``` -->
+
+
+<!-- ## B. Two-sided alternative -->
+
+<!-- - Shared red area = P(type I error) -->
+<!-- - Shared blue area = P(type II error) -->
+<!-- - Shared green area = power = P(rejecting the null when it is false -->
+
+<!-- ```{r echo=FALSE, out.width = '95%'} -->
+<!-- knitr::include_graphics('images/hyp_test/power-two-sided.png') -->
+<!-- knitr::include_graphics('images/hyp_test/power-two-sided-2.png') -->
+<!-- ``` -->
+
+<!-- ## Exercises -->
+
+`r qbegin(3)`
+What is the definition of a type I error?
+
+What is the probability of a type I error in the body temperature example?
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+A type I error occurs when we reject a true null hypothesis.
+
+The probability of a type I error is the significance level, $\alpha$, in this case 0.05.
+In other words, the significance level represents the tolerable probability of committing a type I error.
+`r solend()`
+
+<br>
+
+To compute type II errors and power, I need to tell you the distribution under the alternative hypothesis. 
+
+Assume that, when $H_1$ is true, the distribution of body temperatures is centred at 36.8 (i.e. it has mean 36.8), with the same standard error as the null distribution.
+
+You can think of it as a shifted version of the null distribution:
+```{r}
+alt_dist <- null_dist %>%
+    mutate(xbar = xbar - mean(xbar) + 36.8)
+
+mean(alt_dist$xbar)
+```
+
+Then, you also need the critical values, to compute the probability of correctly rejecting a false null hypothesis:
+```{r}
+crit_vals <- quantile(null_dist$xbar, c(0.025, 0.975))
+crit_vals
+```
+
+We reject the null when the observed mean body temperature is smaller than the lower critical value (`r round(crit_vals[1], 2)`) or larger than the upper critical value (`r round(crit_vals[2], 2)`).
+
+```{r echo=FALSE}
+ggplot() +
+    geom_histogram(
+        data = null_dist, 
+        aes(x = xbar, 
+            fill = ifelse(..x.. <= crit_vals[1] | ..x.. >= crit_vals[2], 
+                          '1', '2')), 
+        color = 'darkgray', alpha = 0.5,
+        boundary = crit_vals[1]) +
+    geom_histogram(
+        data = alt_dist, 
+        aes(x = xbar,
+            fill = ifelse(..x.. <= crit_vals[1], '3', '4')), 
+        color = 'darkgray', alpha = 0.5,
+        boundary = crit_vals[1]) +
+    geom_vline(xintercept = crit_vals, color = 'red', linetype = 1) +
+    scale_fill_manual(
+        values = c('red', NA , 'darkolivegreen3', 'dodgerblue')
+    ) +
+    annotate(geom = 'label', x = 36.8, y = 800, label = 'H1',
+             color = 'darkolivegreen4', size = 6, fontface = 'bold') +
+    annotate(geom = 'label', x = 37, y = 800, label = 'H0',
+             color = 'darkgray', size = 6, fontface = 'bold') +
+    theme(legend.position = 'none') +
+    labs(x = "Sample means")
+```
+
+
+`r qbegin(4)`
+What is the definition of a type II error?
+
+What is the probability of a type II error in the body temperature example?
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+A type II error occurs when we fail to reject a false null hypothesis.
+
+The probability of a type II error, denoted $\beta$, is the "blue" shaded area, and can be computed as the proportion of means in the alternative distribution which are larger than the lower critical value:
+
+```{r}
+sum(alt_dist$xbar >= crit_vals[1]) / nrow(alt_dist)
+```
+
+`r solend()`
+
+
+
+`r qbegin(5)`
+What is the definition of power?
+
+What is the power in the body temperature example?
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+The power is the probability that the test correctly rejects a false null hypothesis. In other words, it's the probability that the test finds an effect when it really exists.
+
+The power of the body temperature test, which we denote $1 - \beta$, is the "green" shaded area, and can be computed as the proportion of means in the alternative distribution which are smaller than the lower critical value:
+
+```{r}
+sum(alt_dist$xbar <= crit_vals[1]) / nrow(alt_dist)
+```
+`r solend()`
+
+
+`r qbegin(6)`
+What is the "effect size" for the body temperature example?
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+We are told that when $H_1$ is true, the distribution of body temperatures is centred at 36.8 (i.e. it has mean 36.8).
+
+The effect size is the absolute value of the difference in the centres of the null and alternative distributions:
+```{r}
+eff <- abs(36.8 - 37)
+eff
+```
+
+The effect size is `r round(eff, 2)`.
+
+`r solend()`
+
+
+
+<!-- Formatting -->
+
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;"></div>
+

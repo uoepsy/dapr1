@@ -1,0 +1,192 @@
+---
+title: "Collecting data"
+params: 
+    SHOW_SOLS: TRUE
+    TOGGLE: FALSE
+---
+
+```{r setup, include=FALSE}
+source('assets/setup.R')
+```
+
+```{r include=FALSE}
+set.seed(3)
+
+knitr::opts_chunk$set(out.width = '70%',
+                      fig.align = 'center')
+```
+
+# Collecting data
+
+Statistics is the science of collecting, describing, and analysing data.
+
+- Describing/summarising data was the topic of the first five weeks of the course;
+- Collecting data will be discusses today;
+- Analysing data will be the topic of next semester.
+
+We obtain information about _cases_ or _units_, and for each we record the value of some characteristics of interest. Such characteristics we measure are called _variables_.
+
+Cases or units correspond to rows in a dataset, while variables corresponds to columns in a dataset.
+Units might be individuals, countries, animals, manufactured items. Variables could be age, population size, dietary group, price.
+
+Variables are classified according to the type of values they store. A categorical variable defines group membership and hence classifies cases into groups. Numeric variables, instead, include measurements and counts. 
+It might happen that a categorical variable might be encoded by numbers, but typically there is a legend specifying what each group each number encodes. An easy way to distinguish between categorical and numeric variables is to ask yourself, would taking an average make sense? If yes, it is numeric.
+
+In the first five weeks of your course you have used rich datasets containing lots of information and used that information to extract insights.
+
+Often, however, we face the opposite situation. We have a research question of interest and we need to collect data in order to answer that question.
+While most people think that statistics is only about analysing data, this is not true. Most of statistics is about analysing data, but a critical part of it is also thinking about how to collect data. If data are collected well, you can gain powerful insights and discoveries. However, poorly collected data will lead to misleading results.
+
+## Population vs sample
+
+Usually it is not feasible to collect data on an entire _population_ of interest.
+In most cases, we can only work with a _sample_ of units from what might be a very large population.
+
+The goal of statistical inference is to use the data in the sample to reach conclusions about the unobserved population.
+
+
+## Avoiding bias
+
+
+Sampling bias occurs when the methods used to select a which units enter the sample causes the sample to not be a good representation of the population.
+
+If sampling bias exists, we cannot generalise our sample conclusions to the population.
+
+## Simple random sample
+
+To be able to draw conclusions about the population, we need a representative sample. The key in choosing a representative sample is _random sampling_. 
+Imagine an urn with tickets, where each ticket has the name of each population unit. Random sampling would involve mixing the urn and blindly drawing out some tickets from the urn.
+Random sampling is a strategy to avoid sampling bias.
+
+:::yellow
+__Simple random sampling__
+
+When we select the units entering the sample via simple random sampling, each unit in the population has an equal chance of being selected, meaning that we avoid sampling bias.
+
+When instead some units have a higher chance of entering the same, we have misrepresentation of the population and sampling bias.
+:::
+
+Sampling bias is not the only possible source of bias in statistical conclusions. In general, we have _bias_ when the method of collecting data causes the data to inaccurately reflect the population.
+
+
+`r qbegin()`
+**Average montly salary in Sweden**
+
+Suppose you are interested in the average monthly salary of people working in Sweden. Unfortunately, you neither have the time nor the money to go to Sweden and ask each single person their own salary.
+Hence, you decide to ask some people at random.
+
+What are the problems of the following sample selection criteria?
+
+1. Asking 500 random people from Facebook that live in Sweden.
+2. Asking 1000 random people from the web that live in Sweden.
+3. Calling 200 phone numbers from the phone book.
+4. Asking 500 people working near the central bank of Sweden.
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+All four criteria lead to samples that are not representative of the entire population. 
+This is because the population units will not have the same probability of being included in the sample: some people will have a higher chance of being included in the sample than others. This leads to **sampling bias**. 
+Because of this, any conclusion we might make from the sample is not generalisable to the whole population.
+
+1. People that do not have Facebook are not considered in the sample.
+2. People that do not use the Internet are not represented.
+3. People without a landline phone are not included.
+4. People working in this area will very likely have higher salaries than the rest of the country. This sample does not represent fairly people working in farming or other sectors.
+`r solend()`
+
+
+## Explanatory vs response variables
+
+If you are using one variable to help you understand the behaviour of another variable or predict the values of another variable, we call the former **explanatory variable** and the latter **response variable**.
+
+Suppose your research question involves how income depends on years of formal education.
+Because we are interested in how years of formal education affect changes in income, years of formal education is the explanatory variable, while income is the response variable.
+
+
+
+## Association vs causation
+
+:::yellow
+**Association**
+
+Two variables are _associated_ if values of one variable tend to be related with values of the other variable.
+:::
+
+For example, two variables are _positively associated_ if higher values of one variable tend to occur with higher values of the other, for example more salt goes with more accidents.
+Two variables are _negatively associated_ if higher values of one variable tend to occur with lower values of the other, for example lower temperatures tend to correspond to higher heating costs.
+
+
+```{r echo=FALSE, fig.width = 8, fig.height = 4, out.width = '90%', fig.cap = 'Positive vs negative association.'}
+set.seed(1)
+
+library(tidyverse)
+library(patchwork)
+
+all_theme <- 
+  theme_classic() + 
+  theme(panel.grid = element_blank(),
+        plot.title = element_text(hjust = 0.5, face = 'bold'))
+
+r <- 80
+la <- mvtnorm::rmvnorm(100, mean = c(30, 30), sigma = matrix(c(100, r, r, 100), 2, 2, byrow=TRUE))
+la <- as_tibble(la)
+names(la) = c('x', 'y')
+pa <- ggplot(la, aes(x, y)) +
+  geom_point() + 
+  all_theme +
+  labs(x = 'Salt intake (mg)', y = 'Perc. Accidents',
+       title = '(a) Positively associated variables')
+
+r <- -20
+lb <- mvtnorm::rmvnorm(100, mean = c(20, 40), sigma = matrix(c(30, r, r, 30), 2, 2, byrow=TRUE))
+lb <- as_tibble(lb)
+names(lb) = c('x', 'y')
+pb <- ggplot(lb, aes(x, y)) +
+  geom_point() + 
+  all_theme +
+  labs(x = 'Temperature (Celsius)', y = 'Heating cost (Pounds)',
+       title = '(b) Negatively associated variables')
+
+pa | pb
+```
+
+:::yellow
+__Causation__
+
+Two variables are causally associated if changing the value of one variable influences the value of the other.
+:::
+
+The distinction between association and causation might be difficult to grasp at first, but it is a very important one. In a causal relationship, manipulating one of the variables tends to cause a change in the other. Example: if I put more pressure on the gas pedal, a car goes faster.
+In a non-causal association, changing one of the variables will not lead to a predictable change in the other.
+
+A study by @Messerli2012 reports a correlation between a country's per capita chocolate consumption and the number of Nobel prizes awarded to its citizens (per capita). This is summarised in Figure \@ref(fig:messerli), showing that we typically observe higher values of Nobel laureates with higher values of chocolate consumption.
+Hence, chocolate consumption per capita is positively associated with the number of Nobel laureates in a country. However, if a country forced its citizens to eat more chocolate, this won't increase the number of Nobel prize winners of that country. Hence, it is not a causal relationship.
+Clearly, reporting that "eating chocolate produces Nobel prize winners", or that "geniuses are more likely to eat lots of chocolate" is wrong as these are causal statements.
+
+```{r messerli, echo=FALSE, fig.cap = "Correlation between Countries' Annual Per Capita Chocolate Consumption and the Number of Nobel Laureates per 10 Million Population. Figure source: Messerli (2012)", out.width = '50%'}
+knitr::include_graphics('images/prob/nobel.png')
+```
+
+ 
+This relationship has another explanation, which is due to other variables such as the economic strength of a country. The stronger the country is economically, perhaps the more the resources allocated to education, hence possibly leading to a higher number of Nobel laureates.
+Therefore, we have the famous statement "correlation does not imply causation".
+A variable like _Economic strength of the country_ is known as a _confounding variable_. This variables is associated to both _Chocolate consumption_ and _Nobel laureates_ and can offer a plausible explanation for an association between two variables.
+
+
+
+
+## Observational studies vs experiments
+
+It is not only the way in which we select the sample units affecting the conclusions we can make from our data. Our scope of conclusions is also affected by the type of _study_ that our data refer to.
+
+A study in which the researcher merely observes what happens and records the values without intervening in any way, is called an _observational study_.
+
+A study in which the researcher manipulates one or more of the explanatory variables is called an _experiment_.
+
+If we record the blood pressure, age, and job of a sample of people, we are performing an observational study.
+If, for a sample of people, we record their age and job and assign at random people to one of either, drug A, drug B, or placebo, and then measure their blood pressure, we are performing an experiment.
+
+In a __randomized experiment__ the value of the explanatory variable for each unit is determined randomly, before the response variable is measured.
+
+If a randomized experiment suggests an association between the two variables, we can establish a causal relationship from the explanatory to the response variable.
+
+On the other hand, from an observational study we can almost never establish causal relationships due to the presence of confounding variables which are very difficult to avoid.
