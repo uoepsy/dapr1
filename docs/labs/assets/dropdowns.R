@@ -6,8 +6,8 @@ qbegin<-function(label=NULL,qlabel=TRUE){
     if(qlabel){qlab = "Question "}else{qlab = ""}
     if (knitr::is_html_output()) {
         id <- generate_idq2()
-        part1 <- paste0("<div class='question-begin'>",qlab,label,"</div>",
-                        "<div class='question-body'>")
+        part1 <- paste0("<div class=\'question-begin\'>",qlab,label,"</div>",
+                        "<div class=\'question-body\'>")
         output <- structure(part1, format = "HTML", class = "knitr_kable")
     }
     if(knitr::is_latex_output()){
@@ -20,8 +20,7 @@ qbegin<-function(label=NULL,qlabel=TRUE){
 
 qend<-function(){
     if (knitr::is_html_output()) {
-        part2 <- paste0("<p class=\"question-end\">",
-                        "</p>", "</div>")
+        part2 <- paste0("</div><p class=\"question-end\"></p>")
         output <- structure(part2, format = "HTML", class = "knitr_kable")
     }
     if(knitr::is_latex_output()){
@@ -32,15 +31,18 @@ qend<-function(){
 }
 
 solbegin<-function(label=NULL,slabel=TRUE,show=TRUE,toggle=TRUE){
-    if(!is.null(label)){label = as.character(label)}
     if(slabel){slab = "Solution "}else{slab = ""}
+    if(!is.null(label)){
+        label = as.character(label)
+        slab = paste0(slab, label)
+    }
     if(show){
         if (knitr::is_html_output()) {
             id <- generate_id2()
             id1 <- paste0("sol-start-", id)
             id2 <- paste0("sol-body-", id)
-            part1 <- paste0("<div class=\"solution-begin\">",slab,label,
-                            ifelse(toggle, sprintf("<span id='%s' class=\"fa fa-plus solution-icon clickable\" onclick=\"toggle_visibility('%s', '%s')\"></span>",id1, id2, id1),""),
+            part1 <- paste0("<div class=\"solution-begin\">",
+                            ifelse(toggle, sprintf("<span id='%s' class=\"fa fa-chevron-circle-right solution-icon clickable\" onclick=\"toggle_visibility('%s', '%s')\">  %s</span>",id1, id2, id1, slab),""),
                             "</div>",
                             ifelse(toggle, paste0("<div class=\"solution-body\" id = \"",id2, "\" style=\"display: none;\">"), "<div class=\"solution-body\">")
             )
@@ -108,15 +110,18 @@ generate_idq2 <- function() {
 # Optional
 
 optbegin<-function(label=NULL,olabel=TRUE,show=TRUE, toggle=TRUE){
-    if(!is.null(label)){label = as.character(label)}
     if(olabel){olab = "Optional "}else{olab = ""}
+    if(!is.null(label)){
+        label = as.character(label)
+        olab = paste0(olab, label)
+    }
     if(show){
         if (knitr::is_html_output()) {
             id <- generate_id2()
             id1 <- paste0("opt-start-", id)
             id2 <- paste0("opt-body-", id)
-            part1 <- paste0("<div class=\"optional-begin\">",olab,label,
-                            ifelse(toggle, sprintf("<span id='%s' class=\"fa fa-plus optional-icon clickable\" onclick=\"toggle_visibility('%s', '%s')\"></span>",id1, id2, id1),""),
+            part1 <- paste0("<div class=\"optional-begin\">",
+                            ifelse(toggle, sprintf("<span id='%s' class=\"fa fa-chevron-circle-right optional-icon clickable\" onclick=\"toggle_visibility('%s', '%s')\">  %s</span>",id1, id2, id1, olab),""),
                             "</div>",
                             ifelse(toggle, paste0("<div class=\"optional-body\" id = \"",id2, "\" style=\"display: none;\">"), "<div class=\"optional-body\">")
             )
