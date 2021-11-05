@@ -17,6 +17,18 @@ knitr::opts_chunk$set(out.width = '70%',
 ```
 
 
+:::green
+__Information about solutions__
+
+Solutions for these exercises are available immediately below each question.  
+We would like to emphasise that much evidence suggests that testing enhances learning, and we __strongly__ encourage you to make a concerted attempt at answering each question *before* looking at the solutions. Immediately looking at the solutions and then copying the code into your work will lead to poorer learning.  
+We would also like to note that there are always many different ways to achieve the same thing in R, and the solutions provided are simply _one_ approach.  
+
+Be sure to check the [**solutions to last week's exercises**](1_07_probability_basics.html).  
+You can still ask any questions about previous weeks' materials if things aren't clear!
+:::
+
+
 :::lo
 **LEARNING OBJECTIVES**
 
@@ -249,7 +261,7 @@ df %>%
   kable_styling(full_width = FALSE)
 ```
 
-You already encountered contingency tables when studying the relationship between two categorical variables in [week 4](https://uoepsy.github.io/dapr1/labs/04_relationships.html#categorical-and-categorical).
+You already encountered contingency tables when studying the relationship between two categorical variables in [week 4](1_04_relationships.html#categorical-and-categorical).
 
 If you divide the frequency table by the total number of passengers, 1316, you obtain a table of relative frequencies.
 It is just a small step from these relative frequencies to probabilities. 
@@ -295,7 +307,7 @@ P(B | A) = \frac{P(A \cap B)}{P(A)}
 $$
 Intuitively, we need to divide the formula by $P(A)$ to make sure that $P(A|A) = 1$. 
 
-The formula wouldn't work if $P(A) = 0$, but this makes sense as $A$ we couldn't be told that $A$ occurred if it was an impossible event!
+The formula wouldn't work if $P(A) = 0$, but this makes sense as we couldn't be told that $A$ occurred if it was an impossible event!
 
 
 :::yellow
@@ -306,9 +318,12 @@ The conditional probability $P(\text{some event} | A)$ satisfies the standard ru
 
 To see this, remember that $P(S) = 1$ and we can then rewrite
 
-$$P(A) = \frac{P(A)}{1} = \frac{P(A)}{P(S)} = P(A | S)$$
+$$P(A) = \frac{P(A)}{1} = \frac{P(A)}{P(S)} = \frac{P(A \cap S)}{P(S)} = P(A | S)$$
 
-The rule $P(A) + P({} \sim A) = 1$ can be written as $P(A | S) + P({} \sim A | S) = 1$. In general, according to the complement rule, $P({}\sim B|A) = 1 - P(B|A)$. 
+The rule $P(A) + P({} \sim A) = 1$ can be written as $P(A | S) + P({} \sim A | S) = 1$.
+
+**Complement rule for conditional probabilities**  
+In general, according to the complement rule, $P({}\sim B|A) = 1 - P(B|A)$. 
 
 :::
 
@@ -381,8 +396,7 @@ P(A \cap B) &= P(A) P(B)
 $$
 
 
-
-**In pictures:**
+`r optbegin("In pictures: Independence vs Dependence", olabel = FALSE, show = params$SHOW_SOLS, toggle = params$TOGGLE)`
 
 Independence happens when the probability of "Survived = Yes" is the same regardless of whether the passenger was in 1st, 2nd, or 3rd class.
 
@@ -419,7 +433,9 @@ tbl = tibble(
 eikos(Survived ~ Class, data = tbl, main = 'Perfect dependence')
 ```
 
+`r optend()`
 
+<br>
 
 Note that, for independent events $A$ and $B$ such that $P(B | A) = P(B)$, the general multiplication rule reduces to the multiplication rule for independent events:
 $$
@@ -527,21 +543,13 @@ head(tipjoke)
 ```
 
 Both variables represent categorical variables and so should be encoded
-as factors (`<fct>`).
-
-```{r}
-tipjoke$Card <- as.factor(tipjoke$Card)
-tipjoke$Tip  <- as.factor(tipjoke$Tip)
-
-head(tipjoke)
-```
-
-Recode the levels of the Tip variable:
+as factors (`<fct>`). Furthermore, we could give better names to the Tip column. The function `factor` lets you specify the values of a variable, and the labels those values should be mapped to when creating a factor variable: 
 
 ```{r}
 tipjoke <- tipjoke %>%
   mutate(
-    Tip = fct_recode(Tip, 'Tipped' = '1', 'Not tipped' = '0')
+    Card = factor(Card),
+    Tip = factor(Tip, levels = c(0, 1), labels = c('Not tipped', 'Tipped'))
   )
 
 head(tipjoke)
@@ -728,21 +736,32 @@ $$
 Suppose two people who have COVID-19 each take Abbott Labs' 15-minute test. Calculate the probability that _both_ receive a negative test result (suggesting they do not have the disease). 
 Show your work using proper notation.
 
-**Hint:** 
+**Hints:** 
 
-- Define the events $T_1^- = \text{individual 1 tests negative}$, $T_2^- = \text{individual 2 tests negative}$, $C_1^+ = \text{individual 1 has COVID-19}$, and $C_2^+ = \text{individual 2 has COVID-19}$.
+Define the events: 
+
+- $T_1^- = \text{individual 1 tests negative}$
+- $T_2^- = \text{individual 2 tests negative}$
+- $C_1^+ = \text{individual 1 has COVID-19}$
+- $C_2^+ = \text{individual 2 has COVID-19}$.
+
+The following simplifications can be made:
 
 - $P(T_1^- \mid C_1^+ \cap C_2^+) = P(T_1^- \mid C_1^+)$ as the result of the test is independent of the fact that individual 2 has COVID-19.
-
 - $P(T_2^- \mid C_1^+ \cap C_2^+) = P(T_2^- \mid C_2^+)$ as the result of the test is independent of the fact that individual 1 has COVID-19.
 
-- Use the two facts above to calculate $P(T_1^- \cap T_2^- \mid C_1^+ \cap C_2^+)$
+Use the two facts above to calculate $P(T_1^- \cap T_2^- \mid C_1^+ \cap C_2^+)$.
 
 `r qend()`
 
 `r solbegin(show = params$SHOW_SOLS, toggle = params$TOGGLE)`
 
-Let $T_1^- = \text{individual 1 tests negative}$, $T_2^- = \text{individual 2 tests negative}$, $C_1^+ = \text{individual 1 has COVID-19}$, and $C_2^+ = \text{individual 2 has COVID-19}$.
+Let:
+
+- $T_1^- = \text{individual 1 tests negative}$
+- $T_2^- = \text{individual 2 tests negative}$
+- $C_1^+ = \text{individual 1 has COVID-19}$
+- $C_2^+ = \text{individual 2 has COVID-19}$.
 
 We already found in question 5 that $P(T^- | C^+) = 0.029$. 
 
@@ -789,49 +808,21 @@ $$
 `r solend()`
 
 
-<!--# 9 -->
 `r qbegin(9)`
-
-Finally, suppose that 25 people who *do not have* COVID-19 each take Abbott Labs' 15-minute test. Calculate the probability that *at least one* receives a positive test result. Show your work using proper notation.
-
-**Hint:** Use the complement rule.
-
-`r qend()`
-
-`r solbegin(show = params$SHOW_SOLS, toggle = params$TOGGLE)`
-
-Let $T_i^- = \text{individual i tests negative}$ and $C_i^- = \text{individual i does not have COVID-19}$.
-
-The probability that at least one individual receives a positive test result is equal to 1 minus the probability that all individuals receive a negative result:
-
-$$
-\begin{aligned}
-1 - \left( \underbrace{P(T^-_i \mid C_i^-) \times P(T^-_i \mid C_i^-) \times \cdots \times P(T^-_i \mid C_i^-)}_{25 \text{ times}} \right) 
-&= 1 - 0.985^{25} \\
-&= 0.3146605 \\
-&\approx 31.5 \%
-\end{aligned}
-$$
-
-`r solend()`
-
-
-<!-- # 10 -->
-`r qbegin(10)`
 **Prevalence.**
 One issue with screening tests is that probabilities like sensitivity and specificity are _conditional probabilities._ That is, these probabilities are _dependent_ upon a certain prior event (actually having COVID-19 or not). Infectious disease specialists call the probability of this prior event (actually having the disease) the _prevalence._ For example, if 10\% of the population has COVID-19, we would say the prevalence is 10\%.
 
-Suppose 3\% of the population of Scotland currently has COVID-19. 
+a. Suppose 3\% of the population of Scotland currently has COVID-19. What is the probability that a randomly selected person (from Scotland) has the disease _and_ tests positive? 
 
-a. What is the probability that a randomly selected person (from Scotland) has the disease _and_ tests positive? 
+b. Suppose instead that 30\% of the population of Scotland currently has COVID-19. What is the probability that a randomly selected person (from Scotland) has the disease _and_ tests positive? 
 
-a. What is the probability that a randomly selected person (from Scotland) does not have the disease _and_ tests positive? 
+c. Based on those numbers, what can you say about the probability of observing a true positive in the population?
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-The question tells us that $P(C^+) = 0.03$.
+a. The question tells us that $P(C^+) = 0.03$.
 
-a. $$
+$$
 \begin{aligned}
 P(C^+ \cap T^+) &= P(C^+) P(T^+ | C^+) \\
 &= 0.03 \times 0.971 \\
@@ -840,56 +831,20 @@ P(C^+ \cap T^+) &= P(C^+) P(T^+ | C^+) \\
 \end{aligned}
 $$
 
-a. $$
-\begin{aligned}
-P(C^- \cap T^+) &= P(C^-) P(T^+ | C^-) \\
-&= (1 - P(C^+)) \times (1 - P(T^- | C^-)) \\
-&= (1 - 0.03) \times (1 - 0.985) \\
-&= 0.01455 \\
-&\approx 1.46 \%
-\end{aligned}
+b. The question tells us that $P(C^+) = 0.3$.
+
 $$
-
-`r solend()`
-
-
-<!-- # 11 -->
-`r qbegin(11)`
-Suppose instead that 30\% of the population of Scotland currently has COVID-19. 
-
-a. What is the probability that a randomly selected person (from Scotland) has the disease _and_ tests positive? 
-
-a. What is the probability that a randomly selected person (from Scotland) does not have the disease _and_ tests positive? 
-
-`r qend()`
-`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-
-The question tells us that $P(C^+) = 0.3$.
-
-a. $$
 \begin{aligned}
 P(C^+ \cap T^+) &= P(C^+) P(T^+ | C^+) \\
 &= 0.3 \times 0.971 \\
 &= 0.2913 \\
-&\approx 29.1 \%
+&\approx 29 \%
 \end{aligned}
 $$
 
-a. $$
-\begin{aligned}
-P(C^- \cap T^+) &= P(C^-) P(T^+ | C^-) \\
-&= (1 - P(C^+)) \times (1 - P(T^- | C^-)) \\
-&= (1 - 0.3) \times (1 - 0.985) \\
-&= 0.0105 \\
-&\approx 1.05 \%
-\end{aligned}
-$$
-
-If you compare your answers to question 10 (a) and question 11 (a) you can see that, for a test with a given accuracy, the number of true positives reported depends on how prevalent the disease is in the population, i.e. how many people have COVID-19 in the population.
+c. If you compare your answers to (a) and (b) you can see that, for a test with a given accuracy, the probability of observing a true positive depends on how prevalent the disease is in the population, i.e. how many people have COVID-19 in the population.
 
 `r solend()`
-
-
 
 
 <!-- Formatting -->
