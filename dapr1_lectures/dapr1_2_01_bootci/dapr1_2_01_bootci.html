@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>The Bootstrap and Confidence Intervals</title>
+    <title>Confidence Intervals</title>
     <meta charset="utf-8" />
     <meta name="author" content="Dr Umberto Noè" />
     <script src="jk_libs/libs/header-attrs/header-attrs.js"></script>
+    <link href="jk_libs/libs/panelset/panelset.css" rel="stylesheet" />
+    <script src="jk_libs/libs/panelset/panelset.js"></script>
     <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
     <link rel="stylesheet" href="jk_libs/tweaks.css" type="text/css" />
   </head>
@@ -12,7 +14,7 @@
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
-# <b>The Bootstrap and Confidence Intervals</b>
+# <b>Confidence Intervals</b>
 ## <small>Data Analysis for Psychology in R 1<br>Semester 2, Week 1</small>
 ### <b>Dr Umberto Noè</b>
 ### Department of Psychology<br/>The University of Edinburgh
@@ -28,36 +30,172 @@ class: center, middle, inverse, title-slide
 
 
 
+
+
 # Learning objectives
 
-1. Understand how bootstrapping can be used to approximate a sampling distribution. 
+1. Understand the importance of a confidence interval.
 
-1. Understand how the bootstrap distribution can be used to construct a range of highly plausible values (a confidence interval).  
+1. Understand the link between standard errors and confidence intervals.
 
-1. Understand the link between simulation-based standard errors and theory-based standard errors. 
+1. Understand how to construct a confidence interval for an unknown parameter of interest.
+
 
 
 ---
 class: inverse, center, middle
 
 # Part A
-## Recap of Estimation
+## Recap
+
+
+---
+# Normal distribution
+
+.pull-left[
+- `\(X \sim N(\mu, \sigma)\)`
+
+- Probability to the LEFT of a value `x`:
+
+  ```
+  p &lt;- pnorm(x, mean = mu, sd = sigma)
+  ```
+  
+- Value `x` having a probability of `p` to its LEFT:
+
+  ```
+  x &lt;- qnorm(p, mean = mu, sd = sigma)
+  ```
+  
+Example with `\(N(0,1)\)`:
+
+
+```r
+qnorm(0.975)
+```
+
+```
+## [1] 1.96
+```
+
+```r
+pnorm(1.96)
+```
+
+```
+## [1] 0.975
+```
+]
+
+
+.pull-right[
+&lt;img src="dapr1_2_01_bootci_files/figure-html/unnamed-chunk-2-1.png" width="100%" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+A variable `\(X\)` follows a normal distribution with mean `\(\mu\)` and standard deviation `\(\sigma\)` if its distribution is bell-shaped and symmetric.
+
+
+---
+# Standardisation / z-scoring
+
+- Let `\(X \sim N(\mu, \sigma)\)`
+
+--
+
+- Define:
+$$
+Z = \frac{X - \mu}{\sigma}
+$$
+
+--
+
+- `\(Z \sim N(0,1)\)` is a standardised normal distribution
+
+--
+
+- To transform `\(Z\)` into `\(X\)` we use this transformation:
+$$
+X = \mu + Z \cdot \sigma
+$$
+
+---
+# Normal 68–95–99.7 rule
+
+- Recall that for a random variable `\(X\)` which follows a `\(N(\mu, \sigma)\)` distribution, 95% of the values are between -2 and 2:
+
+&lt;img src="images/normal_rule.png" width="80%" style="display: block; margin: auto;" /&gt;
+
+---
+# Normal 68–95–99.7 rule
+
+- The interval below contains __roughly__ 95% of the values in the distribution:
+$$
+\left[ 
+\mu - 2 \cdot \sigma , \
+\mu + 2 \cdot \sigma
+\right]
+$$
+
+--
+
+- To be more accurate, we need to find the x-values (quantiles) that have 0.025 probability to the left and 0.025 probability to the right, leaving 0.95 probability in the middle.
+
+
+```r
+qnorm(c(0.025, 0.975))  # using a N(0,1) distribution
+```
+
+```
+## [1] -1.96  1.96
+```
+
+--
+
+- The values `\(-1.96\)` and `\(1.96\)` are the quantiles of a standard Normal distribution, cutting a probability of 0.025 in the tails each.
+
+$$
+`\begin{aligned}
+z = -1.96 &amp;\rightarrow x = \mu - 1.96 \cdot \sigma \\
+z = 1.96 &amp;\rightarrow x = \mu + 1.96 \cdot \sigma
+\end{aligned}`
+$$
+
+--
+
+- The correct interval comprising exactly 95% of the values is:
+
+$$
+\left[ 
+\mu - 1.96 \cdot \sigma , \
+\mu + 1.96 \cdot \sigma
+\right]
+$$
+
+
 
 
 ---
 # Using statistics to estimate parameters
 
 - Without loss of generality, in this lecture we will focus on the mean as the numerical summary of data.
-    + Population mean ==&gt; unknown ==&gt; example of a parameter ==&gt; `\(\mu\)`
-    + Sample mean ==&gt; we can compute it ==&gt; example of a statistic ==&gt; `\(\bar x\)`
+
+    + Population mean `\(\rightarrow\)` 
+    unknown `\(\rightarrow\)` 
+    example of a parameter `\(\rightarrow\)` `\(\mu\)`
+    
+    + Sample mean `\(\rightarrow\)` 
+    we can compute it `\(\rightarrow\)` 
+    example of a statistic `\(\rightarrow\)` `\(\bar x\)`
 
 --
 
-- We are typically interested in __estimating an unknown population summary__ (a __parameter__, `\(\mu\)`) using the corresponding __summary computed on a random sample__ (a __statistic__, `\(\bar x\)`).
+- We are typically interested in __estimating an unknown population mean__ (a __parameter__, `\(\mu\)`) using the __mean computed on a random sample__ (a __statistic__, `\(\bar x\)`).
 
 --
 
-- We will also call a statistic the __estimate__.
+- We will also call the sample mean (= statistic) the __estimate__.
 
 --
 
@@ -65,34 +203,53 @@ class: inverse, center, middle
 
 --
 
-- We are interested in __how accurate__ is our statistic `\(\bar{x}\)` as an estimate of the unknown parameter `\(\mu\)`.
-- The sampling distribution of the statistic is used to assess accuracy.
+- The standard deviation of the sampling distribution is called the __standard error__ (SE)
 
+  + SE tells us the size of the typical "estimation error" = `\(\bar x - \mu\)`.
+  
+  + `\(SE = \dfrac{\sigma}{\sqrt{n}}\)`
 
----
-# Sampling distribution
-
-&lt;img src="sampl_dist.png" width="80%" style="display: block; margin: auto;" /&gt;
 
 
 ---
-# Accuracy of a statistic
 
-- We investigate the accuracy of a statistic by looking at its __bias__ and __precision__
+# Key question
 
-&lt;img src="bias_prec.png" width="80%" style="display: block; margin: auto;" /&gt;
+&gt; How accurate is our estimate?
+
+- We are interested in how accurate our statistic `\(\bar{x}\)` is as an estimate of the unknown parameter `\(\mu\)`.
+
+--
+
+- Accuracy is a combination of two things:
+
+  + No bias
+  + Precision
+
+--
+
+- We avoid bias if we use random sampling. We have bias if our samples systematically do not include a part of the population.
+  
+  + If you choose convenience samples, you will systematically over-estimate or under-estimate the true value. 
+
+--
+
+- Precision relates to the variability of the sampling distribution, and the Standard Error (SE) is used to quantify precision.
+
+- SE = sd(of sampling distribution)
+
+- The smaller the SE, the closer our sample mean will tend to be to the population mean
 
 
----
-# Accuracy of a statistic: Precision and Bias
+???
 
 - We aim for a statistic to be precise and not biased.
 
-- Bias is avoided if you select samples at random from the population. You have bias when your samples systematically do not include a part of the population.
+- Bias is avoided if you select samples at random from the population. You have bias if your samples systematically do not include a part of the population.
 
-- Precision relates to the variability of the sampling distribution, and the Standard Error (SE) is used to quantify precision. 
+- The sampling distribution of the statistic is used to assess precision.
 
-???
+Example: you want to estimate the average study hours per day of students in your university. If you select 50 students only from the library, your estimate will be higher than the true value. This is because your sample is not a good representation of the population, some students are not well-represented in the sample.
 
 BIAS
 
@@ -110,33 +267,404 @@ PRECISION
 
 
 ---
+# Bias vs Precision
+
+&lt;img src="images/bias_prec.png" width="80%" style="display: block; margin: auto;" /&gt;
+
+---
+# Sampling distribution
+
+&lt;img src="images/2_01_sampl_dist.png" width="80%" style="display: block; margin: auto;" /&gt;
+
+
+---
+# Sampling distribution
+
+&lt;img src="images/2_01_sampl_dist_t.png" width="80%" style="display: block; margin: auto;" /&gt;
+
+---
+# Sampling distribution
+
+&lt;img src="images/2_01_sampl_dist_t_2.png" width="80%" style="display: block; margin: auto;" /&gt;
+
+
+
+---
 class: inverse, center, middle
 
 # Part B
-## The Bootstrap
+## One sample only
 
 
 ---
-# 
+# One sample only
 
-&lt;img src="sampl_dist_2.png" width="80%" style="display: block; margin: auto;" /&gt;
-
-
----
-# 
-
-&lt;img src="boot_dist.png" width="80%" style="display: block; margin: auto;" /&gt;
+&lt;img src="images/2_01_one_sample.png" width="80%" style="display: block; margin: auto;" /&gt;
 
 
 ---
-# 
+# One sample only
 
-&lt;img src="boot_sampl_dist.png" width="80%" style="display: block; margin: auto;" /&gt;
+- If we do NOT have the population data, we cannot compute `\(\mu\)` but also `\(\sigma\)`, the population standard deviation.
+
+- Recall that `\(\sigma\)` is required to compute the precision of the sample mean:
+
+$$
+SE = \frac{\sigma}{\sqrt n}
+$$
+
+- How can we compute the SE of the mean if we can only afford one sample comprising `\(n\)` individuals?
+
 
 ---
-# 
+# Estimating SE
 
-&lt;img src="2_01_simul_theory.png" width="40%" style="display: block; margin: auto;" /&gt;
+- We must also estimate `\(\sigma\)` with the corresponding sample statistic.
+
+- Substitute `\(\sigma\)` with the standard deviation computed in the sample, `\(s\)`.
+
+- Standard error of the mean becomes:
+
+$$
+SE = \frac{s}{\sqrt n}
+$$
+
+- Report estimate (sample mean), along with a measure of its precision (the above SE).
+
+
+---
+class: inverse, center, middle
+
+# Part C
+## Confidence Intervals
+
+
+---
+# Key idea
+
+- Parameter estimate = single number. Almost surely the true value will be different from our estimate.
+
+- Range of plausible values for the parameter, called __confidence interval__. More likely that the true value will be within a range.
+
+&lt;img src="https://d33wubrfki0l68.cloudfront.net/45f6d2e16255dbcb42de86336e1e49ef732aa5da/8bcd0/images/shutterstock/point_estimate_vs_conf_int.png" width="80%" style="display: block; margin: auto;" /&gt;
+
+
+---
+# Confidence interval
+
+- Confidence interval = range of plausible values for the parameter.
+
+- To create a confidence interval we must decide on a confidence level.
+
+- Confidence level = a number between 0 and 1 specified by us. How confident do we want to be that the confidence interval will contain the true parameter value?
+
+- The larger the confidence level, the wider the confidence interval.
+
+  + How confident are you that I am between 39 and 42 years old?
+  
+  + How confident are you that I am between 35 and 50 years old?
+  
+  + How confident are you that I am between 18 and 70 years old?
+
+- Typical confidence levels are 90%, 95%, and 99%.
+
+
+---
+# CI for the population mean
+
+- Recall that if `\(X \sim N(\mu, \sigma)\)`, 95% of the values are between
+
+$$
+\left[ 
+\mu - 1.96 \cdot \sigma , \ 
+\mu + 1.96 \cdot \sigma
+\right]
+$$
+
+--
+
+- The sample mean follows a normal distribution:  
+
+`$$\bar{X} \sim N(\mu_{\overline{X}},\sigma_{\overline{X}})$$`
+
+where
+  
+  + `\(\mu_{\overline X} = \mu\)`  
+  
+  + `\(\sigma_{\overline X} = SE = \dfrac{\sigma}{\sqrt n}\)`
+
+--
+
+- Substitute in the interval above:
+
+`$$\left[ 
+\mu - 1.96 \cdot \frac{\sigma}{\sqrt n} , \ 
+\mu + 1.96 \cdot \frac{\sigma}{\sqrt n}
+\right]$$`
+
+
+
+---
+# Estimates of `\(\mu\)` and `\(\sigma\)`
+
+- Recall, however, that 
+
+  + we don't have the population mean `\(\mu\)` and we estimated it with the sample mean `\(\bar{x}\)`
+  
+  + we also don't have `\(\sigma\)` so we need to estimate it with `\(s\)`, the sample standard deviation:
+
+$$
+\left[ 
+\bar{x} - 1.96 \cdot \frac{s}{\sqrt n} , \ 
+\bar{x} + 1.96 \cdot \frac{s}{\sqrt n}
+\right]
+$$
+
+--
+
+- However, this interval is now __wrong!__
+
+--
+
+- Because we didn't know `\(\sigma\)` and we had to estimate it with `\(s\)`, this bring and __extra element of uncertainty__
+
+- As we are unsure about the actual value of the population standard deviation, the reference distribution is no longer Normal, but a distribution that is more "uncertain" and places higher probability in the tails of the distribution.
+
+- When the population standard deviation is unknown, the sample mean follows a t-distribution.
+
+- The quantiles -1.96 and 1.96 refer to the normal distribution, so these are wrong!
+
+
+---
+# t-distribution
+
+&lt;img src="dapr1_2_01_bootci_files/figure-html/unnamed-chunk-11-1.png" width="60%" style="display: block; margin: auto;" /&gt;
+
+
+---
+# t-distribution
+
+- A distribution with mean 0
+
+- Depends on a number called __degrees of freedom__ (DF) = sample size - 1. That is, `\(df = n - 1\)`.
+
+- We write the distribution as:
+
+$$
+t(n - 1)
+$$
+
+- Suppose the sample size is 20. In R:
+
+
+```r
+qt(0.025, df = 19)    # quantile = t-value with 0.025 prob to the LEFT
+```
+
+```
+## [1] -2.093
+```
+
+```r
+pt(-2.093, df = 19)   # prob to the LEFT of t = -2.093
+```
+
+```
+## [1] 0.025
+```
+
+
+---
+# Finally: the correct confidence interval
+
+- Now we can finally compute the correct confidence interval. 
+
+- We need to replace the quantiles with those from the `\(t(n-1)\)` distribution, denote them by `\(-t^*\)` and `\(+t^*\)`, and these will be different all the time as they depend on the sample size.
+
+- Generic form the of the CI for the mean:
+
+`$$\left[ 
+\bar{x} - t^* \cdot \frac{s}{\sqrt n} , \ \bar{x} + t^* \cdot \frac{s}{\sqrt n}
+\right]$$`
+
+- Generic form the of the 95% CI for the mean with a sample of size `\(n = 20\)`:
+
+
+```r
+qt(c(0.025, 0.975), df = 20 - 1)
+```
+
+```
+## [1] -2.093  2.093
+```
+
+`$$\left[ 
+\bar{x} -2.093 \cdot \frac{s}{\sqrt n} , \ \bar{x} + 2.093 \cdot \frac{s}{\sqrt n}
+\right]$$`
+
+
+---
+# Other confidence levels
+
+- Generic form the of the 99% CI for the mean with a sample of size `\(n = 20\)`:
+
+
+```r
+qt(c(0.005, 0.995), df = 20 - 1)
+```
+
+```
+## [1] -2.861  2.861
+```
+
+`$$\left[ 
+\bar{x} -2.861 \cdot \frac{s}{\sqrt n} , \ \bar{x} + 2.861 \cdot \frac{s}{\sqrt n}
+\right]$$`
+
+
+---
+# Example: 95% CI for the population mean salary
+
+- Parameter of interest: mean yearly salary of a NFL player in the year 2019, denoted `\(\mu\)`.
+
+- Sample of 50 players:
+
+
+```r
+library(tidyverse)
+nfl_sample &lt;- read_csv("https://uoepsy.github.io/data/NFLSample2019.csv")
+dim(nfl_sample)
+```
+
+```
+## [1] 50  5
+```
+
+```r
+head(nfl_sample)
+```
+
+```
+## # A tibble: 6 × 5
+##   Player          Position Team    TotalMoney YearlySalary
+##   &lt;chr&gt;           &lt;chr&gt;    &lt;chr&gt;        &lt;dbl&gt;        &lt;dbl&gt;
+## 1 Najee Goode     43OLB    Jaguars      0.805        0.805
+## 2 Jack Crawford   43DT     Falcons      9.9          2.48 
+## 3 Tra Carson      RB       Lions        1.23         0.615
+## 4 Jordan Richards S        Ravens       0.805        0.805
+## 5 Desmond Trufant CB       Falcons     68.8         13.8  
+## 6 Alex Anzalone   43OLB    Saints       3.47         0.866
+```
+
+---
+# Example: 95% CI for the population mean salary
+
+.pull-left[
+
+```r
+xbar &lt;- mean(nfl_sample$YearlySalary)
+xbar
+```
+
+```
+## [1] 3.359
+```
+
+```r
+s &lt;- sd(nfl_sample$YearlySalary)
+s
+```
+
+```
+## [1] 4.312
+```
+
+```r
+n &lt;- nrow(nfl_sample)
+n
+```
+
+```
+## [1] 50
+```
+
+```r
+SE &lt;- s / sqrt(n)
+SE
+```
+
+```
+## [1] 0.6098
+```
+]
+
+.pull-right[
+
+```r
+qt(c(0.025, 0.975), df = n-1)
+```
+
+```
+## [1] -2.01  2.01
+```
+
+```r
+xbar - 2.01 * SE
+```
+
+```
+## [1] 2.133
+```
+
+```r
+xbar + 2.01 * SE
+```
+
+```
+## [1] 4.584
+```
+]
+
+
+---
+# Example: 95% CI for the population mean salary
+
+- The 95% confidence interval for the mean salary of __all__ NFL players in the year 2019 is [2.13, 4.58] million dollars.
+
+- Write this up as:
+
+&gt; We are 95% confident that the average salary of a NFL player in 2019 is between 2.13 and 4.58 million dollars.
+
+
+---
+# Warning!
+
+- If you had 100 random samples and computed a 95% confidence interval from each sample:
+  
+  + about 95 of those intervals will contain the true parameter value
+  + about 5 of those intervals will __not__ contain the true parameter value
+  
+--
+
+- We speak about __probability__ when we refer to the __collection__ of those 100 confidence intervals.  
+That is, the probability the that __collection__ of confidence intervals will contain the true parameter value is 0.95.
+  
+  + Think of this as
+
+$$
+\frac{\text{number of CIs containing }\mu}{100}
+$$
+
+--
+
+- We speak of __confidence__ when we refer to just __one__ confidence interval that we have computed.  
+Say the 95% CI is [2.5, 5.3] min. We would say: we are 95% confident that the population mean is between 2.5 and 5.3 minutes.
+  
+  + It is __wrong__ to say that there is a 95% probability that the population mean is between 2.5 and 5.3 minutes.
+
+
+
+
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
