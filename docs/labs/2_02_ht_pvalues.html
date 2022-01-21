@@ -1,0 +1,2129 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Hypothesis testing: p-values</title>
+
+<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+<script>
+function toggle_visibility(id1, id2) {
+var e = document.getElementById(id1);
+var f = document.getElementById(id2);
+e.style.display = ((e.style.display!='none') ? 'none' : 'block');
+if(f.classList.contains('fa-chevron-circle-right')) {
+    f.classList.add('fa-chevron-circle-down')
+    f.classList.remove('fa-chevron-circle-right')
+} else {
+    f.classList.add('fa-chevron-circle-right')
+    f.classList.remove('fa-chevron-circle-down')
+}
+}
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+<link rel="stylesheet" href="assets/style-labs.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"><strong>DAPR1</strong></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">
+    <span class="fa fa-home"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="intro_r_rstudio_year1.html">DAPR1 starts here</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Intro to data and R
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="1_01_data_types.html">1/1: Collecting data</a>
+    </li>
+    <li>
+      <a href="1_02_categorical.html">1/2: Categorical data</a>
+    </li>
+    <li>
+      <a href="1_03_numerical.html">1/3: Numerical data</a>
+    </li>
+    <li>
+      <a href="1_04_relationships.html">1/4: Relationships</a>
+    </li>
+    <li>
+      <a href="1_05_functions.html">1/5: Types of relations</a>
+    </li>
+    <li class="dropdown-header">1/6: Break week!</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Probability &amp; sampling
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="1_07_probability_basics.html">1/7: Probability basics</a>
+    </li>
+    <li>
+      <a href="1_08_probability_rules.html">1/8: Probability rules!</a>
+    </li>
+    <li>
+      <a href="1_09_discrete_distributions.html">1/9: Discrete random variables</a>
+    </li>
+    <li>
+      <a href="1_10_continuous_distributions.html">1/10: Continuous random variables</a>
+    </li>
+    <li>
+      <a href="1_11_sampling_distributions.html">1/11: Sampling distributions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Hypothesis testing
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="2_01_confidence_intervals.html">2/1: Confidence intervals</a>
+    </li>
+    <li>
+      <a href="2_02_ht_pvalues.html">2/2: Hypothesis testing: p-values</a>
+    </li>
+    <li class="dropdown-header">2/3: Hypothesis testing: critical values</li>
+    <li class="dropdown-header">2/4: Hypothesis testing &amp; CIs</li>
+    <li class="dropdown-header">2/5: Making decisions</li>
+    <li class="dropdown-header">2/6: Break week</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Basic tests
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li class="dropdown-header">2/7: Test for one mean</li>
+    <li class="dropdown-header">2/8: Test for two means</li>
+    <li class="dropdown-header">2/9: Test for paired samples</li>
+    <li class="dropdown-header">2/10: Chi-square</li>
+    <li class="dropdown-header">2/11: Covariance and correlation</li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Hypothesis testing: p-values</h1>
+
+</div>
+
+
+<div class="lo">
+<ol style="list-style-type: decimal">
+<li><p>Understand null and alternative hypotheses, and how to specify them for a given research question.</p></li>
+<li><p>Understand the concept of and how to obtain a null distribution.</p></li>
+<li><p>Understand statistical significance and how to calculate p-values from null distributions.</p></li>
+</ol>
+</div>
+<div id="hypothesis-testing" class="section level1">
+<h1>Hypothesis testing</h1>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>The data on the entire population are often not available. However, researchers often want to answer questions about population characteristics.</p>
+<p>The characteristics of a population are <strong>population parameters</strong>. Examples are the mean, the standard deviation, a proportion, etc.</p>
+<p>Last week we learned how to provide an estimate of the population mean starting from a random sample, as well as a measure of the precision of our estimate.</p>
+<ul>
+<li>The sample mean <span class="math inline">\(\bar x\)</span> is the estimate of the unknown population mean.</li>
+<li>The standard error of the mean <span class="math inline">\(s / \sqrt{n}\)</span> provides the reader with a measure of precision in our estimate, or better, the size of a typical estimation error.</li>
+</ul>
+<p>This week we will learn how to test a claim about the population mean, starting from sample data.</p>
+<div class="yellow">
+<p>In statistics, a <strong>hypothesis</strong> is a claim, in the form of a precise mathematical statement, about the value of a populaion parameter.</p>
+</div>
+<p><strong>Examples:</strong></p>
+<ul>
+<li><p><span class="math inline">\(\mu = 100\)</span><br />
+where <span class="math inline">\(\mu\)</span> is the population mean IQ score.</p></li>
+<li><p><span class="math inline">\(\sigma = 15\)</span><br />
+where <span class="math inline">\(\sigma\)</span> is the standard deviation of IQ scores in the population.</p></li>
+</ul>
+<p><strong>Note:</strong></p>
+<ul>
+<li><p>A hypothesis is a claim about a <em>population</em> parameter and <em>not</em> about a sample statistic.</p></li>
+<li><p>We can compute the value of the sample statistic, so there is no need to perform a test on its value, as we have it (unlike population parameters, for which we don’t have the value). If your sample has a mean <span class="math inline">\(\bar x = 2\)</span>, would it make sense to ask whether the sample mean is 0? No… Clearly the sample mean is 2 which is different from 0.</p></li>
+<li><p>We make hypotheses about things we cannot compute, such as parameters.</p></li>
+</ul>
+</div>
+<div id="the-four-parts-of-a-test-of-significance" class="section level2">
+<h2>The four parts of a test of significance</h2>
+<p>To perform a hypothesis test we need:</p>
+<ol style="list-style-type: decimal">
+<li><p>The <strong>null hypothesis</strong>, denoted <span class="math inline">\(H_0\)</span>.</p>
+<ul>
+<li>This is typically a skeptical reaction to a research hypothesis.</li>
+</ul></li>
+<li><p>The <strong>alternative hypothesis</strong>, denoted <span class="math inline">\(H_1\)</span>.</p>
+<ul>
+<li>This is the claim we seek evidence for.</li>
+</ul></li>
+<li><p>The <strong>test statistic</strong>. When testing a mean this is called the <strong>t-statistic</strong>, denoted <span class="math inline">\(t\)</span>.</p>
+<ul>
+<li>The t-statistic measures how many SEs the sample means is from the hypothesised mean. That is, it measures how much the sample data differ from what expected when the null hypothesis is true.</li>
+</ul></li>
+<li><p>The <strong>significance level</strong>, denoted <span class="math inline">\(\alpha\)</span></p>
+<ul>
+<li>The significance level is a cutoff chosen by the researcher (you!). Typical values are 0.10, 0.05, or 0.01.</li>
+<li>A value of 0.05 would mean that you would obtain such result <strong>if <span class="math inline">\(H_0\)</span> is true</strong> only in 1 out of 20 samples (or, equivalently, 5 out of 100).</li>
+</ul></li>
+<li><p>The <strong>p-value</strong></p>
+<ul>
+<li>The probability of obtaining a test statistic at least as extreme as the observed test statistic, if the null hypothesis is true.</li>
+<li>If the p-value <span class="math inline">\(\leq \alpha\)</span>, we reject <span class="math inline">\(H_0\)</span> as the data provide enough evidence (at the chosen <span class="math inline">\(\alpha\)</span> level) against <span class="math inline">\(H_0\)</span> and in favour of <span class="math inline">\(H_1\)</span></li>
+<li>If the p-value <span class="math inline">\(&gt; \alpha\)</span>, we fail to reject <span class="math inline">\(H_0\)</span> as the data do not provide sufficient evidence against <span class="math inline">\(H_0\)</span> and in favour of <span class="math inline">\(H_1\)</span></li>
+<li>If <span class="math inline">\(H_1 : \mu &gt; \mu_0\)</span>, compute the p-value by finding <span class="math inline">\(P(T &gt; t)\)</span></li>
+<li>If <span class="math inline">\(H_1 : \mu &lt; \mu_0\)</span>, compute the p-value by finding <span class="math inline">\(P(T &lt; t)\)</span></li>
+<li>If <span class="math inline">\(H_1 : \mu \neq \mu_0\)</span>, compute the p-value by finding <span class="math inline">\(P(T &lt; - |t|) + P(T &gt; + |t|)\)</span></li>
+</ul></li>
+</ol>
+</div>
+</div>
+<div id="example" class="section level1">
+<h1>Example</h1>
+<div id="imaginary-case" class="section level2">
+<h2>Imaginary case</h2>
+<p>Suppose you have an imaginary toy population of 5 individuals, on which you collect a score, and the mean score is actually equal to 10.</p>
+<pre class="r"><code>pop &lt;- c(6, 8, 10, 12, 14)
+mu &lt;- mean(pop)
+mu</code></pre>
+<pre><code>## [1] 10</code></pre>
+<p>If we could only afford to sample <span class="math inline">\(n = 2\)</span> individuals, and take all possible random samples, what would the sample means look like?</p>
+<div id="osncjrvket" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#osncjrvket .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#osncjrvket .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#osncjrvket .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#osncjrvket .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 6px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#osncjrvket .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#osncjrvket .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#osncjrvket .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#osncjrvket .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#osncjrvket .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#osncjrvket .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#osncjrvket .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#osncjrvket .gt_group_heading {
+  padding: 8px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#osncjrvket .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#osncjrvket .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#osncjrvket .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#osncjrvket .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#osncjrvket .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 12px;
+}
+
+#osncjrvket .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#osncjrvket .gt_first_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+}
+
+#osncjrvket .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#osncjrvket .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#osncjrvket .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#osncjrvket .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#osncjrvket .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#osncjrvket .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding: 4px;
+}
+
+#osncjrvket .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#osncjrvket .gt_sourcenote {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#osncjrvket .gt_left {
+  text-align: left;
+}
+
+#osncjrvket .gt_center {
+  text-align: center;
+}
+
+#osncjrvket .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#osncjrvket .gt_font_normal {
+  font-weight: normal;
+}
+
+#osncjrvket .gt_font_bold {
+  font-weight: bold;
+}
+
+#osncjrvket .gt_font_italic {
+  font-style: italic;
+}
+
+#osncjrvket .gt_super {
+  font-size: 65%;
+}
+
+#osncjrvket .gt_footnote_marks {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 65%;
+}
+</style>
+<table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">sample_id</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">sample</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">xbar</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td class="gt_row gt_right">1</td>
+<td class="gt_row gt_left">(6, 6)</td>
+<td class="gt_row gt_right">6</td></tr>
+    <tr><td class="gt_row gt_right">2</td>
+<td class="gt_row gt_left">(8, 6)</td>
+<td class="gt_row gt_right">7</td></tr>
+    <tr><td class="gt_row gt_right">3</td>
+<td class="gt_row gt_left">(6, 8)</td>
+<td class="gt_row gt_right">7</td></tr>
+    <tr><td class="gt_row gt_right">4</td>
+<td class="gt_row gt_left">(10, 6)</td>
+<td class="gt_row gt_right">8</td></tr>
+    <tr><td class="gt_row gt_right">5</td>
+<td class="gt_row gt_left">(8, 8)</td>
+<td class="gt_row gt_right">8</td></tr>
+    <tr><td class="gt_row gt_right">6</td>
+<td class="gt_row gt_left">(6, 10)</td>
+<td class="gt_row gt_right">8</td></tr>
+    <tr><td class="gt_row gt_right">7</td>
+<td class="gt_row gt_left">(12, 6)</td>
+<td class="gt_row gt_right">9</td></tr>
+    <tr><td class="gt_row gt_right">8</td>
+<td class="gt_row gt_left">(10, 8)</td>
+<td class="gt_row gt_right">9</td></tr>
+    <tr><td class="gt_row gt_right">9</td>
+<td class="gt_row gt_left">(8, 10)</td>
+<td class="gt_row gt_right">9</td></tr>
+    <tr><td class="gt_row gt_right">10</td>
+<td class="gt_row gt_left">(6, 12)</td>
+<td class="gt_row gt_right">9</td></tr>
+    <tr><td class="gt_row gt_right">11</td>
+<td class="gt_row gt_left">(14, 6)</td>
+<td class="gt_row gt_right">10</td></tr>
+    <tr><td class="gt_row gt_right">12</td>
+<td class="gt_row gt_left">(12, 8)</td>
+<td class="gt_row gt_right">10</td></tr>
+    <tr><td class="gt_row gt_right">13</td>
+<td class="gt_row gt_left">(10, 10)</td>
+<td class="gt_row gt_right">10</td></tr>
+    <tr><td class="gt_row gt_right">14</td>
+<td class="gt_row gt_left">(8, 12)</td>
+<td class="gt_row gt_right">10</td></tr>
+    <tr><td class="gt_row gt_right">15</td>
+<td class="gt_row gt_left">(6, 14)</td>
+<td class="gt_row gt_right">10</td></tr>
+    <tr><td class="gt_row gt_right">16</td>
+<td class="gt_row gt_left">(14, 8)</td>
+<td class="gt_row gt_right">11</td></tr>
+    <tr><td class="gt_row gt_right">17</td>
+<td class="gt_row gt_left">(12, 10)</td>
+<td class="gt_row gt_right">11</td></tr>
+    <tr><td class="gt_row gt_right">18</td>
+<td class="gt_row gt_left">(10, 12)</td>
+<td class="gt_row gt_right">11</td></tr>
+    <tr><td class="gt_row gt_right">19</td>
+<td class="gt_row gt_left">(8, 14)</td>
+<td class="gt_row gt_right">11</td></tr>
+    <tr><td class="gt_row gt_right">20</td>
+<td class="gt_row gt_left">(14, 10)</td>
+<td class="gt_row gt_right">12</td></tr>
+    <tr><td class="gt_row gt_right">21</td>
+<td class="gt_row gt_left">(12, 12)</td>
+<td class="gt_row gt_right">12</td></tr>
+    <tr><td class="gt_row gt_right">22</td>
+<td class="gt_row gt_left">(10, 14)</td>
+<td class="gt_row gt_right">12</td></tr>
+    <tr><td class="gt_row gt_right">23</td>
+<td class="gt_row gt_left">(14, 12)</td>
+<td class="gt_row gt_right">13</td></tr>
+    <tr><td class="gt_row gt_right">24</td>
+<td class="gt_row gt_left">(12, 14)</td>
+<td class="gt_row gt_right">13</td></tr>
+    <tr><td class="gt_row gt_right">25</td>
+<td class="gt_row gt_left">(14, 14)</td>
+<td class="gt_row gt_right">14</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+<p><br></p>
+<p>As you see above, each sample leads to a different sample mean. We can plot those means with a histogram, to find what sample means happen more often, and which sample means happen less frequently, <strong>when the population mean is in fact <span class="math inline">\(\mu = 10\)</span>.</strong> Remember? I gave you a population where the mean was exactly equal to 10.</p>
+<p><img src="2_02_ht_pvalues_files/figure-html/unnamed-chunk-4-1.png" width="80%" style="display: block; margin: auto;" /></p>
+<p>We notice a few things. <strong>When the population mean is <span class="math inline">\(\mu = 10\)</span></strong>:</p>
+<ul>
+<li>Most samples will have a sample mean which is close to the true population mean</li>
+<li>Very few samples will have a sample mean that is far away from the true population mean</li>
+</ul>
+<p>In this case,</p>
+<ul>
+<li>1 sample only has a sample mean of 6</li>
+<li>5 samples have a sample mean between 7 and 8</li>
+<li>13 samples have a sample mean between 9 and 11</li>
+<li>5 samples have sample mean between 12 and 13</li>
+<li>1 sample only has a sample mean of 14</li>
+</ul>
+<p>So, if the true population mean is <span class="math inline">\(\mu = 10\)</span>, it is very rare to obtain a sample with a mean of 6 or a sample with a mean of 14. This is very unlikely.</p>
+<p>We can also add a density above:</p>
+<p><img src="2_02_ht_pvalues_files/figure-html/unnamed-chunk-5-1.png" width="80%" style="display: block; margin: auto;" /></p>
+<p>The plot above is called a <strong>null distribution</strong> and it tells us the possible values that the sample means can take, assuming that the population mean is equal to some value (in this case assuming <span class="math inline">\(\mu = 10\)</span>)</p>
+<blockquote>
+<p><strong>Key question</strong><br />
+If you obtained a sample with a mean of 20, would you find this consistent with a population having a mean of 10, or would you start doubting this and perhaps find it more likely that the population mean was different from 10?</p>
+</blockquote>
+<p>If your sample had a mean of 20, when in fact this is a value you don’t expect to happen that often in the null distribution, we would find this a surprising result, and we would doubt the population has a mean of 10.</p>
+<p>Now we must go back to reality and realise that we cannot really take all possible samples from a population. We can only afford one and we must work with that single sample we have.</p>
+</div>
+<div id="real-life-one-sample-only" class="section level2">
+<h2>Real life: One sample only</h2>
+<p>Suppose your sample is (6, 12).</p>
+<p>Let’s compute the observed sample mean:</p>
+<pre class="r"><code>x &lt;- c(6, 12)
+xbar &lt;- mean(x)
+xbar</code></pre>
+<pre><code>## [1] 9</code></pre>
+<p>We wish to test whether the population the sample came from has a mean different from 10.</p>
+<p><span class="math display">\[
+H_0: \mu = 10\\
+H_1: \mu \neq 10
+\]</span></p>
+<p><strong>Key question:</strong><br />
+The mean in our sample is 9. Could a sample mean of 9 easily come from a population that has a mean of 10? Or is it very unlikely for a population with mean 10 to give rise to a sample with mean 9?</p>
+</div>
+<div id="t-distribution" class="section level2">
+<h2>t-distribution</h2>
+<p>Instead of working with the sample means directly, we work with the standardised sample means, using the <strong>t-statistic</strong> to standardise them. (Call it t-score if you prefer, to remind you of the z-score)</p>
+<p><span class="math display">\[
+t = \frac{\bar x - \mu_0}{s / \sqrt n}
+\]</span></p>
+<p>In our case, if <span class="math inline">\(H_0 : \mu = 10\)</span>, we have:</p>
+<p><span class="math display">\[
+t = \frac{9 - 10}{3} = -0.33
+\]</span></p>
+<pre class="r"><code>xbar &lt;- mean(x)
+xbar</code></pre>
+<pre><code>## [1] 9</code></pre>
+<pre class="r"><code>s &lt;- sd(x)
+n &lt;- 2
+SE &lt;- s / sqrt(n)
+SE</code></pre>
+<pre><code>## [1] 3</code></pre>
+<pre class="r"><code>tobs &lt;- (xbar - 10) / SE
+tobs</code></pre>
+<pre><code>## [1] -0.3333333</code></pre>
+<p>We know that the t-score follows a <span class="math inline">\(t(n-1)\)</span> distribution. So, in our case a <span class="math inline">\(t(1)\)</span> distribution.</p>
+<p>How likely is it to obtain a t-score at least as extreme as -0.33? In this case <span class="math inline">\(H_1\)</span> has the <span class="math inline">\(\neq\)</span> symbol, so something is different from 10 when either it’s much larger or much smaller. So we will find the probability of t-statistics that are either more distant from the hypothesised value of 10 on the left tail, but also on the right tail.</p>
+<p>How likely is it to obtain a t-score either lower than -0.33 <span class="math inline">\((=-|t|)\)</span> or larger than 0.33 <span class="math inline">\((= +|t|)\)</span>?</p>
+<pre class="r"><code>pvalue &lt;- pt(-abs(tobs), 1, lower.tail = TRUE) + 
+          pt(+abs(tobs), 1, lower.tail = FALSE)</code></pre>
+<p>Comparing the p-value with <span class="math inline">\(\alpha\)</span> = 0.05, we find that the p-value is larger than the significance level and as such we do not reject <span class="math inline">\(H_0\)</span>.</p>
+<p>The sample data do not provide sufficient evidence to reject the null hypothesis that the sample <span class="math inline">\((6, 12)\)</span> came from a population with mean 10.</p>
+</div>
+<div id="test-your-knowledge" class="section level2">
+<h2>Test your knowledge</h2>
+<p>What about if the sample you collected was (172, 194)? Could this come from a population having mean = 10?</p>
+<div class="optional-begin">
+<span id="opt-start-1" class="fa fa-chevron-circle-right optional-icon clickable" onclick="toggle_visibility(&#39;opt-body-1&#39;, &#39;opt-start-1&#39;)"> Solution</span>
+</div>
+<div id="opt-body-1" class="optional-body" style="display: none;">
+<pre class="r"><code>x &lt;- c(172, 194)
+xbar &lt;- mean(x)
+s &lt;- sd(x)
+n &lt;- 2
+SE &lt;- s / sqrt(n)
+SE</code></pre>
+<pre><code>## [1] 11</code></pre>
+<pre class="r"><code>tobs &lt;- (xbar - 10) / SE
+tobs</code></pre>
+<pre><code>## [1] 15.72727</code></pre>
+<pre class="r"><code>pt(-abs(tobs), df = 1) + (1 - pt(+abs(tobs), df = 1))</code></pre>
+<pre><code>## [1] 0.0404243</code></pre>
+<p>or</p>
+<pre class="r"><code>2 * pt(abs(tobs), df = 1, lower.tail = FALSE)</code></pre>
+<pre><code>## [1] 0.0404243</code></pre>
+<p>The p-value is <span class="math inline">\(\leq 0.05\)</span> so we reject <span class="math inline">\(H_0\)</span></p>
+<p>At the 5% significance level, the sample data provide strong evidence against the null hypothesis that the sample <span class="math inline">\((172, 194)\)</span> came from a population with a mean of 10, and in favour of the alternative hypothesis that the sample came from a population with a mean different from 10.</p>
+</div>
+<p class="optional-end">
+</p>
+</div>
+</div>
+<div id="summary" class="section level1">
+<h1>Summary</h1>
+<ul>
+<li><p>We have learned to assess how much evidence the sample data bring against the null hypothesis and in favour of the alternative hypothesis.</p></li>
+<li><p>The null hypothesis, denoted <span class="math inline">\(H_0\)</span>, is a claim about a population parameter that is initially assumed to be true. It typically represents “no effect” or “no difference between groups.”</p></li>
+<li><p>The alternative hypothesis, denoted <span class="math inline">\(H_1\)</span>, is the claim we seek evidence for.</p></li>
+<li><p>We performed a hypothesis test against <span class="math inline">\(H_0\)</span> (and in favour of <span class="math inline">\(H_1\)</span>) following these steps:</p>
+<ul>
+<li>Formally state your null and alternative hypotheses using precise symbols</li>
+<li>Consider the distribution of the t-statistics when <span class="math inline">\(H_0\)</span> is true</li>
+<li>Compute the observed value of the t-statistic in our sample</li>
+<li>Obtain the <strong>p-value</strong>: the probability, computed assuming that <span class="math inline">\(H_0\)</span> is true, of obtaining a t-statistic at least as extreme as that observed. <strong>Note</strong>: as extreme means “in the direction specified by <span class="math inline">\(H_1\)</span>.</li>
+</ul></li>
+</ul>
+</div>
+<div id="exercises" class="section level1">
+<h1>Exercises</h1>
+<p>A 2011 study by Courchesne et al.<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> examined brain tissue of seven autistic male children between the ages of 2 and 16. The mean number of neurons in the prefrontal cortex in non-autistic male children of the same age is about 1.15 billion. The prefrontal cortex is the part of the brain most disrupted in autism, as it deals with language and social communication.</p>
+<!-- In the sample of seven autistic children, the mean number of neurons in the prefrontal cortex was 1.94 billion with a standard deviation of 0.50 billion.  -->
+<!-- Use the t-distribution to test whether this sample provides evidence that autistic male children have more neurons (on average) in the prefrontal cortex than non-autistic children. (This study indicates that the causes of autism may be present before birth.) -->
+<p>In the exercises you will perform a test of significance to assess whether this sample provides evidence that autistic male children have more neurons (on average) in the prefrontal cortex than non-autistic children.</p>
+<p><br></p>
+<div class="optional-begin">
+<span id="opt-start-2" class="fa fa-chevron-circle-right optional-icon clickable" onclick="toggle_visibility(&#39;opt-body-2&#39;, &#39;opt-start-2&#39;)"> Data Codebook</span>
+</div>
+<div id="opt-body-2" class="optional-body" style="display: none;">
+<p><strong>Download link</strong></p>
+<p>The data can be found at this address: <a href="https://uoepsy.github.io/data/NeuronCounts.csv" class="uri">https://uoepsy.github.io/data/NeuronCounts.csv</a></p>
+<p><strong>Preview</strong></p>
+<div id="nvyzesyyic" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#nvyzesyyic .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#nvyzesyyic .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#nvyzesyyic .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#nvyzesyyic .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 6px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#nvyzesyyic .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#nvyzesyyic .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#nvyzesyyic .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#nvyzesyyic .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#nvyzesyyic .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#nvyzesyyic .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#nvyzesyyic .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#nvyzesyyic .gt_group_heading {
+  padding: 8px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#nvyzesyyic .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#nvyzesyyic .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#nvyzesyyic .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#nvyzesyyic .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#nvyzesyyic .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 12px;
+}
+
+#nvyzesyyic .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nvyzesyyic .gt_first_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+}
+
+#nvyzesyyic .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nvyzesyyic .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#nvyzesyyic .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#nvyzesyyic .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#nvyzesyyic .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#nvyzesyyic .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding: 4px;
+}
+
+#nvyzesyyic .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#nvyzesyyic .gt_sourcenote {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#nvyzesyyic .gt_left {
+  text-align: left;
+}
+
+#nvyzesyyic .gt_center {
+  text-align: center;
+}
+
+#nvyzesyyic .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#nvyzesyyic .gt_font_normal {
+  font-weight: normal;
+}
+
+#nvyzesyyic .gt_font_bold {
+  font-weight: bold;
+}
+
+#nvyzesyyic .gt_font_italic {
+  font-style: italic;
+}
+
+#nvyzesyyic .gt_super {
+  font-size: 65%;
+}
+
+#nvyzesyyic .gt_footnote_marks {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 65%;
+}
+</style>
+<table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Case</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Age</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">PFC_NC</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td class="gt_row gt_right">1</td>
+<td class="gt_row gt_right">2</td>
+<td class="gt_row gt_right">2.42</td></tr>
+    <tr><td class="gt_row gt_right">2</td>
+<td class="gt_row gt_right">3</td>
+<td class="gt_row gt_right">1.80</td></tr>
+    <tr><td class="gt_row gt_right">3</td>
+<td class="gt_row gt_right">3</td>
+<td class="gt_row gt_right">2.21</td></tr>
+    <tr><td class="gt_row gt_right">4</td>
+<td class="gt_row gt_right">4</td>
+<td class="gt_row gt_right">2.18</td></tr>
+    <tr><td class="gt_row gt_right">5</td>
+<td class="gt_row gt_right">7</td>
+<td class="gt_row gt_right">1.28</td></tr>
+    <tr><td class="gt_row gt_right">6</td>
+<td class="gt_row gt_right">8</td>
+<td class="gt_row gt_right">1.59</td></tr>
+    <tr><td class="gt_row gt_right">7</td>
+<td class="gt_row gt_right">16</td>
+<td class="gt_row gt_right">2.09</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+<p><strong>Codebook</strong></p>
+<ul>
+<li>The first column, <code>Case</code>, is an anonymised index used to identify each child.</li>
+<li>The second column, <code>Age</code>, records the age of each child.</li>
+<li>The last column, <code>PFC_NC</code>, contains the prefrontal cortex neuron counts (in billions).</li>
+</ul>
+</div>
+<p class="optional-end">
+</p>
+<p><br></p>
+<div class="question-begin">
+Question 1
+</div>
+<div class="question-body">
+<p>Read the data into R.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-3" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-3&#39;, &#39;sol-start-3&#39;)"> Solution </span>
+</div>
+<div id="sol-body-3" class="solution-body" style="display: none;">
+<pre class="r"><code>library(tidyverse)
+autism &lt;- read_csv(&#39;https://uoepsy.github.io/data/NeuronCounts.csv&#39;)
+autism</code></pre>
+<pre><code>## # A tibble: 7 × 3
+##    Case   Age PFC_NC
+##   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+## 1     1     2   2.42
+## 2     2     3   1.8 
+## 3     3     3   2.21
+## 4     4     4   2.18
+## 5     5     7   1.28
+## 6     6     8   1.59
+## 7     7    16   2.09</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 2
+</div>
+<div class="question-body">
+<p>Compute and interpret a table of descriptive statistics.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-4" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-4&#39;, &#39;sol-start-4&#39;)"> Solution </span>
+</div>
+<div id="sol-body-4" class="solution-body" style="display: none;">
+<pre class="r"><code>stats &lt;- autism %&gt;%
+    summarise(
+        SampleSize = n(),
+        M_Age = mean(Age), SD_Age = sd(Age),
+        M_PFC_NC = mean(PFC_NC), SD_PFC_NC = mean(PFC_NC)
+    ) %&gt;%
+    round(2)
+stats</code></pre>
+<pre><code>## # A tibble: 1 × 5
+##   SampleSize M_Age SD_Age M_PFC_NC SD_PFC_NC
+##        &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
+## 1          7  6.14   4.88     1.94      1.94</code></pre>
+<p>A nice trick to create a nice table for a report. Come to the labs and the tutors to explain this complex code to you!</p>
+<pre class="r"><code>library(gt)
+
+autism %&gt;%
+    pivot_longer(Age:PFC_NC, 
+                 names_to = &quot;Variable&quot;, values_to = &quot;Values&quot;) %&gt;%
+    group_by(Variable) %&gt;%
+    mutate(Variable = ifelse(Variable == &#39;PFC_NC&#39;, 
+                             &#39;PFC Neuron Count&#39;, 
+                             Variable)) %&gt;%
+    summarise(M = mean(Values),
+              SD = sd(Values)) %&gt;%
+    mutate(M = round(M, 2),
+           SD = round(SD, 2)) %&gt;%
+    gt()</code></pre>
+<div id="hzgjisdnqk" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#hzgjisdnqk .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#hzgjisdnqk .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#hzgjisdnqk .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#hzgjisdnqk .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 6px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#hzgjisdnqk .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#hzgjisdnqk .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#hzgjisdnqk .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#hzgjisdnqk .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#hzgjisdnqk .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#hzgjisdnqk .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#hzgjisdnqk .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#hzgjisdnqk .gt_group_heading {
+  padding: 8px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#hzgjisdnqk .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#hzgjisdnqk .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#hzgjisdnqk .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#hzgjisdnqk .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#hzgjisdnqk .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 12px;
+}
+
+#hzgjisdnqk .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#hzgjisdnqk .gt_first_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+}
+
+#hzgjisdnqk .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#hzgjisdnqk .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#hzgjisdnqk .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#hzgjisdnqk .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#hzgjisdnqk .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#hzgjisdnqk .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding: 4px;
+}
+
+#hzgjisdnqk .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#hzgjisdnqk .gt_sourcenote {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#hzgjisdnqk .gt_left {
+  text-align: left;
+}
+
+#hzgjisdnqk .gt_center {
+  text-align: center;
+}
+
+#hzgjisdnqk .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#hzgjisdnqk .gt_font_normal {
+  font-weight: normal;
+}
+
+#hzgjisdnqk .gt_font_bold {
+  font-weight: bold;
+}
+
+#hzgjisdnqk .gt_font_italic {
+  font-style: italic;
+}
+
+#hzgjisdnqk .gt_super {
+  font-size: 65%;
+}
+
+#hzgjisdnqk .gt_footnote_marks {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 65%;
+}
+</style>
+<table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">Variable</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">M</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">SD</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td class="gt_row gt_left">Age</td>
+<td class="gt_row gt_right">6.14</td>
+<td class="gt_row gt_right">4.88</td></tr>
+    <tr><td class="gt_row gt_left">PFC Neuron Count</td>
+<td class="gt_row gt_right">1.94</td>
+<td class="gt_row gt_right">0.40</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+<p>In the sample of seven autistic children, the mean age was 6.14 years, with a SD of 4.88 years, and the mean number of neurons in the prefrontal cortex was 1.94 billion with a standard deviation of 0.40 billion.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 3
+</div>
+<div class="question-body">
+<p>State the null and alternative hypotheses.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-5" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-5&#39;, &#39;sol-start-5&#39;)"> Solution </span>
+</div>
+<div id="sol-body-5" class="solution-body" style="display: none;">
+<p>We wish to test the claim that the mean number of neurons in the prefrontal cortex is larger than 1.15 billion (the value for non-autistic male children). At his is our research hypothesis, we must place this into the alternative hypothesis.</p>
+<p><strong>Remember:</strong> A hypothesis test looks for evidence <strong>against</strong> a null hypothesis and in favour of the alternative.</p>
+<p>The null hypothesis is typically a skeptical reaction to a research hypothesis. In our case, a skeptic would say that there is no difference in mean number of neurons, so the mean number of neurons for autistic children will be equal to that of non-autistic children (1.15).</p>
+<p>The answer is then:</p>
+<p><span class="math display">\[
+H_0 : \mu = 1.15 \\
+H_1 : \mu &gt; 1.15
+\]</span></p>
+<p>where <span class="math inline">\(\mu\)</span> is the mean number of neurons (in billions) in the prefrontal cortex for all autistic male children.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 4
+</div>
+<div class="question-body">
+<p>Compute the value of the t-statistic from the sample mean number of neurons.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-6" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-6&#39;, &#39;sol-start-6&#39;)"> Solution </span>
+</div>
+<div id="sol-body-6" class="solution-body" style="display: none;">
+<p>Recall the formula for the t-statistic:</p>
+<p><span class="math display">\[
+t = \frac{\bar x - \mu_0}{\frac{s}{\sqrt{n}}}
+\]</span></p>
+<p>where</p>
+<ul>
+<li><span class="math inline">\(\bar x\)</span> is the sample average number of neurons in the prefrontal cortex</li>
+<li><span class="math inline">\(\mu_0\)</span> is the hypothesised value for the population parameter found in <span class="math inline">\(H_0\)</span></li>
+<li><span class="math inline">\(s\)</span> is the sample standard deviation</li>
+<li><span class="math inline">\(n\)</span> is the sample size</li>
+</ul>
+<p>Hence, the value of the t-statistic for the observed sample is given by:</p>
+<pre class="r"><code>xbar &lt;- mean(autism$PFC_NC)
+xbar</code></pre>
+<pre><code>## [1] 1.938571</code></pre>
+<pre class="r"><code>s &lt;- sd(autism$PFC_NC)
+s</code></pre>
+<pre><code>## [1] 0.4002261</code></pre>
+<pre class="r"><code>n &lt;- nrow(autism)
+n</code></pre>
+<pre><code>## [1] 7</code></pre>
+<pre class="r"><code>mu0 &lt;- 1.15
+
+tobs &lt;- (xbar - mu0) / (s / sqrt(n))
+tobs</code></pre>
+<pre><code>## [1] 5.212963</code></pre>
+<p>The sample mean neuron count, 1.94 billion, is 5.21 standard errors larger than the hypothesised value.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 5
+</div>
+<div class="question-body">
+<p>Identify the null distribution.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-7" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-7&#39;, &#39;sol-start-7&#39;)"> Solution </span>
+</div>
+<div id="sol-body-7" class="solution-body" style="display: none;">
+<p>When <span class="math inline">\(H_0: \mu = 1.15\)</span> is true, the t values will follow a <span class="math inline">\(t(6)\)</span> distribution.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 6
+</div>
+<div class="question-body">
+<p>Compute the p-value for the test.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-8" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-8&#39;, &#39;sol-start-8&#39;)"> Solution </span>
+</div>
+<div id="sol-body-8" class="solution-body" style="display: none;">
+<p>The alternative hypothesis is <span class="math inline">\(H_1 : \mu &gt; 1.15\)</span>. This involves the “greater than sign,” so we compute the p-value by finding the probability of observing a t-statistic <strong>at least as large as</strong> the observed t value:</p>
+<pre class="r"><code># P(T &gt;= tobs)
+pt(tobs, df = n-1, lower.tail = FALSE)</code></pre>
+<pre><code>## [1] 0.0009948463</code></pre>
+<p>or</p>
+<pre class="r"><code># P(T &gt;= tobs) = 1 - P(T &lt;= tobs)
+1 - pt(tobs, df = n-1)</code></pre>
+<pre><code>## [1] 0.0009948463</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 7
+</div>
+<div class="question-body">
+<p>Using a 5% significance level, i.e. <span class="math inline">\(\alpha = 0.05\)</span>, report whether or not you reject the null hypothesis.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-9" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-9&#39;, &#39;sol-start-9&#39;)"> Solution </span>
+</div>
+<div id="sol-body-9" class="solution-body" style="display: none;">
+<p>The p-value is smaller than <span class="math inline">\(\alpha = 0.05\)</span>, so we reject <span class="math inline">\(H_0\)</span>.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 8
+</div>
+<div class="question-body">
+<p>Write up your results in the context of the research question.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-10" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-10&#39;, &#39;sol-start-10&#39;)"> Solution </span>
+</div>
+<div id="sol-body-10" class="solution-body" style="display: none;">
+<p>The estimated mean number of neurons in the prefrontal cortex of male autistic children is 1.94 billion, with a standard error of 0.15 billion.</p>
+<p>At the 5% significance level, we performed a one-sided test of significance against the null hypothesis that the mean number of neurons in the prefrontal cortex of all male autistic children was equal to that of all non-autistic male children.
+The sample results indicate that there is very strong evidence that the mean number of neurons in the prefrontal cortex may be larger for autistic compared to non-autistic male children: <span class="math inline">\(t(6) = 5.21, p &lt; .001\)</span>, one-sided.</p>
+</div>
+<p class="solution-end">
+</p>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<!-- Formatting -->
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;">
+
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Courchesne, E., et al., “Neuron Number and Size in Prefrontal Cortex of Children with Autism,” <em>Journal of the American Medical Association</em>, November 2011;306(18): 2001–2010.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+
+<link rel="stylesheet" href="https://uoepsy.github.io/assets/css/ccfooter.css" />
+<div class="ccfooter"></div>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

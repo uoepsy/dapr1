@@ -1,0 +1,531 @@
+---
+title: "Hypothesis testing: p-values"
+bibliography: references.bib
+biblio-style: apalike
+link-citations: yes
+params: 
+    SHOW_SOLS: TRUE
+    TOGGLE: TRUE
+---
+
+```{r setup, include=FALSE}
+source('assets/setup.R')
+```
+
+
+```{r include=FALSE}
+knitr::opts_chunk$set(fig.align = 'center', 
+                      fig.height = 7, fig.width = 8.2, 
+                      out.width = '80%')
+
+set.seed(123)
+
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+
+theme_set(theme_light(base_size = 15))
+```
+
+
+:::lo
+
+1. Understand null and alternative hypotheses, and how to specify them for a given research question.
+
+1. Understand the concept of and how to obtain a null distribution.
+
+1. Understand statistical significance and how to calculate p-values from null distributions.
+
+
+:::
+
+
+# Hypothesis testing
+
+
+## Introduction
+
+The data on the entire population are often not available. However, researchers often want to answer questions about population characteristics.
+
+The characteristics of a population are __population parameters__. Examples are the mean, the standard deviation, a proportion, etc.
+
+Last week we learned how to provide an estimate of the population mean starting from a random sample, as well as a measure of the precision of our estimate.
+
+- The sample mean $\bar x$ is the estimate of the unknown population mean.
+- The standard error of the mean $s / \sqrt{n}$ provides the reader with a measure of precision in our estimate, or better, the size of a typical estimation error.
+
+This week we will learn how to test a claim about the population mean, starting from sample data.
+
+:::yellow
+In statistics, a __hypothesis__ is a claim, in the form of a precise mathematical statement, about the value of a populaion parameter.
+:::
+
+__Examples:__  
+
++ $\mu = 100$  
+    where $\mu$ is the population mean IQ score.
+    
++ $\sigma = 15$  
+    where $\sigma$ is the standard deviation of IQ scores in the population.
+
+__Note:__  
+
+- A hypothesis is a claim about a _population_ parameter and _not_ about a sample statistic. 
+
+- We can compute the value of the sample statistic, so there is no need to perform a test on its value, as we have it (unlike population parameters, for which we don't have the value). If your sample has a mean $\bar x = 2$, would it make sense to ask whether the sample mean is 0? No... Clearly the sample mean is 2 which is different from 0.
+
+- We make hypotheses about things we cannot compute, such as parameters.
+
+
+## The four parts of a test of significance
+
+To perform a hypothesis test we need:
+
+1. The __null hypothesis__, denoted $H_0$.
+
+    + This is typically a skeptical reaction to a research hypothesis.
+
+1. The __alternative hypothesis__, denoted $H_1$.
+
+    + This is the claim we seek evidence for.
+
+1. The __test statistic__. When testing a mean this is called the __t-statistic__, denoted $t$.
+
+    + The t-statistic measures how many SEs the sample means is from the hypothesised mean. That is, it measures how much the sample data differ from what expected when the null hypothesis is true.
+
+1. The __significance level__, denoted $\alpha$
+
+    + The significance level is a cutoff chosen by the researcher (you!). Typical values are 0.10, 0.05, or 0.01.
+    + A value of 0.05 would mean that you would obtain such result __if $H_0$ is true__ only in 1 out of 20 samples (or, equivalently, 5 out of 100).
+
+1. The __p-value__
+
+    + The probability of obtaining a test statistic at least as extreme as the observed test statistic, if the null hypothesis is true.
+    + If the p-value $\leq \alpha$, we reject $H_0$ as the data provide enough evidence (at the chosen $\alpha$ level) against $H_0$ and in favour of $H_1$
+    + If the p-value $> \alpha$, we fail to reject $H_0$ as the data do not provide sufficient evidence against $H_0$ and in favour of $H_1$
+    + If $H_1 : \mu > \mu_0$, compute the p-value by finding $P(T > t)$
+    + If $H_1 : \mu < \mu_0$, compute the p-value by finding $P(T < t)$
+    + If $H_1 : \mu \neq \mu_0$, compute the p-value by finding $P(T < - |t|) + P(T > + |t|)$
+
+
+
+# Example
+
+## Imaginary case
+
+Suppose you have an imaginary toy population of 5 individuals, on which you collect a score, and the mean score is actually equal to 10.
+
+```{r}
+pop <- c(6, 8, 10, 12, 14)
+mu <- mean(pop)
+mu
+```
+
+If we could only afford to sample $n = 2$ individuals, and take all possible random samples, what would the sample means look like?
+
+```{r echo=F}
+library(tidyverse)
+
+tmp <- expand.grid(x1 = pop, x2 = pop) %>%
+    mutate(xbar = (x1 + x2) / 2) %>%
+    arrange(xbar) %>%
+    mutate(sample_id = 1:n()) %>%
+    unite('sample', x1, x2, sep = ", ") %>%
+    mutate(sample = paste0('(', sample, ')')) %>%
+    relocate(sample_id, .before = 1)
+
+tmp %>% gt::gt()
+```
+
+<br>
+
+As you see above, each sample leads to a different sample mean. We can plot those means with a histogram, to find what sample means happen more often, and which sample means happen less frequently, __when the population mean is in fact $\mu = 10$.__ Remember? I gave you a population where the mean was exactly equal to 10.
+
+```{r echo=FALSE}
+breaks = seq(min(tmp$xbar) - 0.5, max(tmp$xbar) + 0.5, 1)
+hist(tmp$xbar, breaks = breaks,
+        col = 'lightblue', border = 'lightblue3',
+        xlab = 'Sample mean', ylab = 'Frequency', main = "")
+```
+
+We notice a few things. __When the population mean is $\mu = 10$__:
+
+- Most samples will have a sample mean which is close to the true population mean
+- Very few samples will have a sample mean that is far away from the true population mean
+
+In this case,
+
+- 1 sample only has a sample mean of 6
+- 5 samples have a sample mean between 7 and 8
+- 13 samples have a sample mean between 9 and 11
+- 5 samples have sample mean between 12 and 13
+- 1 sample only has a sample mean of 14
+
+So, if the true population mean is $\mu = 10$, it is very rare to obtain a sample with a mean of 6 or a sample with a mean of 14. This is very unlikely.
+
+We can also add a density above:
+
+```{r echo=FALSE}
+breaks = seq(min(tmp$xbar) - 0.5, max(tmp$xbar) + 0.5, 1)
+hist(tmp$xbar, breaks = breaks, freq = FALSE,
+        col = 'lightblue', border = 'lightblue3',
+        xlab = 'Sample mean', ylab = 'Frequency', main = "")
+lines(density(tmp$xbar))
+```
+
+
+The plot above is called a __null distribution__ and it tells us the possible values that the sample means can take, assuming that the population mean is equal to some value (in this case assuming $\mu = 10$)
+
+
+> __Key question__  
+> If you obtained a sample with a mean of 20, would you find this consistent with a population having a mean of 10, or would you start doubting this and perhaps find it more likely that the population mean was different from 10?
+
+If your sample had a mean of 20, when in fact this is a value you don't expect to happen that often in the null distribution, we would find this a surprising result, and we would doubt the population has a mean of 10.
+
+Now we must go back to reality and realise that we cannot really take all possible samples from a population. We can only afford one and we must work with that single sample we have.
+
+## Real life: One sample only
+
+Suppose your sample is (6, 12).
+
+Let's compute the observed sample mean:
+
+```{r}
+x <- c(6, 12)
+xbar <- mean(x)
+xbar
+```
+
+We wish to test whether the population the sample came from has a mean different from 10.
+
+$$
+H_0: \mu = 10\\
+H_1: \mu \neq 10
+$$
+
+__Key question:__  
+The mean in our sample is 9. Could a sample mean of 9 easily come from a population that has a mean of 10? Or is it very unlikely for a population with mean 10 to give rise to a sample with mean 9?
+
+
+## t-distribution
+
+Instead of working with the sample means directly, we work with the standardised sample means, using the __t-statistic__ to standardise them. (Call it t-score if you prefer, to remind you of the z-score)
+
+$$
+t = \frac{\bar x - \mu_0}{s / \sqrt n}
+$$
+
+In our case, if $H_0 : \mu = 10$, we have:
+
+$$
+t = \frac{9 - 10}{3} = -0.33
+$$
+
+
+```{r}
+xbar <- mean(x)
+xbar
+s <- sd(x)
+n <- 2
+SE <- s / sqrt(n)
+SE
+tobs <- (xbar - 10) / SE
+tobs
+```
+
+
+We know that the t-score follows a $t(n-1)$ distribution. So, in our case a $t(1)$ distribution.
+
+How likely is it to obtain a t-score at least as extreme as `r round(tobs, 2)`? In this case $H_1$ has the $\neq$ symbol, so something is different from 10 when either it's much larger or much smaller. So we will find the probability of t-statistics that are either more distant from the hypothesised value of 10 on the left tail, but also on the right tail.
+
+How likely is it to obtain a t-score either lower than -0.33 $(=-|t|)$ or larger than 0.33 $(= +|t|)$?
+
+```{r}
+pvalue <- pt(-abs(tobs), 1, lower.tail = TRUE) + 
+          pt(+abs(tobs), 1, lower.tail = FALSE)
+```
+
+Comparing the p-value with $\alpha$ = 0.05, we find that the p-value is larger than the significance level and as such we do not reject $H_0$. 
+
+The sample data do not provide sufficient evidence to reject the null hypothesis that the sample $(6, 12)$ came from a population with mean 10.
+
+
+
+## Test your knowledge
+
+What about if the sample you collected was (172, 194)? Could this come from a population having mean = 10?
+
+`r optbegin("Solution", olabel = FALSE)`
+```{r}
+x <- c(172, 194)
+xbar <- mean(x)
+s <- sd(x)
+n <- 2
+SE <- s / sqrt(n)
+SE
+tobs <- (xbar - 10) / SE
+tobs
+pt(-abs(tobs), df = 1) + (1 - pt(+abs(tobs), df = 1))
+```
+
+or
+
+```{r}
+2 * pt(abs(tobs), df = 1, lower.tail = FALSE)
+```
+
+The p-value is $\leq 0.05$ so we reject $H_0$
+
+At the 5% significance level, the sample data provide strong evidence against the null hypothesis that the sample $(172, 194)$ came from a population with a mean of 10, and in favour of the alternative hypothesis that the sample came from a population with a mean different from 10.
+`r optend()`
+
+
+# Summary
+
+- We have learned to assess how much evidence the sample data bring against the null hypothesis and in favour of the alternative hypothesis.
+
+- The null hypothesis, denoted $H_0$, is a claim about a population parameter that is initially assumed to be true. It typically represents "no effect" or "no difference between groups".
+
+- The alternative hypothesis, denoted $H_1$, is the claim we seek evidence for.
+
+- We performed a hypothesis test against $H_0$ (and in favour of $H_1$) following these steps:
+
+    + Formally state your null and alternative hypotheses using precise symbols
+    + Consider the distribution of the t-statistics when $H_0$ is true
+    + Compute the observed value of the t-statistic in our sample
+    + Obtain the __p-value__: the probability, computed assuming that $H_0$ is true, of obtaining a t-statistic at least as extreme as that observed. __Note__: as extreme means "in the direction specified by $H_1$.
+
+
+
+# Exercises
+
+```{r echo=FALSE, eval=FALSE}
+library(tidyverse)
+
+df <- tribble(
+    ~Case, ~Age, ~DL_PFC, ~M_PFC, 
+    1, 2,  2.10, 0.32,
+    2, 3,  1.41, 0.39,
+    3, 3,  1.84, 0.37,
+    4, 4,  1.82, 0.36,
+    5, 7,  0.93, 0.35,
+    6, 8,  1.26, 0.33,
+    7, 16, 1.65, 0.44
+)
+
+df <- df %>%
+    mutate(PFC_NC = DL_PFC + M_PFC) %>%
+    select(-DL_PFC, -M_PFC)
+
+write_csv(df, "../../data/NeuronCounts.csv")
+```
+
+A 2011 study by Courchesne et al.[^1] examined brain tissue of seven autistic male children between the ages of 2 and 16. The mean number of neurons in the prefrontal cortex in non-autistic male children of the same age is about 1.15 billion. The prefrontal cortex is the part of the brain most disrupted in autism, as it deals with language and social communication.
+
+<!-- In the sample of seven autistic children, the mean number of neurons in the prefrontal cortex was 1.94 billion with a standard deviation of 0.50 billion.  -->
+
+<!-- Use the t-distribution to test whether this sample provides evidence that autistic male children have more neurons (on average) in the prefrontal cortex than non-autistic children. (This study indicates that the causes of autism may be present before birth.) -->
+
+In the exercises you will perform a test of significance to assess whether this sample provides evidence that autistic male children have more neurons (on average) in the prefrontal cortex than non-autistic children.
+
+
+<br>
+`r optbegin("Data Codebook", olabel = FALSE)`
+__Download link__  
+
+The data can be found at this address: https://uoepsy.github.io/data/NeuronCounts.csv
+
+__Preview__  
+
+```{r echo=FALSE}
+library(tidyverse)
+autism <- read_csv('https://uoepsy.github.io/data/NeuronCounts.csv')
+autism %>% 
+    gt::gt()
+```
+
+__Codebook__  
+
+- The first column, `Case`, is an anonymised index used to identify each child.
+- The second column, `Age`, records the age of each child.
+- The last column, `PFC_NC`, contains the prefrontal cortex neuron counts (in billions).
+
+`r optend()`
+
+
+[^1]: Courchesne, E., et al., "Neuron Number and Size in Prefrontal Cortex of Children with Autism," _Journal of the American Medical Association_, November 2011;306(18): 2001–2010.
+
+
+<br>
+
+`r qbegin(1)`
+Read the data into R.
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+library(tidyverse)
+autism <- read_csv('https://uoepsy.github.io/data/NeuronCounts.csv')
+autism
+```
+`r solend()`
+
+
+`r qbegin(2)`
+Compute and interpret a table of descriptive statistics.
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+stats <- autism %>%
+    summarise(
+        SampleSize = n(),
+        M_Age = mean(Age), SD_Age = sd(Age),
+        M_PFC_NC = mean(PFC_NC), SD_PFC_NC = mean(PFC_NC)
+    ) %>%
+    round(2)
+stats
+```
+
+
+A nice trick to create a nice table for a report. Come to the labs and the tutors to explain this complex code to you!
+
+```{r}
+library(gt)
+
+autism %>%
+    pivot_longer(Age:PFC_NC, 
+                 names_to = "Variable", values_to = "Values") %>%
+    group_by(Variable) %>%
+    mutate(Variable = ifelse(Variable == 'PFC_NC', 
+                             'PFC Neuron Count', 
+                             Variable)) %>%
+    summarise(M = mean(Values),
+              SD = sd(Values)) %>%
+    mutate(M = round(M, 2),
+           SD = round(SD, 2)) %>%
+    gt()
+```
+
+
+In the sample of seven autistic children, the mean age was 6.14 years, with a SD of 4.88 years, and the mean number of neurons in the prefrontal cortex was 1.94 billion with a standard deviation of 0.40 billion.
+
+`r solend()`
+
+
+`r qbegin(3)`
+State the null and alternative hypotheses.
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+We wish to test the claim that the mean number of neurons in the prefrontal cortex is larger than 1.15 billion (the value for non-autistic male children). At his is our research hypothesis, we must place this into the alternative hypothesis. 
+
+__Remember:__ A hypothesis test looks for evidence __against__ a null hypothesis and in favour of the alternative.
+
+The null hypothesis is typically a skeptical reaction to a research hypothesis. In our case, a skeptic would say that there is no difference in mean number of neurons, so the mean number of neurons for autistic children will be equal to that of non-autistic children (1.15).
+
+The answer is then:
+
+$$
+H_0 : \mu = 1.15 \\
+H_1 : \mu > 1.15
+$$
+
+where $\mu$ is the mean number of neurons (in billions) in the prefrontal cortex for all autistic male children.
+
+`r solend()`
+
+
+
+`r qbegin(4)`
+Compute the value of the t-statistic from the sample mean number of neurons.
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+Recall the formula for the t-statistic:
+
+$$
+t = \frac{\bar x - \mu_0}{\frac{s}{\sqrt{n}}}
+$$
+
+where
+
+- $\bar x$ is the sample average number of neurons in the prefrontal cortex
+- $\mu_0$ is the hypothesised value for the population parameter found in $H_0$
+- $s$ is the sample standard deviation
+- $n$ is the sample size
+
+
+Hence, the value of the t-statistic for the observed sample is given by:
+
+```{r}
+xbar <- mean(autism$PFC_NC)
+xbar
+
+s <- sd(autism$PFC_NC)
+s
+
+n <- nrow(autism)
+n
+
+mu0 <- 1.15
+
+tobs <- (xbar - mu0) / (s / sqrt(n))
+tobs
+```
+
+The sample mean neuron count, `r round(xbar, 2)` billion, is `r round(tobs, 2)` standard errors larger than the hypothesised value.
+`r solend()`
+
+
+`r qbegin(5)`
+Identify the null distribution.
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+When $H_0: \mu = 1.15$ is true, the t values will follow a $t(6)$ distribution.
+`r solend()`
+
+
+`r qbegin(6)`
+Compute the p-value for the test.
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+The alternative hypothesis is $H_1 : \mu > 1.15$. This involves the "greater than sign", so we compute the p-value by finding the probability of observing a t-statistic __at least as large as__ the observed t value:
+
+```{r}
+# P(T >= tobs)
+pt(tobs, df = n-1, lower.tail = FALSE)
+```
+
+or
+
+```{r}
+# P(T >= tobs) = 1 - P(T <= tobs)
+1 - pt(tobs, df = n-1)
+```
+
+`r solend()`
+
+
+
+`r qbegin(7)`
+Using a 5% significance level, i.e. $\alpha = 0.05$, report whether or not you reject the null hypothesis.
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+The p-value is smaller than $\alpha = 0.05$, so we reject $H_0$.
+`r solend()`
+
+
+`r qbegin(8)`
+Write up your results in the context of the research question.
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+The estimated mean number of neurons in the prefrontal cortex of male autistic children is `r round(xbar, 2)` billion, with a standard error of `r round(s / sqrt(n), 2)` billion.
+
+At the 5% significance level, we performed a one-sided test of significance against the null hypothesis that the mean number of neurons in the prefrontal cortex of all male autistic children was equal to that of all non-autistic male children.
+The sample results indicate that there is very strong evidence that the mean number of neurons in the prefrontal cortex may be larger for autistic compared to non-autistic male children: $t(6) = 5.21, p < .001$, one-sided.
+`r solend()`
+
+
+# References
+
+<!-- Formatting -->
+
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;"></div>
+
