@@ -45,9 +45,9 @@ theme_set(theme_light(base_size = 15))
 
 ## Introduction
 
-The data on the entire population are often not available. However, researchers often want to answer questions about population characteristics.
+The data for the entire population is often not available. However, researchers typically want to answer questions about population characteristics.
 
-The characteristics of a population are __population parameters__. Examples are the mean, the standard deviation, a proportion, etc.
+By characteristics of a population we mean __population parameters__, i.e. numerical summaries. Examples are the mean, the standard deviation, a proportion, etc.
 
 Last week we learned how to provide an estimate of the population mean starting from a random sample, as well as a measure of the precision of our estimate.
 
@@ -56,9 +56,11 @@ Last week we learned how to provide an estimate of the population mean starting 
 
 This week we will learn how to test a claim about the population mean, starting from sample data.
 
-:::yellow
-In statistics, a __hypothesis__ is a claim, in the form of a precise mathematical statement, about the value of a populaion parameter.
-:::
+
+## Testable hypotheses
+
+In statistics, a __hypothesis__ is a claim, in the form of a precise mathematical statement, about the value of a population parameter.
+
 
 __Examples:__  
 
@@ -72,9 +74,9 @@ __Note:__
 
 - A hypothesis is a claim about a _population_ parameter and _not_ about a sample statistic. 
 
-- We can compute the value of the sample statistic, so there is no need to perform a test on its value, as we have it (unlike population parameters, for which we don't have the value). If your sample has a mean $\bar x = 2$, would it make sense to ask whether the sample mean is 0? No... Clearly the sample mean is 2 which is different from 0.
+- We can compute the value of the sample statistic, so there is no need to perform a test on what its value might be. We can simply look at the value, unlike population parameters. If your sample has a mean $\bar x = 2$, would it make sense to ask whether the sample mean is 0? No, clearly the sample mean is 2 which is different from 0.
 
-- We make hypotheses about things we cannot compute, such as parameters.
+- We make hypotheses about things that are unknown, such as parameters.
 
 
 ## The five parts of a test of significance
@@ -89,9 +91,9 @@ To perform a hypothesis test we need:
 
     + This is the claim we seek evidence for.
 
-1. The __test statistic__. When testing a mean this is called the __t-statistic__, denoted $t$.
+1. The __test statistic__. This is used to measure how consistent the data are with the null hypothesis. For testing a mean we use the __t-statistic__, denoted $t$.
 
-    + The t-statistic measures how many SEs the sample means is from the hypothesised mean. That is, it measures how much the sample data differ from what expected when the null hypothesis is true.
+    + The t-statistic measures measures how many SEs away from the hypothesised mean is the observed sample mean. That is, it measures how much the sample data differ from what expected when the null hypothesis is true.
 
 1. The __significance level__, denoted $\alpha$
 
@@ -121,12 +123,13 @@ mu <- mean(pop)
 mu
 ```
 
-If we could only afford to sample $n = 2$ individuals, and take all possible random samples, what would the sample means look like?
+If we could only afford to sample $n = 2$ individuals, and take all possible random samples, what would all the possible sample means look like?
 
 ```{r echo=F}
 library(tidyverse)
 
 tmp <- expand.grid(x1 = pop, x2 = pop) %>%
+    filter(x1 != x2) %>%
     mutate(xbar = (x1 + x2) / 2) %>%
     arrange(xbar) %>%
     mutate(sample_id = 1:n()) %>%
@@ -155,13 +158,11 @@ We notice a few things. __When the population mean is $\mu = 10$__:
 
 In this case,
 
-- 1 sample only has a sample mean of 6
-- 5 samples have a sample mean between 7 and 8
-- 13 samples have a sample mean between 9 and 11
-- 5 samples have sample mean between 12 and 13
-- 1 sample only has a sample mean of 14
+- 4 samples only have a sample mean $\leq$ 8
+- 12 samples have a sample mean between 9 and 11
+- 4 samples only have a sample mean $\leq$ 12
 
-So, if the true population mean is $\mu = 10$, it is very rare to obtain a sample with a mean of 6 or a sample with a mean of 14. This is very unlikely.
+So, if the population mean is truly $\mu = 10$, it is less likely to obtain a sample with a mean of 7, and it is more likely to obtain a sample with a mean of 9, 10, or 11 for example.
 
 We can also add a density above:
 
@@ -169,8 +170,8 @@ We can also add a density above:
 breaks = seq(min(tmp$xbar) - 0.5, max(tmp$xbar) + 0.5, 1)
 hist(tmp$xbar, breaks = breaks, freq = FALSE,
         col = 'lightblue', border = 'lightblue3',
-        xlab = 'Sample mean', ylab = 'Frequency', main = "")
-lines(density(tmp$xbar))
+        xlab = 'Sample mean', ylab = 'Density', main = "")
+lines(density(tmp$xbar), col = 'darkblue', lwd = 2)
 ```
 
 
@@ -209,18 +210,13 @@ The mean in our sample is 9. Could a sample mean of 9 easily come from a populat
 
 ## t-distribution
 
-Instead of working with the sample means directly, we work with the standardised sample means, using the __t-statistic__ to standardise them. (Call it t-score if you prefer, to remind you of the z-score)
+Instead of working with the sample means directly, we work with the standardised sample means, using the __t-statistic__ to standardise them. (Call it t-score if you prefer, to remind you of the z-score). The formula is:
 
 $$
 t = \frac{\bar x - \mu_0}{s / \sqrt n}
 $$
 
-In our case, if $H_0 : \mu = 10$, we have:
-
-$$
-t = \frac{9 - 10}{3} = -0.33
-$$
-
+First let's compute the observed value of the t-statistic, which uses the mean from the observed sample. Furthermore, remember that in our case $H_0 : \mu = 10$.
 
 ```{r}
 xbar <- mean(x)
@@ -233,16 +229,50 @@ tobs <- (xbar - 10) / SE
 tobs
 ```
 
+So:
 
-We know that the t-score follows a $t(n-1)$ distribution. So, in our case a $t(1)$ distribution.
+$$
+t = \frac{9 - 10}{3} = -0.33
+$$
 
-How likely is it to obtain a t-score at least as extreme as `r round(tobs, 2)`? In this case $H_1$ has the $\neq$ symbol, so something is different from 10 when either it's much larger or much smaller. So we will find the probability of t-statistics that are either more distant from the hypothesised value of 10 on the left tail, but also on the right tail.
+
+We know that the t-statistic follows a $t(n-1)$ distribution. So, in our case a $t(1)$ distribution.
+
+
+`r optbegin("Visualise the t-statistics", olabel = FALSE)`
+We can use the previous histogram of sample means (null distribution) and, instead of plotting the actual means, we can plot the t-score of each mean:
+
+```{r echo=FALSE}
+ts = (tmp$xbar - 10) / (sd(x) / sqrt(2))
+hist(ts, breaks = seq(min(ts), max(ts), len = 8), freq = FALSE,
+     col = 'lightblue', border = 'lightblue3',
+    xlab = 't-scores', ylab = 'Density', main = "")
+lines(density(ts), col = 'darkblue', lwd = 2)
+```
+
+Let's add the observed t-score on the plot
+
+```{r echo=FALSE}
+ts = (tmp$xbar - 10) / (sd(x) / sqrt(2))
+hist(ts, breaks = seq(min(ts), max(ts), len = 8), freq = FALSE,
+     col = 'lightblue', border = 'lightblue3',
+    xlab = 't-scores', ylab = 'Density', main = "")
+lines(density(ts), col = 'darkblue', lwd = 2)
+abline(v = tobs, col = 'darkorange', lwd = 2, lty = 2)
+```
+
+`r optend()`
+
+How likely is it to obtain a t-score at least as extreme as `r round(tobs, 2)`? 
+
+In this case $H_1$ has the $\neq$ symbol. Something is different from 10 when it's either much larger or much smaller. So we find the probability of t-statistics that are either more distant from the hypothesised value of 10 on the left tail, but also on the right tail.
 
 How likely is it to obtain a t-score either lower than -0.33 $(=-|t|)$ or larger than 0.33 $(= +|t|)$?
 
 ```{r}
 pvalue <- pt(-abs(tobs), 1, lower.tail = TRUE) + 
           pt(+abs(tobs), 1, lower.tail = FALSE)
+pvalue
 ```
 
 Comparing the p-value with $\alpha$ = 0.05, we find that the p-value is larger than the significance level and as such we do not reject $H_0$. 
