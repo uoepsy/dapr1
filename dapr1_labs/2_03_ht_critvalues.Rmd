@@ -46,22 +46,25 @@ Last week we saw that, to perform a hypothesis test, we need to:
 
 1. Identify the __alternative hypothesis__, denoted $H_1$.
 
-1. Select the __significance level__, denoted $\alpha$
+1. Select the __significance level__, denoted $\alpha$. Typical values are 0.1, 0.05, or 0.01.
 
-1. Compute the __test statistic__. This is used to measure how consistent the data are with the null hypothesis. For testing a mean we use the __t-statistic__, denoted $t$.
+1. Compute the __test statistic__. This is used to measure how consistent the data are with the null hypothesis. 
 
-1. Compute the __p-value__
+    + For testing a mean we use the __t-statistic__, denoted $t$, which takes the following form:
+$$t = \frac{\bar x - \mu_0}{s / \sqrt{n}}$$
 
-1. Make a __decision.__ 
+1. Compute the __p-value__.
 
-    + If p-value $\leq \alpha$, reject $H_0$.
-    + If p-value $> \alpha$, fail to reject $H_0$.
+1. Make a __decision__:
+
+    + if p-value $\leq \alpha$, reject $H_0$.
+    + if p-value $> \alpha$, fail to reject $H_0$.
 
 
 # Hypothesis testing: critical value method
 
 The method we used last week to perform a hypothesis test is called the  p-value method because it reduces to comparing the area corresponding to the p-value with the area corresponding to $\alpha$.
-This week we investigate an equivalent approach, called the critical value method, which compares the t-statistics delimiting the $\alpha$ area with the observed t-statistic used to compute the p-value area.
+This week we investigate an equivalent approach, called the critical value method, which compares the t-statistics delimiting the $\alpha$ area with the observed t-statistic that is used to compute the p-value area.
 
 The changes to the procedure are minimal:
 
@@ -69,23 +72,26 @@ The changes to the procedure are minimal:
 
 1. Identify the __alternative hypothesis__, denoted $H_1$.
 
-1. Select the __significance level__, denoted $\alpha$
+1. Select the __significance level__, denoted $\alpha$. Typical values are 0.1, 0.05, or 0.01.
 
-1. Compute the __test statistic__. This is used to measure how consistent the data are with the null hypothesis. For testing a mean we use the __t-statistic__, denoted $t$.
+1. Compute the __test statistic__. This is used to measure how consistent the data are with the null hypothesis. 
+
+    + For testing a mean we use the __t-statistic__, denoted $t$, which takes the following form:
+$$t = \frac{\bar x - \mu_0}{s / \sqrt{n}}$$
 
 1. Compute the __critical values__.
 
-1. Make a __decision.__ 
+1. Make a __decision__:
 
-    + If the observed test statistic $t$ lies beyond the critical values, reject $H_0$.
-    + If the observed test statistic $t$ lies within the critical values, fail to reject $H_0$.
+    + if the observed test statistic $t$ lies beyond the critical values, reject $H_0$.
+    + if the observed test statistic $t$ lies within the critical values, fail to reject $H_0$.
 
 
-# Example
+# Examples
 
-## Two-sided $H_1: \mu \neq 0$
+## 1. Two-sided alternative
 
-Suppose I give you a sample, such as
+Suppose I give you a sample, for example:
 
 ```{r}
 library(tidyverse)
@@ -95,19 +101,21 @@ sample_data <- tibble(
 )
 ```
 
-Using $\alpha = 0.01$, we wish to  test whether the population it came from has a mean score that is different from 0:
+Using $\alpha = 0.01$, we wish to  test whether the population the sample came from has a mean score that is different from 0:
 
 $$
 H_0: \mu = 0 \\
 H_1: \mu \neq 0
 $$
 
+Sample mean:
+
 ```{r}
 xbar <- mean(sample_data$score)
 xbar
 ```
 
-Just because the sample mean is different from 0, it doesn't mean that the population mean necessarily must also be. This difference could perhaps be due to random sampling variation only.
+Just because the sample mean is different from 0, it doesn't mean that the population mean necessarily must also be. This difference could perhaps only be due to random sampling variation.
 
 ```{r}
 s <- sd(sample_data$score)
@@ -122,6 +130,8 @@ tobs <- (xbar - mu0) / SE
 tobs
 ```
 
+The observed sample mean ($\bar x =$ `r round(xbar, 2)`) is `r round(tobs, 2)` standard errors away from the hypothesised value of 0.
+
 We need to compare the observed t-statistic (i.e. the one computed from the observed sample data) with the critical values from a t(`r n-1`) distribution. These are the values that cut, respectively, an area of 0.005 to the left and 0.005 to the right.
 
 Those are the __quantiles__ of a t-distribution, hence the function required is `qt()`. ^[Remember the quantiles? [See here if not](1_10_continuous_distributions.html#The_inverse_problem:_quantiles_and_percentiles)]
@@ -135,10 +145,10 @@ tstar
 
 - In the t(`r n-1`) distribution:
 
-    + The middle 0.99 probability of the distribution lies in between the values `r round(tstar)`.
-    + To the left of `r round(tstar[1])` lies a probability of 0.005 = 0.01/2
-    + To the right of `r round(tstar[2])` lies a probability of 0.005 = 0.01/2
-    + Hence, below `r round(tstar[1])` and beyond `r round(tstar[2])` lies a total of 0.01 probability. __The probability in the tails is then 0.01 = $\alpha$__.
+    + The middle 0.99 probability of the distribution lies in between the values $-t^*$ = `r round(tstar[1], 2)` and $t^*$ = `r round(tstar[2], 2)`.
+    + To the left of $-t^*$ = `r round(tstar[1], 2)` lies a probability of 0.005 = 0.01/2
+    + To the right of $t^*$ = `r round(tstar[2], 2)` lies a probability of 0.005 = 0.01/2
+    + Hence, below `r round(tstar[1], 2)` and beyond `r round(tstar[2], 2)` lies a total of 0.01 probability. __The probability in the tails is then 0.01 = $\alpha$__.
 
 
 `r optbegin("Visually", FALSE)`
@@ -193,6 +203,8 @@ ggplot(plt, aes(x = t_values, y = t_dens)) +
 
 The observed t-statistic lies in between the critical values, rather than beyond. Hence, we fail to reject $H_0$ at the 1% significance level.
 
+If you were to compute the p-value, this would be larger than $\alpha = 0.01$.
+
 ```{r}
 tobs
 tstar
@@ -207,13 +219,11 @@ tobs >= tstar[2]
 
 
 
-## One-sided $H_1: \mu < 0$
+## 2. One-sided alternative: <
 
 Suppose you were given a different sample, such as
 
 ```{r}
-library(tidyverse)
-
 sample_data <- tibble(
     score = c(-2.1, -5.9, -3.8, -4.3)
 )
@@ -246,9 +256,9 @@ tobs <- (xbar - mu0) / SE
 tobs
 ```
 
-Compute the __critical value__. In a one-sided hypothesis test there is only one critical value as the entire $\alpha$ (= 0.05 in this case) probability is assinged all in one tail.
+Compute the __critical value__. In a one-sided hypothesis test there is only one critical value as the entire $\alpha$ probability (= 0.05 in this case) is assigned all in one tail.
 
-In this case $H_1 : \mu < 0$ so $\alpha$ goes all in the __left__ tail. This is because t-statistics that are much smaller than 0 will be considered as providing strong evidence against the null hypothesis.
+In this case $H_1 : \mu < 0$ so $\alpha$ goes all in the __left__ tail. This is because t-statistics that are much smaller than the hypothesised value, i.e. 0, will be considered as providing strong evidence against the null hypothesis.
 
 ```{r}
 tstar <- qt(0.05, df = n - 1)
@@ -270,15 +280,14 @@ tobs <= tstar
 
 At the 5% significance level, the sample data provide strong evidence against the null hypothesis that  the sample came from a population with a mean of 0, and in favour of the alternative that the population mean is less than 0.
 
+As the observed $t$ = `r round(tobs, 2)` is smaller than the critical value $t^*$ = `r round(tstar, 2)`, the p-value would also be smaller than $\alpha = 0.05$.
 
 
-## One-sided $H_1: \mu > 0$
+## 3. One-sided alternative: >
 
 Suppose you were given a different sample, such as
 
 ```{r}
-library(tidyverse)
-
 sample_data <- tibble(
     score = c(2.1, 0.3, -0.9, 1.1)
 )
@@ -311,9 +320,9 @@ tobs <- (xbar - mu0) / SE
 tobs
 ```
 
-Compute the __critical value__. In a one-sided hypothesis test there is only one critical value as the entire $\alpha$ (= 0.05 in this case) probability is assinged all in one tail.
+Compute the __critical value__. In a one-sided hypothesis test there is only one critical value as the entire $\alpha$ probability (= 0.05 in this case) is assigned all in one tail.
 
-In this case $H_1 : \mu > 0$ so $\alpha$ goes all in the __right__ tail. This is because t-statistics that are much larger than 0 will be considered as providing strong evidence against the null hypothesis.
+In this case $H_1 : \mu > 0$ so $\alpha$ goes all in the __right__ tail. This is because t-statistics that are much larger than the hypothesised value, i.e. 0, will be considered as providing strong evidence against the null hypothesis.
 
 ```{r}
 tstar <- qt(0.95, df = n - 1)
@@ -327,7 +336,7 @@ tobs
 tstar
 ```
 
-The observed t-statistic not more extreme than the critical value. It is smaller than the critical value, so we fail to reject $H_0$. The sample data are consistent with the null hypothesis. 
+The observed t-statistic is not more extreme than the critical value. It is smaller than the critical value, so we fail to reject $H_0$. The sample data are consistent with the null hypothesis. 
 
 ```{r}
 tobs >= tstar
@@ -335,6 +344,7 @@ tobs >= tstar
 
 At the 5% significance level, the sample data do not provide sufficient evidence against the null hypothesis and hence we fail to reject the null that the sample came from a population with a mean of 0.
 
+If you were to compute the p-value, as the observed t-statistic is smaller than the critical value, the p-value would be larger than $\alpha = 0.05$.
 
 
 # Summary
@@ -463,13 +473,8 @@ xbar <- mean(autism$PFC_NC)
 xbar
 
 s <- sd(autism$PFC_NC)
-s
-
 n <- nrow(autism)
-n
-
 SE <- s / sqrt(n)
-SE
 
 mu0 <- 1.15
 
@@ -484,14 +489,15 @@ The sample mean neuron count, `r round(xbar, 2)` billion, is `r round(tobs, 2)` 
 `r qbegin(3)`
 Identify the null distribution, i.e. the distribution of the t-statistic when $H_0$ is true.
 
-Compute the critical value(s) for the null distribution and the appropriate significance level.
+Compute the critical value(s) for the null distribution using the appropriate significance level.
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-When $H_0$ is true, the t-statistic $t = \frac{\bar x - \mu_0}{s / \sqrt{n}}$ followsa t(`r n-1`) distribution, where the degrees of freedom are computed as df = n - 1 = `r n` - 1 = `r n - 1`.
+When $H_0$ is true, the t-statistic $t = (\bar x - \mu_0)/(s / \sqrt{n})$ follows a t(`r n-1`) distribution, where the degrees of freedom are computed as df = n - 1 = `r n` - 1 = `r n - 1`.
 
 The critical value is the t-value cutting an area of 0.05 to its right, i.e. the following quantile
 ```{r}
 tstar <- qt(0.95, df = n - 1)
+tstar
 ```
 
 `r solend()`
@@ -501,6 +507,8 @@ tstar <- qt(0.95, df = n - 1)
 Make a decision.
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+Making a decision using the critical value method entails comparing the observed t-statistic with the critical value.
+
 ```{r}
 tobs
 tstar
@@ -511,6 +519,8 @@ The observed t-statistic is larger than the critical value for a 5% significance
 ```{r}
 tobs >= tstar
 ```
+
+If you were to compute the p-value, i.e. the probability of observing a t-statistic as large as, or larger, than the observed one, if the null hypothesis were true, you would obtain a value that is smaller than $\alpha = 0.05$.
 `r solend()`
 
 
@@ -522,8 +532,8 @@ Write up your results in the context of the research question.
 __Side note__  
 When you use the critical value method, you don't have a computed p-value, so the reporting will only say whether p < .05 or p > .05 depending on whether the observed t-statistic is beyond or not beyond the critical value(s).
 
-- If $t > t*$, p < .05
-- If $t < t*$, p > .05
+- If $t > t^*$, p < .05 (if you use a different $\alpha$, change accordingly)
+- If $t < t^*$, p > .05 (if you use a different $\alpha$, change accordingly)
 :::
 
 The estimated mean number of neurons in the prefrontal cortex of male autistic children is `r round(xbar, 2)` billion, with a standard error of `r round(SE, 2)` billion.
