@@ -1,0 +1,316 @@
+---
+title: "Hypothesis testing & Confidence intervals"
+bibliography: references.bib
+biblio-style: apalike
+link-citations: yes
+params: 
+    SHOW_SOLS: TRUE
+    TOGGLE: TRUE
+---
+
+```{r setup, include=FALSE}
+source('assets/setup.R')
+```
+
+
+```{r include=FALSE}
+knitr::opts_chunk$set(fig.align = 'center', 
+                      fig.height = 5, fig.width = 6.2, 
+                      out.width = '80%')
+
+library(tidyverse)
+library(patchwork)
+
+theme_set(theme_light(base_size = 15))
+
+set.seed(123)
+```
+
+
+:::lo
+
+1. Interpret a confidence interval as the plausible values of a parameter that would not be rejected in a two-sided hypothesis test.
+
+1. Determine the decision for a two-sided hypothesis test from an appropriately constructed confidence interval.
+
+1. Be able to explain the difference between a significant result and an important result.
+
+:::
+
+
+# Hypothesis testing
+
+Consider the two-sided hypothesis testing case 
+
+$$
+H_0 : \mu = \mu_0 \\
+H_1 : \mu \neq \mu_0
+$$
+
+Where the test statistic used in order to test the above claim is:
+
+$$
+t = \frac{\bar x - \mu_0}{s / \sqrt{n}}
+$$
+
+At the 5% significance level:
+
+- we __reject__ the null hypothesis $H_0$ whenever the observed t-statistic lies beyond the critical values:
+
+$$t \leq -t^* \qquad \text{or} \qquad t \geq +t^*$$
+
+```{r, echo=FALSE}
+n <- 50
+
+plt <- tibble(
+    x = seq(-5, 5, 0.1),
+    y = dt(x, n-1),
+)
+
+plt.tstar <- qt(c(0.025, 0.975), n-1)
+tobs <- -2.99
+
+ggplot(plt, aes(x = x, y = y)) +
+    geom_line(color = 'blue') +
+    geom_vline(xintercept =  plt.tstar, color = 'red') + 
+    geom_vline(xintercept = tobs, color = 'darkgreen') +
+    labs(x = 't-statistic', y = 'Density') +
+    annotate('text', x = plt.tstar, y = c(0.02, 0.02), label = c('-t*', '+t*'),
+             color = 'red', size = 6, adj = -0.5) +
+    annotate('text', x = tobs, y = 0.02, label = 't',
+             color = 'darkgreen', size = 6, adj = 1.5)
+```
+
+
+- we __do not reject__ the null hypothesis $H_0$ whenever the observed t-statistic lies within the critical values:
+
+$$-t^* < t < +t^*$$
+
+```{r echo=FALSE}
+tobs <- 1.3
+
+ggplot(plt, aes(x = x, y = y)) +
+    geom_line(color = 'blue') +
+    geom_vline(xintercept =  plt.tstar, color = 'red') + 
+    geom_vline(xintercept = tobs, color = 'darkgreen') +
+    labs(x = 't-statistic', y = 'Density') +
+    annotate('text', x = plt.tstar, y = c(0.02, 0.02), label = c('-t*', '+t*'),
+             color = 'red', size = 6, adj = -0.5) +
+    annotate('text', x = tobs, y = 0.02, label = 't',
+             color = 'darkgreen', size = 6, adj = 1.5)
+```
+
+
+
+
+
+# Exercises: Story Spoilers
+
+In this week's exercises we will consider ratings for stories with and without spoilers. At the 5% significance level, we will test the following claim:
+
+> __Research question__  
+> Does having a story spoiled lead, on average, to a different rating?
+
+
+A recent study by Leavitt et al.[^1] investigated whether a story spoiler that gives away the ending early diminishes suspense and hurts enjoyment. For twelve different short stories, the study’s authors created a second version in which a spoiler paragraph at the beginning discussed the story and revealed the outcome. Each
+version of the twelve stories was read by at least 30 people and rated on a 1 to 10 scale to create an overall rating for the story, with higher ratings indicating greater enjoyment of the story. Stories 1 to 4 were ironic twist stories, stories 5 to 8 were mysteries, and stories 9 to 12 were literary stories.
+
+
+[^1]: Leavitt, J. and Christenfeld, N., _"Story Spoilers Don’t Spoil Stories,"_ Psychological Science, August 12, 2011.
+
+
+`r optbegin("Data Codebook", FALSE)`
+__Download link__  
+https://uoepsy.github.io/data/StorySpoiler.csv
+
+__Preview__  
+The top six rows of the data are:
+
+```{r, echo=FALSE}
+library(tidyverse)
+
+df <- read_csv("https://uoepsy.github.io/data/StorySpoilers.csv")
+df %>%
+    head() %>%
+    gt::gt() %>%
+    gt::tab_options(column_labels.font.weight = 'bold')
+```
+
+
+__Codebook__  
+
+- `Story`: ID for story
+
+- `Spoiler`: Average (0-10) rating for spoiler version
+
+- `Original`: Average (0-10) rating for original version
+
+__Source__  
+
+Leavitt, J. and Christenfeld, N., _"Story Spoilers Don’t Spoil Stories,"_ Psychological Science, August 12, 2011.
+`r optend()`
+
+
+`r qbegin(1)`
+
+`r qend()`
+`r solbegin(show = params$SHOW_SOLS, toggle = params$TOGGLE)`
+`r solend()`
+
+
+`r qbegin(1)`
+Read the data into R.
+`r qend()`
+`r solbegin(show = params$SHOW_SOLS, toggle = params$TOGGLE)`
+```{r}
+library(tidyverse)
+stories <- read_csv("https://uoepsy.github.io/data/StorySpoilers.csv")
+head(stories)
+```
+
+`r solend()`
+
+
+`r qbegin(2)`
+In the lectures, we learned how to perform a test on the mean of a single variable. 
+
+- How could you measure whether or not having a story spoiled leads to a difference in ratings by using a single variable?
+
+- What feature do this data have that make it possible to go from two different variables to a single variable?
+`r qend()`
+`r solbegin(show = params$SHOW_SOLS, toggle = params$TOGGLE)`
+The alternative hypothesis is the one directly related to the research claim. Recall the question: "Does having a story spoiled lead, on average, to a different rating?"
+
+The data are an example of paired data. Each row corresponds to a single entity, i.e. a single story. So the two ratings under the Spoiler and Original columns refer to the same story.
+
+The data correspond measurements of the same entities (the stories) "Before" and "After" something (adding or not a spoiler).
+
+We can go from two variables to a single one by taking the difference, as the two variables refer to the same stories (units).
+
+Where we compute the column "Diff" as the difference in ratings between original stories and spoiler stories.
+
+- When Diff is less than 0, the original story rating is lower than the spoiler story rating.
+
+    + Diff = Original - Spoiler. If Original - Spoiler < 0, then we have that  Original < Spoiler.
+
+- When Diff is larger than 0, the original story rating is higher than the spoiler story rating.
+
+    + Diff = Original - Spoiler. If Original - Spoiler > 0, then we have that  Original > Spoiler.
+
+- When Diff is equal to 0, the original story rating is the same as the spoiler story rating.
+
+    + Diff = Original - Spoiler. If Original - Spoiler = 0, then we have that  Original = Spoiler.
+
+`r solend()`
+
+
+`r qbegin(3)`
+Compute a new variable, called `Diff`, representing the difference in ratings between spoiler original and spoiler stories.
+`r qend()`
+`r solbegin(show = params$SHOW_SOLS, toggle = params$TOGGLE)`
+```{r}
+stories <- stories %>%
+    mutate(Diff = Original - Spoiler)
+stories
+```
+
+`r solend()`
+
+
+
+`r qbegin(4)`
+State the null and alternative hypothesis.
+`r qend()`
+`r solbegin(show = params$SHOW_SOLS, toggle = params$TOGGLE)`
+$$
+H_0 : \mu_{\text{Diff}} = 0 \\
+H_1 : \mu_{\text{Diff}} \neq 0
+$$
+`r solend()`
+
+
+
+`r qbegin(5)`
+Compute a 95% confidence interval for the difference in ratings.
+`r qend()`
+`r solbegin(show = params$SHOW_SOLS, toggle = params$TOGGLE)`
+
+```{r}
+n <- nrow(stories)
+xbar <- mean(stories$Diff)
+s <- sd(stories$Diff)
+se <- s / sqrt(n)
+
+tstar <- qt(c(0.025, 0.975), df = n - 1)
+tstar
+```
+
+Confidence interval:
+
+```{r}
+ci <- xbar + tstar * se
+ci
+```
+
+Since `tstar` stores two values inside,
+
+```{r}
+tstar
+```
+
+when you do `xbar + tstar * se`, the first value will be the sample mean (`xbar`) plus the first value within `tstar` (that is, `-2.200985`) times the SE. As you can see, when you do `+tstar`, if the value within `tstar` has a minus sign, it's the same as doing `-` because `+-` becomes `-`. The second value will be the sample mean (`xbar`) plus the second value within `tstar` (that is, `+2.200985`) times the SE.
+
+`r solend()`
+
+
+
+`r qbegin(6)`
+Using the 95% confidence interval, make a decision on whether or not to reject the null hypothesis.
+`r qend()`
+`r solbegin(show = params$SHOW_SOLS, toggle = params$TOGGLE)`
+The confidence interval is [`r paste(round(ci, 2), collapse = ', ')`]. 
+
+The claimed value for the population mean difference in ratings is 0.
+
+As the 95% CI doesn't include the value 0, at the 5% significance level we reject the null hypothesis that the population mean difference in ratings between original and spoiler stories is 0.
+`r solend()`
+
+
+
+
+`r qbegin(7)`
+Verify whether you would reach to the same conclusion if you perform a hypothesis test via the p-value method.
+`r qend()`
+`r solbegin(show = params$SHOW_SOLS, toggle = params$TOGGLE)`
+```{r}
+mu0 <- 0
+tobs <- (xbar - mu0) / se
+tobs
+
+pvalue <- 2 * pt(abs(tobs), df = n - 1, lower.tail = FALSE)
+pvalue
+```
+
+As $p \leq 0.05$, we reject $H_0$.
+
+`r solend()`
+
+
+`r qbegin(8)`
+Write up your results.
+`r qend()`
+`r solbegin(show = params$SHOW_SOLS, toggle = params$TOGGLE)`
+We tested whether spoiling stories leads to, on average, different ratings. At the 5% significance level, the sample results provide very strong evidence against the null hypothesis and in favour of the alternative one that the average difference in rating between original and spoiler stories is not 0; $t(11) = -4.90, p < .001$, two-sided.
+
+We are 95% confident that original stories have a rating between 0.27 and 0.71 lower, on average, than spoiler stories.
+
+`r solend()`
+
+
+
+# References
+
+<!-- Formatting -->
+
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;"></div>
+
