@@ -95,11 +95,11 @@ class: inverse, center, middle
 ---
 # Population vs Sample
 
-- We performed a study by selecting a sample from the population
+- We performed a study by selecting a sample from the population.
 
 - The goal is to use the sample data to answer questions about the population data. For example:
 
-    + What's the population mean? Goal: estimating a parameter
+    + What's the population mean? Goal: estimating a parameter.
     
     + Could the population mean be zero? Goal: testing hypotheses about a parameter.
     
@@ -116,7 +116,7 @@ knitr::include_graphics("images/pimpa-1.png")
 
 - Figure 1 is a drawing of an invisible lady walking her dog. The dog, which is visible, is on a leash. The leash is such that the dog is within $t^* \cdot SE$ of the lady 95% of the time.
 
-- In one picture we can see the dog, but we would like to know where the lady is.
+- __In one picture__ we can see the dog, but we would like to know where the lady is.
 ]
 
 .pull-right[
@@ -142,7 +142,7 @@ If the dog pulls too hard or the lady drops the leash, the position of the lady 
 ---
 # Confidence interval
 
-- We have one picture, i.e. one figure, which corresponds to one sample.
+- We have one picture, which corresponds to one sample.
 
 - We would like to know the value of the population mean $\mu$, which corresponds to the invisible lady, but we cannot directly observe it.
 
@@ -214,6 +214,62 @@ text(50, 0.15, label = 'Hypothesised mean\nmu = 50',
 ]
 
 ---
+# Hypothesis testing
+
+.pull-left[
+- Critical values for a $t(29)$ distribution with $\alpha = 0.05$:
+
+```{r echo=T}
+tstar <- qt(c(0.025, 0.975), df = 29)
+tstar
+```
+
+- As $t \leq -t^*$, we reject $H_0$.
+
+]
+
+.pull-right[
+```{r out.width='100%'}
+library(tidyverse)
+
+xbar = 47
+se = 5.5 / sqrt(30)
+mu0 = 50
+tobs = (xbar - mu0) / se
+
+xs = seq(45, 55, by = 0.01)
+ys = dnorm(xs, mean = mu0, sd = se)
+
+tvals = seq(-4, 4, 1)
+xvals = round(tvals * se + mu0, 0)
+
+plot(xs, ys, type = 'n', frame.plot = FALSE, axes = FALSE, 
+     xlab = "", ylab = "")
+polygon(xs, ys, col='gray90', border = NA)
+lines(xs, ys, type = 'l', lwd = 2)
+axis(side=1, at=xvals, labels=NA)
+mtext(side=1, text = xvals, at = xvals, adj = 0.5, padj = 1.3, col = 'white')
+mtext(side=1, text = tvals, at = xvals, adj = 0.5, padj = 4, col = 'darkorange')
+abline(v = xbar, col = 'darkgreen', lwd = 2)
+abline(v = tstar * se + mu0, col = 'red', lwd = 2)
+text(53, 0.38, label = expression(bar(x) * ' ' * values), col = 'white', 
+     cex = 1.1, adj = 0)
+text(53, 0.35, label = expression(t * ' ' * values), col = 'darkorange', 
+     cex = 1.1, adj = 0)
+text(xbar, 0.10, label = expression(bar(x) == 47), col = 'white', 
+     cex = 1.1, adj = 1.18)
+text(xbar, 0.07, label = expression(t == -2.99), col = 'darkgreen', 
+     cex = 1.1, adj = 1.1)
+
+arrows(50, 0.1, 50, 0, col = 'purple')
+text(50, 0.15, label = 'Hypothesised mean\nmu = 50', 
+     col = 'purple', cex = 1.1)
+```
+]
+
+
+
+---
 class: inverse, center, middle
 
 ---
@@ -242,7 +298,7 @@ $$t = \frac{\bar x - \mu_0}{s / \sqrt n}$$
 - Compute the p-value, i.e. probability of obtaining a test statistic at least as extreme as the observed one, when $H_0$ is true.
 
     ```
-    2 * pt(abs(tobs), df = n - 1)
+    2 * pt(abs(tobs), df = n-1, lower.tail = FALSE)
     ```
 - Make a decision:
 
@@ -255,7 +311,7 @@ $$t = \frac{\bar x - \mu_0}{s / \sqrt n}$$
 - Compute the lower and upper critical values $-t^*$ and $t^*$:
 
     ```
-    qt(c(0.025, 0.975), df = n - 1)
+    qt(c(0.025, 0.975), df = n-1)
     ```
 
 - Make a decision:
@@ -500,17 +556,20 @@ xbar + tstar * se
 
 - Notice that the 95% confidence interval [36.69, 36.93] does not include the hypothesised value in the null hypothesis, $\mu_0 = 37$.
 
+    + As 37 is not within [36.69, 36.93], we reject the null hypothesis at the 5% significance level.
+
 --
 
 - The 95% CI gives us a range of plausible values for the population mean.
 
 --
 
-- As 37 is not within the range, that is not a plausible value for $\mu$ and if you test whether the population mean could be equal to 37 you end up rejecting that value.
+- As the claimed value 37 is not within the range, that is not a plausible value for $\mu$. If you test whether the population mean could be equal to 37, you end up rejecting that value.
 
 --
 
-- The 95% CI gives you a range of values for the population mean that would not be rejected at the 5% significance level in a two-sided hypothesis test.
+- __Generic fact:__  
+The 95% CI gives you a range of values for the parameter that would __not__ be rejected at the 5% significance level in a two-sided hypothesis test.
 
 
 
@@ -552,7 +611,7 @@ xbar + tstar * se
 
 - You can have a significant result, but this doesn't necessarily mean that it's __important__. 
 
-    + It's good practice to always follow-up a significant result with a confidence interval, to provide the reader with a measure of the "magnitude" of the departure from the hypothesised value $H_0 : \mu = \mu_0$.
+    + It's good practice to always follow-up a significant result (i.e. when you reject the null hypothesis) with a confidence interval, to provide the reader with a measure of the "magnitude" of the departure from the hypothesised value $H_0 : \mu = \mu_0$.
     
     + In our case, the 95% confidence interval [36.69, 36.93] °C indicates that the departure from the currently accepted standard of 37 °C is not that big to be of much impact for decision makers.
     
@@ -570,7 +629,7 @@ We could say that we are 95% confident that the population mean is [`r sort(37 -
 
 --
 
-- The answer is that they both give you useful and complementary information.
+- The answer is that they both provide useful and complementary information.
 
     + A p-value gives you the __strength of evidence__ that the sample data bring against the null hypothesis. This is not conveyed by a confidence interval.
     
@@ -578,7 +637,7 @@ We could say that we are 95% confident that the population mean is [`r sort(37 -
 
 --
 
-- In summary, report both if you have a significant result!
+- In summary, report both if you have a significant result, i.e. if you reject the null hypothesis!
 
     + Always follow up a significant hypothesis test with a confidence interval.
     
