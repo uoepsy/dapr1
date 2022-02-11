@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Hypothesis testing: Errors, Power, Effect size, Assumptions</title>
+
+<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+<script>
+function toggle_visibility(id1, id2) {
+var e = document.getElementById(id1);
+var f = document.getElementById(id2);
+e.style.display = ((e.style.display!='none') ? 'none' : 'block');
+if(f.classList.contains('fa-chevron-circle-right')) {
+    f.classList.add('fa-chevron-circle-down')
+    f.classList.remove('fa-chevron-circle-right')
+} else {
+    f.classList.add('fa-chevron-circle-right')
+    f.classList.remove('fa-chevron-circle-down')
+}
+}
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+<link rel="stylesheet" href="assets/style-labs.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"><strong>DAPR1</strong></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">
+    <span class="fa fa-home"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="intro_r_rstudio_year1.html">DAPR1 starts here</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Intro to data and R
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="1_01_data_types.html">1/1: Collecting data</a>
+    </li>
+    <li>
+      <a href="1_02_categorical.html">1/2: Categorical data</a>
+    </li>
+    <li>
+      <a href="1_03_numerical.html">1/3: Numerical data</a>
+    </li>
+    <li>
+      <a href="1_04_relationships.html">1/4: Relationships</a>
+    </li>
+    <li>
+      <a href="1_05_functions.html">1/5: Types of relations</a>
+    </li>
+    <li class="dropdown-header">1/6: Break week!</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Probability &amp; sampling
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="1_07_probability_basics.html">1/7: Probability basics</a>
+    </li>
+    <li>
+      <a href="1_08_probability_rules.html">1/8: Probability rules!</a>
+    </li>
+    <li>
+      <a href="1_09_discrete_distributions.html">1/9: Discrete random variables</a>
+    </li>
+    <li>
+      <a href="1_10_continuous_distributions.html">1/10: Continuous random variables</a>
+    </li>
+    <li>
+      <a href="1_11_sampling_distributions.html">1/11: Sampling distributions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Hypothesis testing
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="2_01_confidence_intervals.html">2/1: Confidence intervals</a>
+    </li>
+    <li>
+      <a href="2_02_ht_pvalues.html">2/2: Hypothesis testing: p-values</a>
+    </li>
+    <li>
+      <a href="2_03_ht_critvalues.html">2/3: Hypothesis testing: critical values</a>
+    </li>
+    <li>
+      <a href="2_04_htci.html">2/4: Hypothesis testing &amp; Confidence intervals</a>
+    </li>
+    <li>
+      <a href="2_05_hterrorspower.html">2/5: Making decisions</a>
+    </li>
+    <li class="dropdown-header">2/6: Break week</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Basic tests
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li class="dropdown-header">2/7: Test for one mean</li>
+    <li class="dropdown-header">2/8: Test for two means</li>
+    <li class="dropdown-header">2/9: Test for paired samples</li>
+    <li class="dropdown-header">2/10: Chi-square</li>
+    <li class="dropdown-header">2/11: Covariance and correlation</li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Hypothesis testing: Errors, Power, Effect size, Assumptions</h1>
+
+</div>
+
+
+<div class="lo">
+<ol style="list-style-type: decimal">
+<li><p>Understand what are Type I and Type II errors in hypothesis testing.</p></li>
+<li><p>Recognise the significance level as measuring the tolerable chance of committing a Type I error.</p></li>
+<li><p>Recognise the effect of sample size on power.</p></li>
+<li><p>Be able to check the assumptions underlying the t-test for a population mean.</p></li>
+</ol>
+</div>
+<div id="exercises-t-test-effect-size-assumptions" class="section level1">
+<h1>Exercises: t-test, effect size, assumptions</h1>
+<p>You will be using the following dataset: <a href="https://uoepsy.github.io/data/students_reading_scores.csv" class="uri">https://uoepsy.github.io/data/students_reading_scores.csv</a></p>
+<p>These contain measurements of age (in years) and reading scores (0 - 100) for 35 university students randomly sampled from a hypothetical university.</p>
+<div class="question-begin">
+Question 1
+</div>
+<div class="question-body">
+<p>Read the data into R.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-163" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-163&#39;, &#39;sol-start-163&#39;)"> Solution </span>
+</div>
+<div id="sol-body-163" class="solution-body" style="display: none;">
+<pre class="r"><code>library(tidyverse)
+students &lt;- read_csv(&quot;https://uoepsy.github.io/data/students_reading_scores.csv&quot;)
+head(students)</code></pre>
+<pre><code>## # A tibble: 6 × 2
+##     age read_score
+##   &lt;dbl&gt;      &lt;dbl&gt;
+## 1    28         84
+## 2   -99         75
+## 3    27         NA
+## 4    29         NA
+## 5    24         52
+## 6    25         23</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 2
+</div>
+<div class="question-body">
+<p>Perform preliminary checks on the data by:</p>
+<ul>
+<li>plotting the variables in the dataset;</li>
+<li>computing a table of descriptive statistics.</li>
+</ul>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-164" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-164&#39;, &#39;sol-start-164&#39;)"> Solution </span>
+</div>
+<div id="sol-body-164" class="solution-body" style="display: none;">
+<p>Plot the variables in the dataset:</p>
+<pre class="r"><code>library(patchwork)
+
+plt_age &lt;- ggplot(students, aes(x = age)) +
+    geom_histogram()
+
+plt_read &lt;- ggplot(students, aes(x = read_score)) +
+    geom_histogram()
+
+plt_age | plt_read</code></pre>
+<p><img src="2_05_hterrorspower_files/figure-html/unnamed-chunk-4-1.png" width="80%" style="display: block; margin: auto;" /></p>
+<p>Table of descriptive statistics:</p>
+<pre class="r"><code>students %&gt;%
+    pivot_longer(cols = c(age, read_score), names_to = &quot;Variable&quot;, values_to = &quot;Values&quot;) %&gt;%
+    group_by(Variable) %&gt;%
+    summarise(M = mean(Values), 
+              SD = sd(Values),
+              Min = min(Values),
+              Med = median(Values),
+              Max = max(Values),
+              NMiss = sum(is.na(Values)))</code></pre>
+<pre><code>## # A tibble: 2 × 7
+##   Variable       M    SD   Min   Med   Max NMiss
+##   &lt;chr&gt;      &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+## 1 age        -9.49  57.5   -99    24    32     0
+## 2 read_score NA     NA      NA    NA    NA    10</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 3
+</div>
+<div class="question-body">
+<p>What do you notice? Are there any issues with the data that need fixing?</p>
+<p>If yes, make appropriate changes to the data to fix those issues.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-165" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-165&#39;, &#39;sol-start-165&#39;)"> Solution </span>
+</div>
+<div id="sol-body-165" class="solution-body" style="display: none;">
+<p>It looks like some students had their age stored as “-99.” This is an impossible value for age, and it was used by those entering the data as a missing value; i.e. when a student preferred to not disclose that information. The values “-99” should be replaced to be NAs.</p>
+<p>The reading scores for some students were also missing but, if you look at the CSV file itself you will see that those were stored as spaces rather than -99s.
+This is in the CSV file, and not the object created into R when you read the CSV file data into R.</p>
+<p>However, R is smart enough that when you read CSV data into R and there are spaces, those are interpreted as missing values and converted to NAs automatically.</p>
+<p>Alternative 1:</p>
+<pre class="r"><code>students$age[students$age == -99] &lt;- NA</code></pre>
+<p>Alternative 2:</p>
+<pre class="r"><code>students &lt;- students %&gt;%
+    mutate(
+        age = ifelse(age == -99, NA, age)
+    )
+
+head(students)</code></pre>
+<pre><code>## # A tibble: 6 × 2
+##     age read_score
+##   &lt;dbl&gt;      &lt;dbl&gt;
+## 1    28         84
+## 2    NA         75
+## 3    27         NA
+## 4    29         NA
+## 5    24         52
+## 6    25         23</code></pre>
+<p>Plot the variables in the dataset:</p>
+<pre class="r"><code>library(patchwork)
+
+plt_age &lt;- ggplot(students, aes(x = age)) +
+    geom_histogram()
+
+plt_read &lt;- ggplot(students, aes(x = read_score)) +
+    geom_histogram()
+
+plt_age | plt_read</code></pre>
+<p><img src="2_05_hterrorspower_files/figure-html/unnamed-chunk-8-1.png" width="80%" style="display: block; margin: auto;" /></p>
+<p>Table of descriptive statistics:</p>
+<pre class="r"><code>students %&gt;%
+    pivot_longer(cols = c(age, read_score), names_to = &quot;Variable&quot;, values_to = &quot;Values&quot;) %&gt;%
+    group_by(Variable) %&gt;%
+    summarise(M = mean(Values), 
+              SD = sd(Values),
+              Min = min(Values),
+              Med = median(Values),
+              Max = max(Values),
+              NMiss = sum(is.na(Values)))</code></pre>
+<pre><code>## # A tibble: 2 × 7
+##   Variable       M    SD   Min   Med   Max NMiss
+##   &lt;chr&gt;      &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+## 1 age           NA    NA    NA    NA    NA    10
+## 2 read_score    NA    NA    NA    NA    NA    10</code></pre>
+<p>The table still has NAs, because when you compute the mean for example, if you add a number to NA, you get NA. For example, 2 + NA = NA.</p>
+<p>To tell R to ignore NAs when computing the mean, you say <code>na.rm = TRUE</code>.</p>
+<pre class="r"><code>students %&gt;%
+    pivot_longer(cols = c(age, read_score), names_to = &quot;Variable&quot;, values_to = &quot;Values&quot;) %&gt;%
+    group_by(Variable) %&gt;%
+    summarise(M = mean(Values, na.rm = TRUE), 
+              SD = sd(Values, na.rm = TRUE),
+              Min = min(Values, na.rm = TRUE),
+              Med = median(Values, na.rm = TRUE),
+              Max = max(Values, na.rm = TRUE),
+              NMiss = sum(is.na(Values)))</code></pre>
+<pre><code>## # A tibble: 2 × 7
+##   Variable       M    SD   Min   Med   Max NMiss
+##   &lt;chr&gt;      &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+## 1 age         26.3  3.82    19    26    32    10
+## 2 read_score  59   17.6     23    59    92    10</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 4
+</div>
+<div class="question-body">
+<p>We will only be using the reading scores.</p>
+<p>Remove from the data any rows for which the reading score is missing.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-166" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-166&#39;, &#39;sol-start-166&#39;)"> Solution </span>
+</div>
+<div id="sol-body-166" class="solution-body" style="display: none;">
+<p>Alternative 1:</p>
+<pre class="r"><code>students_tidy &lt;- students %&gt;%
+    drop_na(read_score)
+
+head(students_tidy)</code></pre>
+<pre><code>## # A tibble: 6 × 2
+##     age read_score
+##   &lt;dbl&gt;      &lt;dbl&gt;
+## 1    28         84
+## 2    NA         75
+## 3    24         52
+## 4    25         23
+## 5    23         40
+## 6    24         58</code></pre>
+<p>Alternative 2:</p>
+<pre class="r"><code>students_tidy &lt;- students %&gt;%
+    filter(complete.cases(read_score))</code></pre>
+<p>If you used <code>na.omit(students)</code> or <code>drop_na()</code>, you would remove students having NAs also for age. However, students may not have provided their age, but we can have their reading score, so if we were to do this, we would throw away available data!</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 5
+</div>
+<div class="question-body">
+<p>At the 5% significance level, test whether the sample data provide significance evidence that the mean reading score for all students in that university is not equal to 50.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-167" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-167&#39;, &#39;sol-start-167&#39;)"> Solution </span>
+</div>
+<div id="sol-body-167" class="solution-body" style="display: none;">
+<pre class="r"><code>xbar &lt;- mean(students_tidy$read_score)
+xbar</code></pre>
+<pre><code>## [1] 59</code></pre>
+<pre class="r"><code>n &lt;- nrow(students_tidy)
+n</code></pre>
+<pre><code>## [1] 25</code></pre>
+<pre class="r"><code>s &lt;- sd(students_tidy$read_score)
+s</code></pre>
+<pre><code>## [1] 17.57365</code></pre>
+<pre class="r"><code>se &lt;- s / sqrt(n)
+se</code></pre>
+<pre><code>## [1] 3.514731</code></pre>
+<p>Observed t-statistic</p>
+<pre class="r"><code>mu0 &lt;- 50
+tobs &lt;- (xbar - mu0) / se
+tobs</code></pre>
+<pre><code>## [1] 2.560651</code></pre>
+<p>P-value = 2 * Probability to the right of tobs:</p>
+<pre class="r"><code>2 * pt(abs(tobs), df = n - 1, lower.tail = FALSE)</code></pre>
+<pre><code>## [1] 0.01716085</code></pre>
+<p>The sample results are significant, so it’s good practice to follow up with a confidence interval</p>
+<pre class="r"><code>tstar &lt;- qt(c(0.025, 0.975), df = n - 1)
+tstar</code></pre>
+<pre><code>## [1] -2.063899  2.063899</code></pre>
+<pre class="r"><code>ci &lt;- xbar + tstar * se
+ci</code></pre>
+<pre><code>## [1] 51.74595 66.25405</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 6
+</div>
+<div class="question-body">
+<p>The t-test for one population mean relies on some assumptions for the results to be valid.
+Check whether these are satisfied or not in this sample.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-168" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-168&#39;, &#39;sol-start-168&#39;)"> Solution </span>
+</div>
+<div id="sol-body-168" class="solution-body" style="display: none;">
+<p>The data come from a random sample of students from that university, hence the independence assumption is satisfied.</p>
+<p>The sample size - that is, the number of data points that are <strong>not missing</strong> - is <span class="math inline">\(n = 25\)</span>. This is not a large enough sample size for the sample mean to be normally distributed, so we will check whether the sample came from a population that follows a normal distribution. If this is the case, then the sample mean would be normally distributed irrespectively of the sample size.</p>
+<pre class="r"><code>plt1 &lt;- ggplot(students_tidy, aes(x = read_score)) +
+    geom_density() +
+    labs(x = &quot;Reading scores (0-100)&quot;, title = &quot;(a) Density plot&quot;)
+
+plt2 &lt;- ggplot(students_tidy, aes(sample = read_score)) +
+    geom_qq() +
+    geom_qq_line() +
+    labs(x = &quot;Theoretical quantiles&quot;, y = &quot;Sample quantiles&quot;, title = &quot;(b) qqplot&quot;)
+
+plt1 | plt2</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:dist-read-scores"></span>
+<img src="2_05_hterrorspower_files/figure-html/dist-read-scores-1.png" alt="Distribution of reading scores" width="100%" />
+<p class="caption">
+Figure 1: Distribution of reading scores
+</p>
+</div>
+<p>The density plot highlights a roughly bell-shaped distribution with a single peak near 60. The qqplot doesn’t highlight any severe departures from normality, in fact the sample quantiles follow the theoretical quantiles from a normal distribution pretty closely.</p>
+<p>Alternatively, you can also obtain the qqplot as follows:</p>
+<pre class="r"><code>qqnorm(students_tidy$read_score)
+qqline(students_tidy$read_score)</code></pre>
+<p><img src="2_05_hterrorspower_files/figure-html/unnamed-chunk-17-1.png" width="80%" style="display: block; margin: auto;" /></p>
+<p>We can also perform a Shapiro-Wilk test:</p>
+<pre class="r"><code>shapiro.test(students_tidy$read_score)</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  students_tidy$read_score
+## W = 0.97792, p-value = 0.8411</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 7
+</div>
+<div class="question-body">
+<p>Provide a write up pf your results in the context of the study.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-169" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-169&#39;, &#39;sol-start-169&#39;)"> Solution </span>
+</div>
+<div id="sol-body-169" class="solution-body" style="display: none;">
+<p>Data were obtained from <a href="https://uoepsy.github.io/data/students_reading_scores.csv" class="uri">https://uoepsy.github.io/data/students_reading_scores.csv</a>. The dataset contains measurements on age and reading scores for 35 randomly sampled students from a hypothetical university. Due to random sampling of the students, the independence assumption is satisfied. Some students had missing values for their reading scores, so those students were dropped from the analysis, leaving a sample of 25 students for the analysis. A Shapiro-Wilk normality test was performed at the 5% significance level (<span class="math inline">\(W = 0.98, p = 0.84\)</span>). The sample data do not provide sufficient evidence to reject the null hypothesis of normality of the population data. Furthermore, the density plot shown in Figure <a href="#fig:dist-read-scores">1</a> (a) highlights a roughly bell-shaped distribution, and the qqplot in Figure <a href="#fig:dist-read-scores">1</a> (b) doesn’t show violations from normality.</p>
+<p>At the 5% significance level, we performed a hypothesis test against the null hypothesis that the mean reading score of all students in that university was equal to 50. The sample data provide very strong evidence to reject the null hypothesis in favour of the alternative one that the population mean reading score is different from 50: <span class="math inline">\(t(24) = 2.56, p = 0.02\)</span>, two-sided.</p>
+<p>We are 95% confident that the mean reading score for all students in that university is between 52 and 66.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 8
+</div>
+<div class="question-body">
+<p>Is there a significant effect? Is the effect important?</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-170" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-170&#39;, &#39;sol-start-170&#39;)"> Solution </span>
+</div>
+<div id="sol-body-170" class="solution-body" style="display: none;">
+<p>Yes, there is a significant effect, as we found a p-value smaller than the significance level of 5%. However, this is no guarantee that the effect is of practical importance.</p>
+<p>To judge whether the effect is important, we need to compute the effect size, i.e. Cohen’s D:</p>
+<pre class="r"><code>D &lt;- (xbar - mu0) / s
+D</code></pre>
+<pre><code>## [1] 0.5121302</code></pre>
+<p>Cohen’D highlights a medium effect size, highlighting that the sample result is not only significant, but perhaps also of moderate importance and worth noting.</p>
+</div>
+<p class="solution-end">
+</p>
+</div>
+<div id="exercises-power" class="section level1">
+<h1>Exercises: power</h1>
+<p>To compute power, you need to know the distribution of the sample mean</p>
+<ul>
+<li>when <span class="math inline">\(H_0\)</span> is true</li>
+<li>when <span class="math inline">\(H_1\)</span> is true</li>
+</ul>
+<p>This seldom happens in practice, so these exercises will be more conceptual.</p>
+<p>Before going ahead, though, remember that if the population has mean <span class="math inline">\(\mu\)</span> the sampling distribution of the mean is <span class="math inline">\(N(\mu, \frac{\sigma}{\sqrt n})\)</span>, where <span class="math inline">\(\sigma\)</span> is the population SD and <span class="math inline">\(n\)</span> the size of a sample.</p>
+<p>Suppose you are testing</p>
+<p><span class="math display">\[
+H_0 : \mu = 0 \\
+H_1 : \mu &gt; 0
+\]</span></p>
+<p>What is the power of the test if:</p>
+<ul>
+<li>the population has a mean <span class="math inline">\(\mu = 5\)</span></li>
+<li>the population has a standard deviation <span class="math inline">\(\sigma = 3\)</span></li>
+<li>you will take a sample of size 30</li>
+</ul>
+<p>The distribution of the sample mean in the population is</p>
+<p><span class="math display">\[\bar X \sim N(5, \frac{3}{\sqrt{30}})\]</span></p>
+<p>If <span class="math inline">\(H_0\)</span> is true, however, the distribution would be:</p>
+<p><span class="math display">\[\bar X \sim N(0, \frac{3}{\sqrt{30}})\]</span></p>
+<p><img src="2_05_hterrorspower_files/figure-html/unnamed-chunk-20-1.png" width="80%" style="display: block; margin: auto;" /></p>
+<p>You would reject the null hypothesis, at the 5% significance level, for values larger the 0.95 quantile of a <span class="math inline">\(N(0, \frac{3}{\sqrt{30}})\)</span> distribution:</p>
+<pre class="r"><code>sigma &lt;- 3
+n &lt;- 30
+SE &lt;- 3 / sqrt(30)</code></pre>
+<pre class="r"><code>tstar &lt;- qnorm(0.95, mean = 0, sd = SE)
+tstar</code></pre>
+<pre><code>## [1] 0.9009234</code></pre>
+<p><img src="2_05_hterrorspower_files/figure-html/unnamed-chunk-23-1.png" width="80%" style="display: block; margin: auto;" /></p>
+<p>The power is the probability of rejecting the null hypothesis when the null is false.</p>
+<p>So, if the null is false, the mean follows the distribution <span class="math inline">\(N(5, \frac{3}{\sqrt{30}})\)</span>. The probability of correctly rejecting the null would be the probability under that distribution beyond -1.07</p>
+<pre class="r"><code>Pow &lt;- 1 - pnorm(0.90, mean = 5, sd = SE)
+Pow</code></pre>
+<pre><code>## [1] 1</code></pre>
+<p>The power is 1.</p>
+<div class="question-begin">
+Question 9
+</div>
+<div class="question-body">
+<p>Assume now that the true population mean is <span class="math inline">\(\mu = 2\)</span>. What is the power of the test?</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-171" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-171&#39;, &#39;sol-start-171&#39;)"> Solution </span>
+</div>
+<div id="sol-body-171" class="solution-body" style="display: none;">
+<p><img src="2_05_hterrorspower_files/figure-html/unnamed-chunk-25-1.png" width="80%" style="display: block; margin: auto;" /></p>
+<p>The distribution of the mean when <span class="math inline">\(H_0\)</span> is false is then</p>
+<p><span class="math display">\[\bar X \sim N(2, \frac{3}{\sqrt{30}})\]</span></p>
+<p>We need to compute the probability in a <span class="math inline">\(N(2, \frac{3}{\sqrt{30}})\)</span> distribution <strong>to the right</strong> of 0.90.</p>
+<pre class="r"><code>Pow &lt;- pnorm(0.90, mean = 2, sd = SE, lower.tail = FALSE)
+Pow</code></pre>
+<pre><code>## [1] 0.9776951</code></pre>
+<p>or</p>
+<pre class="r"><code>Pow &lt;- 1 - pnorm(0.90, mean = 2, sd = SE)
+Pow</code></pre>
+<pre><code>## [1] 0.9776951</code></pre>
+<p>The power, i.e. the probability that the test rejects the null hypothesis when it is false, is 0.98.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 10
+</div>
+<div class="question-body">
+<p>Assume now that the true population mean is <span class="math inline">\(\mu = 2\)</span>. What is the probability of a Type II error?</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-172" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-172&#39;, &#39;sol-start-172&#39;)"> Solution </span>
+</div>
+<div id="sol-body-172" class="solution-body" style="display: none;">
+<p>The easiest way to compute it is as <span class="math inline">\(\beta = 1 - \text{Power}\)</span> because <span class="math inline">\(\text{Power} = 1 - \beta\)</span>.</p>
+<pre class="r"><code>beta &lt;- 1 - Pow
+beta</code></pre>
+<pre><code>## [1] 0.02230486</code></pre>
+<p>The probability of not rejecting the null when it is false is 0.02.</p>
+<p>If you want to compute it from scratch you can compute it as the probability <strong>to the left</strong> of 0.90. This is because values below 0.90 lead to not rejecting the null hypothesis.</p>
+<pre class="r"><code>beta &lt;- pnorm(0.90, mean = 2, sd = SE)
+beta</code></pre>
+<pre><code>## [1] 0.02230486</code></pre>
+</div>
+<p class="solution-end">
+</p>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<!-- Formatting -->
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;">
+
+</div>
+</div>
+
+<link rel="stylesheet" href="https://uoepsy.github.io/assets/css/ccfooter.css" />
+<div class="ccfooter"></div>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
