@@ -1,5 +1,5 @@
 ---
-title: "One Sample Mean test"
+title: "One sample t-test"
 bibliography: references.bib
 biblio-style: apalike
 link-citations: yes
@@ -36,13 +36,13 @@ theme_set(theme_light(base_size = 15))
 :::
 
 
-A one-sample t-test is a statistical procedure to test whether or not the mean of a population is equal to some value (NB: check week 11 if you're rusty on the difference between populations, samples etc. https://uoepsy.github.io/dapr1/labs/11_sampling_distributions.html). The population mean may not be known, but sometimes it is hypothesised. Examples when you would use a one-sample t-test include:
+A one-sample t-test is a statistical procedure to test whether or not the mean of a population is equal to some value^[NB: check [semester1, week 11](1_11_sampling_distributions.html) if you're rusty on the difference between populations, samples etc.]. The population mean may not be known, but sometimes it is hypothesised. Examples when you would use a one-sample t-test include:
 
 - Is the average weight of a dog greater than 20kg?  
-- Is the mean body temperature not equal to 37 degrees C?  
+- Is the mean body temperature not equal to 37 °C?  
 - On the Beck Depression Inventory (BDI), a score of >25 is considered clinical diagnosis of depression. Is the average score of our population of interest (for instance, people with a specific disease) significantly above this cutoff? 
 
-# One-sample t-test formula 
+# One-sample t-test procedure 
 
 ## Null hypothesis
 
@@ -52,17 +52,22 @@ $$ H_0: \mu = \mu_0 $$
 
 I.e. the population mean is equal to some hypothesised value of $\mu_0$. 
 
-## Alternative hypotheses
+## Alternative hypothesis
 
 The alternative hypotheses can be two-sided, or one-sided (left-tailed or right-tailed). 
 
-$H_1 (two-sided): \mu \neq \mu_0$ (population mean is not equal to some hypothesised value $\mu_0$)  
-$H_1 (left-tailed): \mu < \mu_0$ (population mean is less than some hypothesised value $\mu_0$)  
-$H_1 (right-tailed): \mu > \mu_0$ (population mean is greater than some hypothesised value $\mu_0$)  
+- __Two-sided:__ $H_1 : \mu \neq \mu_0$  
+    (population mean is not equal to some hypothesised value $\mu_0$)  
+- __Left-tailed:__ $H_1 : \mu < \mu_0$  
+    (population mean is less than some hypothesised value $\mu_0$)  
+- __Right-tailed:__ $H_1 : \mu > \mu_0$  
+    (population mean is greater than some hypothesised value $\mu_0$)  
 
 ## t-test formula 
 
-$$t = \frac{(\overline{x} - \mu_0)}{(s/\sqrt{n})} $$ 
+The test statistic is the t-statistic:
+
+$$t = \frac{\overline{x} - \mu_0}{s/\sqrt{n}} $$ 
 
 where
 
@@ -73,20 +78,20 @@ where
 
 As we have produced a sample, we are using the sample statistics to estimate the population parameters. When the population standard deviation ($\sigma$) is *unknown*, we estimate it using the sample standard deviation ($s$).
 
-## t-distribution
+## The t-distribution
 
-The T distribution is a family of distributions that look almost identical to the normal distribution. The t-distribution is used instead of the normal distribution when working with small sample sizes (<30). The larger the sample size, the more the t-distribution will look like the normal distribution. 
+The t-distribution is a family of distributions that look almost identical to the standard normal distribution. The t-distribution is very important when working with small sample sizes, e.g. $n < 30$. As the sample size increases, the more the t-distribution will look like the standard normal distribution. 
 
-The particular shape of the $t$-distribution is determined by the **degrees of freedom**.
+The particular shape of the t-distribution is determined by the **degrees of freedom**, or df in short. You can see the $t$-distribution for different degrees of freedom below.  
 
-You can see the $t$-distribution for different degrees of freedom below.  
+```{r, echo=FALSE, fig.cap = "The t-distribution. (Source: https://en.wikipedia.org/wiki/Student%27s_t-distribution)", out.width = '80%'}
+knitr::include_graphics("https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Student_t_pdf.svg/1024px-Student_t_pdf.svg.png")
+```
+
 Notice that as the degrees of freedom ($\nu$ in the plot below) gets bigger (so as $n$ gets bigger), the more the $t$-distibution fits a normal distribution. 
 
-![](https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Student_t_pdf.svg/1024px-Student_t_pdf.svg.png)
 
-(Source: https://en.wikipedia.org/wiki/Student%27s_t-distribution)
-
-:::yellow
+`r optbegin("Optional: If you want to know more about degrees of freedom", olabel = FALSE)`
 **Degrees of freedom**
 
 Degrees of freedom are the number of independent observations in a set of data. When we are estimating a mean from a single sample, the degrees of freedom is equal to the sample size minus one ($n-1$).  
@@ -102,7 +107,7 @@ Degrees of freedom can alternatively be seen as the number of values that are fr
 - $c$: {5,10,15}
 
 Once you have chosen the first two numbers in the set, the third number is fixed. I.e. you cannot choose the third item in the set. If you choose set $a$, once you've chosen numbers 9 and 10, the next number **must** be 11 in order to get a mean of 10. The only numbers that are free to vary are the first two, thus the degrees of freedom for a set of three numbers, is two. 
-:::
+`r optend()`
 
 # Critical values and significance
 
@@ -120,7 +125,7 @@ Looking at the plot above, for a $t$-distribution with degrees of freedom of 5 (
 pt(-2, df = 5)
 ```
 
-From this, we can say that assuming the null hypothesis to be true, the probability of obtaining a $t$-statistic with 5 degrees of freedom of $\leq -2$ is `r round(pt(-2,5),4)`.
+From this, we can say that assuming the null hypothesis to be true, the probability of obtaining a $t$-statistic with 5 degrees of freedom of $\leq -2$ is `r round(pt(-2,5),3)`.
 `r solend()`
 
 We can also find the critical values of a $t$-distribution using the function `qt(p, df)`. This will return the values of $t$ for which $p$ of the distribution lies to the left.  
@@ -146,9 +151,9 @@ qt(.975, df = 5)
 If we perform a *two*-tailed test of $\mu_1 \neq \mu_{0}$ on a sample of 6, we will reject the null hypothesis ($\mu_1 = \mu_{0}$) if the **absolute magnitude** of our corresponding $t$-statistic is $\geq 2.571$.  
 `r solend()`
 
-# Research question and data 
+# Recap and moving forward: Body Temperature data
 
-This week's lab will focus on example 2, building on Sem 2, Week 5 lab about body temperature.
+We will now recap the Body Temperature example, putting everything together. Recall the goal is to answer this question:
 
 > Has the average body temperature for healthy humans changed from the long-thought 37 °C?
 
@@ -177,17 +182,17 @@ Next, we read the data into R and calculate the average body temperature (sample
 
 ```{r}
 library(tidyverse)
-bodytmp <- read_csv('https://uoepsy.github.io/data/BodyTemp.csv')
-dim(bodytmp)
-head(bodytmp)
+temp_data <- read_csv('https://uoepsy.github.io/data/BodyTemp.csv')
+dim(temp_data)
+head(temp_data)
 ```
 
 We have measurements of the body temperature (in Celsius) and pulse rate for a sample of 50 healthy individuals.
 
 The average body temperature in the sample is:
 ```{r}
-xbar_obs <- mean(bodytmp$BodyTemp)
-xbar_obs
+xbar <- mean(temp_data$BodyTemp)
+xbar
 ```
 
 Do we know the population standard deviation ($\sigma$)? That is, do we know the standard deviation of body temperate of *all* healthy individuals?  
@@ -195,16 +200,16 @@ Do we know the population standard deviation ($\sigma$)? That is, do we know the
 No, so we estimate it with the sample standard deviation ($s$).  
 
 ```{r}
-sd_obs <- sd(bodytmp$BodyTemp)
-sd_obs
+s <- sd(temp_data$BodyTemp)
+s
 ```
 
 Now, we have all the data to perform the t-test:
 $$
 \begin{aligned}
-\bar{x}  &= \ `r round(xbar_obs, 2)` \\
+\bar{x}  &= \ `r round(xbar, 2)` \\
 \mu_{0}  &= \ 37 \\
-s  &= \ `r round(sd_obs, 2)` \\
+s  &= \ `r round(s, 2)` \\
 n  &= \ 50
 \end{aligned}
 $$
@@ -220,23 +225,23 @@ and write out the $t$-statistic:
 
 $$
 \begin{aligned}
-t        &=  \ \frac{(\overline{x} - \mu_0)}{(s/\sqrt{n})} \\
+t        &=  \ \frac{\overline{x} - \mu_0}{s/\sqrt{n}} \\
 \quad  \\
-t_{obs}  &= \ \frac{(`r round(xbar_obs,2)` - 37)}{(`r round(sd_obs,2)` / \sqrt{50})} \\
+t_{obs}  &= \ \frac{`r round(xbar,2)` - 37}{`r round(s,2)` / \sqrt{50}} \\
 \end{aligned}
 $$
 
 
 And to calculate, we can use R as a calculator:
 ```{r}
-t_obs = (xbar_obs - 37) / (sd_obs / sqrt(50))
+t_obs = (xbar - 37) / (s / sqrt(50))
 t_obs
 ```
 
 
 Going back to the start, we can use our skills with `summarise()` to calculate all the terms we need for our $t$-statistic: 
 ```{r}
-terms <- bodytmp %>%
+terms <- temp_data %>%
   summarise(
     xbar = mean(BodyTemp),
     s = sd(BodyTemp),
@@ -276,7 +281,7 @@ What is the probability of obtaining a $t$-statistic at least as extreme as -3.1
 Because our alternative hypothesis is two-tailed, we will reject the null hypothesis for extreme $t$-statistics *in either direction*. So we are calculating the probability of observing a value at least as extreme in either direction, and must multiply the one tail by 2.  
 
 ```{r}
-2*pt(-abs(t_obs),df=50-1)
+2 * pt(abs(t_obs), df = 50-1, lower.tail = FALSE)
 ```
 
 And so, the probability of observing a value as extreme as -3.14 is 0.003 (i.e. very low!). Therefore, we have enough evidence to reject the null hypothesis and conclude that the mean body temperature of healthy adults is significantly lower than the long-held value of 37°C. 
@@ -298,7 +303,7 @@ The `t.test()` function takes several arguments, but for the current purposes, w
 + `alternative` is either `"two.sided"` (default), `"less"`, or `"greater"`, and specifies the direction of the alternative hypothesis.
 
 ```{r}
-result <- t.test(bodytmp$BodyTemp, mu = 37, alternative = "two.sided")
+result <- t.test(temp_data$BodyTemp, mu = 37, alternative = "two.sided")
 result
 ```
 
@@ -319,21 +324,24 @@ To check the assumptions:
 2) Data is independent (i.e., not correlated/related), which means that there is no relationship between the observations. This is more of a study design issue than something you can test for, but it is an important assumption of the one-sample t-test.
 3) Can be checked visually with plots:
 ```{r}
-ggplot(bodytmp, aes(x=BodyTemp))+
+ggplot(temp_data, aes(x=BodyTemp))+
   geom_histogram()+
   labs(title="Histogram")
 
-ggplot(bodytmp, aes(x=BodyTemp))+
+ggplot(temp_data, aes(x=BodyTemp))+
   geom_density()+
   labs(title="Density plot")
 ```
 
 We can also use a plot called a **QQplot (Quantile-Quantile plot)**, which orders the data and plots it against the equivalent quantile of the normal distribution: 
 ```{r}
-ggplot(bodytmp, aes(sample = BodyTemp))+
+ggplot(temp_data, aes(sample = BodyTemp))+
   geom_qq()+
-  stat_qq_line()+
-  labs(title="QQplot", subtitle="The closer the data fit to the line the more normally distributed they are.")
+  geom_qq_line()+
+  labs(title="QQ-plot", 
+       subtitle="The closer the data fit to the line the more normally distributed they are.",
+       x = "Theoretical quantiles",
+       y = "Sample quantiles")
 ```
 
 We can also conduct a formal hypothesis test for normality, such as the **Shapiro-Wilk** test. 
@@ -341,28 +349,33 @@ We can also conduct a formal hypothesis test for normality, such as the **Shapir
 The null hypothesis of the Shapiro-Wilk test is that the sample came from a population that is normally distributed.  
 The alternative hypothesis is that the sample came from a population that is *not* normally distributed.  
 
-The test returns a test statistic W, and a p-value.  
+The test returns a test statistic $W$, and a p-value $p$. The $W$ test statistic is slightly complex to compute by hand, so we will use R to compute it for us. The test statistic $W$ measures how much the sample data depart from normality (the null hypothesis).
+
 The p-value corresponds to the probability of observing data of this shape of distribution, assuming the data are drawn from a normally distributed population (i.e., assuming the null hypothesis to be true).  
 
 In R:  
 ```{r}
-shapiro.test(bodytmp$BodyTemp)
+shapiro.test(temp_data$BodyTemp)
 ```
 
-The p-value here is `r shapiro.test(bodytmp$BodyTemp)$p.value %>% round(.,3)`, which is greater than $\alpha = 0.05$. We therefore fail to reject the null hypothesis of the Shapiro-Wilk test that the sample came from a population that is normally distributed.  
+The p-value here is `r shapiro.test(temp_data$BodyTemp)$p.value %>% round(.,2)`, which is greater than $\alpha = 0.05$. We therefore fail to reject the null hypothesis of the Shapiro-Wilk test that the sample came from a population that is normally distributed.  
   
 So our assumption for the one sample mean test holds!
 
-# Questions 
+
+
+# Exercises 
 
 ## Pets' weights   
 
 Data for a sample of 2000 licensed pets from the city of Seattle, USA, can be found at the following url: [https://uoepsy.github.io/data/seattlepets.csv](https://uoepsy.github.io/data/seattlepets.csv).  
 It contains information on the license numbers, issue date and zip-code, as well as data on the species, breeds and weights (in kg) of each pet.  
 We are interested in whether the average weight of a dog is *greater than* 20kg.  
-  
-+ Null hypothesis, $H_0: \mu_1 = 20$  
-+ Alternative hypothesis, $H_1: \mu_1 > 20$  
+
+Let $\mu$ denote the mean weight (in kg) of _all_ dogs in Seattle.
+
++ Null hypothesis, $H_0: \mu = 20$  
++ Alternative hypothesis, $H_1: \mu > 20$  
   
 `r qbegin(1)`
 Read in the data. 
@@ -394,20 +407,30 @@ dogs <- pets %>%
 `r solend()`
 
 `r qbegin(3)` 
-Now we need to remove the missing data rows, using the `is.na` function
+Remove the rows having a missing weight.
+`r qend()` 
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)` 
+There are two __completely equivalent options__. Pick only one of these two options to remove the missing entries, as both will achieve the same goal.
 
-*Tip:* look at the help documentation for `is.na` (search in the bottom right window of Rstudio, or type `?is.na`)
+__Option 1:__  
 
- 
+```{r}
+dogs <- dogs %>% 
+  drop_na(weight_kg)
+```
+
+
+__Option 2:__  
+
+Look at the help documentation for `is.na` (search in the bottom right window of RStudio, or type `?is.na`)
+
 ```{r}
 dogs <- dogs %>% 
   filter(!is.na(weight_kg))
 ```
 
-`r qend()` 
-`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)` 
-
 It takes the `dogs` dataset, and it filters so that it will keep any rows where `!is.na(weight_kg)` is TRUE.  
+
 The `is.na(weight_kg)` will be TRUE wherever `weight_kg` is an NA and FALSE otherwise.  
 
 The `!` before it flips the TRUEs and FALSEs, so that we have TRUE wherever `weight_kg` is a value other than `NA`, and FALSE if it *is* `NA`.   
@@ -451,7 +474,7 @@ Calculate the p-value using `pt()`.
 + Is our hypothesis one- or two-sided? If it is two-sided, what do we need to do to get our p-value?  
 `r qend()` 
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)` 
-Our sample statistic ($\bar{x}$ = `r round(dogstats$xbar,3)`kg) is greater than the hypothesised mean ($\mu_{0}$ = 20kg), so we want the area to the *right*.  
+Our sample statistic ($\bar{x}$ = `r round(dogstats$xbar,2)`kg) is greater than the hypothesised mean ($\mu_{0}$ = 20kg), so we want the area to the *right*.  
 
 _**Reminder:** For a probability distribution, the area under the curve to the right of x is 1 minus the area to the left. This is equivalent to saying that the probability of observing a value greater than x is 1 minus the probability of observing a value less than x._
 
@@ -482,17 +505,47 @@ The mean score from Solomon & Rothblum, 1984 was 33.
 Do Edinburgh University students report endorsing procrastination to less than the norm of 33?  
 
 `r qbegin(8)`
-Read in the data (a .csv is at [https://uoepsy.github.io/data/pass_scores.csv](https://uoepsy.github.io/data/pass_scores.csv)), produce some descriptive statistics, and conduct a one sample mean test to evaluate whether Edinburgh University students' average score on the PASS is not equal to 33.  
+Read in the data (a .csv is at [https://uoepsy.github.io/data/pass_scores.csv](https://uoepsy.github.io/data/pass_scores.csv)), produce some descriptive statistics, and conduct a one sample mean test to evaluate whether Edinburgh University students' average score on the PASS is less than 33.  
 
 + Remember about the assumptions of your test! 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-
+Read the data into R
 ```{r}
 pass_scores <- read_csv("https://uoepsy.github.io/data/pass_scores.csv") 
+head(pass_scores)
+```
 
+Descriptive statistics
+```{r}
+pass_scores %>%
+    summarise(M = mean(PASS),
+              SD = sd(PASS),
+              n = n())
+```
+
+Make it into a pretty table
+
+```{r}
+library(gt)
+
+pass_scores %>%
+    summarise(M = mean(PASS),
+              SD = sd(PASS),
+              n = n()) %>%
+    gt()
+```
+
+  
+Check normality
+
+```{r}
 shapiro.test(pass_scores$PASS)
+```
 
+Perform t-test
+
+```{r}
 t.test(pass_scores$PASS, mu = 33, alternative = "less")
 ```
 `r solend()`
@@ -512,20 +565,40 @@ Edinburgh University students scored lower (Mean=`r mean(pass_scores$PASS) %>% r
 ## Cat weights!    
 
 `r qbegin(10)`
-_**Without looking** at the data_(and without googling either), do you think that the average weight of a pet cat more than/less than/equal to 4.5kg?   
+_**Without looking** at the data_ (and without googling either), do you think that the average weight of a pet cat is more than/less than/equal to 4.5kg?   
 
 Write out your null and alternative hypotheses, and conduct the appropriate test.    
 `r qend()`
 `r  solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+My own hypotheses are the following. Perhaps yours are different if your belief is that they weigh less than 4.5kg.
+
+$$
+H_0 : \mu = 4.5 \\
+H_1 : \mu > 4.5
+$$
+
+The data:
 
 ```{r}
 cats <- pets %>% 
   filter(species == "Cat", !is.na(weight_kg))
+```
 
+Shapiro-Wilk normality test:
+
+```{r}
 shapiro.test(cats$weight_kg)
+```
 
+QQ-plot:
+
+```{r}
 qqnorm(cats$weight_kg)
+```
 
+Perform the t-test:
+
+```{r}
 t.test(cats$weight_kg, mu=4.5, alternative="greater")
 ```
 `r solend()`
@@ -538,7 +611,7 @@ t.test(cats$weight_kg, mu=4.5, alternative="greater")
 - *Simple random sample (SRS).* Every member of a population has an equal chance of being selected to be in the sample.
 - *Assumptions* Requirements of the data in order to ensure that our test is appropriate. Violation of assumptions changes the conclusion of the research and interpretation of the results. 
 - *Shapiro-Wilks* Tests whether sample is drawn from a population which is normally distributed.   
-- *QQplot/Quantile-Quantile plot*_ Displays the quantiles of the sample against the quantiles of a normal distribution. If the data points fall on the diagonal line, the sample is normally distributed.
+- *QQplot/Quantile-Quantile plot* Displays the quantiles of the sample against the quantiles of a normal distribution. If the data points fall on the diagonal line, the sample is normally distributed.
 
 <div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;"></div>
 
