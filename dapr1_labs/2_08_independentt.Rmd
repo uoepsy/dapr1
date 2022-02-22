@@ -396,7 +396,7 @@ t_obs
 
 We reach to a conclusion about our hypothesis test either via the
 
-- _critical value approach_: Compare the $t$-statistic with the appropriate 5% critical value from a $t$-distribution. 
+- _critical value approach_: Compare the observed $t$-statistic with the appropriate 5% critical value(s) from a $t$-distribution. 
 
 - _p-value approach_: Compare the $p$-value with the significance level $\alpha = 0.05$.
 
@@ -406,27 +406,23 @@ We reach to a conclusion about our hypothesis test either via the
 _Critical value approach_
 
 ```{r}
-upper_crit <- qt(p = 0.975, df = n_f + n_m - 2)
-upper_crit
-
-lower_crit <- qt(p = 0.025, df = n_f + n_m - 2)
-lower_crit
+tstar <- qt(c(0.025, 0.975), df = n_f + n_m - 2)
+tstar
 ```
 
-As you can see, the t-distribution is symmetric. The value that cuts an area of 0.025 to its left, $t_{0.025} = -1.961585$ is equal to minus the value that cuts an area of 0.025 to its right, $t_{0.975} = 1.961585$
-$$
-t_{0.025} = - t_{0.975}
-$$
-so we will simply denote the lower critical value as $-t_{0.975}$ and the upper critical value as $t_{0.975}$. That is, in a t-distribution with 1465 degrees of freedom, 95% of the values lie between $-t_{0.975}$ and $t_{0.975}$, that is $-1.96158$ and $1.961585$.
 
+_Side note_: As you can see, the t-distribution is symmetric. The value that cuts an area of 0.025 to its left, $-t^* = -1.961585$ is equal to minus the value that cuts an area of 0.025 to its right, $+t^* = 1.961585$
+$$
+-t^* = -( +t^* )
+$$
 
 Is the observed t-statistic more extreme than the critical values?
 ```{r}
-t_obs <= lower_crit # or: t_obs <= -upper_crit see discussion above!
-t_obs >= upper_crit
+t_obs <= tstar[1]
+t_obs >= tstar[2]
 ```
 
-The observed t-statistic `r round(t_obs, 2)` is larger than the upper critical value `r round(upper_crit, 2)`. Hence, at the 5% significance level we have sufficient evidence against the null hypothesis that males and females have the same number of close friends.
+The observed t-statistic `r round(t_obs, 2)` is larger than the upper critical value `r round(tstar[2], 2)`. Hence, at the 5% significance level we have sufficient evidence against the null hypothesis that males and females have the same number of close friends.
 
 <br>
 
@@ -456,7 +452,7 @@ plot_df
 ggplot(plot_df, aes(x = plot_x, y = plot_y))+
     geom_line() +
     geom_vline(xintercept = t_obs, color = 'darkolivegreen4') +
-    geom_vline(xintercept = c(lower_crit, upper_crit), color = 'red') +
+    geom_vline(xintercept = tstar, color = 'red') +
     labs(x = 'Difference in means', y = 't density')
 ```
 
@@ -553,9 +549,7 @@ We can construct and interpret a 95% confidence interval for the difference in p
 In order to estimate the magnitude of the difference in the population means we can use a confidence interval for the difference in means:
 
 ```{r}
-ci <- tibble(
-  Lower = (xbar_f - xbar_m) - upper_crit * SE,
-  Upper = (xbar_f - xbar_m) + upper_crit * SE)
+ci <- (xbar_f - xbar_m) + tstar * SE
 ci
 ```
 
@@ -572,6 +566,25 @@ The confidence interval is entirely positive, supporting our conclusion that fem
 :::int
 We are 95% confident that American females have between 0.046 and 0.41 more close friends, on average, than American males do.
 :::
+
+
+<br>
+
+The sample results are significant, and we can also compute the effect size to check whether or not they are important.
+
+```{r}
+library(effsize)
+cohen.d(num_close_friends ~ sex, data = gss, mu = 0, pooled = TRUE)
+```
+
+or
+
+```{r}
+cohen.d(gss$num_close_friends, gss$sex, mu = 0, pooled = TRUE)
+```
+
+As you can see above, the effect size, while being significant, is deemed to be of negligible importance.
+
 
 <br>
 
@@ -803,19 +816,17 @@ Write a sentence or two interpreting what the interval reveals.
 _**Hint**: The degrees of freedom were given in Question 6._
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-First, we must find the appropriate critical value $t_{0.975}$ (for the desired confidence level) from a t-distribution with degrees of freedom given by Welch's method (see Question 6 for the value).
+First, we must find the appropriate critical values $\pm t^*$ (for the desired confidence level) from a t-distribution with degrees of freedom given by Welch's method (see Question 6 for the value).
 
 The upper critical value for a 95% confidence level is:
 ```{r}
-upper_crit <- qt(0.975, df)
-upper_crit
+tstar <- qt(c(0.025, 0.975), df)
+tstar
 ```
-
-Remember that because the t-distribution is symmetric, the lower critical value $t_{0.025} = -t_{0.975}$.
 
 We compute a 95% confidence interval for the difference in population means, $\mu_{name} - \mu_{no\ name}$, as follows:
 $$
-(\bar x_{name} - \bar x_{no\ name}) \pm t_{0.975} \  \sqrt{\frac{s_{name}^2}{n_{name}} + \frac{s_{no\ name}^2}{n_{no\ name}}} \\
+(\bar x_{name} - \bar x_{no\ name}) \pm t^* \  \sqrt{\frac{s_{name}^2}{n_{name}} + \frac{s_{no\ name}^2}{n_{no\ name}}} \\
 (5.44 - 3.49) \pm 2.036 \ \sqrt{\frac{1.75^2}{20} + \frac{1.13^2}{20}}
 $$
 
@@ -823,10 +834,7 @@ $$
 ```{r}
 SE <- sqrt(s_name^2 / 20 + s_no^2 / 20)
 
-ci <- tibble(
-  Lower = (xbar_name - xbar_no) - upper_crit * SE,
-  Upper = (xbar_name - xbar_no) + upper_crit * SE
-)
+ci <- (xbar_name - xbar_no) + tstar * SE
 ci
 ```
 
@@ -853,7 +861,7 @@ In other words, we can conclude a causal link between being given the name as pa
 However, as the server was not blind to the treatment condition, we must be wary to the fact that the server could have given better service to the parties who they gave their name to. So, the results hold unless the server gave better service to the name condition.
 
 Having established that there is a significant difference in means between the two groups, a confidence intervals lets us now to estimate, on average, how much higher the tips will be when giving their name.
-Including their name as part of the greeting to customers increases the server's tips, on average, by \$`r ci %>% round(2) %>% pull(Lower)` to \$`r ci %>% round(2) %>% pull(Upper)` per party.
+Including their name as part of the greeting to customers increases the server's tips, on average, by \$`r ci[1] %>% round(2)` to \$`r ci[2] %>% round(2)` per party.
 
 We must be careful when generalising these results to the population. As only one particular server participated in the study, we don't want to generalise these results to other servers.
 Furthermore, we might also avoid generalising these results to customers different from those who eat Sunday brunch at Charley Brown's Restaurant in Huntington Beach, California.

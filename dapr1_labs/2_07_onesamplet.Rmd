@@ -370,19 +370,22 @@ So our assumption for the one sample mean test holds!
 
 Data for a sample of 2000 licensed pets from the city of Seattle, USA, can be found at the following url: [https://uoepsy.github.io/data/seattlepets.csv](https://uoepsy.github.io/data/seattlepets.csv).  
 It contains information on the license numbers, issue date and zip-code, as well as data on the species, breeds and weights (in kg) of each pet.  
-We are interested in whether the average weight of a dog is *greater than* 20kg.  
+We are interested in whether the average weight of a Seattle dog is greater than 20kg.  
 
-Let $\mu$ denote the mean weight (in kg) of _all_ dogs in Seattle.
+__Definition of null and alternative hypotheses__  
 
-+ Null hypothesis, $H_0: \mu = 20$  
-+ Alternative hypothesis, $H_1: \mu > 20$  
+Let $\mu$ denote the mean weight (in kg) of _all_ dogs in Seattle. We wish to test:
+
+$$
+H_0: \mu = 20 \\
+H_1: \mu > 20
+$$
   
 `r qbegin(1)`
-Read in the data. 
- 
-Use `summary()` to have a look at your data.  
-Which variables are you going to need for our analysis?  
-Does anything jump out as relevant? 
+- Read the data into R.
+- Use `summary()` to have a look at your data. 
+- Which variables are you going to need for our analysis?  
+- Does anything jump out as relevant? 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
 ```{r}
@@ -494,6 +497,29 @@ t.test(x = dogs$weight_kg, mu = 20, alternative = "greater")
 ```
 `r solend()`
 
+
+`r qbegin(8)`
+Compute the effect size 
+
+- by hand;
+- and by using the `cohen.d()` function from the `effsize` package that was shown in the lectures.
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+D <- (dogstats$xbar - 20) / dogstats$s
+D
+```
+
+```{r}
+library(effsize)
+cohen.d(dogs$weight_kg, NA, mu = 20)
+```
+
+As you can see, we have a Cohen'D of `r round(D, 2)`, which indicates a small/negligible effect size.
+`r solend()`
+
+
+
 ## Procrastination scores  
 
 The Procrastination Assessment Scale for Students (PASS) was designed to assess how individuals approach decision situations, specifically the tendency of individuals to postpone decisions (see [Solomon & Rothblum, 1984](http://dx.doi.org/10.1037/0022-0167.31.4.503)).  
@@ -504,10 +530,12 @@ The mean score from Solomon & Rothblum, 1984 was 33.
 
 Do Edinburgh University students report endorsing procrastination to less than the norm of 33?  
 
-`r qbegin(8)`
-Read in the data (a .csv is at [https://uoepsy.github.io/data/pass_scores.csv](https://uoepsy.github.io/data/pass_scores.csv)), produce some descriptive statistics, and conduct a one sample mean test to evaluate whether Edinburgh University students' average score on the PASS is less than 33.  
-
-+ Remember about the assumptions of your test! 
+`r qbegin(9)`
+- Read the data into R (a .csv file is available at [https://uoepsy.github.io/data/pass_scores.csv](https://uoepsy.github.io/data/pass_scores.csv))
+- Produce some descriptive statistics
+- Conduct a one sample mean test to evaluate whether Edinburgh University students' average score on the PASS is less than 33.  
+    + Remember about the assumptions of your test! 
+- If the result is significant, don't forget to compute the effect size.
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
 Read the data into R
@@ -548,10 +576,15 @@ Perform t-test
 ```{r}
 t.test(pass_scores$PASS, mu = 33, alternative = "less")
 ```
+
+```{r}
+cohen.d(pass_scores$PASS, NA, mu = 33)
+```
+
 `r solend()`
 
-`r qbegin(9)`
-Write up the results from Question 8.  
+`r qbegin(10)`
+Write up the results from Question 9.  
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)` 
 ```{r include=FALSE}
@@ -559,15 +592,18 @@ res2<-t.test(pass_scores$PASS, mu = 33, alternative = "less")
 ```
 A one-sided one-sample t-test was conducted in order to determine if the average score on the Procrastination Assessment Scale for Students (PASS) for a sample of `r nrow(pass_scores)` students at Edinburgh University was significantly ($\alpha = .05$) lower than the average score obtained during development of the PASS. 
 
-Edinburgh University students scored lower (Mean=`r mean(pass_scores$PASS) %>% round(2)`, SD=`r sd(pass_scores$PASS) %>% round(2)`) than the score reported by the authors of the PASS (Mean = 33). This difference was statistically significant (*t*(`r nrow(pass_scores)-1`)=`r res2$statistic %>% round(2)`, *p* = .003, one-tailed).  
+Edinburgh University students scored lower (Mean=`r mean(pass_scores$PASS) %>% round(2)`, SD=`r sd(pass_scores$PASS) %>% round(2)`) than the score reported by the authors of the PASS (Mean = 33). This difference was statistically significant (*t*(`r nrow(pass_scores)-1`)=`r res2$statistic %>% round(2)`, *p* = .003, one-tailed). The size of the effect was also found to be moderate, $D = -0.69$.
 `r solend()`
+
+
+
 
 ## Cat weights!    
 
-`r qbegin(10)`
+`r qbegin(11)`
 _**Without looking** at the data_ (and without googling either), do you think that the average weight of a pet cat is more than/less than/equal to 4.5kg?   
 
-Write out your null and alternative hypotheses, and conduct the appropriate test.    
+Write out your null and alternative hypotheses, and conduct the appropriate test. If the result is significant, don't forget to compute the effect size.
 `r qend()`
 `r  solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
 My own hypotheses are the following. Perhaps yours are different if your belief is that they weigh less than 4.5kg.
@@ -602,6 +638,8 @@ Perform the t-test:
 t.test(cats$weight_kg, mu=4.5, alternative="greater")
 ```
 `r solend()`
+
+
 
 # Glossary
 
