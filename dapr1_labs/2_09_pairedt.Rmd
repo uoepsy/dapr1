@@ -120,12 +120,12 @@ __Confidence interval__
 A 95% confidence interval for the population mean difference $\mu_d$ is:
 
 $$
-\bar{d} \pm t_{0.975} \cdot SE
+\bar{d} \pm t^* \cdot SE
 $$
 where
 
 - $\bar{d}$ is the mean of the differences in the sample
-- $t_{0.975}$ is the 0.975-quantile of a t-distribution with $n - 1$ degrees of freedom
+- $\pm t^*$ are the appropriate quantiles of a t-distribution with $n - 1$ degrees of freedom
 - $SE = \frac{s_d}{\sqrt{n}}$ is the standard error of the mean (of the differences)
 
 
@@ -146,31 +146,43 @@ __Checking assumptions__
 1. This is a design issue - which level of data should be confirmed before data collection/during study design period. 
 2. This is a design issue.
 3. This can be tested using the Shapiro-Wilk test of normality and/or also assessed visually with plots (such as histograms and density plots). A QQplot can also be used. 
-4. Outliers can be identified using boxplots. The `indentify_outliers()` function in the `{rstatix}` package can extract rows suspected as outliers. 
+4. Outliers can be identified using boxplots. The `indentify_outliers()` function in the `rstatix` package can extract rows __suspected__ as outliers. 
 
 # One sample t-test in disguise 
 
-The paired-sample t-test is very similar to the one sample t-test covered in [Week 7](https://uoepsy.github.io/dapr1/labs/17_one_sample_mean.html). 
+The paired-sample t-test is very similar to the one sample t-test covered in [Week 7](2_07_onesamplet.html).
 
-
-The steps for the one sample t-test are:
+__The steps for the one sample t-test are:__
 
 1. calculate the sample mean ($\bar{x}$)
-1. calculate the sample standard deviation ($s_x$)
-1. calculate the standard error $SE = s_x / \sqrt{n}$
-1. calculate $t_{obs} = (\text{estimate} - \text{null}) / SE = (\bar{x} - 0) / SE$
-1. calculate the probability of observing a $t$-statistic at least as extreme, assuming the null hypothesis ($H_0: \mu = 0$) is true.
 
-The steps for the paired t-test are:
+1. calculate the sample standard deviation $s$ of the data $x_i$
 
-1. **calculate the difference score for each pairs**: $d_i = x_{i1} - x_{i2}$
+1. calculate the standard error $SE = \frac{s}{\sqrt{n}}$
+
+1. calculate $t_{obs} = \frac{\text{estimate} - \text{null}}{SE} = \frac{\bar{x} - \mu_0}{SE}$
+
+1. calculate the probability of observing a $t$-statistic at least as extreme, assuming the null hypothesis ($H_0: \mu = \mu_0$) is true.
+
+<br>
+
+__The steps for the paired t-test are:__
+
+1. calculate the __difference score__ for each pair: $d_i = x_{i1} - x_{i2}$
+
 1. calculate the sample mean of the differences: $\bar{d} = \sum d_i / n$
-1. calculate the sample standard deviation of the differences: $s_d$
-1. calculate the standard error $SE = s_d / \sqrt{n}$
-1. calculate $t_{obs} = (\text{estimate} - \text{null}) / SE = (\bar{d} - 0) / SE$
-1. calculate the probability of observing a $t$-statistic at least as extreme, assuming the null hypothesis ($H_0: \mu_d = 0$) is true.
 
-The formula for the t-statistic, assessing statistical significance, and constructing confidence intervals is identical to the one-sample t-test. 
+1. calculate the sample standard deviation of the differences, and denoted it $s_d$
+
+1. calculate the standard error $SE = \frac{s_d}{\sqrt{n}}$
+
+1. calculate $t_{obs} = \frac{\text{estimate} - \text{null}}{SE} = \frac{\bar{d} - \mu_0}{SE}$
+
+1. calculate the probability of observing a $t$-statistic at least as extreme, assuming the null hypothesis ($H_0: \mu_d = \mu_0$) is true.
+
+
+Typically, the hypothesised value $\mu_0$ is equal to 0. The formula for the t-statistic, assessing statistical significance, and constructing confidence intervals is identical to the one-sample t-test. 
+
 
 We have just changed the notation - instead of talking about a population mean $\mu$ of a variable $x$, which is estimated by a sample mean ($\bar{x}$), we are talking about a population mean of differences ($\mu_d$) which is estimated by the sample mean of the differences ($\bar{d}$). We are testing whether the population mean difference ($\mu_d$) is different from 0. 
 
@@ -235,7 +247,7 @@ aceterms
 
 Let's recall the formula for the observed t-statistic:
 $$
-t_{obs} = \frac{\bar d}{SE}, \qquad \text{where }SE = \frac{s_d}{\sqrt n}
+t_{obs} = \frac{\bar d - 0}{SE}, \qquad \text{where} \qquad SE = \frac{s_d}{\sqrt n}
 $$
 
 In R:
@@ -255,10 +267,10 @@ The t-statistic is negative, so we can make it positive via `abs(t_stat)` and th
 ```
 
 
-Equivalently, you could have computed it as twice the proportion in the lower tail:
+Equivalently, you could have computed it as:
 
 ```{r}
-2 * pt(t_stat, df = 24)
+2 * pt(abs(t_stat), df = 24, lower.tail = FALSE)
 ```
 
 
@@ -273,16 +285,12 @@ aceterms$dbar
 SE <- aceterms$s_d / sqrt(aceterms$n)
 SE
 
-# upper critical value of a t-distribution (alpha = 0.05) with df = 24
-upper_crit <- qt(.975, df = 24) 
-upper_crit
+# tstar
+tstar <- qt(c(.025, .975), df = 24) 
+tstar
 
-# lower interval limit
-ci_lower <- aceterms$dbar - upper_crit * SE 
-# upper interval limit
-ci_upper <- aceterms$dbar + upper_crit * SE
-# display the interval
-c(ci_lower, ci_upper)
+ci <- aceterms$dbar + tstar * SE
+ci
 ```
 
 What does all this mean?
