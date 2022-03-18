@@ -4,8 +4,9 @@ bibliography: references.bib
 biblio-style: apalike
 link-citation: yes
 params:
-  SHOW_SOLS: FALSE
+  SHOW_SOLS: TRUE
   TOGGLE: TRUE
+  CHUNK_RES: 'hide'
 ---
 
 ```{r setup, include=FALSE}
@@ -62,7 +63,7 @@ Over the past few weeks we've looked at different types of variables (outlined a
 
 How would you visualise *two quantitative variables* such as age and height? 
 
-`r qbegin(1)`
+`r qbegin()`
 How would you most often visualise the relationship between two quantitative variables?  
 
 What should we fill this plot with?  
@@ -506,6 +507,12 @@ cor.test(x = example_data$ex1, y = example_data$ex2,
 
 # Example: A hypothetical memory test 
 
+:::yellow
+__Solutions__
+
+Solutions are available, but the output of the R code is hidden. We invite you to type the code into R to investigate and get familiar with the output.
+:::
+
 Our data for this example is from a (hypothetical) study on memory. Twenty participants studied passages of text (c500 words long), and were tested a week later. The testing phase presented participants with 100 statements about the text. They had to answer whether each statement was true or false, as well as rate their confidence in each answer (on a sliding scale from 0 to 100). The dataset contains, for each participant, the percentage of items correctly answered, and the average confidence rating. Participants' ages were also recorded.
 
 `r qbegin(1)`
@@ -516,7 +523,7 @@ Plot the relationship between the percentage of items answered correctly (`recal
 Plot the relationship between recall accuracy and age. 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-```{r message=FALSE,warning=FALSE}
+```{r message=FALSE,warning=FALSE, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
 library(tidyverse)
 recalldata <- read_csv("https://uoepsy.github.io/data/recalldata.csv")
 
@@ -540,7 +547,7 @@ Create 2 new columns in the memory recall data, one of which is the mean recall 
 **Remember** to assign it using `recalldata <- ...` otherwise it will just print out the data with the new columns, rather than store it anywhere. 
 `r qend()`
 `r solbegin(show = params$SHOW_SOLS, toggle=params$TOGGLE)`
-```{r}
+```{r, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
 recalldata <-
   recalldata %>% mutate(
     maccuracy = mean(recall_accuracy),
@@ -558,7 +565,7 @@ iii. the product of i. and ii. - this is calculating $(x_i - \bar{x})$$(y_i - \b
 
 `r qend()`
 `r solbegin(show = params$SHOW_SOLS, toggle=params$TOGGLE)`
-```{r}
+```{r, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
 recalldata <- 
   recalldata %>% 
     mutate(
@@ -575,7 +582,7 @@ recalldata
 Finally, sum the products, and divide by $n-1$
 `r qend()`
 `r solbegin(show = params$SHOW_SOLS, toggle=params$TOGGLE)`
-```{r}
+```{r, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
 recalldata %>%
   summarise(
     prod_sum = sum(prod_acc_conf),
@@ -586,6 +593,7 @@ recalldata %>%
 ```
 `r solend()`
 
+
 ## cov()
 
 `r qbegin(5)`
@@ -595,7 +603,7 @@ Check that you get the same results using `cov()` function.
 `r qend()`
 `r solbegin(show = params$SHOW_SOLS, toggle=params$TOGGLE)`
 It's the same number!
-```{r}
+```{r, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
 cov(recalldata$recall_accuracy, recalldata$recall_confidence)
 ```
 `r solend()`
@@ -607,7 +615,7 @@ To calculate the _correlation_, we simply divide this by the standard deviations
 Try doing this now.  
 `r qend()`
 `r solbegin(show = params$SHOW_SOLS, toggle=params$TOGGLE)`
-```{r}
+```{r, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
 recalldata %>% summarise(
   s_ra = sd(recall_accuracy),
   s_rc = sd(recall_confidence)
@@ -617,6 +625,7 @@ recalldata %>% summarise(
 ```
 `r solend()`
 
+
 ## cor()
 
 `r qbegin(7)`
@@ -624,10 +633,11 @@ Just like R has a `cov()` function for calculating covariance, there is a `cor()
 They work in a similar way. Try using `cor()` now and check that we get the same result as above (or near enough, remember that we rounded some numbers above).  
 `r qend()`
 `r solbegin(show = params$SHOW_SOLS, toggle=params$TOGGLE)`
-```{r}
+```{r, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
 cor(recalldata$recall_accuracy, recalldata$recall_confidence)
 ```
 `r solend()`
+
 
 # Correlation matrix  
 
@@ -664,13 +674,18 @@ This line you __should__ keep in your code, because it ensures that your code is
 
 i. Install the `polycor` package. You only need to install it once, and you will have access to it forever by calling it via `library()`
 ii. Load the `polycor` package.  
-iii. Read in the job satisfaction data from [https://uoepsy.github.io/data/jobsat.csv](https://uoepsy.github.io/data/jobsat.csv). Use the function __read.csv()__ rather than __read_csv__ due to a problem with the package `polycor`. 
+iii. Read in the job satisfaction data from [https://uoepsy.github.io/data/jobsat.csv](https://uoepsy.github.io/data/jobsat.csv). 
+
+:::red
+Use the function __read.csv()__ rather than __read_csv__ due to a problem with the package `polycor`. 
+:::
+
 iv. Create a correlation matrix using the function `hetcor()`, and name it `cormat`.  
 v. Pull out the correlation matrix using `cormat$correlations`.  
 
 `r qend()`
 `r solbegin(show = params$SHOW_SOLS, toggle=params$TOGGLE)`
-```{r message=FALSE,warning=FALSE}
+```{r message=FALSE,warning=FALSE, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
 library(polycor)
 
 jobsat <- read.csv("https://uoepsy.github.io/data/jobsat.csv") 
@@ -700,7 +715,7 @@ iii. visualise your correlation matrix using the function `pheatmap()`.
 
 `r qend()`
 `r solbegin(show = params$SHOW_SOLS, toggle=params$TOGGLE)`
-```{r}
+```{r, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
 library(pheatmap)
 pheatmap(cormat$correlations)
 ```
@@ -850,7 +865,7 @@ What number satisfies all of these equations?:
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-```{r message=FALSE}
+```{r message=FALSE, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
 sleepdtf <- read_csv("https://uoepsy.github.io/data/sleepdtf.csv")
 
 # To reverse the items, we can simply do 6 minus the score.   
@@ -874,7 +889,7 @@ sleepdtf <- sleepdtf %>%
 Calculate the correlation between the total sleep time (`TST`) and the overall daytime functioning score.  
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-```{r}
+```{r, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
 cor(sleepdtf$TST, sleepdtf$dtf)
 ```
 `r solend()`
@@ -885,7 +900,7 @@ Conduct a test to establish the probability of observing a correlation this stro
 Write a sentence or two summarising the results. 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-```{r}
+```{r, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
 cor.test(sleepdtf$TST, sleepdtf$dtf)
 ```
 
@@ -941,7 +956,7 @@ To refresh more of this stuff, it's worth going back over the [very first lab](.
 
 To make the correlation matrix, we just pass any of these to the `hetcor()` function from the `polycor` package!  
 
-```{r}
+```{r, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
 dtfmatrix <-
   sleepdtf %>% 
   select(item_1:item_10) %>% 
@@ -957,7 +972,7 @@ dtfmatrix$correlations
 Visualise your correlation matrix using `pheatmap()` from the `pheatmap` package. 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-```{r}
+```{r, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
 pheatmap(dtfmatrix$correlations)
 ```
 
@@ -976,7 +991,7 @@ This makes sense, because Items 4, 5, and 6 are all the _positive_ statements, s
 Furthermore, Items 1, 2, and 3 all seem more strongly correlated with one another than with Items 7, 8, 9 and 10. Are there any differences between these items? It sort of looks like Items 1-3 are all about how well people _functioned_, whereas 7-10 is about how they _felt_. This could flag up interesting avenues for future research.  
 
 If we change to using the reversed Items 4-6, the direction (but not the strength) of the correlations with these items will change:
-```{r}
+```{r, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
 # not the most elegant way to do this, but can see clearly what it's doing:
 dtfmatrix2 <-
   sleepdtf %>% 
@@ -995,7 +1010,7 @@ pheatmap(dtfmatrix2$correlations)
 What items on the daytime functioning questionnaire correlate most strongly with the Total Sleep Time (TST)?  
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-```{r}
+```{r, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
 # not the most elegant way to do this, but can see clearly what it's doing:
 dtfmatrix3 <-
   sleepdtf %>% 
