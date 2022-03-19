@@ -6,7 +6,6 @@ link-citation: yes
 params:
   SHOW_SOLS: FALSE
   TOGGLE: TRUE
-  CHUNK_RES: 'hide'
 ---
 
 ```{r setup, include=FALSE}
@@ -495,13 +494,6 @@ The data is stored in the file [TipJoke.csv](https://uoepsy.github.io/data/TipJo
 In the following, we will consider leaving a tip as “success”.
 
 
-:::yellow
-__Solutions__
-
-Solutions are available, but the output of the R code is hidden. We invite you to type the code into R to investigate and get familiar with the output.
-:::
-
-
 `r qbegin(1)` 
 
 Define the null and alternative hypothesis.
@@ -526,7 +518,7 @@ Make sure the data is correctly encoded.
 
 First we need to read in our data and see how it looks: 
 
-```{r, results = params$CHUNK_RES}
+```{r}
 tipjoke <- read_csv('https://uoepsy.github.io/data/TipJoke.csv')
 
 head(tipjoke) # print first 6 rows
@@ -536,7 +528,7 @@ dim(tipjoke)  # dimensions - nr of rows (observations) and nr of columns (variab
 
 We need to make them both factors (as we're working with categorical data) and change the `Tip` variable into `NoTip` and `Tip` to replace the 0s and 1s. 
 
-```{r, results = params$CHUNK_RES}
+```{r}
 tipjoke <- tipjoke %>%
     mutate(
         Card = factor(Card),
@@ -557,7 +549,7 @@ comment on what the graph shows.
 `r qend()` 
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)` 
 
-```{r, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
+```{r}
 ggplot(tipjoke, aes(x = Card, fill = Tip)) + # card on the x-axis and 'filling' the bar with our Tip variable (which has two levels)
   geom_bar()
 ```
@@ -566,7 +558,7 @@ From the stacked bar graph, it appears that perhaps the joke card does produce a
 
 If you prefer to have the bars all with the same heights and show the proportion of customers who tipped for each card, you can use:
 
-```{r, results = params$CHUNK_RES, fig.show = params$CHUNK_RES}
+```{r}
 ggplot(tipjoke, aes(x = Card, fill = Tip)) + 
   geom_bar(position = 'fill')
 ```
@@ -580,7 +572,7 @@ Create a two-way table showing how many customers left a tip or not, for each ca
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)` 
 
 
-```{r, results = params$CHUNK_RES}
+```{r}
 observed_tipjoke <- table(tipjoke$Tip, tipjoke$Card)
 observed_tipjoke
 ```
@@ -596,7 +588,7 @@ __Hint:__ For a test of independence, you need to provide to `chisq.test()` only
 `r qend()`  
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)` 
 
-```{r, results = params$CHUNK_RES}
+```{r}
 ind_test <- chisq.test(observed_tipjoke)
 ind_test
 
@@ -621,7 +613,7 @@ _Hint: look at the goodness-of-fit walkthrough and how we obtained the Pearson r
 `r qend()`  
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)` 
 
-```{r, results = params$CHUNK_RES}
+```{r}
 ind_test$expected
 
 ind_test$observed
@@ -639,7 +631,7 @@ Less customers than expected under the null hypothesis:
 - didn’t tip after receiving a joke card;
 - tipped after receiving no card.
 
-```{r, results = params$CHUNK_RES}
+```{r}
 ind_test$residuals
 ```
 
