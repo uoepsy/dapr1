@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Confidence Intervals</title>
+
+<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+<script>
+function toggle_visibility(id1, id2) {
+var e = document.getElementById(id1);
+var f = document.getElementById(id2);
+e.style.display = ((e.style.display!='none') ? 'none' : 'block');
+if(f.classList.contains('fa-chevron-circle-right')) {
+    f.classList.add('fa-chevron-circle-down')
+    f.classList.remove('fa-chevron-circle-right')
+} else {
+    f.classList.add('fa-chevron-circle-right')
+    f.classList.remove('fa-chevron-circle-down')
+}
+}
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="assets/style-labs.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"><strong>DAPR1</strong></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">
+    <span class="fa fa-home"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="intro_r_rstudio_year1.html">DAPR1 starts here</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Intro to data and R
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="1_01_data_types.html">1/1: Collecting data</a>
+    </li>
+    <li>
+      <a href="1_02_categorical.html">1/2: Categorical data</a>
+    </li>
+    <li>
+      <a href="1_03_numerical.html">1/3: Numerical data</a>
+    </li>
+    <li>
+      <a href="1_04_relationships.html">1/4: Relationships</a>
+    </li>
+    <li>
+      <a href="1_05_functions.html">1/5: Types of relations</a>
+    </li>
+    <li class="dropdown-header">1/6: Break week!</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Probability &amp; sampling
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="1_07_probability_basics.html">1/7: Probability basics</a>
+    </li>
+    <li>
+      <a href="1_08_probability_rules.html">1/8: Probability rules!</a>
+    </li>
+    <li>
+      <a href="1_09_discrete_distributions.html">1/9: Discrete random variables</a>
+    </li>
+    <li>
+      <a href="1_10_continuous_distributions.html">1/10: Continuous random variables</a>
+    </li>
+    <li>
+      <a href="1_11_sampling_distributions.html">1/11: Sampling distributions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Hypothesis testing
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="2_01_confidence_intervals.html">2/1: Confidence intervals</a>
+    </li>
+    <li>
+      <a href="2_02_ht_pvalues.html">2/2: Hypothesis testing: p-values</a>
+    </li>
+    <li>
+      <a href="2_03_ht_critvalues.html">2/3: Hypothesis testing: critical values</a>
+    </li>
+    <li>
+      <a href="2_04_htci.html">2/4: Hypothesis testing &amp; Confidence intervals</a>
+    </li>
+    <li>
+      <a href="2_05_hterrorspower.html">2/5: Errors, Power, Effect size, Assumptions</a>
+    </li>
+    <li class="dropdown-header">2/6: Break week</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Basic tests
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="2_07_onesamplet.html">2/7: One sample t-test</a>
+    </li>
+    <li>
+      <a href="2_08_independentt.html">2/8: Independent samples t-test</a>
+    </li>
+    <li>
+      <a href="2_09_pairedt.html">2/9: Paired sample t-test</a>
+    </li>
+    <li>
+      <a href="2_10_chisquare.html">2/10: Chi-square</a>
+    </li>
+    <li>
+      <a href="2_11_covcor.html">2/11: Covariance and correlation</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Confidence Intervals</h1>
+
+</div>
+
+
+<div class="lo">
+<p><strong>LEARNING OBJECTIVES</strong></p>
+<ol style="list-style-type: decimal">
+<li>Understand the importance of a confidence interval.</li>
+<li>Understand the link between standard errors and confidence intervals.</li>
+<li>Understand how to construct a confidence interval for an unknown parameter of interest.</li>
+</ol>
+</div>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>Without loss of generality, we will consider the sample mean as the statistic of interest and we will consider two scenarios:</p>
+<ul>
+<li>Entire population data available (unlikely);<br />
+</li>
+<li>Entire population data are NOT available (more common).</li>
+</ul>
+<p>For both scenarios, we will investigate the following question:</p>
+<blockquote>
+<p>What was the average yearly salary of a National Football League (NFL) player in 2019?</p>
+</blockquote>
+<p>This question is about the mean salary of all NFL players in 2019, which is denoted <span class="math inline">\(\mu\)</span> and is a population parameter.</p>
+</div>
+<div id="a.-population-data-available-unlikely" class="section level1">
+<h1>A. Population data available (unlikely)</h1>
+<p>If we have data on the entire population of NFL players and we are interested in a parameter such as the population mean salary, we can simply compute the mean on the available population data.
+There would be no uncertainty and nothing to estimate: we have the entire population data, so we can easily compute the mean salary, and we would know what the actual parameter value is.</p>
+<p>In this scenario, we would have a file containing the yearly salaries (in millions of dollars) for all players being paid in 2019 by a National Football League (NFL) team. This entire dataset represents the entire population of all National Football League players in that year.</p>
+<p>The data on the entire population:</p>
+<pre class="r"><code>library(tidyverse)
+
+nfl_pop &lt;- read_csv(&quot;https://uoepsy.github.io/data/NFLContracts2019.csv&quot;)
+head(nfl_pop)</code></pre>
+<pre><code>## # A tibble: 6 × 5
+##   Player             Position Team     TotalMoney YearlySalary
+##   &lt;chr&gt;              &lt;chr&gt;    &lt;chr&gt;         &lt;dbl&gt;        &lt;dbl&gt;
+## 1 Russell Wilson     QB       Seahawks        140         35  
+## 2 Ben Roethlisberger QB       Steelers         68         34  
+## 3 Aaron Rodgers      QB       Packers         134         33.5
+## 4 Jared Goff         QB       Rams            134         33.5
+## 5 Carson Wentz       QB       Eagles          128         32  
+## 6 Matt Ryan          QB       Falcons         150         30</code></pre>
+<p>The population mean salary:</p>
+<pre class="r"><code>mu &lt;- mean(nfl_pop$YearlySalary)
+mu</code></pre>
+<pre><code>## [1] 3.033404</code></pre>
+<p>Say we wanted to check whether 1 million was a plausible average yearly salary for a NFL player in 2019. The answer is no, it isn’t. We know the actual average salary which is 3.03 million of dollars, and this is different from 1 million.</p>
+</div>
+<div id="na.-population-data-not-available-more-common" class="section level1">
+<h1>NA. Population data NOT available (more common)</h1>
+<p>Now suppose we didn’t know anything from the previous section.</p>
+<p>In most research, the data for the entire population is not available as we cannot afford to collect data on the entire population.
+As a consequence, we cannot compute the population parameter <span class="math inline">\(\mu\)</span>, which is <strong>unknown</strong>, and we must rely on random <strong>sampling</strong> to estimate it. It is good practice to use a sample size as large as we can afford in order to obtain good precision.</p>
+<p>Let’s pretend for now that we don’t have the entire NFL population data, and are only able to collect data for 50 players. Fortunately someone else did it for us: they chose 50 players at random and interviewed them to find out their salary. The sample data are:</p>
+<pre class="r"><code>nfl_sample &lt;- read_csv(&quot;https://uoepsy.github.io/data/NFLSample2019.csv&quot;)
+nfl_sample</code></pre>
+<pre><code>## # A tibble: 50 × 5
+##    Player          Position Team       TotalMoney YearlySalary
+##    &lt;chr&gt;           &lt;chr&gt;    &lt;chr&gt;           &lt;dbl&gt;        &lt;dbl&gt;
+##  1 Najee Goode     43OLB    Jaguars         0.805        0.805
+##  2 Jack Crawford   43DT     Falcons         9.9          2.48 
+##  3 Tra Carson      RB       Lions           1.23         0.615
+##  4 Jordan Richards S        Ravens          0.805        0.805
+##  5 Desmond Trufant CB       Falcons        68.8         13.8  
+##  6 Alex Anzalone   43OLB    Saints          3.47         0.866
+##  7 Trey Burton     TE       Bears          32            8    
+##  8 Josh Martin     43DE     Saints          0.805        0.805
+##  9 Lavonte David   ILB      Buccaneers     50.2         10.0  
+## 10 Maliek Collins  43DT     Cowboys         3.55         0.888
+## # … with 40 more rows</code></pre>
+<p>We estimate the <strong>unknown</strong> population mean salary (what we are interested in) with the sample mean salary <span class="math inline">\(\bar x\)</span>, which we can compute from the obtained sample. The sample mean salary represents our “best guess” of the population mean salary.</p>
+<pre class="r"><code>xbar &lt;- mean(nfl_sample$YearlySalary)
+xbar</code></pre>
+<pre><code>## [1] 3.35882</code></pre>
+<p>The average salary in the sample of 50 NFL players is 3.36 million dollars.</p>
+<p>Without knowledge of the full data, we would say that we estimate the average salary of an NFL player in the year 2019 to be 3.36 million dollars.</p>
+<p>However, we know that if we had collected a different sample, the sample mean would be a different number from 3.36 as it varies from sample to sample.</p>
+<p>We do not want to report a single number as the estimate, as we know that our estimate will almost certainly differ from the true value of the population parameter. We probably want to be cautious and report a <strong>range of plausible values</strong> for the parameter, known as <strong>confidence interval (CI)</strong>, which is more likely to capture the true value of the parameter. See the following image for a summary of the idea:</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-7"></span>
+<img src="https://d33wubrfki0l68.cloudfront.net/45f6d2e16255dbcb42de86336e1e49ef732aa5da/8bcd0/images/shutterstock/point_estimate_vs_conf_int.png" alt="Source: moderndive.com" width="80%" />
+<p class="caption">
+Figure 1: Source: moderndive.com
+</p>
+</div>
+<p><br></p>
+<p>To get the range of plausible values, we will use the fact that in a Normal distribution 95% of the values are roughly between the mean - 2 SD and the mean + 2 SD. See <a href="1_10_continuous_distributions.html#The_68-95-997%_rule">here</a> for more details.</p>
+<p>We know that the sample mean follows a normal distribution, and we also know that the standard deviation of the sampling distribution of the mean is also known as the <strong>standard error</strong> (SE).</p>
+<p>However, we cannot obtain the standard error of the mean as we do not have the data on the entire population.
+If we used the formula for the standard error, we would need to know the population standard deviation <span class="math inline">\(\sigma\)</span> (which we don’t):</p>
+<p><span class="math display">\[
+SE = \frac{\sigma}{\sqrt{n}}
+\quad \text{where}
+\quad \sigma = \text{pop. standard deviation}
+\]</span></p>
+<p>This week we will learn how to estimate the standard error of a statistic when we only have one sample.</p>
+</div>
+<div id="confidence-intervals" class="section level1">
+<h1>Confidence intervals</h1>
+<p>This section investigates how to obtain the standard error and construct a confidence interval when only one sample is available.</p>
+<p>Let <span class="math inline">\(\mu\)</span> be the population mean and <span class="math inline">\(\sigma\)</span> the population standard deviation. In <a href="1_11_sampling_distributions.Rmd">Week 11 of semester 1</a> you saw that</p>
+<ol style="list-style-type: decimal">
+<li>the sample mean <span class="math inline">\(\bar X\)</span> follows a normal distribution;</li>
+<li>its average <span class="math inline">\(\mu_{\overline X}\)</span> is equal to the unknown population mean <span class="math inline">\(\mu\)</span>;</li>
+<li>its standard deviation is equal to <span class="math inline">\(\sigma_{\overline X} = SE = \sigma / \sqrt{n}\)</span>, also known as the standard error of the mean.</li>
+</ol>
+<p><span class="math display">\[
+\bar X \sim N(\mu_{\overline{X}}, \sigma_{\overline{X}}) \quad \text{where}
+\quad \begin{cases}
+\mu_{\overline{X}} = \mu \\
+\sigma_{\overline{X}} = SE = \frac{\sigma}{\sqrt{n}}
+\end{cases}
+\]</span></p>
+<p>Property 1 tells us that if we computed the sample mean on many samples from the population and created a histogram, this would be bell-shaped like a Normal distribution. So, <strong>the sampling distribution of the mean is a Normal distribution.</strong></p>
+<p>Property 2 tells us that the sampling distribution of the mean is centred at the unknown population mean <span class="math inline">\(\mu\)</span>. So, on average our sample means are close to the true but unknown population mean.</p>
+<p>Property 3 tells us that the spread (standard deviation) of the sampling distribution is <span class="math inline">\(\sigma_{\overline X} = \sigma / \sqrt{n}\)</span>. The larger the sample size, the smaller the standard error, and the more precise the estimate is.</p>
+<div class="frame">
+<p><strong>Finding the central 95% probability</strong></p>
+<p>Recall this image for a generic <span class="math inline">\(X \sim N(\mu, \sigma)\)</span> distribution:</p>
+<p><img src="images/prob/normal_rule.png" width="85%" style="display: block; margin: auto;" /></p>
+<p>The middle 95% probability lies between the values <span class="math inline">\(x = \mu - 2 \sigma\)</span> and <span class="math inline">\(x = \mu + 2 \sigma\)</span>.</p>
+<p>To be more precise, the values between which lies the central 95% probability are those quantiles cutting 0.025 probability to the left and 0.025 probability to the right (= 0.975 to the left).</p>
+<pre class="r"><code>qnorm(c(0.025, 0.975))   # note that: 0.975 - 0.025 = 0.95</code></pre>
+<pre><code>## [1] -1.959964  1.959964</code></pre>
+<p>Meaning that 95% of the values in a normal distribution are between</p>
+<p><span class="math display">\[
+[\mu - 1.96 \cdot \sigma, \
+\mu + 1.96 \cdot \sigma]
+\]</span></p>
+</div>
+<p>If we replace <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span> with <span class="math inline">\(\mu_{\overline X}\)</span> and <span class="math inline">\(\sigma_{\overline X}\)</span> in the interval above, we obtain the corresponding 95% confidence interval for the sample mean <span class="math inline">\(\bar X \sim N(\mu_{\overline X}, \sigma_{\overline X})\)</span>.</p>
+<p>That is, roughly 95% of the values are between</p>
+<p><span class="math display">\[
+[\mu_{\overline X} - 1.96 \cdot \sigma_{\overline X},\
+\mu_{\overline X} + 1.96 \cdot \sigma_{\overline X}]
+\]</span></p>
+<p>Substituting the formula for the <span class="math inline">\(SE = \sigma_{\overline X} = \sigma / \sqrt{n}\)</span>, we know that 95% of the values are roughly between:</p>
+<p><span class="math display">\[
+\left[
+\mu - 1.96 \cdot \frac{\sigma}{\sqrt n},\  
+\mu + 1.96 \cdot \frac{\sigma}{\sqrt n}
+\right]
+\]</span></p>
+<p>The formula above is the 95% confidence interval for the population mean.</p>
+<p><br></p>
+<p>There is one problem though… The confidence interval depends on <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span>, the population mean salary and population standard deviation.</p>
+<p>When we don’t have the entire population data and we can only afford ONE sample, we do not have <span class="math inline">\(\mu\)</span> and we also do not have <span class="math inline">\(\sigma\)</span>. We estimated <span class="math inline">\(\mu\)</span> with the sample mean <span class="math inline">\(\bar x\)</span>, and we must also estimate <span class="math inline">\(\sigma\)</span> with the sample standard deviation <span class="math inline">\(s\)</span>.</p>
+<p>The standard error becomes:</p>
+<p><span class="math display">\[
+SE = \frac{s}{\sqrt n} \qquad \text{where } s = \text{sample standard deviation}
+\]</span></p>
+<p>and the confidence interval for the population mean becomes:</p>
+<p><span class="math display">\[
+\left[
+\bar x - 1.96 \cdot \frac{s}{\sqrt n},\  
+\bar x + 1.96 \cdot \frac{s}{\sqrt n}
+\right]
+\]</span></p>
+<div class="red">
+<p><strong>However, that formula is not quite right!</strong> We estimated the unknown <span class="math inline">\(\sigma\)</span> with the sample standard deviation <span class="math inline">\(s\)</span>. This brings an extra element of uncertainty.</p>
+<p>Because we are unsure about the actual value of the population standard deviation, the resulting distribution is no longer Normal, but a distribution that is more “uncertain” and places higher probability in the tails of the distribution, meaning that we have a wider range of values that we can observe (hence higher uncertainty).</p>
+<p>When the population standard deviation is unknown, the sample mean follows a <strong>t-distribution.</strong></p>
+</div>
+<p>The t-distribution depends on a number called the <strong>degrees of freedom</strong> (DF) of the distribution, which is related to the sample size. The degrees of freedom is equal to the sample size - 1:
+<span class="math display">\[
+df = n - 1
+\]</span>
+Because of this, we refer to the distribution of the sample mean as the <span class="math inline">\(t(n-1)\)</span> distribution, and we write the degrees of freedom within parentheses.</p>
+<p>t-distributions with smaller degrees of freedom (corresponding to smaller samples) put more probability on the tails of the distribution, meaning more uncertainty. As the degree of freedom increases, the t-distribution is indistinguishable from the Normal distribution, and this happens approximately with df <span class="math inline">\(\geq\)</span> 30.</p>
+<p><img src="2_01_confidence_intervals_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" /></p>
+<p>Because the distribution has changed, we need to find the new values in between which lies 95% of the probability. These are no longer -1.96 and 1.96 and will vary with the distribution.</p>
+<p>Consider a sample of size <span class="math inline">\(n = 10\)</span>. The corresponding df = 10 - 1 = 9. The values in between which lies the middle 0.95 probability are:</p>
+<pre class="r"><code># quantiles of a t-distribution with 9 df
+qt(c(0.025, 0.975), df = 9)</code></pre>
+<pre><code>## [1] -2.262157  2.262157</code></pre>
+<p>These two values have, respectively, a probability of 0.025 to the left and 0.025 to the right.</p>
+<p>Hence, for a t(9) distribution, 95% of the values are between:</p>
+<p><span class="math display">\[
+\left[
+\bar x - 2.26 \cdot \frac{s}{\sqrt n}
+,\  
+\bar x + 2.26 \cdot \frac{s}{\sqrt n}
+\right]
+\]</span></p>
+<p>In general, we denote the two quantiles of the t-distribution as <span class="math inline">\(-t^*\)</span> and <span class="math inline">\(+t^*\)</span>, so the interval is written in general as:</p>
+<p><span class="math display">\[
+\left[
+\bar x - t^* \cdot \frac{s}{\sqrt n}
+,\  
+\bar x + t^* \cdot \frac{s}{\sqrt n}
+\right]
+\]</span></p>
+<div id="example" class="section level2">
+<h2>Example</h2>
+<p>Consider again the sample of 50 NFL players. We want to report not only an estimate for the mean salary, but also a range of plausible values.</p>
+<pre class="r"><code>nfl_sample</code></pre>
+<pre><code>## # A tibble: 50 × 5
+##    Player          Position Team       TotalMoney YearlySalary
+##    &lt;chr&gt;           &lt;chr&gt;    &lt;chr&gt;           &lt;dbl&gt;        &lt;dbl&gt;
+##  1 Najee Goode     43OLB    Jaguars         0.805        0.805
+##  2 Jack Crawford   43DT     Falcons         9.9          2.48 
+##  3 Tra Carson      RB       Lions           1.23         0.615
+##  4 Jordan Richards S        Ravens          0.805        0.805
+##  5 Desmond Trufant CB       Falcons        68.8         13.8  
+##  6 Alex Anzalone   43OLB    Saints          3.47         0.866
+##  7 Trey Burton     TE       Bears          32            8    
+##  8 Josh Martin     43DE     Saints          0.805        0.805
+##  9 Lavonte David   ILB      Buccaneers     50.2         10.0  
+## 10 Maliek Collins  43DT     Cowboys         3.55         0.888
+## # … with 40 more rows</code></pre>
+<p>We need a few elements according to our discussion above:</p>
+<ul>
+<li><span class="math inline">\(\bar{x}\)</span>, the sample mean which we already computed before</li>
+<li><span class="math inline">\(s\)</span>, the sample standard deviation</li>
+<li><span class="math inline">\(n\)</span>, the sample size</li>
+<li>the new multipliers to the SD based on the <span class="math inline">\(t(n-1)\)</span> distribution</li>
+</ul>
+<pre class="r"><code>xbar</code></pre>
+<pre><code>## [1] 3.35882</code></pre>
+<pre class="r"><code>s &lt;- sd(nfl_sample$YearlySalary)
+s</code></pre>
+<pre><code>## [1] 4.311738</code></pre>
+<pre class="r"><code>n &lt;- nrow(nfl_sample)
+n</code></pre>
+<pre><code>## [1] 50</code></pre>
+<pre class="r"><code>qt(c(0.025, 0.975), df = n - 1)</code></pre>
+<pre><code>## [1] -2.009575  2.009575</code></pre>
+<p>The formula to use:</p>
+<p><span class="math display">\[
+\left[
+\bar x - 2.01 \cdot \frac{s}{\sqrt n}
+,\  
+\bar x + 2.01 \cdot \frac{s}{\sqrt n}
+\right]
+\]</span></p>
+<p>In R:</p>
+<pre class="r"><code>xbar - 2.01 * (s / sqrt(n))</code></pre>
+<pre><code>## [1] 2.133179</code></pre>
+<pre class="r"><code>xbar + 2.01 * (s / sqrt(n))</code></pre>
+<pre><code>## [1] 4.584461</code></pre>
+<p>The 95% confidence interval is then [2.13, 4.58] million dollars. We would write this up as:</p>
+<div class="int">
+<p>We are 95% confident that the average salary of a NFL player in 2019 is between 2.13 and 4.58 million dollars.</p>
+</div>
+</div>
+<div id="interpreting-a-confidence-interval" class="section level2">
+<h2>Interpreting a confidence interval?</h2>
+<p>If we were to do this whole process over and over again:</p>
+<ul>
+<li>take a random sample of size <span class="math inline">\(n\)</span>;</li>
+<li>construct a 95% confidence interval.</li>
+</ul>
+<p>then about 95% of the confidence intervals we created would contain the population mean. In turn, this also means that 5% of those intervals will not.</p>
+<p>So if we did this 100 times, we would expect about five of our 95% confidence intervals to not contain the true population mean.</p>
+<p>And if we had been constructing 80% confidence intervals instead, we would expect roughly 80 of them to contain the population mean.</p>
+<div class="red">
+<p>When we have constructed a single interval, we do not say that the interval contains the population mean with probability of 95%, as this is wrong.
+We can only say that we are 95% confident it contains the population mean.</p>
+<p>We speak about probability when we refer to a collection of confidence intervals. For example, if we have constructed one hundred 95% confidence intervals, then there is a probability of 0.95 that they (collectively) will contain the population parameter.</p>
+<p>On the contrary, when we refer to just <strong>one</strong> confidence interval, we speak about <strong>confidence</strong>.</p>
+</div>
+</div>
+</div>
+<div id="glossary" class="section level1">
+<h1>Glossary</h1>
+<ul>
+<li><em>Population.</em> The entire collection of units of interest.</li>
+<li><em>Sample.</em> A subset of the entire population.</li>
+<li><em>Parameter.</em> A fixed but typically unknown quantity describing the population.</li>
+<li><em>Statistic.</em> A quantity computed on a sample.</li>
+<li><em>Sampling distribution.</em> The distribution of the values that a statistic takes on different samples of the same size and from the same population.</li>
+<li><em>Standard error.</em> The standard error of a statistic is the standard deviation of the sampling distribution of the statistic.</li>
+<li><em>Confidence interval (CI).</em> A range of plausible values around an estimate (e.g., a sample statistic), taking into account uncertainty in the statistic (e.g., sampling variability)</li>
+<li><em>Confidence level.</em> The percentage of confidence intervals which will contain the true population parameter <strong>in the long run</strong> (i.e., if you sampled the population and constructed confidence intervals many times over). The proportion of all samples whose intervals contain the true parameter.</li>
+</ul>
+</div>
+<div id="exercises" class="section level1">
+<h1>Exercises</h1>
+<div id="a.-hollywood-movies" class="section level2">
+<h2>A. Hollywood Movies</h2>
+<p>The following code chunk reads in a <strong>sample</strong> of the Hollywood movies data we saw last week.</p>
+<pre class="r"><code>hollywood_sample &lt;- read_csv(&quot;https://uoepsy.github.io/data/hollywoodsample1.csv&quot;)</code></pre>
+<p>This week, we are interested in the average Rotten Tomatoes rating for all Hollywood movies between 2007 and 2013.</p>
+<div class="question-begin">
+Question 1
+</div>
+<div class="question-body">
+<p>What is our best estimate of this with the data we just read in?</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-126" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-126&#39;, &#39;sol-start-126&#39;)"> Solution </span>
+</div>
+<div id="sol-body-126" class="solution-body" style="display: none;">
+<p><span class="math inline">\(\bar{x}\)</span>, the mean Rotten Tomatoes rating for our sample.</p>
+<pre class="r"><code>xbar &lt;- mean(hollywood_sample$RottenTomatoes)
+xbar</code></pre>
+<pre><code>## [1] 49.16</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 2
+</div>
+<div class="question-body">
+<p>Estimate the standard error of the sample average rating.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-127" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-127&#39;, &#39;sol-start-127&#39;)"> Solution </span>
+</div>
+<div id="sol-body-127" class="solution-body" style="display: none;">
+<pre class="r"><code>s &lt;- sd(hollywood_sample$RottenTomatoes)
+s</code></pre>
+<pre><code>## [1] 29.66013</code></pre>
+<pre class="r"><code>n &lt;- nrow(hollywood_sample)
+n</code></pre>
+<pre><code>## [1] 25</code></pre>
+<pre class="r"><code>SE &lt;- s / sqrt(n)
+SE</code></pre>
+<pre><code>## [1] 5.932026</code></pre>
+<p>Recall that the standard error is a measure of a typical “estimation error”. That is, a measure of the typical distance between an estimate and the true but unknwon population mean.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 3
+</div>
+<div class="question-body">
+<p>Compute a 95% confidence interval for the average Rotten Tomatoes rating.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-128" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-128&#39;, &#39;sol-start-128&#39;)"> Solution </span>
+</div>
+<div id="sol-body-128" class="solution-body" style="display: none;">
+<pre class="r"><code>qt(c(0.025, 0.975), df = n-1)</code></pre>
+<pre><code>## [1] -2.063899  2.063899</code></pre>
+<pre class="r"><code>ci_lower &lt;- xbar - 2.06 * SE
+ci_lower</code></pre>
+<pre><code>## [1] 36.94003</code></pre>
+<pre class="r"><code>ci_upper &lt;- xbar + 2.06 * SE
+ci_upper</code></pre>
+<pre><code>## [1] 61.37997</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 4
+</div>
+<div class="question-body">
+<p>Write up your findings about the mean Rotten Tomatoes rating for all Hollywood movies between 2007 and 2013.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-129" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-129&#39;, &#39;sol-start-129&#39;)"> Solution </span>
+</div>
+<div id="sol-body-129" class="solution-body" style="display: none;">
+<p>The estimated average Rotten Tomatoes rating for all Hollywood movies produced between 2007 and 2013, based on a sample of 25 movies, is <span class="math inline">\(\bar{x} =\)</span> 49.16, with a standard error of <span class="math inline">\(SE =\)</span> 5.93.</p>
+<p>We are 95% confident that the mean Rotten Tomatoes rating is between 36.94 and 61.38.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 5
+</div>
+<div class="question-body">
+<p>Here is a new sample, but this time it contains 50 movies. Do the same (estimate the mean and construct a confidence interval). How does the confidence interval differ from the one created for a sample of 25?</p>
+<pre class="r"><code>hollywood_sample2 &lt;- read_csv(&quot;https://uoepsy.github.io/data/hollywoodsample2.csv&quot;)</code></pre>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-130" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-130&#39;, &#39;sol-start-130&#39;)"> Solution </span>
+</div>
+<div id="sol-body-130" class="solution-body" style="display: none;">
+<p>Read the sample:</p>
+<pre class="r"><code>hollywood_sample2 &lt;- read_csv(&quot;https://uoepsy.github.io/data/hollywoodsample2.csv&quot;)</code></pre>
+<p>Compute the new estimate (sample mean) this time based on 50 movies:</p>
+<pre class="r"><code>xbar &lt;- mean(hollywood_sample2$RottenTomatoes)
+xbar</code></pre>
+<pre><code>## [1] 47.04</code></pre>
+<p>Compute the standard error:</p>
+<pre class="r"><code>s &lt;- sd(hollywood_sample2$RottenTomatoes)
+n &lt;- nrow(hollywood_sample2)
+SE &lt;- s / sqrt(n)</code></pre>
+<p>Compute the quantiles of the t distribution:</p>
+<pre class="r"><code>qt(c(0.025, 0.975), df = n-1)</code></pre>
+<pre><code>## [1] -2.009575  2.009575</code></pre>
+<p>Compute the confidence interval:</p>
+<pre class="r"><code>ci_l &lt;- xbar - 2.01 * SE
+ci_l</code></pre>
+<pre><code>## [1] 39.61638</code></pre>
+<pre class="r"><code>ci_u &lt;- xbar + 2.01 * SE
+ci_u</code></pre>
+<pre><code>## [1] 54.46362</code></pre>
+<p>The estimated average Rotten Tomatoes rating is <span class="math inline">\(\bar x =\)</span> 47.04, with a SE = 3.69. We are 95% confident that the average Rotten Tomatoes rating is between 39.62 and 54.46.</p>
+<p>This confidence interval is narrower compared to the previously computed one. This is due to the fact that a larger sample size leads to more precise estimates, hence a lower standard error (estimation error), and in turn a narrower confidence interval.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 6
+</div>
+<div class="question-body">
+<p>Construct 90% and 99% confidence intervals around the mean Rotten Tomatoes rating based on the sample of 50 movies.</p>
+<p>Given that for the 99% confidence interval we will have <em>greater</em> confidence that it will contain the true population parameter than the 90% confidence interval, do we expect the range to be bigger or smaller?</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-131" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-131&#39;, &#39;sol-start-131&#39;)"> Solution </span>
+</div>
+<div id="sol-body-131" class="solution-body" style="display: none;">
+<p>We are more confident in wider ranges, so the 99% CI will be wider.</p>
+<p>Example:</p>
+<ul>
+<li>imagine you are trying to guess my age.</li>
+<li>how confident are you that I am between 25 and 35 years old?</li>
+<li>how confident are you that I am between 10 and 50 years old?</li>
+<li>how confident are you that I am between 29 and 31 years old?</li>
+<li>how confident are you that I am between 0 and 1000 years old?</li>
+</ul>
+<pre class="r"><code>qt(c(0.05, 0.95), df = n-1)</code></pre>
+<pre><code>## [1] -1.676551  1.676551</code></pre>
+<pre class="r"><code>xbar - 1.68 * SE</code></pre>
+<pre><code>## [1] 40.83518</code></pre>
+<pre class="r"><code>xbar + 1.68 * SE</code></pre>
+<pre><code>## [1] 53.24482</code></pre>
+<pre class="r"><code>qt(c(0.005, 0.995), df = n-1)</code></pre>
+<pre><code>## [1] -2.679952  2.679952</code></pre>
+<pre class="r"><code>xbar - 2.68 * SE</code></pre>
+<pre><code>## [1] 37.14184</code></pre>
+<pre class="r"><code>xbar + 2.68 * SE</code></pre>
+<pre><code>## [1] 56.93816</code></pre>
+<ul>
+<li>The 90% CI is [40.84, 53.24]<br />
+</li>
+<li>The 99% CI is [37.14, 56.94]</li>
+</ul>
+<p>The 99% is wider than the 90% one as it gives us more “confidence” that the true parameter value lies within.</p>
+</div>
+<p class="solution-end">
+</p>
+</div>
+<div id="b.-nfl-players" class="section level2">
+<h2>B. NFL Players</h2>
+<div class="question-begin">
+Question 7
+</div>
+<div class="question-body">
+<p>Scroll back up - what was the <strong>population</strong> mean yearly salary for all NFL players at the beginning of 2019?</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-132" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-132&#39;, &#39;sol-start-132&#39;)"> Solution </span>
+</div>
+<div id="sol-body-132" class="solution-body" style="display: none;">
+<pre class="r"><code>nfl_pop &lt;- read_csv(&quot;https://uoepsy.github.io/data/NFLContracts2019.csv&quot;)
+mean(nfl_pop$YearlySalary)</code></pre>
+<pre><code>## [1] 3.033404</code></pre>
+<p>3.03 (million dollars!!)</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 8
+</div>
+<div class="question-body">
+<p>A researcher lives in Boston. They want to estimate salaries of NFL players, and in 2019 they go around and ask 50 players about their yearly salaries.<br />
+The code below reads in the sample they collected.</p>
+<pre class="r"><code>nfl_boston &lt;- read_csv(&quot;https://uoepsy.github.io/data/nflboston.csv&quot;)</code></pre>
+<p>Compute the sample mean, and calculate a 95% confidence interval.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-133" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-133&#39;, &#39;sol-start-133&#39;)"> Solution </span>
+</div>
+<div id="sol-body-133" class="solution-body" style="display: none;">
+<pre class="r"><code>xbar &lt;- mean(nfl_boston$YearlySalary)
+s &lt;- sd(nfl_boston$YearlySalary)
+n &lt;- nrow(nfl_boston)
+SE &lt;- s / sqrt(n)
+
+qt(c(0.025, 0.975), df = n-1)</code></pre>
+<pre><code>## [1] -2.009575  2.009575</code></pre>
+<pre class="r"><code>xbar - 2.01 * SE</code></pre>
+<pre><code>## [1] 1.380692</code></pre>
+<pre class="r"><code>xbar + 2.01 * SE</code></pre>
+<pre><code>## [1] 2.893988</code></pre>
+<p>The 95% CI for the average salary is [1.38, 2.89] million dollars.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 9
+</div>
+<div class="question-body">
+<p>This confidence interval does not include the population mean of 3.03. Why not?</p>
+<p><em>Hint:</em> Look at your data, and think about what you know about how it was collected - why might this not be a good sample?</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-134" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-134&#39;, &#39;sol-start-134&#39;)"> Solution </span>
+</div>
+<div id="sol-body-134" class="solution-body" style="display: none;">
+<p>The researcher, living in Boston, seems to have sampled a lot of players from the New England Patriots (a local team).</p>
+<p>The key thing here is that the statistical inference we are making (that the sample mean is an estimate of the population mean) <em>assumes</em> that the sample is an unbiased representation of the population. In this case it is not a truly random sample, but more of a convenience sample, and as such it is not a good “image” of the entire population as some teams are less represented. This method of choosing samples leads to systematic bias due to sampling error, in turn leading us to wrong conclusions about the population mean salary.</p>
+<p>Think of it as wanting to estimate how many hours students study each day, but instead of asking students at random you go and only pick students in the library. Clearly you’ll get systematically higher estimates!</p>
+</div>
+<p class="solution-end">
+</p>
+<!-- Formatting -->
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;">
+
+</div>
+</div>
+</div>
+
+<link rel="stylesheet" href="https://uoepsy.github.io/assets/css/ccfooter.css" />
+<div class="ccfooter"></div>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Connecting confidence intervals and hypothesis testing</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Umberto Noè" />
+    <link href="jk_libs/libs/tile-view/tile-view.css" rel="stylesheet" />
+    <script src="jk_libs/libs/tile-view/tile-view.js"></script>
+    <link href="jk_libs/libs/animate.css/animate.xaringan.css" rel="stylesheet" />
+    <link href="jk_libs/libs/tachyons/tachyons.min.css" rel="stylesheet" />
+    <link href="jk_libs/libs/xaringanExtra-extra-styles/xaringanExtra-extra-styles.css" rel="stylesheet" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+    <link rel="stylesheet" href="jk_libs/tweaks.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# <b>Connecting confidence intervals and hypothesis testing</b>
+## S2W4 - Data Analysis for Psychology in R 1
+### Umberto Noè
+### Department of Psychology<br/>The University of Edinburgh
+### AY 2020-2021
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Learning objectives
+
+- Interpret a confidence interval as the plausible values of a parameter that would not be rejected in a two-sided hypothesis test
+
+- Determine the decision for a two-sided hypothesis test from an appropriately constructed confidence interval
+
+- Be able to explain the potential problem with significant results when doing multiple tests
+
+
+
+---
+class: inverse, center, middle
+
+# Part A
+## Research question and data
+
+
+---
+
+# Research question and data
+
+&gt; Do mean hours of exercise per week differ between left-handed and right-handed students?
+
+&lt;br&gt;
+
+The data we will be using contain measurements on the following 7 variables for a random sample of 50 students:
+
+- `year`: Year in school
+- `hand`: Left (l) or right (r) handed?
+- `exercise`: Hours of exercise per week
+- `tv`: Hours of TV viewing per week
+- `pulse`: Resting pulse rate (beats per minute)
+- `pierces`: Number of body piercings
+
+&lt;br&gt;
+
+Downloadable here: https://uoepsy.github.io/data/ExerciseHours.csv
+
+
+---
+
+# Hypotheses
+
+First, the parameters of interest are:
+
+- `\(\mu_R\)` = mean exercise hours per week for all right-handed students
+- `\(\mu_L\)` = mean exercise hours per week for all left-handed students
+
+--
+
+These are estimated with the corresponding statistics in the sample:
+
+- `\(\bar x_R\)` = mean exercise hours per week for the right-handed students in the sample
+- `\(\bar x_L\)` = mean exercise hours per week for the left-handed students in the sample
+
+--
+
+.pull-left[
+Hypotheses:
+
+`$$H_0: \mu_R = \mu_L$$`
+`$$H_1: \mu_R \neq \mu_L$$`
+]
+
+.pull-right[
+Equivalently:
+`$$H_0: \mu_R - \mu_L = 0$$`
+`$$H_1: \mu_R - \mu_L \neq 0$$`
+]
+
+
+---
+
+# Data
+
+.pull-left[
+
+The entire data:
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:center;"&gt; year &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; hand &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; exercise &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; tv &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; pulse &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; pierces &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; l &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 57 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; l &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 20 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 70 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; r &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 70 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; l &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 10 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 66 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; r &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 62 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; r &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 62 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+.pull-right[
+The research question only focuses on `hand` and `exercise`:
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:center;"&gt; hand &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; exercise &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; l &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 15 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; l &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 20 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; r &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; l &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 10 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; r &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 8 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; r &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 14 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+
+
+---
+
+# Distribution of Exercise Hours
+
+&lt;img src="dapR1_lec14_htci_files/figure-html/unnamed-chunk-3-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+# Descriptive statistics
+
+Display for the left and right handed students in the sample the average hours of exercise per week and standard deviation:
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:center;"&gt; hand &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; count &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; avg_exercise &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; sd_exercise &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; l &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 9.111 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 6.827 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; r &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 41 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 10.927 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 8.326 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+
+--
+
+Recall we are interested in testing a claim about the (unknown) population difference in means
+`$$\mu_R - \mu_L$$`
+
+--
+
+We estimate it with the sample difference in means
+
+`$$\bar x_R - \bar x_L = 1.816 \text{ hrs} \qquad = D_{obs} \text{ in short}$$`
+
+
+
+
+---
+class: inverse, center, middle
+
+# Part B
+## Connecting bootstrap and null distributions
+
+
+
+---
+
+# Confidence intervals
+
+- **Goal: providing a range of plausible values for a population parameter.**
+
+--
+
+- Instead of giving a single estimate `\((\bar x_R - \bar x_L = 1.816)\)` for the population parameter, we might want to give a range of plausible values, e.g. a 95% confidence interval.
+
+--
+
+- Sample with replacement from the original sample to create a _bootstrap distribution_ of possible values of the sample statistic
+
+--
+
+- Use the bootstrap distribution to provide a range of plausible values for the population parameter
+
+--
+
+- Construct the interval of plausible values in a way that gives a fairly high confidence in the fact that the provided range of values will contain the actual value of the parameter
+
+
+---
+
+# Confidence intervals
+
+For a 95% confidence interval:
+
+- **Method 1**: `\(\text{Statistic} \pm 1.96 \cdot SE\)`
+
+--
+
+- **Method 2**: From the 2.5th to the 97.5th percentiles
+
+--
+
+- Use the bootstrap distribution!
+
+
+
+---
+
+# Bootstrap distribution
+
+
+
+
+.pull-left[
+&lt;img src="dapR1_lec14_htci_files/figure-html/unnamed-chunk-7-1.png" width="100%" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+**Method 1:**
+`$$\text{Statistic} \pm 1.96 \cdot SE$$`
+`$$1.816 \pm 1.96 \cdot 2.545$$`
+
+We are 95% confident that the mean difference in exercise hours per week between right and left-handed students is between -3.172 and 6.804 hrs.
+
+]
+
+---
+
+# Bootstrap distribution
+
+.pull-left[
+&lt;img src="dapR1_lec14_htci_files/figure-html/unnamed-chunk-8-1.png" width="100%" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+**Method 2:**
+
+
+```r
+quantile(boot_dist$diff, 
+         probs = c(0.025, 0.975))
+```
+
+```
+##   2.5%  97.5% 
+## -2.977  7.041
+```
+
+We are 95% confident that the mean difference in exercise hours per week between right and left-handed students is between -2.977 hours and 7.041 hrs.
+
+]
+---
+
+# Hypothesis testing
+
+- **Goal: Testing a claim about a population.**
+
+--
+
+1. Specify null and alternative hypotheses
+
+2. Assess the evidence the sample brings against `\(H_0\)` by constructing a null distribution of possible sample statistics that we might see by sampling variation, if the null hypothesis were true. 
+
+3. Check where the observed statistic for the original sample is located on the null distribution.
+
+4. Formally quantify the evidence against `\(H_0\)` either using p-value or critical values.
+
+--
+
+- If the original sample statistic falls in an unlikely location of the null distribution, we have evidence to reject the null hypothesis in favour of the alternative.
+
+
+---
+
+# Null distribution
+
+
+
+
+.pull-left[
+&lt;img src="dapR1_lec14_htci_files/figure-html/unnamed-chunk-11-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+- Centre = value in the null hypothesis
+
+  Shown as blue vertical line in the plot
+
+
+- In our case
+`$$H_0 : \mu_R - \mu_L = 0$$`
+]
+
+
+---
+
+# Bootstrap vs Null distribution: Similarities
+
+- Both bootstrap and null distributions use resampling or randomization to simulate many samples and then compute the value of a sample statistic for each of those samples to form a distribution.
+
+- In both cases we are generally concerned with distinguishing between "typical" values in the middle of a distribution and "unusual" values in one or both tails. 
+
+--
+
+- A bootstrap distribution is an approximation to the distribution of sample statistics for samples from a specific population. Unlike the sampling distribution, the bootstrap distribution is generally centred at the value of the original sample statistic.
+
+- A null distribution shows the distribution of sample statistics for a population in which the null hypothesis is true, and is generally centred at the value specified in the null hypothesis.
+
+
+---
+
+# Similarities
+
+- We said that a confidence interval reports the plausible values of the population parameter.
+
+--
+
+- We use a hypothesis test to determine whether a hypothesised value for the parameter (in the null hypothesis) is plausible or not.
+
+--
+
+- Idea: we could use a confidence interval to make a decision in a hypothesis test, and we would use a hypothesis test to determine whether a given value will be inside a confidence interval.
+
+---
+
+# Similarities
+
+
+
+
+.pull-left[
+&lt;img src="dapR1_lec14_htci_files/figure-html/unnamed-chunk-13-1.png" width="100%" style="display: block; margin: auto;" /&gt;
+]
+
+
+.pull-right[
+The decision in a two-sided hypothesis test is related to whether or not the value of the parameter in the null hypothesis falls within a confidence interval:
+
+- When the null value falls inside of a 95% confidence interval, the null value is a plausible value for the parameter and we should not reject `\(H_0\)` at the 5% significance level in a two-sided test.
+
+&lt;!-- - When the null value falls outside the 5% confidence interval, the null value is not a plausible value for the parameter and we should reject `\(H_0\)` at the 5% significance level in a two-sided test. --&gt;
+]
+
+
+
+---
+
+# Similarities (continued)
+
+.pull-left[
+&lt;img src="dapR1_lec14_htci_files/figure-html/unnamed-chunk-14-1.png" width="100%" style="display: block; margin: auto;" /&gt;
+]
+
+
+.pull-right[
+The decision in a two-sided hypothesis test is related to whether or not the value of the parameter in the null hypothesis falls within a confidence interval:
+
+&lt;!-- - When the null value falls inside of a 95% confidence interval, the null value is a plausible value for the parameter and we should not reject `\(H_0\)` at the 5% significance level in a two-sided test. --&gt;
+
+- When the null value falls outside the 95% confidence interval, the null value is not a plausible value for the parameter and we should reject `\(H_0\)` at the 5% significance level in a two-sided test.
+]
+
+
+---
+
+# Why both then?
+
+- If we can reach to the same conclusion either via a CI or an hypothesis test, why not just using one rather than the other?
+
+--
+
+- The answer is that both provide useful information.
+
+--
+
+- If you just perform a test of hypothesis, you have the important information about the _strength of evidence_, but you do not have an indication of the magnitude of the "effect".
+
+--
+
+- If you just compute a CI, you would be able to make a reject / not reject decision but you would loose the strength of evidence.
+
+--
+
+- **Good practice:** when you find a significant effect, i.e. you reject the null hypothesis, always follow-up with a confidence interval to report on the magnitude of that effect.
+
+
+---
+class: inverse, center, middle
+
+# Part C
+## Creating null distributions
+
+
+---
+
+# Creating null distributions
+
+Key principles:
+
+1. Be consistent with the null hypothesis
+
+--
+
+2. Use the data in the original sample
+
+--
+
+3. Try to mimic the way in which the original data were collected
+
+
+&lt;br&gt;
+
+Fundamental idea:
+
+&lt;center&gt;&lt;strong&gt;
+The population is to the sample &lt;br&gt;
+as &lt;br&gt;
+the sample is to the bootstrap samples.
+&lt;/strong&gt;&lt;/center&gt;
+
+
+---
+
+# Testing `\(\mu\)`
+
+.pull-left[
+**How the data were collected**
+
+Sample `\(n\)` units from a population, record the values of a variable of interest on those sampled units.
+
+**Hypotheses**
+`$$H_0 : \mu = 0 \\H_1 : \mu \neq 0$$`
+]
+
+.pull-right[
+**How to generate the null distribution**
+
+Shift the original sample data to have a mean equal to the value specified in the null hypothesis.
+
+Then, do the following many times:
+
+- Sample with replacement from these shifted values using the same sample size as the original sample. 
+- Compute the mean `\(\bar x\)` of this resample.
+
+Use `rep_sample_n()`
+]
+
+
+---
+
+# Testing `\(\mu_1 - \mu_2\)` (Randomized experiment)
+
+.pull-left[
+**How the data were collected**
+
+Sample `\(n\)` units from a population. Randomly assign each unit to either treatment A or treatment B. Record the outcome interest for each unit.
+
+**Hypotheses**
+`$$H_0 : \mu_1 = \mu_2 \\H_1 : \mu_1 \neq \mu_2$$`
+or 
+`$$H_0 : \mu_1 - \mu_2 = 0\\H_1 : \mu_1 - \mu_2 \neq 0$$`
+]
+
+.pull-right[
+
+**How to generate the null distribution**
+
+Do the following many times:
+
+- Take the original sample. Keeping the outcome variable the same, randomize the treatment allocation of each unit. In other words, deal all the outcome values randomly to the two treatments, matching the two sample sizes in the original sample.
+  
+- Compute the difference in sample means `\(\bar x_A - \bar x_B\)`.
+
+Use `rep_randomize()`
+
+]
+
+
+---
+
+# Testing `\(\mu_1 - \mu_2\)` (Observational study)
+
+.pull-left[
+**How the data were collected**
+
+Sample `\(n_A\)` units from population `\(A\)`, and sample `\(n_B\)` units from population B. Record some outcome variable of interest.
+
+**Hypotheses**
+`$$H_0 : \mu_1 = \mu_2 \\H_1 : \mu_1 \neq \mu_2$$`
+or 
+`$$H_0 : \mu_1 - \mu_2 = 0\\H_1 : \mu_1 - \mu_2 \neq 0$$`
+]
+
+.pull-right[
+**How to generate the null distribution**
+
+Shift the values in sample `\(A\)` to have the same mean as sample `\(B\)`. 
+
+Then, do the following many times:
+
+- Sample with replacement `\(n_A\)` units from sample `\(A\)`. Compute the sample mean `\(\bar x_A\)`.
+- Sample with replacement `\(n_B\)` units from sample `\(B\)`. Compute the sample mean `\(\bar x_B\)`.
+- Compute the difference in sample means `\(\bar x_A - \bar x_B\)`.
+
+Use `rep_sample_n()`
+]
+
+
+---
+class: inverse, center, middle
+
+# Part D
+## The problem of multiple testing
+
+
+---
+
+# Confidence intervals
+
+- A 95% CI will capture the true parameter 95% of the time.
+
+--
+
+- This also means that 5% of the intervals will miss the true parameter.
+
+--
+
+**Example:**
+
+- On day 1, you collect data and construct a 95% CI for a parameter.
+
+--
+
+- On day 2, you collect new data and construct a 95% CI for an unrelated parameter.
+
+--
+
+- On day 3, you collect new data and construct a 95% CI for an unrelated parameter.
+
+--
+
+- You continue this way constructing confidence intervals for a sequence of unrelated parameter.
+
+--
+
+**Then 95% of your intervals will capture the true parameter value.**
+
+
+---
+
+# Hypothesis tests
+
+- On day 1, using `\(\alpha = 0.05\)`, you collect data and perform a hypothesis test for a parameter, when in fact the null is true in the population.
+
+- On day 2, using `\(\alpha = 0.05\)`, you collect new data and perform a hypothesis test for an unrelated parameter, when in fact the null is true in the population.
+
+- On day 3, using `\(\alpha = 0.05\)`, you collect new data and perform a hypothesis test for an unrelated parameter, when in fact the null is true in the population.
+
+- You continue this way performing hypothesis tests for a sequence of unrelated parameters.
+
+__Then 5% of your tests will reject the null hypothesis when in reality it was true.__
+
+--
+
+If the null hypotheses are all true, a proportion `\(\alpha\)` of the tests will yield statistically significant results just by sampling variation.
+
+---
+
+# Hypothesis tests
+
+- If you were to conduct many hypothesis tests for a _true_ null hypothesis `\(H_0\)` using a significance level `\(\alpha = 0.05\)`, then 5% of the tests will lead to rejecting the null hypothesis.
+
+--
+
+- If you do 100 hypothesis tests all testing for an effect that really doesn't exist, about 5% of them will incorrectly reject the null.
+
+--
+
+- When we perform multiple hypothesis tests, the chance that **at least one** test incorrectly rejects a true null hypothesis increases with the number of tests.
+
+---
+
+# Hypothesis tests
+
+`$$\begin{aligned}P(\text{at least one test inc. rej.}) &amp;= 1 - P(\text{no test inc. rej.}) \\
+&amp;= 1 - \big[P(\text{no inc. rej.}) * \dots * P(\text{no inc. rej.}) \big] \\
+&amp;= 1 - \big[P(\text{no inc. rej.})\big]^{\text{num. tests}} \\
+&amp;= 1 - \big[1 - P(\text{inc. rej.})\big]^{\text{num. tests}} \\
+&amp;= 1 - (1 - \alpha)^{\text{num. tests}}
+\end{aligned}$$`
+
+--
+
+What does that mean?
+
+$$
+`\begin{matrix}
+1 - (1 - 0.05)^2 = 0.0975    &amp; \qquad &amp; 1 - (1 - 0.05)^5 = 0.2262 \\
+1 - (1 - 0.05)^{10} = 0.4013 &amp; \qquad &amp; 1 - (1 - 0.05)^{100} = 0.9941 \\
+\end{matrix}`
+$$
+--
+
+
+
+
+---
+
+# An example
+
+&gt; Is it really true that opening an umbrella indoors is bad luck? 
+
+--
+
+- Imagine that researchers all over the world decided to formally test this conjecture, each randomly assigning participants to either open an umbrella indoors or open an umbrella outdoors. Then, the researchers followed up the participants for a specified period in order to obtain some measure of "luck".
+
+--
+
+- Using a 5% significance level, if there are 100 researchers all testing this same hypothesis, and if opening an umbrella indoors really _does not_ bring bad luck, then about 5% of the hypothesis tests will get p-values less than 0.05 just due to variability of random samples.
+
+--
+
+- In other words, about 5 researchers out of 100 all studying the same non-existing phenomenon, will find a significant result.
+
+
+---
+
+# The problem of multiple testing
+
+- When multiple hypothesis tests are conducted, the chance that _at least one_ test incorrectly rejects a true null hypothesis increases with the number of tests.
+
+--
+
+- If the null hypotheses are all true, `\(\alpha\)` of the tests will yield statistically significant results just by sampling variability (and not because of a true effect).
+
+
+---
+
+# Publication bias
+
+- The problem of multiple testing is made even worse by the fact that usually only significant results are published.
+
+--
+
+- This issue is known as **publication bias**.
+
+&gt; **Publication bias**. Usually only significant results are published, while no one knows of all the studies which were performed but produced not significant results. 
+
+---
+
+
+# Publication bias
+
+- Consider again the umbrella example. If the five statistically significant studies are all published, and we do not know about the 95 not significant studies, we might take this as convincing evidence that opening an umbrella indoors really does cause bad luck.
+
+--
+
+- Unfortunately this is a very real problem with scientific research: often, only significant results are published.
+
+--
+
+- If many tests are conducted, some of them will be significant just by chance, and it may be only these studies that we hear about.
+
+--
+
+- The problem of multiple testing can also occur when one researcher is testing multiple hypotheses on the same data.
+
+
+
+---
+
+# Final remarks
+
+- There are many ways of dealing with the problem of multiple testing, but those methods will be discussed in the second-year course DAPR2. 
+
+--
+
+- The most important thing is to be aware of the problem, and to realise that when doing multiple hypothesis tests, some are likely to be significant just by random chance.
+
+
+---
+
+class: inverse, center, middle, animated, rotateInDownLeft
+
+# End
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="jk_libs/macros.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

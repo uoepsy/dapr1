@@ -1,0 +1,1834 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Sampling distributions</title>
+
+<script src="site_libs/header-attrs-2.8/header-attrs.js"></script>
+<script src="site_libs/jquery-3.5.1/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/htmlwidgets-1.5.3/htmlwidgets.js"></script>
+<link href="site_libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
+<script src="site_libs/datatables-binding-0.18/datatables.js"></script>
+<link href="site_libs/dt-core-1.10.20/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="site_libs/dt-core-1.10.20/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="site_libs/dt-core-1.10.20/js/jquery.dataTables.min.js"></script>
+<link href="site_libs/crosstalk-1.1.1/css/crosstalk.css" rel="stylesheet" />
+<script src="site_libs/crosstalk-1.1.1/js/crosstalk.min.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+<script>
+function toggle_visibility(id1, id2) {
+var e = document.getElementById(id1);
+var f = document.getElementById(id2);
+e.style.display = ((e.style.display!='none') ? 'none' : 'block');
+if(f.classList.contains('fa-plus')) {
+    f.classList.add('fa-minus')
+    f.classList.remove('fa-plus')
+} else {
+    f.classList.add('fa-plus')
+    f.classList.remove('fa-minus')
+}
+}
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+<link rel="stylesheet" href="assets/style-labs.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"><strong>DAPR1</strong></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">
+    <span class="fas fa-home"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="intro_r_rstudio_year1.html">DAPR1 starts here</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Intro to data and R
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="01_data_types.html">1/1: Collecting data</a>
+    </li>
+    <li>
+      <a href="02_categorical.html">1/2: Categorical data</a>
+    </li>
+    <li>
+      <a href="03_numerical.html">1/3: Numerical data</a>
+    </li>
+    <li>
+      <a href="04_relationships.html">1/4: Relationships</a>
+    </li>
+    <li>
+      <a href="05_functions.html">1/5: Types of relations</a>
+    </li>
+    <li class="dropdown-header">1/6: Break week!</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Probability &amp; sampling
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="07_probability_basics.html">1/7: Probability basics</a>
+    </li>
+    <li>
+      <a href="08_probability_rules.html">1/8: Probability rules!</a>
+    </li>
+    <li>
+      <a href="09_discrete_distributions.html">1/9: Discrete random variables</a>
+    </li>
+    <li>
+      <a href="10_continuous_distributions.html">1/10: Continuous random variables</a>
+    </li>
+    <li>
+      <a href="11_sampling_distributions.html">1/11: Sampling distributions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Hypothesis testing
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="12_bootstrap_cis.html">2/1: Bootstrap &amp; CIs</a>
+    </li>
+    <li>
+      <a href="13_hypothesis_testing.html">2/2: Hypothesis testing: p-values</a>
+    </li>
+    <li>
+      <a href="14_critical_values.html">2/3: Hypothesis testing: critical values</a>
+    </li>
+    <li>
+      <a href="15_connecting_ci_ht.html">2/4: Hypothesis testing &amp; CIs</a>
+    </li>
+    <li>
+      <a href="16_ht_errors.html">2/5: Making decisions</a>
+    </li>
+    <li class="dropdown-header">2/6: Break week</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Basic tests
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="17_one_sample_mean.html">2/7: Test for one mean</a>
+    </li>
+    <li>
+      <a href="18_two_sample_means.html">2/8: Test for two means</a>
+    </li>
+    <li>
+      <a href="19_paired_t_test.html">2/9: Test for paired samples</a>
+    </li>
+    <li>
+      <a href="20_chi_square.html">2/10: Chi-square</a>
+    </li>
+    <li>
+      <a href="21_covcor.html">2/11: Covariance and correlation</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Sampling distributions</h1>
+
+</div>
+
+
+<div class="lo">
+<p><strong>LEARNING OBJECTIVES</strong></p>
+<ol style="list-style-type: decimal">
+<li>Recognise the difference between parameters and statistics</li>
+<li>Be able to use a sample statistic to estimate an unknown parameter</li>
+<li>Understand what a sampling distribution is</li>
+<li>Understand the concept of standard error</li>
+<li>Recognise why sample size matters</li>
+</ol>
+</div>
+<div id="parameters-and-statistics" class="section level1">
+<h1>Parameters and statistics</h1>
+<p>We can think of random or unpredictable data as arising in two ways. The first one involves <em>sampling from a finite population</em> and measuring characteristics of the individuals chosen in the sample. An example of this are surveys and polls.
+The second approach involves a <em>random process</em> producing observations. An example of this is a production line for which we measure some characteristic of each produced item. Here, the underlying population is conceptual rather than real, and is the one that would be produced if the process was repeated a large number of times.</p>
+<p>Both ways lead to a random observation possessing a distribution describing how the observation will vary.
+Numerical summaries of that distribution are called <em>parameters</em>. Examples are the mean <span class="math inline">\(\mu = E(X)\)</span> of the distribution, the standard deviation <span class="math inline">\(\sigma = SD(X)\)</span>, or a population proportion <span class="math inline">\(p\)</span>.</p>
+<p>If we are sampling the population of Scotland, we might be interested in <span class="math inline">\(\mu\)</span>, the mean self-reported happiness level, or <span class="math inline">\(p\)</span>, the proportion of vaccinated people.</p>
+<div class="yellow">
+<p><strong>Parameters</strong></p>
+<p>A <em><strong>parameter</strong></em> is a numerical summary of a <em><strong>population</strong></em> or <em><strong>distribution</strong></em>, for example the average income in the whole population.</p>
+</div>
+<p>In practice, we know very little about the population we are sampling from (or the random process generating our data) and we collect data to find out more about these populations.
+Therefore the parameters of interest are <em>unknown</em> quantities that we want to estimate.</p>
+<p>Consider again the population proportion of vaccinated people, <span class="math inline">\(p\)</span>. If this is the quantity we are interested in, the obvious approach would be to take a sample from that population and use the proportion vaccinated in the sample, <span class="math inline">\(\hat{p}\)</span>, as an <em>estimate</em> of <span class="math inline">\(p\)</span>.</p>
+<p>To estimate the fault proportion <span class="math inline">\(p\)</span> in a light bulb production line, we can take some of the light bulb produced (i.e. a sample) and use the proportion of faulty light bulbs in the sample <span class="math inline">\(\hat p\)</span> as an estimate of the underlying proportion of faulty light bulbs <span class="math inline">\(p\)</span> for the production process.</p>
+<div class="yellow">
+<p><strong>Statistic</strong></p>
+<p>A <em><strong>statistic</strong></em> is a numerical summary of the <em><strong>sample</strong></em>.</p>
+<p>A (sample) statistic is often used to estimate a (population) parameter.</p>
+</div>
+<p>From the above discussion, you can see that the population parameter and the sample statistic generally have the same name.
+However, these are often written with different symbols to convey with just one letter:</p>
+<ol style="list-style-type: decimal">
+<li>what <em>summary</em> they represent;</li>
+<li>if it is a <em>population</em> quantity or a quantity <em>computed on a sample</em>.</li>
+</ol>
+<p>The following table summarizes standard notation for some population parameters, typically unknown, and the corresponding estimates computed on a sample.</p>
+<table>
+<caption>Notation for common parameters and statistics.</caption>
+<thead>
+<tr class="header">
+<th align="left">Numerical summary</th>
+<th align="center">Population parameter</th>
+<th align="center">Sample statistic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Mean</td>
+<td align="center"><span class="math inline">\(\mu\)</span></td>
+<td align="center"><span class="math inline">\(\bar{x}\)</span> or <span class="math inline">\(\hat{\mu}\)</span></td>
+</tr>
+<tr class="even">
+<td align="left">Standard deviation</td>
+<td align="center"><span class="math inline">\(\sigma\)</span></td>
+<td align="center"><span class="math inline">\(s\)</span> or <span class="math inline">\(\hat{\sigma}\)</span></td>
+</tr>
+<tr class="odd">
+<td align="left">Proportion</td>
+<td align="center"><span class="math inline">\(p\)</span></td>
+<td align="center"><span class="math inline">\(\hat{p}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>The Greek letter <span class="math inline">\(\mu\)</span> (mu) represents the population mean (parameter), while <span class="math inline">\(\bar{x}\)</span> (x-bar) or <span class="math inline">\(\hat{\mu}\)</span> (mu-hat) is the mean computed from the sample data (sample statistic).</p>
+<p>The Greek letter <span class="math inline">\(\sigma\)</span> (sigma) represents the population standard deviation (parameter), while <span class="math inline">\(s\)</span> or <span class="math inline">\(\hat{\sigma}\)</span> (sigma-hat) is the standard deviation computed from the sample data (sample statistic).</p>
+<p>The Getter <span class="math inline">\(p\)</span> represents the population proportion (parameter), while <span class="math inline">\(\hat{p}\)</span> (p-hat) is the proportion computed from the sample data (sample statistic).</p>
+<p><br></p>
+<p>The process of sampling <span class="math inline">\(n\)</span> people from the population is a <em>random process</em>. An <em>outcome</em> of this random process is <em>a sample</em> of size <span class="math inline">\(n\)</span>. For each sample, we can calculate a statistic (e.g., the mean <span class="math inline">\(\bar x\)</span>).
+Hence, a statistic is a numerical summary of a random experiment and for this reason it is a random variable, e.g. the mean denoted <span class="math inline">\(\bar X\)</span>.</p>
+<p>Throughout the exercises we will use the following notation:</p>
+<ul>
+<li><p>Uppercase letters refer to random variables</p></li>
+<li><p>Lowercase letters refer to observed values</p></li>
+</ul>
+<p><br></p>
+<p><img src="images/prob/sampling_cloud.png" width="95%" style="display: block; margin: auto;" /></p>
+<p><br></p>
+<p>We use uppercase letters when we want to study the effects of sampling variation on a statistic, while we use lowercase letters for observed values.</p>
+<div class="frame">
+<p><strong>TERMINOLOGY</strong></p>
+<p>Statisticians often refer to the observed number in the sample as the <em><strong>estimate</strong></em> (<span class="math inline">\(\bar x\)</span>).
+This is just another way of saying a statistic which used to estimate a population parameter.</p>
+<p>They also sometimes call <em><strong>estimator</strong></em> the random variable (<span class="math inline">\(\bar X\)</span>) which the observed number is a realisation of.</p>
+</div>
+</div>
+<div id="avoiding-sampling-bias" class="section level1">
+<h1>Avoiding sampling bias</h1>
+<p>Sampling bias occurs when the method used to select which units enter the sample causes the sample to not be a good representation of the population.</p>
+<p>If sampling bias exists, we cannot generalise our sample conclusions to the population.</p>
+<p><img src="images/prob/sampling_bias.png" width="95%" style="display: block; margin: auto;" /></p>
+<p>To be able to draw conclusions about the population, we need a representative sample. The key in choosing a representative sample is <em>random sampling</em>.
+Imagine an urn with tickets, where each ticket has the name of each population unit. Random sampling would involve mixing the urn and blindly drawing out some tickets from the urn.
+Random sampling is a strategy to avoid sampling bias.</p>
+<div class="yellow">
+<p><strong>Simple random sampling</strong></p>
+<p>When we select the units entering the sample via simple random sampling, each unit in the population has an equal chance of being selected, meaning that we avoid sampling bias.</p>
+<p>When instead some units have a higher chance of entering the same, we have misrepresentation of the population and sampling bias.</p>
+</div>
+<p>In general, we have <em>bias</em> when the method of collecting data causes the data to inaccurately reflect the population.</p>
+</div>
+<div id="sampling-distribution" class="section level1">
+<h1>Sampling distribution</h1>
+<p>The natural gestation period (in days) for human births is normally distributed in the population with mean 266 days and standard deviation 16 days.
+This is a special case which <em><strong>rarely</strong></em> happens in practice: we actually know what the distribution looks like in the population.</p>
+<p>We will use this unlikely example to study how well does the sample mean estimate the population mean and, to do so, we need to know what the population mean is so that we can compare the estimate and the true value.
+Remember, however, that in practice the population parameter would <em>not</em> be known.</p>
+<p>We will consider data about the gestation period of the 49,863 women who gave birth in Scotland in 2019. These can be found at the following address: <a href="https://uoepsy.github.io/data/pregnancies.csv" class="uri">https://uoepsy.github.io/data/pregnancies.csv</a></p>
+<p>First, we read the population data:</p>
+<pre class="r"><code>library(tidyverse)
+gest &lt;- read_csv(&#39;https://uoepsy.github.io/data/pregnancies.csv&#39;)
+dim(gest)</code></pre>
+<pre><code>## [1] 49863     2</code></pre>
+<p>The data set contains information about 49,863 cases. For each case an identifier and the length of pregnancy
+Look at the top six rows of the data set (the “head”):</p>
+<pre class="r"><code>head(gest)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##      id gest_period
+##   &lt;dbl&gt;       &lt;dbl&gt;
+## 1     1        256.
+## 2     2        269.
+## 3     3        253.
+## 4     4        292.
+## 5     5        271.
+## 6     6        253.</code></pre>
+<p>Let’s load a function which we prepared for you called <code>rep_sample_n()</code>. This function is used to repeatedly sample <span class="math inline">\(n\)</span> units from the population.
+To get the function in your computer, run this code:</p>
+<pre class="r"><code>source(&#39;https://uoepsy.github.io/files/rep_sample_n.R&#39;)</code></pre>
+<div class="red">
+<p><strong>NOTE</strong></p>
+<p>You need to copy and paste the line</p>
+<pre class="r"><code>source(&#39;https://uoepsy.github.io/files/rep_sample_n.R&#39;)</code></pre>
+<p>into each file where you want to use the <code>rep_sample_n()</code> function.</p>
+</div>
+<p>The function takes the following arguments:</p>
+<pre><code>rep_sample_n(data, n = &lt;sample size&gt;, samples = &lt;how many samples&gt;)</code></pre>
+<ul>
+<li><p><code>data</code> is the population</p></li>
+<li><p><code>n</code> is the sample size</p></li>
+<li><p><code>samples</code> is how many samples of size <span class="math inline">\(n\)</span> you want to take</p></li>
+</ul>
+<p>Before doing anything involving random sampling, it is good practice to <em>set the random seed</em>. This is to ensure reproducibility of the results.
+Random number generation in R works by specifying a starting seed, and then numbers are generated starting from there.</p>
+<p>Set the random seed to any number you wish. Depending on the number, you will get the same results as me or not:</p>
+<pre class="r"><code>set.seed(1234)</code></pre>
+<p>Obtain 12 samples of <span class="math inline">\(n = 6\)</span> individuals each:</p>
+<pre class="r"><code>samples &lt;- rep_sample_n(gest, n = 6, samples = 12)
+samples</code></pre>
+<pre><code>## # A tibble: 72 x 3
+##    sample    id gest_period
+##     &lt;dbl&gt; &lt;dbl&gt;       &lt;dbl&gt;
+##  1      1 40784        255.
+##  2      1 40854        275.
+##  3      1 41964        281.
+##  4      1 15241        246.
+##  5      1 33702        247.
+##  6      1 35716        267.
+##  7      2 17487        289.
+##  8      2 15220        266.
+##  9      2 19838        238.
+## 10      2  2622        281.
+## # … with 62 more rows</code></pre>
+<p>The <code>samples</code> data frame contains 3 columns:</p>
+<ul>
+<li><p><code>sample</code>, telling us which sample each row refers to</p></li>
+<li><p><code>id</code>, telling us the units chosen to enter each sample</p></li>
+<li><p><code>gest_period</code>, telling us the gestation period (in days) of each individual</p></li>
+</ul>
+<p>Note that the tibble <code>samples</code> has 72 rows, which is given by 6 individuals in each sample * 12 samples.</p>
+<p>You can inspect the sample data in the following interactive table in which the data corresponding to each sample have been colour-coded so that you can distinguish the rows belonging to the 1st, 2nd, …, and 12th sample:</p>
+<div id="htmlwidget-7ae762198f15d61b6164" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-7ae762198f15d61b6164">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64","65","66","67","68","69","70","71","72"],[1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,5,5,5,5,5,5,6,6,6,6,6,6,7,7,7,7,7,7,8,8,8,8,8,8,9,9,9,9,9,9,10,10,10,10,10,10,11,11,11,11,11,11,12,12,12,12,12,12],[40784,40854,41964,15241,33702,35716,17487,15220,19838,2622,3000,17380,33247,49786,16962,42363,40752,32899,31785,20296,33066,33026,49231,2744,902,46301,33329,37000,34026,4591,43811,30928,35670,20374,8626,33528,1751,48636,37033,13383,21344,8518,2533,6604,7984,18295,18577,32982,20870,41557,27725,30658,39174,31548,41123,37092,37802,14982,36381,37741,14736,41766,4766,21318,38291,27983,49750,36759,19859,22599,4987,1456],[255.153085252038,275.340729720981,281.036203748952,245.62385576783,247.496680501002,267.031830435437,288.744640238034,265.564882965301,238.002324855493,280.560853872206,248.755583400573,252.185543726757,253.196263724348,302.572749950496,307.785526650603,285.936541708776,246.754769023714,243.998649436333,276.002085331303,292.374750428775,274.76426682767,256.248424771192,248.073610602472,256.853279783922,269.10913711842,276.775382699866,257.418653718793,306.874512871316,272.088024518917,241.599534736757,220.987628521796,256.541188695094,267.080743845576,274.729831113703,243.067224820706,255.952362140209,270.050204951343,252.853839443475,254.782490550069,278.363731740817,252.516339333937,254.536205816732,267.323178312093,245.420307320196,268.177931035463,267.026341983367,259.058785262545,255.908621929382,304.536436777512,248.690399051235,287.179871725505,268.35436161296,253.449653223947,251.815221319254,284.797013819183,291.144388465227,246.262459841429,304.118061795311,263.1519381918,273.143396501006,290.735913700411,279.603320881268,262.944728947003,271.108611301643,258.593067891901,255.353288475912,275.110423876565,245.361722611991,240.040628937914,272.898633734798,272.515747296331,257.435892806278]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>sample<\/th>\n      <th>id<\/th>\n      <th>gest_period<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"autoWidth":true,"pageLength":12,"columnDefs":[{"targets":3,"render":"function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatSignif(data, 5, 3, \",\", \".\");\n  }"},{"className":"dt-center","targets":[1,2,3]},{"orderable":false,"targets":0}],"order":[],"orderClasses":false,"lengthMenu":[10,12,25,50,100],"rowCallback":"function(row, data, displayNum, displayIndex, dataIndex) {\nvar value=data[1]; $(this.api().cell(row, 1).node()).css({'background-color':value == 1 ? \"#8dd3c7\" : value == 2 ? \"#ffffb3\" : value == 3 ? \"#bebada\" : value == 4 ? \"#fb8072\" : value == 5 ? \"#80b1d3\" : value == 6 ? \"#fdb462\" : value == 7 ? \"#b3de69\" : value == 8 ? \"#fccde5\" : value == 9 ? \"#d9d9d9\" : value == 10 ? \"#bc80bd\" : value == 11 ? \"#ccebc5\" : value == 12 ? \"#ffed6f\" : null});\n}"}},"evals":["options.columnDefs.0.render","options.rowCallback"],"jsHooks":[]}</script>
+<p>Now, imagine computing the mean of the six observation in each sample. This will lead to 12 means, one for each of the 12 samples (of 6 individuals each).</p>
+<pre class="r"><code>sample_means &lt;- samples %&gt;%
+  group_by(sample) %&gt;%
+  summarise(mean_gest = mean(gest_period))
+
+sample_means</code></pre>
+<pre><code>## # A tibble: 12 x 2
+##    sample mean_gest
+##     &lt;dbl&gt;     &lt;dbl&gt;
+##  1      1      262.
+##  2      2      262.
+##  3      3      273.
+##  4      4      267.
+##  5      5      271.
+##  6      6      253.
+##  7      7      261.
+##  8      8      260.
+##  9      9      269.
+## 10     10      277.
+## 11     11      270.
+## 12     12      261.</code></pre>
+<p>As you can see this leads to a tibble having 12 rows (one for each sample), where each row is a mean computed from the six individuals which were chosen to enter the sample.</p>
+<p><br></p>
+The gestation period (in days) for the first six women sampled were
+<center>
+255.15, 275.34, 281.04, 245.62, 247.5, 267.03
+</center>
+<p>This sample has a mean of <span class="math inline">\(\bar x\)</span> = 261.95 days.</p>
+<p><br></p>
+The second sample of 6 women had gestation periods
+<center>
+288.74, 265.56, 238, 280.56, 248.76, 252.19
+</center>
+<p>The second sample has a mean gestation period of <span class="math inline">\(\bar x\)</span> = 262.3 days.</p>
+<p><br></p>
+<p>In Figure <a href="#fig:sampl-12-6-24">1</a> we display the individual gestation periods in each sample as dots, along with the means gestation period <span class="math inline">\(\bar x\)</span> of each sample. The position of the sample mean is given by a red vertical bar.</p>
+<p>We then increased the sample size to 24 women and took 12 samples each of 24 individuals. This set of samples together with their means is also plotted in Figure <a href="#fig:sampl-12-6-24">1</a>.</p>
+<div class="figure" style="text-align: center"><span id="fig:sampl-12-6-24"></span>
+<img src="11_sampling_distributions_files/figure-html/sampl-12-6-24-1.png" alt="Gestation period (in days) of samples of individuals." width="100%" />
+<p class="caption">
+Figure 1: Gestation period (in days) of samples of individuals.
+</p>
+</div>
+<p>Two important points need to be made from Figure <a href="#fig:sampl-12-6-24">1</a>.
+First, each sample (and therefore each sample mean) is different. This is due to the randomness of which individuals end up being in each sample.
+The sample means, <span class="math inline">\(\bar x\)</span>, vary in an unpredictable way, illustrating the fact that <span class="math inline">\(\bar X\)</span> is a summary of a random process (randomly choosing a sample) and hence is a random variable.
+Secondly, as we increase the sample size from 6 to 24, there appears to be a decrease in the variability of sample means (compare the variability in the vertical bars in panel (a) and panel(b)).</p>
+<p>To further investigate the variability of sample means, we will now generate many more sample means computed on:</p>
+<ol style="list-style-type: lower-alpha">
+<li>5,000 samples of <span class="math inline">\(n = 6\)</span> women</li>
+<li>5,000 samples of <span class="math inline">\(n = 24\)</span> women</li>
+<li>5,000 samples of <span class="math inline">\(n = 100\)</span> women</li>
+</ol>
+<pre class="r"><code># (a) 5,000 means from 5,000 samples of 6 women
+sample_means_6 &lt;- rep_sample_n(gest, n = 6, samples = 5000) %&gt;%
+  group_by(sample) %&gt;%
+  summarise(mean_gest = mean(gest_period))
+
+# (b) 5,000 means from 5,000 samples of 24 women
+sample_means_24 &lt;- rep_sample_n(gest, n = 24, samples = 5000) %&gt;%
+  group_by(sample) %&gt;%
+  summarise(mean_gest = mean(gest_period))
+
+# (c) 5,000 means from 5,000 samples of 100 women
+sample_means_100 &lt;- rep_sample_n(gest, n = 100, samples = 5000) %&gt;%
+  group_by(sample) %&gt;%
+  summarise(mean_gest = mean(gest_period))</code></pre>
+<p>We now combine the above datasets of sample means for different sample sizes into a unique tibble. Before doing so, we add a column specifying the sample size. Remember that <code>mutate()</code> takes a tibble and adds or changes a column. The function <code>bind_rows()</code> takes multiple tibbles and stacks them under each other.</p>
+<pre class="r"><code>sample_means_n &lt;- bind_rows(
+  sample_means_6 %&gt;% mutate(n = 6),
+  sample_means_24 %&gt;% mutate(n = 24),
+  sample_means_100 %&gt;% mutate(n = 100)
+)</code></pre>
+<p>We now plot three different density histograms showing the distribution of 5,000 sample means computed from samples of size 6, 24, and 100.</p>
+<p>This would correspond to creating a histogram of the “red vertical bars” from Figure <a href="#fig:sampl-12-6-24">1</a>, the only difference is that we have many more samples (5,000).</p>
+<pre class="r"><code>ggplot(sample_means_n) +
+  geom_histogram(aes(mean_gest, after_stat(density)), color = &#39;white&#39;, binwidth = 1) +
+  facet_grid(n ~ ., labeller = label_both) +
+  theme_bw() + 
+  labs(x = &#39;Sample mean of gestation period (days)&#39;, y = &#39;Density&#39;)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:sampl-dist-mean"></span>
+<img src="11_sampling_distributions_files/figure-html/sampl-dist-mean-1.png" alt="Density histograms of the sample means from 5,000 samples of women ($n$ women per sample)." width="70%" />
+<p class="caption">
+Figure 2: Density histograms of the sample means from 5,000 samples of women (<span class="math inline">\(n\)</span> women per sample).
+</p>
+</div>
+<p>Each of the density histograms above displays the distribution of the sample mean, computed on samples of the same size and from the same population.</p>
+<p>Such a distribution is called the <em><strong>sampling distribution</strong></em> of the sample mean.</p>
+<div class="yellow">
+<p><strong>Sampling distribution</strong></p>
+<p>The sampling distribution of a statistic is the distribution of a sample statistic computed on many different samples of the same size from the same population.</p>
+<p>A sampling distribution shows how the statistic varies from sample to sample due to sampling variation.</p>
+</div>
+</div>
+<div id="centre-and-spread-of-the-sampling-distribution" class="section level1">
+<h1>Centre and spread of the sampling distribution</h1>
+<p>What is the mean and standard deviation of each histogram?</p>
+<pre class="r"><code>sample_means_n %&gt;%
+  group_by(n) %&gt;%
+  summarise(mean_xbar = mean(mean_gest),
+            sd_xbar = sd(mean_gest))</code></pre>
+<pre><code>## # A tibble: 3 x 3
+##       n mean_xbar sd_xbar
+##   &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;
+## 1     6      266.    6.51
+## 2    24      266.    3.30
+## 3   100      266.    1.62</code></pre>
+<p>Compare these quantities to the population mean and standard deviation: <span class="math inline">\(\mu\)</span> = 266 and <span class="math inline">\(\sigma\)</span> = 16.1.</p>
+<p>Regardless of the size of the samples we were drawing (6, 24, or 100), the average of the sample means was equal to the population mean.
+However, the standard deviation of the sample means was smaller than the population mean. The variability in sample means also decreases as the sample size increases.</p>
+<p>There is an interesting patter in the decrease, which we will now verify.
+It can be proved that the standard deviation of the sample mean <span class="math inline">\(\sigma_{\bar X} = \frac{\sigma}{\sqrt{n}}\)</span>, i.e. the population standard deviation divided by <span class="math inline">\(\sqrt{n}\)</span> with <span class="math inline">\(n\)</span> being the sample size.</p>
+<pre class="r"><code>sigma &lt;- sd(gest$gest_period)
+
+sample_means_n %&gt;%
+  group_by(n) %&gt;%
+  summarise(mean_xbar = mean(mean_gest),
+            sd_xbar = sd(mean_gest)) %&gt;%
+  mutate(sd_theory = sigma / sqrt(n))</code></pre>
+<pre><code>## # A tibble: 3 x 4
+##       n mean_xbar sd_xbar sd_theory
+##   &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;
+## 1     6      266.    6.51      6.57
+## 2    24      266.    3.30      3.28
+## 3   100      266.    1.62      1.61</code></pre>
+<p>The last two columns will be closer and closer as we increase the number of different samples we take from the population (e.g. 5,000 or 10,000 or even more samples.)</p>
+<p>The following result holds:
+<span class="math display">\[
+\begin{aligned}
+\mu_{\bar X} &amp;= \mu = \text{Population mean} \\
+\sigma_{\bar X} &amp;= \frac{\sigma}{\sqrt{n}} = \frac{\text{Population standard deviation}}{\sqrt{\text{Sample size}}}
+\end{aligned}
+\]</span></p>
+<p>Because on average the sample mean (i.e. the estimate) is equal to the population mean (i.e. the parameter), the sample mean <span class="math inline">\(\bar X\)</span> is an <em>unbiased</em> estimator of the population mean. In other words, it does not consistently “miss” the target. (However, if your sampling method is biased, the sample mean will be biased too.)</p>
+<p>The standard deviation of the sample means tells us that the variability in the sample means gets smaller smaller as the sample size increases. Because <span class="math inline">\(\sqrt{4} = 2\)</span> we halve <span class="math inline">\(\sigma_{\bar X}\)</span> by making the sample size 4 times as large. Similarly, as <span class="math inline">\(\sqrt{9} = 3\)</span>, we reduce <span class="math inline">\(\sigma_{\bar X}\)</span> by one third by making the sample size 9 times as large.</p>
+<p>The variability, or spread, of the sampling distribution shows how much the sample statistics tend to vary from sample to sample. This is key in understanding how accurate our estimate of the population parameter, based on just one sample, will be.</p>
+<p>Recall that the standard deviation tells us the size of a typical deviation from the mean. Here, the mean is the population parameter <span class="math inline">\(\mu\)</span>, and a deviation of <span class="math inline">\(\bar x\)</span> from <span class="math inline">\(\mu\)</span> is called an <em>estimation error</em>.
+Hence, the standard deviation of the sample mean is called the <em><strong>standard error</strong></em> of the mean. This tells us the typical estimation error that we commit when we estimate a population mean with a sample mean.</p>
+<div class="yellow">
+<p><strong>Standard error</strong></p>
+<p>The standard error of a statistic, denoted <span class="math inline">\(SE\)</span>, is the standard deviation of its sampling distribution.</p>
+</div>
+<!-- In practice, we can only afford to take one sample from the population and we do not know the population standard deviation $\sigma$. -->
+<!-- So, the standard error of the mean is computed using the standard deviation of the data in your sample: -->
+<!-- $$ -->
+<!-- SE = s_{\bar X} = \frac{s}{\sqrt{n}} -->
+<!-- $$ -->
+<p>So, the standard error of the mean can be either computed as the standard deviation of the sampling distribution, or using the formula
+<span class="math display">\[
+SE = \sigma_{\bar X} = \frac{\sigma}{\sqrt{n}}
+\]</span></p>
+</div>
+<div id="the-sample-mean-is-normally-distributed" class="section level1">
+<h1>The sample mean is normally distributed</h1>
+<p>We also notice that the density histograms in Figure <a href="#fig:sampl-dist-mean">2</a> are symmetric and bell-shaped. Hence, they follow the shape of the normal curve.</p>
+<p><img src="11_sampling_distributions_files/figure-html/unnamed-chunk-16-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>The random variable <span class="math inline">\(\bar X\)</span> follows a normal distribution:
+<span class="math display">\[
+\bar X \sim N(\mu,\ SE)
+\]</span></p>
+<p>We can also compute a z-score. We have that:
+<span class="math display">\[
+\frac{\bar X - \mu}{SE} \sim N(0, 1)
+\]</span></p>
+<p>We know that for a normally distributed random variable, approximately 95% of all values fall within two standard deviations of its mean.
+Thus, for approximately 95% of all samples, the sample means falls within <span class="math inline">\(\pm 2 SE\)</span> of the population mean <span class="math inline">\(\mu\)</span>.
+Similarly, since <span class="math inline">\(P(-3 &lt; Z &lt; 3) = 0.997\)</span>, it is even more rare to get a sample mean which is more than three standard errors away from the population mean (only 0.3% of the times).</p>
+<p>This suggests that:</p>
+<ul>
+<li><p>The standard error <span class="math inline">\(SE\)</span> is a measure of precision of <span class="math inline">\(\bar x\)</span> as an estimate of <span class="math inline">\(\mu\)</span>.</p></li>
+<li><p>If is a pretty safe bet to say that the true value of <span class="math inline">\(\mu\)</span> lies somewhere between <span class="math inline">\(\bar x - 2 SE\)</span> and <span class="math inline">\(\bar x + 2 SE\)</span>.</p></li>
+<li><p>We will doubt any hypothesis specifying that the population mean is <span class="math inline">\(\mu\)</span> when the value <span class="math inline">\(\mu\)</span> is more than <span class="math inline">\(2 SE\)</span> away from the sample mean we got from our data, <span class="math inline">\(\bar x\)</span>. We shall be even more suspicious when the hypothesised value <span class="math inline">\(\mu\)</span> is more than <span class="math inline">\(3 SE\)</span> away from <span class="math inline">\(\bar x\)</span>.</p></li>
+</ul>
+<div class="yellow">
+<p><strong>Centre and shape of a sampling distribution</strong></p>
+<ul>
+<li><p><em>Centre</em>: If samples are randomly selected, the sampling distribution will be centred around the population parameter. <em>(No bias)</em></p></li>
+<li><p><em>Shape</em>: For most of the statistics we consider, if the sample size is large enough, the sampling distribution will follow a normal distribution, i.e. it is symmetric and bell-shaped. <em>(Central Limit Theorem)</em></p></li>
+</ul>
+</div>
+<p>Clearly, we can compute sampling distributions for other statistics too: the proportion, the standard deviation, …</p>
+<p>This requires the following steps:</p>
+<ul>
+<li><p>Obtaining multiple samples, all of the same size, from the same population;</p></li>
+<li><p>For each sample, calculate the value of the statistic;</p></li>
+<li><p>Plot the distribution of the computed statistics.</p></li>
+</ul>
+</div>
+<div id="why-sample-size-matters" class="section level1">
+<h1>Why sample size matters</h1>
+<p>You might be wondering: why did we take multiple samples of size <span class="math inline">\(n\)</span> from the population when, in practice, we can only afford to take one?</p>
+<p>This is a good question. We have taken multiple samples to show how the estimation error varies with the sample size.
+We saw in Figure <a href="#fig:sampl-dist-mean">2</a>, shown again below, that smaller sample sizes lead to more variable statistics, while larger sample sizes lead to more <strong>precise</strong> statistics, i.e. the estimates are more concentrated around the true parameter value.</p>
+<div class="figure" style="text-align: center"><span id="fig:unnamed-chunk-17"></span>
+<img src="11_sampling_distributions_files/figure-html/unnamed-chunk-17-1.png" alt="Density histograms of the sample means from 5,000 samples of women ($n$ women per sample)." width="70%" />
+<p class="caption">
+Figure 3: Density histograms of the sample means from 5,000 samples of women (<span class="math inline">\(n\)</span> women per sample).
+</p>
+</div>
+<p><strong>This teaches us that, when we have to design a study, it is better to obtain just one sample with size <span class="math inline">\(n\)</span> as large as we can afford.</strong></p>
+<div class="question-begin">
+Think about it
+</div>
+<div class="question-body">
+<p>What would the sampling distribution of the mean look like if we could afford to take samples as big as the entire population, i.e. of size <span class="math inline">\(n = N\)</span>?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-106" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-106&#39;, &#39;sol-start-106&#39;)"></span>
+</div>
+<div id="sol-body-106" class="solution-body" style="display: none;">
+<p><em>If you can</em>, it is best to measure the entire population.</p>
+<p>If we could afford to measure the entire population, then we would find the exact value of the parameter all the time.
+By taking multiple samples of size equal to the entire population, every time we would obtain the population parameter exactly, so the distribution would look like a histogram with a single bar on top of the true value: we would find the true parameter with a probability of one, and the estimation error would be 0.</p>
+<pre class="r"><code>pop_means &lt;- gest %&gt;%
+  rep_sample_n(n = nrow(gest), samples = 10) %&gt;%
+  group_by(sample) %&gt;%
+  summarise(mean_gest = mean(gest_period))
+pop_means</code></pre>
+<pre><code>## # A tibble: 10 x 2
+##    sample mean_gest
+##     &lt;dbl&gt;     &lt;dbl&gt;
+##  1      1      266.
+##  2      2      266.
+##  3      3      266.
+##  4      4      266.
+##  5      5      266.
+##  6      6      266.
+##  7      7      266.
+##  8      8      266.
+##  9      9      266.
+## 10     10      266.</code></pre>
+<p>The following is a dotplot of the means computed above:
+<img src="11_sampling_distributions_files/figure-html/unnamed-chunk-19-1.png" width="70%" style="display: block; margin: auto;" /></p>
+</div>
+<p class="solution-end">
+</p>
+<p>To summarize:</p>
+<ul>
+<li><p>We have <strong>high precision</strong> when the estimates are less variable, and this happens for a <strong>large sample size</strong>.</p></li>
+<li><p>We have <strong>no bias</strong> when we select samples that are representative of the population, and this happens when we do <strong>random sampling</strong>. No bias means that the estimates will be centred at the true population parameter to be estimated.</p></li>
+</ul>
+<p><img src="images/prob/bias_prec.png" width="80%" style="display: block; margin: auto;" /></p>
+<hr />
+</div>
+<div id="glossary" class="section level1">
+<h1>Glossary</h1>
+<ul>
+<li><strong>Statistical inference.</strong> The process of drawing conclusions about the population from the data collected in a sample.</li>
+<li><strong>Population.</strong> The entire collection of units of interest.</li>
+<li><strong>Sample.</strong> A subset of the entire population.</li>
+<li><strong>Random sample.</strong> A subset of the entire population, picked at random, so that any conclusion made from the sample data can be generalised to the entire population.</li>
+<li><strong>Representation bias.</strong> Happens when some units of the population are systematically underrepresented in samples.</li>
+<li><strong>Generalisability.</strong> When information from the sample can be used to draw conclusions about the entire population. This is only possible if the sampling procedure leads to samples that are representative of the entire population (such as those drawn at random).</li>
+<li><strong>Parameter.</strong> A fixed but typically unknown quantity describing the population.</li>
+<li><strong>Statistic.</strong> A quantity computed on a sample.</li>
+<li><strong>Sampling distribution.</strong> The distribution of the values that a statistic takes on different samples of the same size and from the same population.</li>
+<li><strong>Standard error.</strong> The standard error of a statistic is the standard deviation of the sampling distribution of the statistic.</li>
+</ul>
+<hr />
+</div>
+<div id="exercises" class="section level1">
+<h1>Exercises</h1>
+<div class="question-begin">
+Question 1
+</div>
+<div class="question-body">
+<p>Two students, Mary and Alex, wanted to investigate the average hours of study per week among students in their university.
+Each were given the task to sample <span class="math inline">\(n = 20\)</span> students many times, and compute the mean of each sample of size 20.
+Mary sampled the students at random, while Alex asked students from the library.
+The distribution of sample means computed by Mary and Alex are shown in the dotplot below in green and red, respectively.</p>
+<p><img src="11_sampling_distributions_files/figure-html/unnamed-chunk-21-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>What do you notice in the distributions above? Why did Mary and Alex get so different results?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-107" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-107&#39;, &#39;sol-start-107&#39;)"></span>
+</div>
+<div id="sol-body-107" class="solution-body" style="display: none;">
+<p>Mary selected samples using random sampling, so we expect the samples to be representative of the population of interest. Hence, we will believe that Mary’s sampling distribution of the mean is centred at the true population average of 15 hours of study per week.</p>
+<p>On the other hand, Alex selected the most readily available people and took convenience samples. This leads to samples which are not a good representation of the population as a part of the population is missing.
+We notice that Alex got consistently higher estimates of the population mean study time than Mary did. This tendency to overestimate the population parameter shows that the sampling method is <em>biased.</em> Students in the library perhaps tend to study more.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 2
+</div>
+<div class="question-body">
+<p><strong>Average price of goods sold by ACME Corporation</strong></p>
+<p>Suppose you work for a company that is interested in buying ACME Corporation<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> and your boss wants to know within the next 30 minutes what is the average price of goods sold by that company and how the prices of the goods they sell differ from each other.</p>
+<p>Since ACME Corporation has such a big mail order catalogue, see Figure <a href="#fig:acme">4</a>, we will assume that the company sells many products. Furthermore, we only have the catalogue in paper-form and no online list of prices is available.</p>
+<div class="figure" style="text-align: center"><span id="fig:acme"></span>
+<img src="images/prob/acme.jpg" alt="Product catalogue of ACME corporation." width="50%" />
+<p class="caption">
+Figure 4: Product catalogue of ACME corporation.
+</p>
+</div>
+<ol style="list-style-type: decimal">
+<li>Identify the population of interest and the population parameters.</li>
+<li>Can we compute the parameters within the next 30 minutes?</li>
+<li>How would you proceed in estimating the population parameters if you just had time to read through 100 item descriptions? Would you pick the first 100 items or would you pick 100 random page numbers?</li>
+<li>State which statistics you would use to estimate the population parameters.</li>
+</ol>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-108" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-108&#39;, &#39;sol-start-108&#39;)"></span>
+</div>
+<div id="sol-body-108" class="solution-body" style="display: none;">
+<ol style="list-style-type: decimal">
+<li>The population of interest is all products sold by ACME Corporation. The population parameters are the mean price <span class="math inline">\(\mu\)</span> and the standard deviation <span class="math inline">\(\sigma\)</span>.</li>
+<li>Because the catalogue has so many pages, we can not compute the population parameters within the next 30 minutes.</li>
+<li>We must estimate the population mean and standard deviation from a sample of size <span class="math inline">\(n = 100\)</span>. We should choose the items entering the sample at random, to avoid sampling bias. If we were to choose 100 consecutive items, we might end up with a very good estimate of the average price for the category those consecutive items belong to (e.g. gardening). However, this would not be a good estimate of the overall price across the multiple categories of products sold.</li>
+<li>Our best guess of the population mean would be the sample mean, <span class="math inline">\(\bar{x}\)</span>, and our best guess of the population standard deviation would be the sample standard deviation, denoted <span class="math inline">\(s\)</span> or <span class="math inline">\(\hat{\sigma}\)</span>.</li>
+</ol>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 3
+</div>
+<div class="question-body">
+<p>What is a parameter? Give two examples of parameters.</p>
+<p>What is a statistic? Give two example of statistics.</p>
+<p>What is an estimate?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-109" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-109&#39;, &#39;sol-start-109&#39;)"></span>
+</div>
+<div id="sol-body-109" class="solution-body" style="display: none;">
+<p>A parameter is a numerical summary of the population. An example could be average blood pressure in Scotland, or the proportion of people with a car.</p>
+<p>A statistic is a numerical summary of the sample data. Examples are the mean blood pressure in a sample of 20 people, or the proportion of people with a car in a sample of 20 people.</p>
+<p>We call “estimate” the value of a statistic which is used to estimate an unknown population parameter.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 4
+</div>
+<div class="question-body">
+<p>What is the distinction between an estimate and an estimator?</p>
+<p>Why is it made? What notational device is used to communicate the distinction?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-110" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-110&#39;, &#39;sol-start-110&#39;)"></span>
+</div>
+<div id="sol-body-110" class="solution-body" style="display: none;">
+<p>An estimate is the observed value in the same, while an estimator refers to all possible value of the statistic across all possible samples (hence, it’s a random variable).</p>
+<p>We denote the estimate (observed value) with a lowercase letter and the estimator (random variable) with an uppercase letter.</p>
+<p>We make the distinction because we refer to the random variable (estimator) when we want to study the variability of the statistic from sample to sample, for example to investigate how precise it is.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="optional-begin">
+Data: HollywoodMovies.csv<span id="opt-start-111" class="fa fa-plus optional-icon clickable" onclick="toggle_visibility(&#39;opt-body-111&#39;, &#39;opt-start-111&#39;)"></span>
+</div>
+<div id="opt-body-111" class="optional-body" style="display: none;">
+<p><strong>Download link</strong></p>
+<p>Download the data <a href="https://uoepsy.github.io/data/HollywoodMovies.csv">here</a>.</p>
+<p><strong>Description</strong></p>
+<p>The data set stores information about 970 movies produced in Hollywood between 2007 and 2013.
+It can be considered as the entire population of movies produced in Hollywood in that time period.</p>
+<p>Among the recorded variables, three will be of interest:</p>
+<ul>
+<li><code>Movie</code>: title of movie</li>
+<li><code>Genre</code>: one of 14 possible genres</li>
+<li><code>Budget</code>: production budget (in $ millions)</li>
+</ul>
+<p><strong>Preview</strong></p>
+<div id="qygftpbmcj" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#qygftpbmcj .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#qygftpbmcj .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#qygftpbmcj .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#qygftpbmcj .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 4px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#qygftpbmcj .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#qygftpbmcj .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#qygftpbmcj .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#qygftpbmcj .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#qygftpbmcj .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#qygftpbmcj .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#qygftpbmcj .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#qygftpbmcj .gt_group_heading {
+  padding: 8px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#qygftpbmcj .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#qygftpbmcj .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#qygftpbmcj .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#qygftpbmcj .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#qygftpbmcj .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 12px;
+}
+
+#qygftpbmcj .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#qygftpbmcj .gt_first_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+}
+
+#qygftpbmcj .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#qygftpbmcj .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#qygftpbmcj .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#qygftpbmcj .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#qygftpbmcj .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#qygftpbmcj .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding: 4px;
+}
+
+#qygftpbmcj .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#qygftpbmcj .gt_sourcenote {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#qygftpbmcj .gt_left {
+  text-align: left;
+}
+
+#qygftpbmcj .gt_center {
+  text-align: center;
+}
+
+#qygftpbmcj .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#qygftpbmcj .gt_font_normal {
+  font-weight: normal;
+}
+
+#qygftpbmcj .gt_font_bold {
+  font-weight: bold;
+}
+
+#qygftpbmcj .gt_font_italic {
+  font-style: italic;
+}
+
+#qygftpbmcj .gt_super {
+  font-size: 65%;
+}
+
+#qygftpbmcj .gt_footnote_marks {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 65%;
+}
+</style>
+<table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">Movie</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">LeadStudio</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">RottenTomatoes</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">AudienceScore</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">Story</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">Genre</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">TheatersOpenWeek</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">OpeningWeekend</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">BOAvgOpenWeekend</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">DomesticGross</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">ForeignGross</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">WorldGross</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Budget</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Profitability</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">OpenProfit</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Year</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td class="gt_row gt_left">Spider-Man 3</td>
+<td class="gt_row gt_left">Sony</td>
+<td class="gt_row gt_right">61</td>
+<td class="gt_row gt_right">54</td>
+<td class="gt_row gt_left">Metamorphosis</td>
+<td class="gt_row gt_left">Action</td>
+<td class="gt_row gt_right">4252</td>
+<td class="gt_row gt_right">151.1</td>
+<td class="gt_row gt_right">35540</td>
+<td class="gt_row gt_right">336.53</td>
+<td class="gt_row gt_right">554.34</td>
+<td class="gt_row gt_right">890.87</td>
+<td class="gt_row gt_right">258</td>
+<td class="gt_row gt_right">345.30</td>
+<td class="gt_row gt_right">58.57</td>
+<td class="gt_row gt_right">2007</td></tr>
+    <tr><td class="gt_row gt_left">Shrek the Third</td>
+<td class="gt_row gt_left">Paramount</td>
+<td class="gt_row gt_right">42</td>
+<td class="gt_row gt_right">57</td>
+<td class="gt_row gt_left">Quest</td>
+<td class="gt_row gt_left">Animation</td>
+<td class="gt_row gt_right">4122</td>
+<td class="gt_row gt_right">121.6</td>
+<td class="gt_row gt_right">29507</td>
+<td class="gt_row gt_right">322.72</td>
+<td class="gt_row gt_right">476.24</td>
+<td class="gt_row gt_right">798.96</td>
+<td class="gt_row gt_right">160</td>
+<td class="gt_row gt_right">499.35</td>
+<td class="gt_row gt_right">76.00</td>
+<td class="gt_row gt_right">2007</td></tr>
+    <tr><td class="gt_row gt_left">Transformers</td>
+<td class="gt_row gt_left">Paramount</td>
+<td class="gt_row gt_right">57</td>
+<td class="gt_row gt_right">89</td>
+<td class="gt_row gt_left">Monster Force</td>
+<td class="gt_row gt_left">Action</td>
+<td class="gt_row gt_right">4011</td>
+<td class="gt_row gt_right">70.5</td>
+<td class="gt_row gt_right">17577</td>
+<td class="gt_row gt_right">319.25</td>
+<td class="gt_row gt_right">390.46</td>
+<td class="gt_row gt_right">709.71</td>
+<td class="gt_row gt_right">150</td>
+<td class="gt_row gt_right">473.14</td>
+<td class="gt_row gt_right">47.00</td>
+<td class="gt_row gt_right">2007</td></tr>
+    <tr><td class="gt_row gt_left">Pirates of the Caribbean: At World's End</td>
+<td class="gt_row gt_left">Disney</td>
+<td class="gt_row gt_right">45</td>
+<td class="gt_row gt_right">74</td>
+<td class="gt_row gt_left">Rescue</td>
+<td class="gt_row gt_left">Action</td>
+<td class="gt_row gt_right">4362</td>
+<td class="gt_row gt_right">114.7</td>
+<td class="gt_row gt_right">26302</td>
+<td class="gt_row gt_right">309.42</td>
+<td class="gt_row gt_right">654.00</td>
+<td class="gt_row gt_right">963.42</td>
+<td class="gt_row gt_right">300</td>
+<td class="gt_row gt_right">321.14</td>
+<td class="gt_row gt_right">38.23</td>
+<td class="gt_row gt_right">2007</td></tr>
+    <tr><td class="gt_row gt_left">Harry Potter and the Order of the Phoenix</td>
+<td class="gt_row gt_left">Warner Bros</td>
+<td class="gt_row gt_right">78</td>
+<td class="gt_row gt_right">82</td>
+<td class="gt_row gt_left">Quest</td>
+<td class="gt_row gt_left">Adventure</td>
+<td class="gt_row gt_right">4285</td>
+<td class="gt_row gt_right">77.1</td>
+<td class="gt_row gt_right">17998</td>
+<td class="gt_row gt_right">292.00</td>
+<td class="gt_row gt_right">647.88</td>
+<td class="gt_row gt_right">939.89</td>
+<td class="gt_row gt_right">150</td>
+<td class="gt_row gt_right">626.59</td>
+<td class="gt_row gt_right">51.40</td>
+<td class="gt_row gt_right">2007</td></tr>
+    <tr><td class="gt_row gt_left">I Am Legend</td>
+<td class="gt_row gt_left">Warner Bros</td>
+<td class="gt_row gt_right">69</td>
+<td class="gt_row gt_right">69</td>
+<td class="gt_row gt_left">Quest</td>
+<td class="gt_row gt_left">Thriller</td>
+<td class="gt_row gt_right">3606</td>
+<td class="gt_row gt_right">77.2</td>
+<td class="gt_row gt_right">21411</td>
+<td class="gt_row gt_right">256.39</td>
+<td class="gt_row gt_right">328.96</td>
+<td class="gt_row gt_right">585.35</td>
+<td class="gt_row gt_right">150</td>
+<td class="gt_row gt_right">390.23</td>
+<td class="gt_row gt_right">51.47</td>
+<td class="gt_row gt_right">2007</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+</div>
+<p class="optional-end">
+</p>
+<div class="question-begin">
+Question 5
+</div>
+<div class="question-body">
+<p><strong>Reading data into R</strong></p>
+<p>Read the Hollywood movies data into R, and call it <code>hollywood</code>.</p>
+<p>Check that the data were read into R correctly.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-112" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-112&#39;, &#39;sol-start-112&#39;)"></span>
+</div>
+<div id="sol-body-112" class="solution-body" style="display: none;">
+<pre class="r"><code>hollywood &lt;- read_csv(&#39;https://uoepsy.github.io/data/HollywoodMovies.csv&#39;)
+glimpse(hollywood)</code></pre>
+<pre><code>## Rows: 970
+## Columns: 16
+## $ Movie            &lt;chr&gt; &quot;Spider-Man 3&quot;, &quot;Shrek the Third&quot;, &quot;Transformers&quot;, &quot;P…
+## $ LeadStudio       &lt;chr&gt; &quot;Sony&quot;, &quot;Paramount&quot;, &quot;Paramount&quot;, &quot;Disney&quot;, &quot;Warner B…
+## $ RottenTomatoes   &lt;dbl&gt; 61, 42, 57, 45, 78, 69, 93, 31, 26, 60, 97, 90, 14, 9…
+## $ AudienceScore    &lt;dbl&gt; 54, 57, 89, 74, 82, 69, 91, 72, 73, 90, 84, 78, 72, 8…
+## $ Story            &lt;chr&gt; &quot;Metamorphosis&quot;, &quot;Quest&quot;, &quot;Monster Force&quot;, &quot;Rescue&quot;, …
+## $ Genre            &lt;chr&gt; &quot;Action&quot;, &quot;Animation&quot;, &quot;Action&quot;, &quot;Action&quot;, &quot;Adventure…
+## $ TheatersOpenWeek &lt;dbl&gt; 4252, 4122, 4011, 4362, 4285, 3606, 3660, 3832, 3475,…
+## $ OpeningWeekend   &lt;dbl&gt; 151.1, 121.6, 70.5, 114.7, 77.1, 77.2, 69.3, 44.8, 44…
+## $ BOAvgOpenWeekend &lt;dbl&gt; 35540, 29507, 17577, 26302, 17998, 21411, 18929, 1168…
+## $ DomesticGross    &lt;dbl&gt; 336.53, 322.72, 319.25, 309.42, 292.00, 256.39, 227.4…
+## $ ForeignGross     &lt;dbl&gt; 554.34, 476.24, 390.46, 654.00, 647.88, 328.96, 215.3…
+## $ WorldGross       &lt;dbl&gt; 890.87, 798.96, 709.71, 963.42, 939.89, 585.35, 442.8…
+## $ Budget           &lt;dbl&gt; 258.0, 160.0, 150.0, 300.0, 150.0, 150.0, 110.0, 130.…
+## $ Profitability    &lt;dbl&gt; 345.30, 499.35, 473.14, 321.14, 626.59, 390.23, 402.5…
+## $ OpenProfit       &lt;dbl&gt; 58.57, 76.00, 47.00, 38.23, 51.40, 51.47, 63.00, 34.4…
+## $ Year             &lt;dbl&gt; 2007, 2007, 2007, 2007, 2007, 2007, 2007, 2007, 2007,…</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 6
+</div>
+<div class="question-body">
+<p><strong>Extracting relevant variables</strong></p>
+<p>Extract from the <code>hollywood</code> tibble the three variables of interest (<code>Movie</code>, <code>Genre</code>, <code>Budget</code>) and keep the movies for which we have all information (no missing entries).</p>
+<p><strong>Hint:</strong> Check the help page for the function <code>drop_na()</code> or <code>na.omit()</code>.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-113" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-113&#39;, &#39;sol-start-113&#39;)"></span>
+</div>
+<div id="sol-body-113" class="solution-body" style="display: none;">
+<p>We can extract variables using the function <code>select()</code>, while to keep the rows for which we have all measurements we use <code>na.omit()</code>:</p>
+<pre class="r"><code>hollywood &lt;- hollywood %&gt;%
+  select(Movie, Genre, Budget) %&gt;%
+  drop_na()
+
+hollywood</code></pre>
+<pre><code>## # A tibble: 665 x 3
+##    Movie                                     Genre     Budget
+##    &lt;chr&gt;                                     &lt;chr&gt;      &lt;dbl&gt;
+##  1 Spider-Man 3                              Action       258
+##  2 Shrek the Third                           Animation    160
+##  3 Transformers                              Action       150
+##  4 Pirates of the Caribbean: At World&#39;s End  Action       300
+##  5 Harry Potter and the Order of the Phoenix Adventure    150
+##  6 I Am Legend                               Thriller     150
+##  7 The Bourne Ultimatum                      Thriller     110
+##  8 National Treasure: Book of Secrets        Thriller     130
+##  9 Alvin and the Chipmunks                   Animation     70
+## 10 300                                       Action        65
+## # … with 655 more rows</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 7
+</div>
+<div class="question-body">
+<p><strong>Proportion of comedy movies</strong></p>
+<p>What is the population proportion of comedy movies?
+What is an estimate of the proportion of comedy movies using a sample of size 20?
+Using the appropriate notation, report your results in one or two sentences.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-114" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-114&#39;, &#39;sol-start-114&#39;)"></span>
+</div>
+<div id="sol-body-114" class="solution-body" style="display: none;">
+<pre class="r"><code>prop_comedy &lt;- hollywood %&gt;%
+  summarise(prop = sum(Genre == &quot;Comedy&quot;) / n())
+prop_comedy</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##    prop
+##   &lt;dbl&gt;
+## 1 0.254</code></pre>
+<pre class="r"><code>sample_prop_comedy &lt;- hollywood %&gt;%
+  rep_sample_n(n = 20, samples = 1) %&gt;%
+  group_by(sample) %&gt;%
+  summarise(prop = sum(Genre == &quot;Comedy&quot;) / n())
+sample_prop_comedy</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##   sample  prop
+##    &lt;dbl&gt; &lt;dbl&gt;
+## 1      1  0.35</code></pre>
+<p>The population proportion of comedy movies is <span class="math inline">\(p =\)</span> 0.25, while the proportion of comedy movies in the sample is <span class="math inline">\(\hat{p} =\)</span> 0.35.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 8
+</div>
+<div class="question-body">
+<p><strong>Sampling distributions</strong></p>
+<p>What is a sampling distribution?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-115" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-115&#39;, &#39;sol-start-115&#39;)"></span>
+</div>
+<div id="sol-body-115" class="solution-body" style="display: none;">
+<p>The sampling distribution is the distribution of the values that a statistic takes on different samples of the same size and from the same population.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 9
+</div>
+<div class="question-body">
+<p><strong>Sampling distribution of the proportion</strong></p>
+<p>Compute the sampling distribution of the proportion of comedy movies for samples of size <span class="math inline">\(n = 20\)</span>, using 1000 different samples.</p>
+<p>Is it centred at the population value?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-116" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-116&#39;, &#39;sol-start-116&#39;)"></span>
+</div>
+<div id="sol-body-116" class="solution-body" style="display: none;">
+<pre class="r"><code>sample_props &lt;- hollywood %&gt;%
+  rep_sample_n(n = 20, samples = 1000) %&gt;% 
+  group_by(sample) %&gt;%
+  summarise(prop = sum(Genre == &#39;Comedy&#39;) / n())
+
+ggplot(sample_props, aes(x = prop)) +
+  geom_histogram(color = &#39;white&#39;) +
+  geom_vline(xintercept = prop_comedy$prop, color = &#39;red&#39;, size = 1) +
+  labs(x = &#39;Sample proportion&#39;)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:w11-lab-sampling-dist"></span>
+<img src="11_sampling_distributions_files/figure-html/w11-lab-sampling-dist-1.png" alt="Sampling distribution of the proportion for $n = 20$ with population parameter $p$ marked by a red vertical line." width="70%" />
+<p class="caption">
+Figure 5: Sampling distribution of the proportion for <span class="math inline">\(n = 20\)</span> with population parameter <span class="math inline">\(p\)</span> marked by a red vertical line.
+</p>
+</div>
+<p>Yes, Figure <a href="#fig:w11-lab-sampling-dist">5</a> shows that the distribution is almost bell-shaped and centred at the population parameter.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 10
+</div>
+<div class="question-body">
+<p><strong>Standard error</strong></p>
+<p>Using the replicated samples from the previous question, what is the standard error of the sample proportion of comedy movies?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-117" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-117&#39;, &#39;sol-start-117&#39;)"></span>
+</div>
+<div id="sol-body-117" class="solution-body" style="display: none;">
+<p>The standard error of the sample proportion is simply the standard deviation of the distribution of sample proportions for many samples. Since we have already computed the proportions for 1000 samples in the previous question, we just have to compute their variability using the standard deviation:</p>
+<pre class="r"><code>se_prop &lt;- sample_props %&gt;%
+  summarise(SE = sd(prop))
+se_prop</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##       SE
+##    &lt;dbl&gt;
+## 1 0.0948</code></pre>
+<p>The standard error of the sample proportion for sample size <span class="math inline">\(n = 20\)</span>, based on 1000 samples, is <span class="math inline">\(SE\)</span> = 0.09.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 11
+</div>
+<div class="question-body">
+<p><strong>The effect of sample size on the standard error of the sample proportion</strong></p>
+<p>How does the sample size affect the standard error of the sample proportion?
+Compute the sampling distribution for the proportion of comedy movies using 1,000 samples each of size <span class="math inline">\(n = 20\)</span>, <span class="math inline">\(n = 50\)</span>, and <span class="math inline">\(n = 200\)</span> respectively.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-118" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-118&#39;, &#39;sol-start-118&#39;)"></span>
+</div>
+<div id="sol-body-118" class="solution-body" style="display: none;">
+<pre class="r"><code>sample_props_20 &lt;- hollywood %&gt;%
+  rep_sample_n(n = 20, samples = 1000) %&gt;% 
+  group_by(sample) %&gt;%
+  summarise(prop = mean(Genre == &#39;Comedy&#39;))
+
+sample_props_50 &lt;- hollywood %&gt;%
+  rep_sample_n(n = 50, samples = 1000) %&gt;% 
+  group_by(sample) %&gt;%
+  summarise(prop = mean(Genre == &#39;Comedy&#39;))
+
+sample_props_200 &lt;- hollywood %&gt;%
+  rep_sample_n(n = 200, samples = 1000) %&gt;% 
+  group_by(sample) %&gt;%
+  summarise(prop = mean(Genre == &#39;Comedy&#39;))
+
+sample_props_vary_n &lt;- bind_rows(
+  sample_props_20 %&gt;% mutate(n = 20),
+  sample_props_50 %&gt;% mutate(n = 50),
+  sample_props_200 %&gt;% mutate(n = 200)
+)
+
+ggplot(sample_props_vary_n, aes(x = prop)) +
+  geom_histogram(color = &#39;white&#39;) +
+  geom_vline(xintercept = prop_comedy$prop, color = &#39;red&#39;, size = 1) +
+  facet_grid(n ~ ., labeller = label_both) +
+  labs(x = &#39;Sample proportions&#39;, 
+       title = &quot;Sampling distribution of proportion for samples of size 20, 50, 200&quot;)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:w11-lab-vary-n"></span>
+<img src="11_sampling_distributions_files/figure-html/w11-lab-vary-n-1.png" alt="Three sampling distributions of the proportion, with population parameter $p$ marked by a red vertical line." width="70%" />
+<p class="caption">
+Figure 6: Three sampling distributions of the proportion, with population parameter <span class="math inline">\(p\)</span> marked by a red vertical line.
+</p>
+</div>
+<p>From Figure <a href="#fig:w11-lab-vary-n">6</a> we can see that, as the sample size increases, the standard error of the sample proportion decreases. Increasing the sample size, the spread of the statistic values is reduced.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 12
+</div>
+<div class="question-body">
+<p><strong>Comparing the budget for action and comedy movies</strong></p>
+<p>What is the population average budget (in millions of dollars) allocated for making action vs comedy movies? And the standard deviation?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-119" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-119&#39;, &#39;sol-start-119&#39;)"></span>
+</div>
+<div id="sol-body-119" class="solution-body" style="display: none;">
+<pre class="r"><code>budgets &lt;- hollywood %&gt;%
+  filter(Genre == &#39;Action&#39; | Genre == &#39;Comedy&#39;) %&gt;%
+  group_by(Genre) %&gt;%
+  summarise(avg_budget = mean(Budget),
+            sd_budget = sd(Budget))
+budgets</code></pre>
+<pre><code>## # A tibble: 2 x 3
+##   Genre  avg_budget sd_budget
+##   &lt;chr&gt;       &lt;dbl&gt;     &lt;dbl&gt;
+## 1 Action       85.9      64.0
+## 2 Comedy       36.9      26.7</code></pre>
+<p>From the above tibble we see that action movies have been allocated a higher budget (<span class="math inline">\(\mu_{Action} =\)</span> 85.9) than comedy movies (<span class="math inline">\(\mu_{Comedy} =\)</span> 36.9). At the same time, action movies have a higher variability of budgets around the mean value (<span class="math inline">\(\sigma_{Action} =\)</span> 64 vs <span class="math inline">\(\sigma_{Comedy} =\)</span> 26.7).</p>
+</div>
+<p class="solution-end">
+</p>
+<!-- Formatting -->
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;">
+
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>You might remember it from the cartoon Wile E. Coyote and the Road Runner.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+
+<link rel="stylesheet" href="https://uoepsy.github.io/assets/css/ccfooter.css" />
+<div class="ccfooter"></div>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

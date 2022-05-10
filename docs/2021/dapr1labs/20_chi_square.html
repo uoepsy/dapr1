@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Chi-square tests</title>
+
+<script src="site_libs/header-attrs-2.8/header-attrs.js"></script>
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+<script>
+function toggle_visibility(id1, id2) {
+var e = document.getElementById(id1);
+var f = document.getElementById(id2);
+e.style.display = ((e.style.display!='none') ? 'none' : 'block');
+if(f.classList.contains('fa-plus')) {
+    f.classList.add('fa-minus')
+    f.classList.remove('fa-plus')
+} else {
+    f.classList.add('fa-plus')
+    f.classList.remove('fa-minus')
+}
+}
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+<link rel="stylesheet" href="assets/style-labs.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"><strong>DAPR1</strong></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">
+    <span class="fas fa-home"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="intro_r_rstudio_year1.html">DAPR1 starts here</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Intro to data and R
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="01_data_types.html">1/1: Collecting data</a>
+    </li>
+    <li>
+      <a href="02_categorical.html">1/2: Categorical data</a>
+    </li>
+    <li>
+      <a href="03_numerical.html">1/3: Numerical data</a>
+    </li>
+    <li>
+      <a href="04_relationships.html">1/4: Relationships</a>
+    </li>
+    <li>
+      <a href="05_functions.html">1/5: Types of relations</a>
+    </li>
+    <li class="dropdown-header">1/6: Break week!</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Probability &amp; sampling
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="07_probability_basics.html">1/7: Probability basics</a>
+    </li>
+    <li>
+      <a href="08_probability_rules.html">1/8: Probability rules!</a>
+    </li>
+    <li>
+      <a href="09_discrete_distributions.html">1/9: Discrete random variables</a>
+    </li>
+    <li>
+      <a href="10_continuous_distributions.html">1/10: Continuous random variables</a>
+    </li>
+    <li>
+      <a href="11_sampling_distributions.html">1/11: Sampling distributions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Hypothesis testing
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="12_bootstrap_cis.html">2/1: Bootstrap &amp; CIs</a>
+    </li>
+    <li>
+      <a href="13_hypothesis_testing.html">2/2: Hypothesis testing: p-values</a>
+    </li>
+    <li>
+      <a href="14_critical_values.html">2/3: Hypothesis testing: critical values</a>
+    </li>
+    <li>
+      <a href="15_connecting_ci_ht.html">2/4: Hypothesis testing &amp; CIs</a>
+    </li>
+    <li>
+      <a href="16_ht_errors.html">2/5: Making decisions</a>
+    </li>
+    <li class="dropdown-header">2/6: Break week</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Basic tests
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="17_one_sample_mean.html">2/7: Test for one mean</a>
+    </li>
+    <li>
+      <a href="18_two_sample_means.html">2/8: Test for two means</a>
+    </li>
+    <li>
+      <a href="19_paired_t_test.html">2/9: Test for paired samples</a>
+    </li>
+    <li>
+      <a href="20_chi_square.html">2/10: Chi-square</a>
+    </li>
+    <li>
+      <a href="21_covcor.html">2/11: Covariance and correlation</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Chi-square tests</h1>
+
+</div>
+
+
+<div class="lo">
+<ol style="list-style-type: decimal">
+<li>Understand when to use a chi-square goodness-of-fit test and chi-square test of independence</li>
+<li>Check the assumptions for the tests</li>
+<li>Report the test results</li>
+</ol>
+</div>
+<p>The past few weeks have focused on tests for <strong>numeric</strong> response variables, such as:</p>
+<ul>
+<li>a <strong>numeric</strong> response variable (one-sample t-test and paired t-test)</li>
+<li>a <strong>numeric</strong> response variable and <strong>binary categorical</strong> explanatory variable (paired t-test)</li>
+</ul>
+<p>This week we will investigate tests for:</p>
+<ul>
+<li>a <strong>categorical</strong> response variable (<span class="math inline">\(\chi^2\)</span> goodness-of-fit test);</li>
+<li>a <strong>categorical</strong> response variable and a <strong>categorical</strong> explanatory variable (<span class="math inline">\(\chi^2\)</span> test of independence).</li>
+</ul>
+<p>For the first time, you will be working with a statistical test that applies to categorical variables with more than two categories.</p>
+<p><br>
+<em><strong>Note:</strong> the symbol <span class="math inline">\(\chi^2\)</span> is also written as “chi-square” or “chi-squared,” and is pronounced “kai-square” or “kai-squared.”</em></p>
+<p><br>
+The two tests of focus this week are the <span class="math inline">\(\chi^2\)</span> goodness-of-fit test and the <span class="math inline">\(\chi^2\)</span> test of independence. The first is used to assess whether sample results conform with an hypothesis about the proportional breakdown of the various categories in the population. The latter tests if two categorical variables are associated in the population or not.</p>
+<div id="chi-square-goodness-of-fit-test" class="section level1">
+<h1>Chi-square goodness-of-fit test</h1>
+<p>The <span class="math inline">\(\chi^2\)</span> goodness-of-fit test applies to <strong>categorical</strong> variables. For ease of exposition, suppose the categorical variable of interest has <span class="math inline">\(C\)</span> possible unique categories. For example, the variable “Days of the week” has <span class="math inline">\(C = 7\)</span> possible categories: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, and Sunday.</p>
+<p>We have collected sample data for a variable of interest, and we can compute the proportion of individuals in the sample falling into each of the <span class="math inline">\(C\)</span> distinct categories, <span class="math inline">\(p_1, p_2, ..., p_C\)</span>.</p>
+<p>We wish to check whether the sample proportions are consistent with hypothesised proportions (i.e. an hypothesised distribution) <span class="math inline">\(p_{1,0},\  p_{2,0},\ ...,\ p_{C, 0}\)</span>.</p>
+<p><strong>Examples of when to use <span class="math inline">\(\chi^2\)</span> goodness-of-fit test</strong></p>
+<ul>
+<li><p>We have a bag of sweets in 5 different colours. We’d like to test if the different colours are present in the same proportion, i.e. <span class="math inline">\(p_1 = p_2 = p_3 = p_4 = p_5 = 1/5\)</span> or equivalently <span class="math inline">\(p_1 = 0.2\)</span>, <span class="math inline">\(p_2 = 0.2\)</span>, <span class="math inline">\(p_3 = 0.2\)</span>, <span class="math inline">\(p_4 = 0.2\)</span>, <span class="math inline">\(p_5 = 0.2\)</span>.</p></li>
+<li><p>We have a bag of sweets in 5 different colours. We’d like to test if the different colours are distributed as follows: <span class="math inline">\(p_1 = 0.2, \ p_2 = 0.1, \ p_3 = 0.3, \ p_4 = 0.1, \ p_5 = 0.3\)</span>.</p></li>
+</ul>
+<p><strong>Null hypothesis</strong></p>
+<ul>
+<li><p><span class="math inline">\(H_0: p_1 = p_{1,0},\ p_2 = p_{2,0},\ ...,\ p_C = p_{C,0}\)</span></p></li>
+<li><p>In loose terms: proportional breakdown of the categories in our sample is consistent with an hypothesised distribution.</p></li>
+</ul>
+<p><strong>Alternative hypothesis</strong></p>
+<ul>
+<li><p><span class="math inline">\(H_1:\)</span> Some <span class="math inline">\(p_i \neq p_{i,0}\)</span></p></li>
+<li><p>In loose terms: the proportional breakdown of the categories in the same does not follow the hypothesised distribution.</p></li>
+</ul>
+<p><strong>Test statistic</strong></p>
+<p>We compare observed counts with expected counts</p>
+<p><span class="math display">\[
+\chi^2 = \sum_i \frac{(O_i - E_i)^2}{E_i}
+\]</span>
+where:</p>
+<ul>
+<li><p><span class="math inline">\(\sum\)</span> = sum over all possible categories</p></li>
+<li><p><span class="math inline">\(O_i\)</span> = observed counts for category <span class="math inline">\(i\)</span></p></li>
+<li><p><span class="math inline">\(E_i\)</span> = expected counts for category <span class="math inline">\(i\)</span></p>
+<ul>
+<li>calculated as <span class="math inline">\(E_i = n \times p_{i,0}\)</span>, where <span class="math inline">\(n\)</span> = sample size, <span class="math inline">\(p_{i,0}\)</span> is the hypothesised population proportion for that category under the null hypothesis</li>
+</ul></li>
+</ul>
+<p>If the p-value computed using a <span class="math inline">\(\chi^2\)</span> distribution with df = <span class="math inline">\(\text{# categories} - 1 = C - 1\)</span> degrees of freedom is less than the chosen significance level (e.g. 0.05), then we reject the null hypothesis.</p>
+<div id="assumptions" class="section level3">
+<h3>Assumptions</h3>
+<p>For the goodness-of-fit test, we need one variable and we also need a hypothesis about how that variable should be distributed. For the results of the test to be valid, the following assumptions should be met:</p>
+<ol style="list-style-type: decimal">
+<li>Data should be randomly sampled from the population.</li>
+<li>Data should be at the categorical or nominal level - goodness-of-fit test is not appropriate for continuous level data.</li>
+<li>Expected counts should be <em>at least</em> 5.</li>
+</ol>
+<p><strong>Checking assumptions</strong></p>
+<ol style="list-style-type: decimal">
+<li>This a design issue - employing a random sampling technique when collecting data will ensure this assumption is met.</li>
+<li>Again, a design issue.</li>
+<li>A design issue - making sure the study sample size is sufficiently large when collecting data.</li>
+</ol>
+</div>
+<div id="example-writers-birthdays" class="section level2">
+<h2>Example: Writers’ birthdays</h2>
+<p>Are people equally likely to be born on any of the seven days of the week?</p>
+<p>To investigate this question, we’ll be using the data set <a href="https://uoepsy.github.io/data/writers.csv">writers.csv</a>. In this file, the days of birth were recorded for 147 “noted writers of the present,” listed in the <em>The World Almanac and Book of Facts, 2000</em>. You can also find the data at this link: <a href="https://uoepsy.github.io/data/writers.csv" class="uri">https://uoepsy.github.io/data/writers.csv</a></p>
+<div id="hypotheses" class="section level3">
+<h3>Hypotheses</h3>
+<ul>
+<li>The writers’ birthdays are equal across the days of the week.</li>
+<li>The writers’ birthdays are not equal across the days of the week.</li>
+</ul>
+<p>Equivalently, thinking in terms of proportions (or probabilities)</p>
+<ul>
+<li>The writers are equally likely to be born on any of the seven days of the week.</li>
+<li>The writers are not equally likely to be born on any of the seven days of the week.</li>
+</ul>
+<p>To write the null and alternative hypotheses formally, we need to define some symbols.</p>
+<p>Let <span class="math inline">\(p_{Mo}\)</span> represent the proportion of <em>all</em> people who were born on a Monday, or equivalently, the probability that a randomly selected individual was born on a Monday. Likewise, let the values <span class="math inline">\(p_{Tu}, p_W, ..., p_{Su}\)</span> represent all the proportion of all people who were born on Tuesday, Wednesday … and Sunday respectively. The values of the proportions specified by the null hypothesis are:</p>
+<p><span class="math display">\[
+\begin{aligned}
+p_{Mo} &amp;= 1/7 = .1429 \\ 
+p_{Tu} &amp;= 1/7 = .1429 \\ 
+\dots \\
+p_{Su} &amp;= 1/7 = .1429
+\end{aligned}
+\]</span></p>
+<p>Hence the null and alternative hypotheses are:</p>
+<p><span class="math display">\[
+\begin{aligned}
+H_0 &amp;: p_{Mo} = p_{Tu} = \cdots = p_{Su} = 1/7 \\
+H_1 &amp;: \text{At least one }p_{i} \neq 1/7
+\end{aligned}
+\]</span></p>
+<div class="yellow">
+<p>The null hypothesis asserts specific values for the population proportion in each category. The alternative hypothesis simply states that <em>at least one</em> of the population proportions is not as specified in the null hypothesis.</p>
+<p>The test statistic measures how far the <em>observed sample</em> results deviate from what is expected, <em>if</em> the null hypothesis is true. With a <span class="math inline">\(\chi^2\)</span> test, you contstruct the test statistic by comparing the <em>observed</em> sample counts in each category to the <em>expected</em> counts, under the null hypothesis.</p>
+<p>Confused about populations, parameters, samples and statistics? Look back at <a href="https://uoepsy.github.io/dapr1/labs/11_sampling_distributions.html#Parameters_and_statistics">Semester 1, Week 11</a></p>
+</div>
+</div>
+<div id="reading-in-the-data-and-checking" class="section level3">
+<h3>Reading in the data and checking</h3>
+<p>Let’s read the data into R:</p>
+<pre class="r"><code>library(tidyverse)
+writers &lt;- read_csv(&#39;https://uoepsy.github.io/data/writers.csv&#39;) 
+head(writers)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##      ID DayOfWeek
+##   &lt;dbl&gt; &lt;chr&gt;    
+## 1     1 Thursday 
+## 2     2 Thursday 
+## 3     3 Tuesday  
+## 4     4 Friday   
+## 5     5 Friday   
+## 6     6 Sunday</code></pre>
+<pre class="r"><code>dim(writers)</code></pre>
+<pre><code>## [1] 147   2</code></pre>
+<p>We have data on the 147 noted writers listed in World Almanac and Book of Facts 2000. For each we have a variable “DayOfWeek” recording which day of the week their birthday falls.</p>
+<p>It looks like the categorical variable specifying the day of the week is not correctly stored as a factor. Let’s fix that:</p>
+<pre class="r"><code>writers$DayOfWeek &lt;- as.factor(writers$DayOfWeek)
+head(writers)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##      ID DayOfWeek
+##   &lt;dbl&gt; &lt;fct&gt;    
+## 1     1 Thursday 
+## 2     2 Thursday 
+## 3     3 Tuesday  
+## 4     4 Friday   
+## 5     5 Friday   
+## 6     6 Sunday</code></pre>
+<p>Once we’ve changed <code>DaysOfWeek</code> into a factor, we’ll check if the levels of the factor are in the correct order (i.e. are the days of the week in the correct order?)</p>
+<p>The following code displays the possible distinct categories that the variable can take:</p>
+<pre class="r"><code>levels(writers$DayOfWeek)</code></pre>
+<pre><code>## [1] &quot;Friday&quot;    &quot;Monday&quot;    &quot;Saturday&quot;  &quot;Sunday&quot;    &quot;Thursday&quot;  &quot;Tuesday&quot;  
+## [7] &quot;Wednesday&quot;</code></pre>
+<p>It doesn’t look like the levels of the factor are in the order we expect.</p>
+<pre class="r"><code>writers$DayOfWeek &lt;- 
+  factor(writers$DayOfWeek,
+         levels = c(&quot;Monday&quot;, &quot;Tuesday&quot;, &quot;Wednesday&quot;, 
+                    &quot;Thursday&quot;, &quot;Friday&quot;, &quot;Saturday&quot;, &quot;Sunday&quot;))
+
+levels(writers$DayOfWeek) </code></pre>
+<pre><code>## [1] &quot;Monday&quot;    &quot;Tuesday&quot;   &quot;Wednesday&quot; &quot;Thursday&quot;  &quot;Friday&quot;    &quot;Saturday&quot; 
+## [7] &quot;Sunday&quot;</code></pre>
+</div>
+<div id="calculating-observed-counts" class="section level3">
+<h3>Calculating observed counts</h3>
+<p>Now we want to see how many writers were born on each day of the week.</p>
+<pre class="r"><code>writers_table &lt;- writers %&gt;%
+  group_by(DayOfWeek) %&gt;%
+  summarise(observed_count = n())
+
+writers_table</code></pre>
+<pre><code>## # A tibble: 7 x 2
+##   DayOfWeek observed_count
+##   &lt;fct&gt;              &lt;int&gt;
+## 1 Monday                17
+## 2 Tuesday               26
+## 3 Wednesday             22
+## 4 Thursday              23
+## 5 Friday                19
+## 6 Saturday              15
+## 7 Sunday                25</code></pre>
+<p>It looks like the most writers were born on a Tuesday and the least born on a Saturday. Differences across the week don’t look too big - but let’s create a visualisation.</p>
+</div>
+<div id="visualisation-of-observations" class="section level3">
+<h3>Visualisation of observations</h3>
+<p>To create a visualisation of the distribution of birthdays, we need to calculate a proportion for each day of the week. The proportion of birthdays on a Monday is calculated as the count of birthdays on a Monday divided by the sample size (<span class="math inline">\(n\)</span>). Put simply:</p>
+<p><span class="math display">\[ 17/147 = 0.12\]</span>
+Now, to use R to calculate our sample proportions for each day of the week and store this in our table…</p>
+<pre class="r"><code>writers_table &lt;- writers_table %&gt;%
+  mutate(prop = observed_count / nrow(writers)) # the nrow function is the number of rows in our dataset (our sample size) as each row is a data point
+
+writers_table</code></pre>
+<pre><code>## # A tibble: 7 x 3
+##   DayOfWeek observed_count  prop
+##   &lt;fct&gt;              &lt;int&gt; &lt;dbl&gt;
+## 1 Monday                17 0.116
+## 2 Tuesday               26 0.177
+## 3 Wednesday             22 0.150
+## 4 Thursday              23 0.156
+## 5 Friday                19 0.129
+## 6 Saturday              15 0.102
+## 7 Sunday                25 0.170</code></pre>
+<div class="yellow">
+<p>Remember, all sample proportions sum to one!</p>
+<pre class="r"><code>sum(writers_table$prop)</code></pre>
+<pre><code>## [1] 1</code></pre>
+</div>
+<p>Now, to produce our bar graph…</p>
+<pre class="r"><code># telling R we&#39;re using the writers_table object, we want DayOfWeek on the x-axis (bottom) and proportion on the y-axis
+ggplot(writers_table, aes(x = DayOfWeek, y = prop)) + 
+  geom_col(fill = &#39;lightblue&#39;) + # colour of our bars (change the colours!)
+  labs(x = &quot;Day of the week&quot;, y = &quot;Proportion of writers&quot;) + # labels for our x- and y-axis
+  theme_classic(base_size = 15)</code></pre>
+<p><img src="20_chi_square_files/figure-html/unnamed-chunk-9-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>As our count data showed, there isn’t a great difference in the proportion of people born on any given day of the week, but it’s always useful to make a nice visualisation!</p>
+</div>
+<div id="calculating-expected-counts" class="section level3">
+<h3>Calculating expected counts</h3>
+<p>What value would make sense for the expected count of Monday birthdays? Intuitively, it would make sense for the expected count of Monday birthdays, under the null hypothesis, would be 1/7 of all birthdays fall on a Monday.</p>
+<p>Using the formula for the expected count, <span class="math inline">\(E_i = n \cdot p_{i,0}\)</span>, where <span class="math inline">\(n\)</span> = sample size, <span class="math inline">\(p_{i,0}\)</span> is the hypothesised population proportion for that category under the null hypothesis:</p>
+<p><span class="math display">\[ 
+147 \cdot \frac{1}{7} = 21
+\]</span>
+We would expect the frequency of birthdays on a Monday to be 21.</p>
+<p>To calculate our expected count for the other days of the week…</p>
+<pre class="r"><code>writers_table &lt;- writers %&gt;%
+  group_by(DayOfWeek) %&gt;%
+  summarise(observed_count = n()) %&gt;%
+  mutate(expected_count = rep(147 * (1/7), 7))
+
+writers_table</code></pre>
+<pre><code>## # A tibble: 7 x 3
+##   DayOfWeek observed_count expected_count
+##   &lt;fct&gt;              &lt;int&gt;          &lt;dbl&gt;
+## 1 Monday                17             21
+## 2 Tuesday               26             21
+## 3 Wednesday             22             21
+## 4 Thursday              23             21
+## 5 Friday                19             21
+## 6 Saturday              15             21
+## 7 Sunday                25             21</code></pre>
+<div class="yellow">
+<p>The <code>rep(x, times)</code> function will repeat <code>x</code> a given number of <code>times</code>.</p>
+<p>Above, we calculated the expected count, <code>147 * (1/7)</code> and then repeated it for the 7 days of the week. For this example, the null hypothesis specifies the same proportions for all 7 days of the week, hence the expected count for each day of the week is 21.</p>
+</div>
+<p>As we’ve calculated our expected count, we can also calculate our expected proportion. As there are 7 days of the week, we would expected the proportion of birthdays to fall equally across those days, i.e. 1/7 of birthdays fall on a Monday, 1/7 fall on a Tuesday etc.</p>
+<pre class="r"><code>writers_table &lt;- writers %&gt;%
+ group_by(DayOfWeek) %&gt;%
+ summarise(observed_count = n()) %&gt;%
+ mutate(expected_count = rep(147 * (1/7), 7)) %&gt;%
+ mutate(expected_prop = rep(1/7, 7))
+
+writers_table</code></pre>
+<pre><code>## # A tibble: 7 x 4
+##   DayOfWeek observed_count expected_count expected_prop
+##   &lt;fct&gt;              &lt;int&gt;          &lt;dbl&gt;         &lt;dbl&gt;
+## 1 Monday                17             21         0.143
+## 2 Tuesday               26             21         0.143
+## 3 Wednesday             22             21         0.143
+## 4 Thursday              23             21         0.143
+## 5 Friday                19             21         0.143
+## 6 Saturday              15             21         0.143
+## 7 Sunday                25             21         0.143</code></pre>
+</div>
+<div id="performing-the-chi-square-goodness-of-fit-test" class="section level3">
+<h3>Performing the chi-square goodness-of-fit test</h3>
+<p>First, we need to calculate <span class="math inline">\(\frac{(O_i-E_i)^2}{E_i}\)</span> for each day of the week (category).</p>
+<pre class="r"><code>writers_table &lt;- writers_table %&gt;%
+  mutate(std_sq_diff = (observed_count - expected_count)^2 / expected_count)
+
+writers_table</code></pre>
+<pre><code>## # A tibble: 7 x 5
+##   DayOfWeek observed_count expected_count expected_prop std_sq_diff
+##   &lt;fct&gt;              &lt;int&gt;          &lt;dbl&gt;         &lt;dbl&gt;       &lt;dbl&gt;
+## 1 Monday                17             21         0.143      0.762 
+## 2 Tuesday               26             21         0.143      1.19  
+## 3 Wednesday             22             21         0.143      0.0476
+## 4 Thursday              23             21         0.143      0.190 
+## 5 Friday                19             21         0.143      0.190 
+## 6 Saturday              15             21         0.143      1.71  
+## 7 Sunday                25             21         0.143      0.762</code></pre>
+<div class="optional-begin">
+Standardised squared difference<span id="opt-start-208" class="fa fa-plus optional-icon clickable" onclick="toggle_visibility(&#39;opt-body-208&#39;, &#39;opt-start-208&#39;)"></span>
+</div>
+<div id="opt-body-208" class="optional-body" style="display: none;">
+<p>How do we measure how far the observed counts are from the expected counts under the null? If we simply subtracted the expected counts from the observed counts and then add them up, you will get 0:</p>
+<pre class="r"><code>writers_diff &lt;- writers_table$observed_count - writers_table$expected_count
+sum(writers_diff)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p>Instead, we will square the differences between the observed and expected counts, and then add them up.</p>
+<p>One issue, however, remains to be solved. A squared difference between observed and expected counts of 100 has a different weight in these two scenarios:</p>
+<p><strong>Scenario 1:</strong> <span class="math inline">\(O = 30\)</span> and <span class="math inline">\(E = 20\)</span> leads to a squared difference <span class="math inline">\((O - E)^2 = 10^2 = 100\)</span>.</p>
+<p><strong>Scenario 2:</strong> <span class="math inline">\(O = 3000\)</span> and <span class="math inline">\(E = 2990\)</span> leads to a squared difference <span class="math inline">\((O - E)^2 = 10^2 = 100\)</span></p>
+<p>However, it is clear that a squared difference of 100 in Scenario 1 is much more substantial than a squared difference of 100 in Scenario 2. It is for this reason that we divide the squared differences by the the expected counts to “standardize” the squared deviation.</p>
+<p>The test-statistic <span class="math inline">\(\chi^2\)</span> is obtained by adding up the standardized squared deviations and summing over all the categories.</p>
+<p><strong>Note</strong>: As <span class="math inline">\((O - E)^2\)</span> is equal to <span class="math inline">\((E - O)^2\)</span>, the test-statistic can be written as:</p>
+<p><span class="math display">\[
+\chi^2 = \sum_i \frac{(O_i - E_i)^2}{E_i} = \sum_i \frac{(E_i - O_i)^2}{E_i}
+\]</span></p>
+</div>
+<p class="optional-end">
+</p>
+<p>Next, we need to sum our standard square differences column, to get out test statistic.</p>
+<pre class="r"><code>chi_stat &lt;- sum(writers_table$std_sq_diff)
+chi_stat</code></pre>
+<pre><code>## [1] 4.857143</code></pre>
+<p><strong>What does 4.85 mean?</strong></p>
+<p>If the observed and expected frequencies had been exactly equal, the chi-square statistic would have been 0 and you would have had no reason to doubt the null hypothesis that all days of the week are equally likely to be someone’s birthday.</p>
+<p><span class="math display">\[
+\chi^2 = \frac{(21 - 21)^2}{21} + \cdots + \frac{(21 - 21)^2}{21} = 0
+\]</span></p>
+<p>Large values of the test statistic constitute evidence against the null hypothesis. Answers will vary about whether this test statistic provides convincing evidence. We also need to calculate the p-value, using the <code>pchisq</code> function. You need to know how likely it is that you would obtain a test statistic this large (or larger) by random chance alone if all seven days of the week are equally likely to be a person’s birthday.</p>
+</div>
+<div id="p-value" class="section level3">
+<h3>p-value</h3>
+<p>As always, your next step is to calculate the p-value.</p>
+<p>The p-value tells you the probability of getting sample data at least as far from the hypothesized proportions as these data are, by random chance if the null hypothesis is true.</p>
+<p>So again, a small p-value indicates the sample data is unlikely to have occurred by chance alone if the null hypothesis is true, providing evidence in favour of the alternative.</p>
+<p>When the test statistic is large enough to produce a small p-value, then the sample data provide strong evidence against the null hypothesis</p>
+<p>We will use the <code>pchisq(&lt;obs statistic&gt;, df)</code> function which wants our test statistic and degrees of freedom. Remember, our degrees of freedom are the # categories - 1, i.e. <span class="math inline">\(C - 1\)</span>.</p>
+<pre class="r"><code>1 - pchisq(chi_stat, df = 6)</code></pre>
+<pre><code>## [1] 0.562262</code></pre>
+<p>If all seven days of the week are equally likely to be a person’s birthday, the probability that you would obtain a test statistic this large (or larger) by random chance alone is .56. With an <span class="math inline">\(\alpha = 0.05\)</span>, we fail to reject the null hypothesis that all seven days of the week are equally likely to be a person’s birthday, as the p-value (0.56)i s larger than the significance level.</p>
+</div>
+<div id="checking-assumptions" class="section level3">
+<h3>Checking assumptions</h3>
+<p>Now for assumption checks:</p>
+<ol style="list-style-type: decimal">
+<li>Data should be randomly sampled from the population.</li>
+<li>Data should be at the categorical or nominal level - goodness-of-fit test is not appropriate for continuous level data.</li>
+<li>Expected counts should be <em>at least</em> 5.</li>
+</ol>
+<p>Let’s check them:</p>
+<ol style="list-style-type: decimal">
+<li>Our data has not been randomly sampled from the population - these are the birthdays of “noted writers of the present” which is not a random sample of the population of all citizens.</li>
+<li>Data is categorical (days of the week)</li>
+<li>All expected counts were greater than 5 (expected birthdays for each day of the week was 21).</li>
+</ol>
+</div>
+<div id="all-in-one-function" class="section level3">
+<h3>All in one function</h3>
+<p>As usual, R has a nifty function to calculate our test. The <code>chisq.test()</code> function requires <code>x</code> (the observed counts) and <code>p</code> (the expected proportions, a numerical vector):</p>
+<pre class="r"><code>gof_test &lt;- chisq.test(x = writers_table$observed_count, 
+                       p = writers_table$expected_prop)
+
+gof_test</code></pre>
+<pre><code>## 
+##  Chi-squared test for given probabilities
+## 
+## data:  writers_table$observed_count
+## X-squared = 4.8571, df = 6, p-value = 0.5623</code></pre>
+<p>The numbers all match!</p>
+</div>
+<div id="pearson-residuals" class="section level3">
+<h3>Pearson residuals</h3>
+<p>If you were interested to know which day of the week had the highest contribution to the chi-square test statistic, you can calculate the Pearson residual.</p>
+<pre class="r"><code># extracting the residuals from the performed chi square test performed above
+gof_test$residuals </code></pre>
+<pre><code>## [1] -0.8728716  1.0910895  0.2182179  0.4364358 -0.4364358 -1.3093073  0.8728716</code></pre>
+<p>The highest values are for Tuesday and Saturday. The value for Tuesday, 1.09, is positive. This means that the observed counts were larger than expected. In the same way we interpret the residual for Saturday, -1.31. As this value is negative, this means that the observed counts of birthdays on a Saturday were less than expected.</p>
+</div>
+</div>
+</div>
+<div id="chi-square-test-of-independence" class="section level1">
+<h1>Chi-square test of independence</h1>
+<p>The <span class="math inline">\(\chi^2\)</span> test of independence is used to determine whether or not there is a significant association between two categorical variables.</p>
+<p><strong>Examples of when to use <span class="math inline">\(\chi^2\)</span> test of independence</strong></p>
+<ul>
+<li><p>We want to know if sex is associated with political party preference - we survey 1000 voters and record their sex and political party preference.</p></li>
+<li><p>If a person’s favourite colour is associated with their favourite sport - we survey 500 people and ask them about their preferences for both.</p></li>
+<li><p>Does telling a joke affect whether or not a waiter in a coffee sop receives a tip?</p></li>
+</ul>
+<p>In each scenario we want to know if two categorical variables are associated with each other. We can use the <span class="math inline">\(\chi^2\)</span> test of independence to determine if there is a statistically significant association between the variables.</p>
+<p><strong>Null hypothesis</strong></p>
+<p><span class="math inline">\(H_0:\)</span> Variable A is not associated with variable B</p>
+<p><span class="math inline">\(H_1:\)</span> Variable A is associated with variable B</p>
+<p><strong>Test formula</strong></p>
+<p><span class="math display">\[
+\chi^2 = \sum_{all\ cells} \frac{(O - E)^2}{E}
+\]</span>
+where:</p>
+<ul>
+<li><span class="math inline">\(\sum\)</span> = the sum over all possible cells</li>
+<li><span class="math inline">\(O\)</span> = observed count for a cell</li>
+<li><span class="math inline">\(E\)</span> = expected count for a cell</li>
+</ul>
+<p>If the p-value computed using a <span class="math inline">\(\chi^2\)</span> distribution with (# rows - 1) <span class="math inline">\(\times\)</span> (# columns - 1) is less than the chosen significance level (e.g. 0.05), then we can reject the null hypothesis.</p>
+<div class="yellow">
+<p>Note that the formula is the same as the previous <span class="math inline">\(\chi^2\)</span> test, but the <em>degrees of freedom</em> are different.</p>
+</div>
+<div id="assumptions-1" class="section level3">
+<h3>Assumptions</h3>
+<ol style="list-style-type: decimal">
+<li><p>Two categorical variables</p></li>
+<li><p>Two or more categories (groups) for each variable.</p></li>
+<li><p>Independence of observations</p></li>
+</ol>
+<ul>
+<li>there is not relationship between the subjects in each group</li>
+<li>the categorical variables are not ‘paired’ in any way - e.g. pretest/post-test observations</li>
+</ul>
+<ol start="4" style="list-style-type: decimal">
+<li>Large enough sample size, such that:</li>
+</ol>
+<ul>
+<li>expected frequencies for each cell are at least 1</li>
+<li>expected frequencies should be at least 5 for the majority (80%) of cells</li>
+</ul>
+<p><strong>Checking assumptions</strong></p>
+<ol style="list-style-type: decimal">
+<li>Study design issue - ensure that the data being collected are two categorical variables (not continuous or ordinal)</li>
+<li>Study design issue</li>
+<li>Study design issue - random sampling techniques help meet this assumption</li>
+<li>Study design issue - ensure the study sample size is large enough before data collection</li>
+</ol>
+</div>
+<div id="question-joking-for-a-tip" class="section level2">
+<h2>Question: Joking for a tip</h2>
+<p>Can telling a joke affect whether or not a waiter in a coffee bar receives a tip from a customer?</p>
+<p>A study published in the Journal of Applied Social Psychology<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> investigated this question at a coffee bar of a famous seaside resort on the west Atlantic coast of France. The waiter randomly assigned coffee-ordering customers to one of three groups. When receiving the bill, one group also received a card telling a joke, another group received a card containing an advertisement for a local restaurant, and a third group received no card at all.</p>
+<p>The data is stored in the file <a href="https://uoepsy.github.io/data/TipJoke.csv">TipJoke.csv</a>, accessible via the link <a href="https://uoepsy.github.io/data/TipJoke.csv" class="uri">https://uoepsy.github.io/data/TipJoke.csv</a>. The variables are:</p>
+<ul>
+<li><code>Card</code>: None, Joke, Ad.</li>
+<li><code>Tip</code>: 1 = The customer left a tip, 0 = The customer did not leave tip.</li>
+</ul>
+<p>In the following, we will consider leaving a tip as “success.”</p>
+<div id="hypotheses-1" class="section level3">
+<h3>Hypotheses</h3>
+<div class="question-begin">
+Question 1
+</div>
+<div class="question-body">
+<p>Define the null and alternative hypothesis.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-209" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-209&#39;, &#39;sol-start-209&#39;)"></span>
+</div>
+<div id="sol-body-209" class="solution-body" style="display: none;">
+<p><span class="math inline">\(H_0:\)</span> There is no association between card type and tipping.</p>
+<p><span class="math inline">\(H_1:\)</span> The is an association between card type and tipping.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 2
+</div>
+<div class="question-body">
+<p>Read in the data and run some checks.</p>
+<p>Make sure the data is correctly encoded.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-210" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-210&#39;, &#39;sol-start-210&#39;)"></span>
+</div>
+<div id="sol-body-210" class="solution-body" style="display: none;">
+<p>First we need to read in our data and see how it looks:</p>
+<pre class="r"><code>tipjoke &lt;- read_csv(&#39;https://uoepsy.github.io/data/TipJoke.csv&#39;)
+
+head(tipjoke) # print first 6 rows</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   Card    Tip
+##   &lt;chr&gt; &lt;dbl&gt;
+## 1 None      1
+## 2 Joke      1
+## 3 Ad        0
+## 4 None      0
+## 5 None      1
+## 6 None      0</code></pre>
+<pre class="r"><code>dim(tipjoke) # dimensions - 211 rows (observations) and 2 columns (variables)</code></pre>
+<pre><code>## [1] 211   2</code></pre>
+<p>We need to make them both factors (as we’re working with categorical data) and change the <code>Tip</code> variable into <code>NoTip</code> and <code>Tip</code> to replace the 0s and 1s.</p>
+<pre class="r"><code>tipjoke &lt;- tipjoke %&gt;%
+  mutate(Card = factor(Card),
+         Tip = factor(Tip, levels = c(0, 1), labels = c(&#39;NoTip&#39;, &#39;Tip&#39;)))
+
+head(tipjoke) # b-e-a-u-tiful</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   Card  Tip  
+##   &lt;fct&gt; &lt;fct&gt;
+## 1 None  Tip  
+## 2 Joke  Tip  
+## 3 Ad    NoTip
+## 4 None  NoTip
+## 5 None  Tip  
+## 6 None  NoTip</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 3
+</div>
+<div class="question-body">
+<p>Create a barplot that visually summarises the data.</p>
+<p>comment on what the graph shows.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-211" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-211&#39;, &#39;sol-start-211&#39;)"></span>
+</div>
+<div id="sol-body-211" class="solution-body" style="display: none;">
+<pre class="r"><code>ggplot(tipjoke, aes(x = Card, fill = Tip)) + # card on the x-axis and &#39;filling&#39; the bar with our Tip variable (which has two levels)
+  geom_bar()</code></pre>
+<p><img src="20_chi_square_files/figure-html/unnamed-chunk-20-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>From the stacked bar graph, it appears that perhaps the joke card does produce a higher success rate, but we need to investigate whether the differences are statistically significant.</p>
+<p>If you prefer to have the bars all with the same heights and show the proportion of customers who tipped for each card, you can use:</p>
+<pre class="r"><code>ggplot(tipjoke, aes(x = Card, fill = Tip)) + 
+  geom_bar(position = &#39;fill&#39;)</code></pre>
+<p><img src="20_chi_square_files/figure-html/unnamed-chunk-21-1.png" width="70%" style="display: block; margin: auto;" /></p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 4
+</div>
+<div class="question-body">
+<p>Create a two-way table showing how many customers left a tip or not, for each card type (including <code>None</code>).</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-212" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-212&#39;, &#39;sol-start-212&#39;)"></span>
+</div>
+<div id="sol-body-212" class="solution-body" style="display: none;">
+<pre class="r"><code>observed_tipjoke &lt;- table(tipjoke$Tip, tipjoke$Card)
+observed_tipjoke</code></pre>
+<pre><code>##        
+##         Ad Joke None
+##   NoTip 60   42   49
+##   Tip   14   30   16</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 5
+</div>
+<div class="question-body">
+<p>Run a <span class="math inline">\(\chi^2\)</span> test of independence, report the test statistic and the p-value.</p>
+<p><strong>Hint:</strong> For a test of independence, you need to provide to <code>chisq.test()</code> only one argument, <code>x</code> = the contingency table of observed counts</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-213" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-213&#39;, &#39;sol-start-213&#39;)"></span>
+</div>
+<div id="sol-body-213" class="solution-body" style="display: none;">
+<pre class="r"><code>ind_test &lt;- chisq.test(observed_tipjoke)
+ind_test</code></pre>
+<pre><code>## 
+##  Pearson&#39;s Chi-squared test
+## 
+## data:  observed_tipjoke
+## X-squared = 9.9533, df = 2, p-value = 0.006897</code></pre>
+<p>The <span class="math inline">\(\chi^2\)</span> statistic in the sample is <span class="math inline">\(\chi^2\)</span> = 9.95.</p>
+<p>The p-value is <span class="math inline">\(P(\chi^2(2) \geq 9.95 = 0.007)\)</span></p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 6
+</div>
+<div class="question-body">
+<p>Inspect the expected frequencies.</p>
+<p>Look at the Pearson residuals and comment on what you notice.</p>
+<p><em>Hint: look at the goodness-of-fit walkthrough and how we obtained the Pearson residuals - similar notation can be used to obtain the expected frequences too</em></p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-214" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-214&#39;, &#39;sol-start-214&#39;)"></span>
+</div>
+<div id="sol-body-214" class="solution-body" style="display: none;">
+<pre class="r"><code>ind_test$expected</code></pre>
+<pre><code>##        
+##               Ad     Joke     None
+##   NoTip 52.95735 51.52607 46.51659
+##   Tip   21.04265 20.47393 18.48341</code></pre>
+<pre class="r"><code>ind_test$observed</code></pre>
+<pre><code>##        
+##         Ad Joke None
+##   NoTip 60   42   49
+##   Tip   14   30   16</code></pre>
+<p>More customers than expected under the null hypothesis:</p>
+<ul>
+<li>didn’t tip after receiving an advertising card;</li>
+<li>tipped after receiving a joke card;</li>
+<li>didn’t tip after receiving no card.</li>
+</ul>
+<p>Less customers than expected under the null hypothesis:</p>
+<ul>
+<li>tipped after receiving an advertising card;</li>
+<li>didn’t tip after receiving a joke card;</li>
+<li>tipped after receiving no card.</li>
+</ul>
+<pre class="r"><code>ind_test$residuals</code></pre>
+<pre><code>##        
+##                 Ad       Joke       None
+##   NoTip  0.9677724 -1.3270892  0.3641203
+##   Tip   -1.5352747  2.1052950 -0.5776407</code></pre>
+<p>The top three contributions to the chi-square statistic are due to:</p>
+<ul>
+<li>more customers than expected under the null hypothesis tipped after receiving a joke card;</li>
+<li>less customers than expected under the null hypothesis tipped after receiving an advertisement card;</li>
+<li>less customers than expected under the null hypothesis didn’t tip after receiving a joke card.</li>
+</ul>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 7
+</div>
+<div class="question-body">
+<p>Check the assumptions of the test.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-215" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-215&#39;, &#39;sol-start-215&#39;)"></span>
+</div>
+<div id="sol-body-215" class="solution-body" style="display: none;">
+<ol style="list-style-type: decimal">
+<li>Data has two categorical variables (Card and Tip)</li>
+<li>These categories had two and three groups for each variable (Card - 3 levels and Tip - 2 levels)</li>
+<li>Independence of observations (a random sample was taken of a large population, no pairing)</li>
+<li>Sample size was sufficiently large enough</li>
+</ol>
+<ul>
+<li>expected counts were all greater than 1</li>
+<li>and all cells had more than 5 expected counts</li>
+</ul>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 8
+</div>
+<div class="question-body">
+<p>Write a summary of the test results and relate back to the context of the study.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-216" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-216&#39;, &#39;sol-start-216&#39;)"></span>
+</div>
+<div id="sol-body-216" class="solution-body" style="display: none;">
+<p>A <span class="math inline">\(\chi^2\)</span> test of independence between tipping and card type was performed (<span class="math inline">\(\chi^2(2) = 9.95, p = .007\)</span>). At the 5% significance level, the chi-square test indicates that there is very strong evidence that the tip rate differs depending on which card (Joke, Ad, or None) the waiter gave to the customer. In other words, the two variables are associated. To understand the nature of this difference in the chi-square test, we need to compare observed and expected frequencies. The observed number of tips in the joke group (30) is quite a bit higher than expected (20.47), while the observed counts for both the advertising and no card groups are lower than expected.</p>
+</div>
+<p class="solution-end">
+</p>
+</div>
+</div>
+</div>
+<div id="glossary" class="section level1">
+<h1>Glossary</h1>
+<ul>
+<li><em>Cell contribution.</em> The contribution of a cell in a table to the chi-square statistic. It is helpful in determining where large differences between observed data and what would be expected if the null hypothesis were true, exist.</li>
+<li><em>Chi-square statistic</em> A standardized statistic for quantifying the distance between the observed frequencies in the sample with those expected under the null hypothesis.</li>
+<li><em>Observed counts.</em> The observed frequencies in the cells of the table from the study.</li>
+<li><em>Expected counts.</em> The expected frequencies for the cells of the table assuming the null hypothesis is true.</li>
+<li><em>Chi-square goodness-of-fit test.</em> Are the proportions of the different categories in the population equal to the hypothesized proportions?</li>
+<li><em>Chi-square test of independence.</em> Are two categorical variables independent in the population?</li>
+</ul>
+<!-- Formatting -->
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;">
+
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Gueaguen, N. (2002). The Effects of a Joke on Tipping When It Is Delivered at the Same Time as the Bill. <em>Journal of Applied Social Psychology, 32</em>(9), 1955-1963.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+
+<link rel="stylesheet" href="https://uoepsy.github.io/assets/css/ccfooter.css" />
+<div class="ccfooter"></div>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Hypothesis testing &amp; Confidence intervals</title>
+
+<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+<script>
+function toggle_visibility(id1, id2) {
+var e = document.getElementById(id1);
+var f = document.getElementById(id2);
+e.style.display = ((e.style.display!='none') ? 'none' : 'block');
+if(f.classList.contains('fa-chevron-circle-right')) {
+    f.classList.add('fa-chevron-circle-down')
+    f.classList.remove('fa-chevron-circle-right')
+} else {
+    f.classList.add('fa-chevron-circle-right')
+    f.classList.remove('fa-chevron-circle-down')
+}
+}
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="assets/style-labs.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"><strong>DAPR1</strong></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">
+    <span class="fa fa-home"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="intro_r_rstudio_year1.html">DAPR1 starts here</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Intro to data and R
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="1_01_data_types.html">1/1: Collecting data</a>
+    </li>
+    <li>
+      <a href="1_02_categorical.html">1/2: Categorical data</a>
+    </li>
+    <li>
+      <a href="1_03_numerical.html">1/3: Numerical data</a>
+    </li>
+    <li>
+      <a href="1_04_relationships.html">1/4: Relationships</a>
+    </li>
+    <li>
+      <a href="1_05_functions.html">1/5: Types of relations</a>
+    </li>
+    <li class="dropdown-header">1/6: Break week!</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Probability &amp; sampling
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="1_07_probability_basics.html">1/7: Probability basics</a>
+    </li>
+    <li>
+      <a href="1_08_probability_rules.html">1/8: Probability rules!</a>
+    </li>
+    <li>
+      <a href="1_09_discrete_distributions.html">1/9: Discrete random variables</a>
+    </li>
+    <li>
+      <a href="1_10_continuous_distributions.html">1/10: Continuous random variables</a>
+    </li>
+    <li>
+      <a href="1_11_sampling_distributions.html">1/11: Sampling distributions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Hypothesis testing
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="2_01_confidence_intervals.html">2/1: Confidence intervals</a>
+    </li>
+    <li>
+      <a href="2_02_ht_pvalues.html">2/2: Hypothesis testing: p-values</a>
+    </li>
+    <li>
+      <a href="2_03_ht_critvalues.html">2/3: Hypothesis testing: critical values</a>
+    </li>
+    <li>
+      <a href="2_04_htci.html">2/4: Hypothesis testing &amp; Confidence intervals</a>
+    </li>
+    <li>
+      <a href="2_05_hterrorspower.html">2/5: Errors, Power, Effect size, Assumptions</a>
+    </li>
+    <li class="dropdown-header">2/6: Break week</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Basic tests
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="2_07_onesamplet.html">2/7: One sample t-test</a>
+    </li>
+    <li>
+      <a href="2_08_independentt.html">2/8: Independent samples t-test</a>
+    </li>
+    <li>
+      <a href="2_09_pairedt.html">2/9: Paired sample t-test</a>
+    </li>
+    <li>
+      <a href="2_10_chisquare.html">2/10: Chi-square</a>
+    </li>
+    <li>
+      <a href="2_11_covcor.html">2/11: Covariance and correlation</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Hypothesis testing &amp; Confidence intervals</h1>
+
+</div>
+
+
+<div class="lo">
+<ol style="list-style-type: decimal">
+<li><p>Interpret a confidence interval as the plausible values of a parameter that would not be rejected in a two-sided hypothesis test.</p></li>
+<li><p>Determine the decision for a two-sided hypothesis test from an appropriately constructed confidence interval.</p></li>
+<li><p>Be able to explain the difference between a significant result and an important result.</p></li>
+</ol>
+</div>
+<div id="hypothesis-testing" class="section level1">
+<h1>Hypothesis testing</h1>
+<p>Consider the two-sided hypothesis testing case</p>
+<p><span class="math display">\[
+H_0 : \mu = \mu_0 \\
+H_1 : \mu \neq \mu_0
+\]</span></p>
+<p>Where the test statistic used in order to test the above claim is:</p>
+<p><span class="math display">\[
+t = \frac{\bar x - \mu_0}{s / \sqrt{n}}
+\]</span></p>
+<p>At the 5% significance level:</p>
+<ul>
+<li>we <strong>reject</strong> the null hypothesis <span class="math inline">\(H_0\)</span> whenever the observed t-statistic lies beyond the critical values:</li>
+</ul>
+<p><span class="math display">\[t \leq -t^* \qquad \text{or} \qquad t \geq +t^*\]</span></p>
+<p><img src="2_04_htci_files/figure-html/unnamed-chunk-2-1.png" width="80%" style="display: block; margin: auto;" /></p>
+<ul>
+<li>we <strong>do not reject</strong> the null hypothesis <span class="math inline">\(H_0\)</span> whenever the observed t-statistic lies within the critical values:</li>
+</ul>
+<p><span class="math display">\[-t^* &lt; t &lt; +t^*\]</span></p>
+<p><img src="2_04_htci_files/figure-html/unnamed-chunk-3-1.png" width="80%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="confidence-interval" class="section level1">
+<h1>Confidence interval</h1>
+<p>A 95% confidence interval for the population mean is given by</p>
+<p><span class="math display">\[\left[ \bar x - t^* \cdot \frac{s}{\sqrt n}, \ \ \bar x + t^* \cdot \frac{s}{\sqrt n} \right]\]</span></p>
+</div>
+<div id="from-ht-to-ci" class="section level1">
+<h1>From HT to CI</h1>
+<p>In the hypothesis test, we do not reject the null hypothesis at the 5% significance level whenever <span class="math inline">\(\mu_0\)</span> lies inside of the 95% CI:</p>
+<p><span class="math display">\[
+\textbf{Do not reject } H_0 : \mu = \mu_0 \textbf{ if} \\ \quad \\
+-t^* &lt; t &lt; +t^* \\
+-t^* &lt; \frac{\bar x - \mu_0}{\frac{s}{\sqrt n}} &lt; +t^* \\
+-t^* \cdot \frac{s}{\sqrt n}&lt; \bar x - \mu_0 &lt; +t^* \cdot \frac{s}{\sqrt n} \\
+-\bar x -t^* \cdot \frac{s}{\sqrt n}&lt; - \mu_0 &lt; -\bar x +t^* \cdot \frac{s}{\sqrt n} \\
+\bar x + t^* \cdot \frac{s}{\sqrt n} &gt; \mu_0 &gt; \bar x - t^* \cdot \frac{s}{\sqrt n} \\
+\bar x - t^* \cdot \frac{s}{\sqrt n} &lt; \mu_0 &lt; \bar x + t^* \cdot \frac{s}{\sqrt n} \\
+\mu_0 \text{ inside of } \left[ \bar x - t^* \cdot \frac{s}{\sqrt n}, \ \ \bar x + t^* \cdot \frac{s}{\sqrt n} \right] \\
+\mu_0 \text{ inside of 95% CI}
+\]</span></p>
+</div>
+<div id="exercises-story-spoilers" class="section level1">
+<h1>Exercises: Story Spoilers</h1>
+<p>In this week’s exercises we will consider ratings for stories with and without spoilers. At the 5% significance level, we will test the following claim:</p>
+<blockquote>
+<p><strong>Research question</strong><br />
+Does having a story spoiled lead, on average, to a different rating?</p>
+</blockquote>
+<p>A recent study by Leavitt et al.<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> investigated whether a story spoiler that gives away the ending early diminishes suspense and hurts enjoyment. For twelve different short stories, the study’s authors created a second version in which a spoiler paragraph at the beginning discussed the story and revealed the outcome. Each
+version of the twelve stories was read by at least 30 people and rated on a 1 to 10 scale to create an overall rating for the story, with higher ratings indicating greater enjoyment of the story. Stories 1 to 4 were ironic twist stories, stories 5 to 8 were mysteries, and stories 9 to 12 were literary stories.</p>
+<div class="optional-begin">
+<span id="opt-start-153" class="fa fa-chevron-circle-right optional-icon clickable" onclick="toggle_visibility(&#39;opt-body-153&#39;, &#39;opt-start-153&#39;)"> Data Codebook</span>
+</div>
+<div id="opt-body-153" class="optional-body" style="display: none;">
+<p><strong>Download link</strong><br />
+<a href="https://uoepsy.github.io/data/StorySpoilers.csv" class="uri">https://uoepsy.github.io/data/StorySpoilers.csv</a></p>
+<p><strong>Preview</strong><br />
+The top six rows of the data are:</p>
+<div id="osncjrvket" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#osncjrvket .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#osncjrvket .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#osncjrvket .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#osncjrvket .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#osncjrvket .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#osncjrvket .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#osncjrvket .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: bold;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#osncjrvket .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: bold;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#osncjrvket .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#osncjrvket .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#osncjrvket .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#osncjrvket .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#osncjrvket .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#osncjrvket .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#osncjrvket .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#osncjrvket .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#osncjrvket .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#osncjrvket .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#osncjrvket .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#osncjrvket .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#osncjrvket .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#osncjrvket .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#osncjrvket .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#osncjrvket .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#osncjrvket .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#osncjrvket .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#osncjrvket .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#osncjrvket .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#osncjrvket .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#osncjrvket .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#osncjrvket .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#osncjrvket .gt_left {
+  text-align: left;
+}
+
+#osncjrvket .gt_center {
+  text-align: center;
+}
+
+#osncjrvket .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#osncjrvket .gt_font_normal {
+  font-weight: normal;
+}
+
+#osncjrvket .gt_font_bold {
+  font-weight: bold;
+}
+
+#osncjrvket .gt_font_italic {
+  font-style: italic;
+}
+
+#osncjrvket .gt_super {
+  font-size: 65%;
+}
+
+#osncjrvket .gt_footnote_marks {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 75%;
+  vertical-align: 0.4em;
+}
+
+#osncjrvket .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#osncjrvket .gt_slash_mark {
+  font-size: 0.7em;
+  line-height: 0.7em;
+  vertical-align: 0.15em;
+}
+
+#osncjrvket .gt_fraction_numerator {
+  font-size: 0.6em;
+  line-height: 0.6em;
+  vertical-align: 0.45em;
+}
+
+#osncjrvket .gt_fraction_denominator {
+  font-size: 0.6em;
+  line-height: 0.6em;
+  vertical-align: -0.05em;
+}
+</style>
+<table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Story</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Spoiler</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Original</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td class="gt_row gt_right">1</td>
+<td class="gt_row gt_right">4.7</td>
+<td class="gt_row gt_right">3.8</td></tr>
+    <tr><td class="gt_row gt_right">2</td>
+<td class="gt_row gt_right">5.1</td>
+<td class="gt_row gt_right">4.9</td></tr>
+    <tr><td class="gt_row gt_right">3</td>
+<td class="gt_row gt_right">7.9</td>
+<td class="gt_row gt_right">7.4</td></tr>
+    <tr><td class="gt_row gt_right">4</td>
+<td class="gt_row gt_right">7.0</td>
+<td class="gt_row gt_right">7.1</td></tr>
+    <tr><td class="gt_row gt_right">5</td>
+<td class="gt_row gt_right">7.1</td>
+<td class="gt_row gt_right">6.2</td></tr>
+    <tr><td class="gt_row gt_right">6</td>
+<td class="gt_row gt_right">7.2</td>
+<td class="gt_row gt_right">6.1</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+<p><strong>Codebook</strong></p>
+<ul>
+<li><p><code>Story</code>: ID for story</p></li>
+<li><p><code>Spoiler</code>: Average (0-10) rating for spoiler version</p></li>
+<li><p><code>Original</code>: Average (0-10) rating for original version</p></li>
+</ul>
+<p><strong>Source</strong></p>
+<p>Leavitt, J. and Christenfeld, N., <em>“Story Spoilers Don’t Spoil Stories,”</em> Psychological Science, August 12, 2011.</p>
+</div>
+<p class="optional-end">
+</p>
+<!-- 
+
+<div class='question-begin'>Question 1</div><div class='question-body'>
+
+ -->
+<!-- 
+
+</div><p class="question-end"></p>
+
+ -->
+<!-- 
+
+<div class="solution-begin"><span id='sol-start-154' class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility('sol-body-154', 'sol-start-154')">  Solution </span></div><div class="solution-body" id = "sol-body-154" style="display: none;">
+
+ -->
+<!-- 
+
+</div><p class="solution-end"></p>
+
+ -->
+<div class="question-begin">
+Question 1
+</div>
+<div class="question-body">
+<p>Read the data into R.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-155" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-155&#39;, &#39;sol-start-155&#39;)"> Solution </span>
+</div>
+<div id="sol-body-155" class="solution-body" style="display: none;">
+<pre class="r"><code>library(tidyverse)
+stories &lt;- read_csv(&quot;https://uoepsy.github.io/data/StorySpoilers.csv&quot;)
+head(stories)</code></pre>
+<pre><code>## # A tibble: 6 × 3
+##   Story Spoiler Original
+##   &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;
+## 1     1     4.7      3.8
+## 2     2     5.1      4.9
+## 3     3     7.9      7.4
+## 4     4     7        7.1
+## 5     5     7.1      6.2
+## 6     6     7.2      6.1</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 2
+</div>
+<div class="question-body">
+<p>In the lectures you saw how to perform a test on the mean of a single variable.</p>
+<ul>
+<li><p>How could you measure whether or not having a story spoiled leads to a different rating, on average, by using a single variable?</p></li>
+<li><p>What feature do this data have that makes it possible to go from two variables to a single variable?</p></li>
+</ul>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-156" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-156&#39;, &#39;sol-start-156&#39;)"> Solution </span>
+</div>
+<div id="sol-body-156" class="solution-body" style="display: none;">
+<p>The alternative hypothesis is the one directly related to the research claim. Recall the question: “Does having a story spoiled lead, on average, to a different rating?”</p>
+<p>The data are an example of paired data. Each row corresponds to a single entity, i.e. a single story. So the two ratings under the Spoiler and Original columns refer to the same story.</p>
+<p>The data correspond to measurements of the same entities (the stories) “Before” and “After” something (adding or not a spoiler).</p>
+<p>We can go from two variables to a single one by taking the difference, as the two variables refer to the same stories (units).</p>
+<p>We compute the column “Diff” as the difference in ratings between original stories and spoiler stories.</p>
+<ul>
+<li><p>When Diff is less than 0, the original story rating is lower than the spoiler story rating.</p>
+<ul>
+<li>Diff = Original - Spoiler. If Original - Spoiler &lt; 0, then we have that Original &lt; Spoiler.</li>
+</ul></li>
+<li><p>When Diff is larger than 0, the original story rating is higher than the spoiler story rating.</p>
+<ul>
+<li>Diff = Original - Spoiler. If Original - Spoiler &gt; 0, then we have that Original &gt; Spoiler.</li>
+</ul></li>
+<li><p>When Diff is equal to 0, the original story rating is the same as the spoiler story rating.</p>
+<ul>
+<li>Diff = Original - Spoiler. If Original - Spoiler = 0, then we have that Original = Spoiler.</li>
+</ul></li>
+</ul>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 3
+</div>
+<div class="question-body">
+<p>Compute a new variable, called <code>Diff</code>, representing the difference in ratings between the original and spoiler stories.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-157" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-157&#39;, &#39;sol-start-157&#39;)"> Solution </span>
+</div>
+<div id="sol-body-157" class="solution-body" style="display: none;">
+<pre class="r"><code>stories &lt;- stories %&gt;%
+    mutate(Diff = Original - Spoiler)
+stories</code></pre>
+<pre><code>## # A tibble: 12 × 4
+##    Story Spoiler Original   Diff
+##    &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;
+##  1     1     4.7      3.8 -0.9  
+##  2     2     5.1      4.9 -0.200
+##  3     3     7.9      7.4 -0.5  
+##  4     4     7        7.1  0.100
+##  5     5     7.1      6.2 -0.900
+##  6     6     7.2      6.1 -1.10 
+##  7     7     7.1      6.7 -0.400
+##  8     8     7.2      7   -0.200
+##  9     9     4.8      4.3 -0.5  
+## 10    10     5.2      5   -0.200
+## 11    11     4.6      4.1 -0.5  
+## 12    12     6.7      6.1 -0.600</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 4
+</div>
+<div class="question-body">
+<p>State the null and alternative hypothesis.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-158" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-158&#39;, &#39;sol-start-158&#39;)"> Solution </span>
+</div>
+<div id="sol-body-158" class="solution-body" style="display: none;">
+<p><span class="math display">\[
+H_0 : \mu_{\text{Diff}} = 0 \\
+H_1 : \mu_{\text{Diff}} \neq 0
+\]</span></p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 5
+</div>
+<div class="question-body">
+<p>Compute a 95% confidence interval for the difference in ratings.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-159" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-159&#39;, &#39;sol-start-159&#39;)"> Solution </span>
+</div>
+<div id="sol-body-159" class="solution-body" style="display: none;">
+<pre class="r"><code>n &lt;- nrow(stories)
+xbar &lt;- mean(stories$Diff)
+s &lt;- sd(stories$Diff)
+se &lt;- s / sqrt(n)
+
+tstar &lt;- qt(c(0.025, 0.975), df = n - 1)
+tstar</code></pre>
+<pre><code>## [1] -2.200985  2.200985</code></pre>
+<p>Confidence interval:</p>
+<pre class="r"><code>ci &lt;- xbar + tstar * se
+ci</code></pre>
+<pre><code>## [1] -0.7125281 -0.2708052</code></pre>
+<p>Since <code>tstar</code> stores two values inside,</p>
+<pre class="r"><code>tstar</code></pre>
+<pre><code>## [1] -2.200985  2.200985</code></pre>
+<p>when you do <code>xbar + tstar * se</code>, the first value will be the sample mean (<code>xbar</code>) plus the first value within <code>tstar</code> (that is, <code>-2.200985</code>) times the SE. As you can see, when you do <code>+tstar</code>, if the value within <code>tstar</code> has a minus sign, it’s the same as doing <code>-</code> because <code>+-</code> becomes <code>-</code>. The second value will be the sample mean (<code>xbar</code>) plus the second value within <code>tstar</code> (that is, <code>+2.200985</code>) times the SE.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 6
+</div>
+<div class="question-body">
+<p>Using the 95% confidence interval, make a decision on whether or not to reject the null hypothesis.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-160" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-160&#39;, &#39;sol-start-160&#39;)"> Solution </span>
+</div>
+<div id="sol-body-160" class="solution-body" style="display: none;">
+<p>The confidence interval is [-0.71, -0.27].</p>
+<p>The claimed value for the population mean difference in ratings is 0.</p>
+<p>As the 95% CI doesn’t include the value 0, at the 5% significance level we reject the null hypothesis that the population mean difference in ratings between original and spoiler stories is 0.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 7
+</div>
+<div class="question-body">
+<p>Verify whether you would reach to the same conclusion if you perform a hypothesis test via the p-value method.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-161" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-161&#39;, &#39;sol-start-161&#39;)"> Solution </span>
+</div>
+<div id="sol-body-161" class="solution-body" style="display: none;">
+<pre class="r"><code>mu0 &lt;- 0
+tobs &lt;- (xbar - mu0) / se
+tobs</code></pre>
+<pre><code>## [1] -4.899683</code></pre>
+<pre class="r"><code>pvalue &lt;- 2 * pt(abs(tobs), df = n - 1, lower.tail = FALSE)
+pvalue</code></pre>
+<pre><code>## [1] 0.0004718576</code></pre>
+<p>As <span class="math inline">\(p \leq 0.05\)</span>, we reject <span class="math inline">\(H_0\)</span>.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 8
+</div>
+<div class="question-body">
+<p>Write up your results.</p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<span id="sol-start-162" class="fa fa-chevron-circle-right solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-162&#39;, &#39;sol-start-162&#39;)"> Solution </span>
+</div>
+<div id="sol-body-162" class="solution-body" style="display: none;">
+<p>We tested whether spoiling stories leads to, on average, different ratings. At the 5% significance level, the sample results provide very strong evidence against the null hypothesis and in favour of the alternative one that the average difference in rating between original and spoiler stories is not 0; <span class="math inline">\(t(11) = -4.90, p &lt; .001\)</span>, two-sided.</p>
+<p>We are 95% confident that original stories have a rating between 0.27 and 0.71 lower, on average, than spoiler stories.</p>
+</div>
+<p class="solution-end">
+</p>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<!-- Formatting -->
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;">
+
+</div>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p>Leavitt, J. and Christenfeld, N., <em>“Story Spoilers Don’t Spoil Stories,”</em> Psychological Science, August 12, 2011.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+
+<link rel="stylesheet" href="https://uoepsy.github.io/assets/css/ccfooter.css" />
+<div class="ccfooter"></div>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

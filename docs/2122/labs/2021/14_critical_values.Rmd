@@ -1,0 +1,530 @@
+---
+title: "Hypothesis testing: the critical values approach"
+bibliography: references.bib
+biblio-style: apalike
+link-citations: yes
+params: 
+    SHOW_SOLS: TRUE
+    TOGGLE: TRUE
+---
+
+```{r setup, include=FALSE}
+source('assets/setup.R')
+```
+
+
+```{r include=FALSE}
+knitr::opts_chunk$set(fig.align = 'center', 
+                      fig.height = 7, fig.width = 8.2, 
+                      out.width = '70%')
+
+set.seed(123)
+
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+
+theme_set(theme_light(base_size = 15))
+```
+
+:::lo
+
+1. Recognise the difference between a bootstrap and null distribution
+1. Understand the parallel between p-values and critical values
+1. Be able to perform a one-sided or two-sided hypothesis test using the critical value method
+1. Understand the link between z-scores and critical values
+
+:::
+
+
+# Research question and data
+
+This week we will still be using the same data as last week, to see a direct comparison between the conclusions we reached using the p-value approach with the conclusions we will reach using the critical values approach.
+
+Recall that the research question was:
+
+> Can a simple smile have an effect on punishment assigned following an infraction?
+
+
+`r optbegin("Data: Smiles.csv", FALSE, toggle = params$TOGGLE)`
+Researchers @LaFrance1995 conducted a study to examine the effect of a smile on the leniency of disciplinary action for wrongdoers.
+Participants in the experiment took on the role of members of a college disciplinary panel judging students accused of cheating. 
+They were given, along with a description of the offence, a picture of the "suspect" who was either smiling or had a neutral facial expression. 
+A leniency score (on a 10-point scale) was calculated based on the disciplinary decisions made by the participants. 
+The full data can be found in the [Smiles.csv](https://uoepsy.github.io/data/Smiles.csv) dataset, also available at the following link: https://uoepsy.github.io/data/Smiles.csv
+
+The experimenters have prior knowledge that smiling has a positive influence on people, and they are testing to see if the average lenience score is higher for smiling students than it is for students with a neutral facial expression (or, in other words, that smiling students are given more leniency and milder punishments.)
+`r optend()`
+
+
+Analysing the data using a threshold of $\alpha = 0.05$, last week we concluded that:
+
+:::int
+At a 5% significance level, we tested whether the mean leniency score for smiling students is higher than for students with a neutral expression. The p-value of the test ($p = 0.029$) indicates that if smiling truly had no effect on leniency scores, the chance of getting a difference in mean leniency scores between smiling and neutral students as high as 0.79 is 0.029, or 3 in 100 times. The sample data provide strong evidence against the null hypothesis that smiling had no effect on leniency and in favour of the alternative.
+:::
+
+<br>
+
+This week we will perform the same test of hypothesis, shown again below, but using the equivalent method of comparing the observed statistic with critical values.
+$$
+H_0 : \mu_s - \mu_n = 0 \\
+H_1 : \mu_s - \mu_n > 0
+$$
+
+
+
+:::yellow
+**Critical values**
+
+The _**critical values**_ corresponding to a significance level of $\alpha$ are the boundaries which delimit the regions leading to the rejection of the null hypothesis.
+
+When the observed statistic is more extreme than the critical value, we reject the null hypothesis as such statistic would have a chance smaller than $\alpha$ of occurring when $H_0$ is true.
+
+- The 95% critical value when $H_1 : \mu > 0$ is found as the 95th percentile.
+
+- The 95% critical values when $H_1 : \mu \neq 0$ are two and are found as the 2.5th and 97.5th percentiles. The left critical value has a probability of 0.025 to its left, and the upper critical value has a probability of 0.025 to its right, which both sum to the desired 0.05.
+:::
+
+First, we read the data into R and inspect the top six rows:
+```{r}
+library(tidyverse)
+
+smiles <- read_csv('https://uoepsy.github.io/data/Smiles.csv')
+dim(smiles)
+```
+
+We have 68 participants in the study and 2 variables. Let's look at them:
+```{r}
+head(smiles)
+```
+
+Group is a categorical variable encoding which type of picture the panel was shown, either neutral or with a smile. It should be a factor:
+
+```{r}
+smiles$Group <- as.factor(smiles$Group)
+head(smiles)
+```
+
+Let's investigate the distribution of the original sample:
+```{r}
+ggplot(smiles, aes(x = Leniency)) +
+    geom_histogram(color = 'white', fill = 'lightblue', binwidth = 0.5) +
+    facet_grid(Group ~ .)
+```
+
+Before continuing, let's compute the observed statistic in the sample:
+```{r}
+stats <- smiles %>%
+  group_by(Group) %>%
+  summarise(Count = n(), 
+            M = mean(Leniency), 
+            SD = sd(Leniency))
+stats
+```
+
+Define
+
+- $\bar x_s$ = sample mean leniency score for smiling students
+- $\bar x_n$ = sample mean leniency score for students with a neutral expression
+
+The observed statistic which estimates the population difference in means is:
+$$
+\bar x_s - \bar x_n = `r signif(diff(stats$M), 2)`
+$$
+
+The following code stores it in R:
+```{r}
+D_obs <- diff(stats$M)
+D_obs
+```
+
+
+# Null distribution: Resampling approach
+
+The null distribution shows the possible values of a statistic for many samples from a population in which the null hypothesis is true.
+
+First, we need to load the `rep_randomize` function:
+```{r}
+source("https://uoepsy.github.io/files/rep_randomize.R")
+```
+
+For reproducibility, I will fix the random number generator seed, so that when I run again the entire file from start to finish I will get the same results.
+```{r}
+set.seed(368)
+```
+
+Next, I will generate 1000 randomization samples. Each of such samples will be of size $n = 68$ in which the group assignment has been shuffled.
+```{r}
+rand_samples <- rep_randomize(smiles, columns = 'Group', samples = 1000)
+rand_samples
+```
+
+The table above has 1,000 * 68 = 68,000 rows.
+
+Then, for each randomization sample, we need to compute the difference in mean leniency score for the smiling and non-smiling students.
+
+```{r}
+null_dist <- rand_samples %>%
+  group_by(sample, Group) %>%
+  summarise(M = mean(Leniency)) %>%
+  group_by(sample) %>%
+  summarise(D = diff(M))
+
+null_dist
+```
+
+We can visualise the null distribution of the difference in means and see where the observed difference falls in the distribution:
+
+```{r}
+ggplot(null_dist, aes(x = D)) +
+    geom_histogram(color = 'white', fill = 'lightblue') +
+    geom_vline(xintercept = D_obs, color = 'black', linetype = 2) +
+    annotate(geom = "label", x = D_obs, y = 70, label = 'D_obs = 0.79', 
+             hjust = -0.05, size = 4, color = 'black', fill = 'white') +
+    labs(x = "Difference (when H0 true)")
+```
+
+In the code above, `linetype = 2` tells R to use a dashed line. Possible other values are 1 = solid line, 3 = dotted, 4 = dash-dotted line.
+
+Don't worry about `annotate` yet. It is used to make a pretty annotation at `x = 0.79` and height `y = 70` to not interfere with the rest of the graph (you can pick any other height you wish). The text to write is provided in `label`, while `size` controls the font size, `color` the colour, and `fill` the label fill colour. The argument `hjust` is the horizontal adjustment of the text, and can range from 0 to 1.
+
+
+We now need to divide the x-axis (Differences when H0 is true) into two intervals:
+
+- one leading to the rejection of $H_0$
+- the other meaning that we do not have sufficient evidence to reject $H_0$, i.e. the non-rejection region.
+
+
+First, we need to specify the significance level, i.e. the proportion of statistics from the null distribution we don't mind sacrificing and saying H0 is false (even if they came from H0) because they are sufficiently extreme.
+
+Today, we will use $\alpha = 0.05$, as statistics that only occur 5 in 100 times under the null are rare enough for this application.
+
+Next, we need to find the critical difference that cuts an area of 0.95 to its left and 0.05 to its right:
+```{r}
+D_crit <- quantile(null_dist$D, probs = 0.95)
+D_crit
+```
+
+The critical difference, i.e. the 95th quantile of the null distribution, divides the possible values for the differences into two intervals
+
+- Non-rejection region (NRR), going from $-\infty$ to `r round(D_crit, 2)`
+- Rejection Region (RR), going from `r round(D_crit, 2)` to $\infty$
+
+The following code displays the rejection region as a red horizontal line and the non-rejection region as a grey horizontal line:
+```{r}
+ggplot(null_dist, aes(x = D)) +
+    geom_histogram(color = 'white', fill = 'lightblue') +
+    geom_segment(aes(x = D_crit, xend = 1.3, y = 0, yend = 0), 
+                 color = 'red', size = 2) +
+    geom_segment(aes(x = -1.4, xend = D_crit, y = 0, yend = 0), 
+                 color = 'gray', size = 2) +
+    geom_vline(xintercept = D_obs, color = 'black', linetype = 2) +
+    geom_vline(xintercept = D_crit, color = 'red') +
+    annotate(geom = "label", x = D_obs, y = 70, label = 'D_obs = 0.79', 
+             size = 4, color = 'black', fill = 'white', hjust = -0.05) +
+    annotate(geom = "label", x = D_crit, y = 50, label = 'D_crit = 0.68', 
+             size = 4, color = 'red', fill = 'white', hjust = -0.05) +
+    labs(x = "Difference (when H0 true)")
+```
+
+You see highlighted in red on the horizontal axis the differences that are more extreme than the critical value, and if the observed difference falls into that red region (the rejection region) our conclusion would be to reject the null hypothesis.
+
+The grey region, instead, denotes the non-rejection region. If your observed difference falls into this grey part, you wouldn't reject the null.
+
+In our case,
+
+:::int
+At the 5% significance level, we tested whether smiling leads, on average, to more leniency compared to non-smiling.
+The observed difference in leniency means for smiling and non-smiling students is `r round(D_obs, 2)`, which is larger than the critical difference `r round(D_crit, 2)` cutting a probability of 0.05 to its right.
+Hence, the sample difference in leniency means provides evidence against the null and in favour of the hypothesis that smiling does, on average, increase leniency and result in milder punishments.
+:::
+
+
+# Null distribution: Theoretical approach
+
+We know from theory that the difference in means, when there is no difference in the population in mean leniency scores between smiling and non-smiling (i.e. when $H_0 : \mu_s - \mu_n = 0$ is true), is
+$$
+\bar X_s - \bar X_n \sim N(0, SE), \qquad \qquad SE = \sqrt{\frac{s_s^2}{n_s} + \frac{s_n^2}{n_n}}
+$$
+where $s_s$ and $s_n$ are the standard deviation of leniency for smiling and non-smiling students, respectively, in the original data.
+
+Recall that we already computed the summary statistics for our data:
+```{r}
+stats
+```
+
+```{r}
+mu_theory <- 0
+
+se_theory <- sqrt(stats$SD[1]^2 / stats$Count[1] + stats$SD[2]^2 / stats$Count[2])
+se_theory
+```
+
+Let's compare this with the standard error computed before via randomization, which was `r round(sd(null_dist$D), 2)`. As we can see they nicely agree!
+
+We now need to find the critical value that cuts a probability of 0.95 to its left (and 0.05 to its right):
+```{r}
+D_crit_theory <- qnorm(p = 0.95, mean = mu_theory, sd = se_theory)
+D_crit_theory
+```
+
+Is the observed difference in means larger than the critical difference?
+
+```{r}
+D_obs >= D_crit_theory
+```
+
+This shows how the theory-based approach would lead to the same conclusion. At the 5% significance level, you would reject the null hypothesis.
+
+
+Let's also visualise this:
+
+```{r echo=FALSE}
+lwr <- mu_theory - 3 * se_theory
+upr <- mu_theory + 3 * se_theory
+
+ggplot(NULL) +
+    xlim(lwr, upr) +
+    geom_function(fun = dnorm, 
+                  args = list(mean = mu_theory, sd = se_theory),
+                  color = 'darkorange', size = 1) +
+    geom_vline(xintercept = D_obs, color = 'black', linetype = 2) +
+    geom_vline(xintercept = D_crit_theory, color = 'red') +
+    geom_segment(aes(x = D_crit_theory, xend = upr, y = 0, yend = 0), 
+                 color = 'red', size = 2) +
+    geom_segment(aes(x = lwr, xend = D_crit_theory, y = 0, yend = 0), 
+                 color = 'gray', size = 2) +
+    annotate(geom = "label", x = D_obs, y = 0.70, label = 'D_obs = 0.79', 
+             size = 4, color = 'black', fill = 'white', hjust = -0.05) +
+    annotate(geom = "label", x = D_crit_theory, y = 0.50, label = 'D_crit = 0.64', 
+             size = 4, color = 'red', fill = 'white', hjust = -0.05) +
+    labs(x = "Difference (when H0 true)")
+```
+
+
+# Exercises
+
+Imagine now the scenario where the researchers have no prior beliefs about the effect of smiling on leniency scores, and they are testing to see if facial expression has __any__ effect (it could either increase or decrease leniency scores if a disciplinary panel will view smiling as arrogant and disrespectful).
+
+
+<!-- 1 -->
+
+`r qbegin(1)`
+State what the null and alternative hypothesis would have been in this scenario.
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+We are testing to see if there is evidence that the average score for smiling students is less than the average score for neutral students, so the alternative hypothesis is $\mu_s < \mu_n$.
+
+The null hypothesis is still "no effect":
+$$
+H_0 : \mu_s = \mu_n \\
+H_1 : \mu_s < \mu_n
+$$
+
+or, equivalently:
+$$
+H_0 : \mu_s - \mu_n = 0 \\
+H_1 : \mu_s - \mu_n < 0
+$$
+`r solend()`
+
+
+<!-- 2 -->
+
+`r qbegin(2)`
+Conduct a test of hypothesis at the $\alpha = 0.01$ significance level using the critical value method.
+
+**Hints** 
+
+1. Remember, you can reuse the null distribution we created above!
+
+2. Find the correct quantiles
+
+3. Check whether the observed difference falls in the non-rejection region
+
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+If the "red" area in the two tails must sum to 0.01, there will be a probability of $0.01 / 2 = 0.005$ in each tail.
+
+Hence, the required percentiles are the 0.5th and 99.5th percentiles. That is, we need to find (a) the quantile that has a probability of 0.005 to its left, and (b) the quantile that has a probability of 0.995 to its left and 0.005 to its right:
+```{r}
+D_crits <- quantile(null_dist$D, probs = c(0.005, 0.995))
+D_crits
+```
+
+The non-rejection region will be the interval from `r round(D_crits[1], 2)` to `r round(D_crits[2], 2)`.
+
+Let's check whether the observed difference falls within the non-rejection region:
+```{r}
+D_obs
+```
+
+The observed difference in means of `r round(D_obs, 2)` falls within the interval containing 99% of the values in the null distribution of the differences. 
+Hence, a difference that big is deemed plausible to occur under the null hypothesis and at the 1% significance level, the observed difference does not provide sufficient evidence to reject the null hypothesis that the mean leniency for smiling students is different than for non-smiling students.
+
+`r solend()`
+
+
+
+```{r echo=FALSE}
+ggplot(null_dist, aes(x = D)) +
+    geom_histogram(color = 'white', fill = 'lightblue') +
+    geom_segment(aes(x = -1.4, xend = D_crits[1], y = 0, yend = 0), 
+                 color = 'red', size = 2) +
+    geom_segment(aes(x = D_crits[2], xend = 1.3, y = 0, yend = 0), 
+                 color = 'red', size = 2) +
+    geom_segment(aes(x = D_crits[1], xend = D_crits[2], y = 0, yend = 0), 
+                 color = 'gray', size = 2) +
+    geom_vline(xintercept = D_obs, color = 'black', linetype = 2) +
+    geom_vline(xintercept = D_crits[1], color = 'red') +
+    geom_vline(xintercept = D_crits[2], color = 'red') +
+    annotate(geom = "label", x = D_obs, y = 70, label = 'D_obs = 0.79', 
+             size = 4, color = 'black', fill = 'white', hjust = 1.05) +
+    annotate(geom = "label", x = D_crits[1], y = 50, label = 'lower crit. diff.', 
+             size = 4, color = 'red', fill = 'white', hjust = 1.05) +
+    annotate(geom = "label", x = D_crits[2], y = 50, label = 'upper crit. diff.', 
+             size = 4, color = 'red', fill = 'white', hjust = -0.05) +
+    labs(x = "Difference (when H0 true)")
+```
+
+
+<!-- 3 -->
+
+`r qbegin(3)`
+**Theoretical approach**
+
+You could perform the two-sided test of hypothesis above without the need for any resampling. 
+To do so, you just need to original sample data and the theoretical formula, which is recalled below for convenience:
+
+$$
+\text{When }H_0\text{ is true:} \qquad
+\bar X_s - \bar X_n \sim N(0, SE), \qquad  SE = \sqrt{\frac{s_s^2}{n_s} + \frac{s_n^2}{n_n}}
+$$
+
+Conduct a test of hypothesis for the two-sided alternative using $\alpha = 0.01$, the critical value approach, and resort to the theoretical distributions.
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+We know that if the null hypothesis is true, the difference in means is ditributed as a normal with zero mean and standard error:
+```{r}
+se_theory <- sqrt(stats$SD[1]^2 / stats$Count[1] + stats$SD[2]^2 / stats$Count[2])
+```
+
+The 0.005 and 0.995 quantiles for such normal distribution are:
+```{r}
+D_crits_theory <- qnorm(p = c(0.005, 0.995), mean = 0, sd = se_theory)
+D_crits_theory
+```
+
+We have a non-rejection region going from `r round(D_crits_theory[1], 2)` to `r round(D_crits_theory[2], 2)`.
+
+The observed difference in means is 
+```{r}
+D_obs
+```
+
+At the 1% significance level, we conducted a two-sided test against the null hypothesis that the mean leniency score is the same for all smiling and non-smiling students.
+The observed difference of `r round(D_obs, 2)` falls within the 0.5th and 99.5th percentiles of the distribution, meaning that, at the 1% significance level, the observed difference doesn't provide sufficient evidence against the null hypothesis.
+
+`r solend()`
+
+
+<!-- 4 -->
+
+`r qbegin(4)`
+**Theoretical approach: Standardization**
+
+We know that standardization makes data have a mean of 0 and standard deviation equal to 1.
+Furthermore we also know that for bell-shaped distributions, 95% of the values are between the mean - 1.96 * SD and the mean + 1.96 * SD.
+
+For standardized variables, 95% of the values will be between -1.96 and 1.96, because mean = 0 and SD = 1.
+
+$$
+\text{When } H_0 \text{ is true:} \qquad 
+\frac{(\bar X_s - \bar X_n) - 0}{SE} \sim N(0, 1)
+$$
+Using the standard normal distribution, check whether the observed difference falls into the rejection region of the distribution at the 5% significance level.
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+z_obs <- (D_obs - 0) / se_theory
+z_obs
+```
+
+Let's check that the relevant quantiles are -1.96 and 1.96:
+```{r}
+qnorm(p = c(0.025, 0.975), mean = 0, sd = 1)
+```
+
+At the 5% significance level, the observed standardized difference in means (`r round(z_obs, 2)`) is larger than the upper standardized critical difference in means (1.96). This leads us to reject the null hypothesis.
+
+`r solend()`
+
+
+:::red
+**WARNING**
+
+Do not change the significance level throughout your analysis. These exercises are made for you to practice with multiple scenarios, but you should state and fix your significance level $\alpha$ at the start of your research project and keep it the same throughout. Adjusting the significance level so that your results become significant is not good scientific practice.
+:::
+
+
+<!-- 5 -->
+
+`r qbegin(5)`
+**Theoretical approach: Another view**
+
+We have seen before that
+$$
+\text{When }H_0\text{ is true:} \qquad
+\bar X_s - \bar X_n \sim N(0, SE), \qquad  SE = \sqrt{\frac{s_s^2}{n_s} + \frac{s_n^2}{n_n}}
+$$
+
+We also know that for bell-shaped distributions such as the normal, 95% of the values are between the mean - 1.96 * SD and the mean + 1.96 * SD.
+
+In this case, 95% of the sample differences will be between $-1.96 \cdot SE$ and $1.96 \cdot SE$.
+
+If we allocate a 5% significance level to the tails of the distribution, -1.96 and 1.96 will be our critical values. So we would reject whenever the observed difference in means $\bar x_s - \bar x_n$ is larger, in absolute value, than 1.96 * SE:
+
+$$
+\text{Reject }H_0\text{ if:} \qquad | \bar x_s - \bar x_n | \geq 1.96 \cdot SE
+$$
+
+Use the following quick rule to see if it leads to the same conclusions reached previously.
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+Recall the SE is computed as:
+```{r}
+se_theory <- sqrt(stats$SD[1]^2 / stats$Count[1] + stats$SD[2]^2 / stats$Count[2])
+se_theory
+```
+
+Check whether the observed difference is either
+
+- larger than the hypothesised value + 1.96 * SE
+- or smaller than the hypothesised value - 1.96 * SE
+
+```{r}
+D_obs >= 1.96 * se_theory
+D_obs <= -1.96 * se_theory
+```
+
+Alternatively, we can make the observed difference always positive by taking the absolute value, which drops any negative sign:
+```{r}
+abs(D_obs) >= 1.96 * se_theory
+```
+
+Hence, we reject the null hypothesis.
+
+`r solend()`
+
+
+
+# References
+
+
+
+<!-- Formatting -->
+
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;"></div>
+

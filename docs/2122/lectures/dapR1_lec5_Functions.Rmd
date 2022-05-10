@@ -1,0 +1,589 @@
+---
+title: "<b>Week 5: Functions </b>"
+subtitle: "Data Analysis for Psychology in R 1<br><br> "
+author: "ALEX DOUMAS & TOM BOOTH"
+institute: "Department of Psychology<br>The University of Edinburgh"
+date: "AY 2020-2021"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: xaringan-themer.css
+    nature:
+      ratio: '16:9'
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+```
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+style_mono_accent(
+    base_color = "#0F4C81", # DAPR1
+  # base_color = "#BF1932", # DAPR2
+  # base_color = "#88B04B", # DAPR3 
+  # base_color = "#FCBB06", # USMR
+  # base_color = "#a41ae4", # MSMR
+  header_color = "#000000",
+  header_font_google = google_font("Source Sans Pro"),
+  header_font_weight = 400,
+  text_font_google = google_font("Source Sans Pro", "400", "400i", "600", "600i"),
+  code_font_google = google_font("Source Code Pro")
+)
+```
+
+```{r, echo=FALSE, message=FALSE}
+library(tidyverse)
+library(kableExtra)
+```
+
+# Weeks Learning Objectives
+1. Understand the basic principles of functions.
+
+2. Understand concept of data transformations.
+
+3. Understand the calculation of z-scores.
+
+---
+# Topics for today
++ What is a function?
+
+--
+
++ Linear and non-linear functions
+
+--
+
++ How do we use functions in statistics?
+
+--
+
++ An example of z-scores
+  
+---
+# What is a function?
++ A function takes an **input**, **does something**, and provides an **output.**
+
+--
+
++ **Input**
+
+$$
+x = 
+\begin{bmatrix}
+1 \\ 
+2 \\ 
+3 \\ 
+\end{bmatrix}
+$$
+
+--
+
++ **Doing something**
+
+$$
+f(x) = x-2
+$$
+
+--
+
++ **An output **
+
+$$
+y = 
+\begin{bmatrix}
+-1 \\ 
+0 \\ 
+1 \\ 
+\end{bmatrix}
+$$
+
+???
++ Functions can become as complex as we want them to be.
++ Why $y$?
+
+
+---
+# Functions and relations
++ It is important to think of the function as showing the *relationship* between input and output.
+
++ We can link this to the idea of relationships from week 4.
+
++ The function links an input (predictors, $x$), to an output (outcome, $y$)
+
+--
+
++ So we can write
+
+$$y = f(x) = x-2$$
+
+
+---
+# Visualising Functions
++ An important tool in understanding functions is to plot them.
+
++ So let's look at the following:
+
+
+$$
+y = f(x) = 10 + 2x
+$$
+
+???
++ This helps us both understand plots
++ And gain intuition about functions.
+  
+---
+# Visualising Functions
++ Our input $x$ is a vector of numbers:
+
+$$
+x = 
+\begin{bmatrix}
+1 \\ 
+2 \\ 
+3 \\
+4 \\
+5 \\ 
+6 \\ 
+7 \\
+8 \\
+\end{bmatrix}
+$$
+
+
+???
++ As well as the functions getting more complex, so can the inputs.
++ We are sticking with small examples to help visualize what is happening and get an intuition
+    + But this could be 10,000 elements long
+    + could contain values like 1.7875453
+    + Computers can deal with all this for us quite easily!
+
+
+---
+
+# Visualising Simple Functions
+
+.pull-left[
+```{r, echo=FALSE}
+func_x <- tibble(
+  x = c(1,2,3,4,5,6,7,8), 
+  y = 10 + (2*x) 
+)
+  
+kable(func_x) %>%
+  kable_styling(., full_width = F)
+  
+```
+]
+
+.pull-right[
+
+```{r, eval=FALSE}
+func_x <- tibble(
+  x = c(1,2,3,4,5,6,7,8), 
+  y = 10 + (2*x) #<<
+)
+```
+
++ `tibble` is used to create a data set
+
++ `x` is our original data entered as a vector of numbers using `c()`
+
++ `y` is the output of the function `f(x) = 10+(2*x)`
+
+]
+
+
+---
+
+# Visualising Simple Functions
+
+.pull-left[
+```{r, echo=FALSE}
+func_x <- tibble(
+  x = c(1,2,3,4,5,6,7,8), 
+  y = 10 + (2*x) 
+)
+  
+kable(func_x) %>%
+  kable_styling(., full_width = F)
+  
+```
+]
+
+.pull-right[
+$$
+y = f(x) = 10 + 2x
+$$
+
++ Example row 1:
+
+$$
+10 + (2*1) = 12
+$$
+
++ Example row 5:
+
+$$
+10 + (2*5) = 20
+$$
+
+]
+
+
+---
+# Visualising Functions
+.pull-left[
+```{r, echo=FALSE}
+ggplot(func_x[1,], aes(x, y)) +
+  scale_x_continuous(name = "x", breaks = c(0:10), labels = c(0:10), limits = c(0,10)) +
+  scale_y_continuous(name = "y", breaks = c(seq(0,30,5)), labels = c(seq(0,30,5)), limits = c(0,30)) 
+```
+]
+
+.pull-right[
+
+**Our Data**
+
+```{r, echo=FALSE}
+kable(func_x) %>%
+  kable_styling(., full_width = F)
+```
+]
+
+---
+# Visualising Functions
+
+.pull-left[
+```{r, echo=FALSE}
+ggplot(func_x[1,], aes(x, y)) + 
+  scale_x_continuous(name = "x", breaks = c(0:10), labels = c(0:10), limits = c(0,10)) +
+  scale_y_continuous(name = "y", breaks = c(seq(0,30,5)), labels = c(seq(0,30,5)), limits = c(0,30))  +
+  geom_point(colour = "red", size = 3) +
+  geom_segment(aes(x = x, y = y, xend = x, yend = 0), 
+               arrow=arrow(type = "closed", length = unit(0.25, "cm"))) +
+  geom_segment(aes(x = x, y = y, xend = 0, yend = y), 
+               arrow=arrow(type = "closed", length = unit(0.25, "cm")))
+```
+]
+
+.pull-right[
+
+**Our Data**
+
+```{r, echo=FALSE}
+kable(func_x) %>%
+  kable_styling(., full_width = F)
+```
+]
+
+---
+# Visualising Functions
+
+.pull-left[
+```{r, echo=FALSE}
+ggplot(func_x, aes(x, y)) + 
+  scale_x_continuous(name = "x", breaks = c(0:10), labels = c(0:10), limits = c(0,10)) +
+  scale_y_continuous(name = "y", breaks = c(seq(0,30,5)), labels = c(seq(0,30,5)), limits = c(0,30)) +
+  geom_point(colour = "red", size = 2)
+```
+]
+
+.pull-right[
+
+**Our Data**
+
+```{r, echo=FALSE}
+kable(func_x) %>%
+  kable_styling(., full_width = F)
+```
+]
+
+---
+# Visualising Functions
+
+.pull-left[
+```{r, echo=FALSE}
+fun1 <- function(x) 10+(2*x)
+
+ggplot(func_x, aes(x, y)) + 
+  geom_point(colour = "red", size = 2) +
+  stat_function(fun = fun1) +
+  scale_x_continuous(name = "x", breaks = c(0:10), labels = c(0:10), limits = c(0,10)) +
+  scale_y_continuous(name = "y", breaks = c(seq(0,30,5)), labels = c(seq(0,30,5)), limits = c(0,30)) 
+```
+]
+
+.pull-right[
+
+**Our Data**
+
+```{r, echo=FALSE}
+kable(func_x) %>%
+  kable_styling(., full_width = F)
+```
+]
+
+
+---
+# Visualising Functions (R-code)
+
+.pull-left[
+```{r, echo=FALSE}
+fun1 <- function(x) 10+(2*x)
+
+ggplot(func_x, aes(x, y)) + 
+  geom_point(colour = "red", size = 2) +
+  stat_function(fun = fun1) +
+  scale_x_continuous(name = "x", breaks = c(0:10), labels = c(0:10), limits = c(0,10)) +
+  scale_y_continuous(name = "y", breaks = c(seq(0,30,5)), labels = c(seq(0,30,5)), limits = c(0,30)) 
+```
+]
+
+.pull-right[
+
+**R-code**
+
+```{r, eval=FALSE}
+fun1 <- function(x) 10+(2*x) #<<
+
+ggplot(func_x, aes(x, y)) + 
+  geom_point(colour = "red", size = 2) +  #<<
+  stat_function(fun = fun1) +             #<<
+  scale_x_continuous(name = "x", breaks = c(0:10), 
+                     labels = c(0:10), limits = c(0,10)) +
+  scale_y_continuous(name = "y", breaks = c(seq(0,30,5)), 
+                     labels = c(seq(0,30,5)), limits = c(0,30)) 
+```
+]
+
+
+---
+# Multiple arguments
++ Functions can take multiple arguments. Consider:
+
+$$
+y = f(x,z) = 10 + (x*z)
+$$
+
++ Where:
+
+$$
+x = 
+\begin{bmatrix}
+1 \\ 
+2 \\ 
+3 \\ 
+\end{bmatrix}
+$$
+
+
+
+$$
+z = 
+\begin{bmatrix}
+1 \\ 
+2 \\ 
+3 \\ 
+\end{bmatrix}
+$$
+
+
+
+---
+
+# Multiple arguments
+
+.pull-left[
+```{r,echo=FALSE}
+func_xz <- tibble(
+  x = c(1,1,1,2,2,2,3,3,3),
+  z = c(1,2,3,1,2,3,1,2,3)
+)
+
+kable(func_xz) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+]
+
+.pull-right[
+
++ Notice that when we have multiple inputs, our rows correspond to pairs of inputs.
+
++ So $x$ = 1, pairs with:
+  + $z$ = 1
+  + $z$ = 2
+  + $z$ = 3
+  
++ and so on for all values of $x$
+
+]
+
+---
+
+# Multiple arguments
+
+.pull-left[
+```{r,echo=FALSE}
+func_xz2 <- tibble(
+  x = c(1,1,1,2,2,2,3,3,3),
+  z = c(1,2,3,1,2,3,1,2,3),
+  "f(x,z)" = 10 + (x*z)
+)
+
+kable(func_xz2) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+]
+
+.pull-right[
+
+$$
+y = f(x,z) = 10 + (x*z)
+$$
+
++ Example 1, row 2
+
+$$
+10 + (1*2) = 12
+$$
+
++ Example, row 8
+
+$$
+10 + (3*2) = 16
+$$
+
+]
+
+---
+# Linear vs non-linear functions
++ Each of the examples so far have been linear functions.
+    + If we plot them, we get a straight line (or flat surface)
+    
++ Can also have non-linear functions:
+    + A non-linear function would contain powers or roots
+    
+
+---
+# Non-linear functions
+
+.pull-left[
+```{r, echo=FALSE}
+fun2 <- function(x) 5+(x^2)
+func_x2 <- tibble(
+  x = c(1,2,3,4,5,6,7,8), 
+  y = 5 + (x^2) 
+)
+ggplot(func_x2, aes(x, y)) + 
+  geom_point(colour = "red", size = 2) +
+  stat_function(fun = fun2) +
+  xlim(0, 10) +
+  ylab("y") +
+  ylim(0, 125)
+```
+
+]
+
+.pull-right[
+
+**Example of non-linear function**
+
+$$
+y = f(x) = 15 + x^2
+$$
+
+]
+
+---
+# Why are functions important?
++ There are going to be lots of examples of functions in action.
+
+--
+
++ Two primary examples are:
+    + **Data transformations**
+    + **Describing formal models**
+
+--
+
++ We will start with transformations, and come back to models at the end of the course.
+
+
+---
+# z-scores
++ One of the most common transformations in data analysis is standardizing variables.
+
++ What is standardizing?
+
+--
+
+  + It is putting all variables onto the same scale so they can be compared.
+
+--
+
++ We refer to standardized variables as $z$-scores (the reason we will explain later)
+
+--
+
++ $z$-score:
+
+$$z = \frac{x - \mu}{\sigma}$$
+
+---
+# Z-score for measured variable
++ $z$-score for $x$:
+
+$$z_{x_i} = \frac{x_i - \bar{x}}{s_x}$$
+
++ Where
+  + $x_i$ = individual score on $x$
+  + $\bar{x}$ = mean of $x$
+  + $s_x$ = standard deviation of $x$
+
+
+---
+# z-scores
++ A $z$-score will have a mean = 0, and a SD = 1.
+
+--
+
++ What this means is there is a standard way to interpret $z$-scores.
+
+--
+
+  + $z$-score = 1.5, means a respondent is 1.5 SD above the mean.
+
+--
+
+  + $z$-score = -2, means a respondent is 2 SD below the mean.
+
+
+---
+# Summary of today
++ Functions take input, do something, and produce an output.
+
++ Functions can have multiple arguments, be linear or non-linear
+
++ Typically we will visualize functions
+
++ We use functions frequently in statistics. 
+
++ In fact almost everything we are going to see involves functions.
+
+---
+# Next tasks
++ Next week, there will be no new material.
+  + Use next week to review and catch up on weeks 1-5.
+  + In week 7 we will begin looking at probability.
+
++ This week:
+  + Complete your lab
+  + Come to office hours
+  + Complete your practice lab test (R content from weeks 1 to 4)
+      + Open Monday 09:00
+      + Closes Sunday 17:00

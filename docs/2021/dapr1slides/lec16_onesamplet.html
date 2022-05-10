@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Lecture 16: One-Sample t-test</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Tom Booth" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# <b>Lecture 16: One-Sample t-test</b>
+## Data Analysis for Psychology in R 1<br><br>
+### Tom Booth
+### Department of Psychology<br>The University of Edinburgh
+### AY 2020-2021
+
+---
+
+
+
+
+
+
+
+
+
+# Today
+- Introduce the three types of `\(t\)`-test:
+- Discuss in detail one-sample `\(t\)`-tests
+	- When to use
+	- Tested hypotheses
+	- Calculation
+	- Doing in R
+	- Write up
+
+---
+
+# Learning objectives
+- Understand when to use a one sample `\(t\)`-test
+- Understand the null hypothesis for a one sample `\(t\)`-test
+- Understand how to calculate the test statistic
+- Know how to conduct the test in R
+
+???
+Remember to do the course admin shout outs
+
+---
+
+# Purpose
+- `\(t\)`-tests (generally) concern testing the difference between two means.
+  - One-sample `\(t\)`-tests compare the mean in a sample to a known mean .
+  - Independent `\(t\)`-tests compare the means of two independent samples.
+  - Paired sample `\(t\)`-tests compare the mean from a single sample at two points in time (repeated measurements)
+
+---
+
+# Data Requirements: One-sample t-test
+- A continuous variable.
+  - Remember we are calculating means.
+- A known mean that we wish to compare our sample to.
+- A sample of data from which we calculate the sample mean.
+
+---
+
+# Hypotheses
+- We are comparing a single sample mean `\(\mu_1\)` to a known mean `\(\mu\)` 
+
+$$
+H_0: \mu = \mu_1
+$$
+
+- Note this is identical to saying:
+
+
+$$
+H_0: \mu - \mu_1 = 0
+$$
+
+---
+
+# Alternative Hypotheses
+- Two-tailed:
+
+$$
+`\begin{matrix}
+H_0: \mu = \mu_1 \\
+H_1: \mu \neq \mu_1
+\end{matrix}`
+$$
+
+- One-tailed:
+
+
+$$
+`\begin{matrix}
+H_0: \mu = \mu_1 \\
+H_1: \mu &lt; \mu_1 \\
+H_1: \mu &gt; \mu_1
+\end{matrix}`
+$$
+
+---
+
+# Are these means different?
+
+![](lec16_onesamplet_files/figure-html/unnamed-chunk-1-1.png)&lt;!-- --&gt;
+
+
+---
+
+# What about these?
+
+![](lec16_onesamplet_files/figure-html/unnamed-chunk-2-1.png)&lt;!-- --&gt;
+
+---
+
+# Differences in means
+- Why can we not tell whether they are different or not?
+- What else might we want to know in order to know whether not the group means could be thought of as coming from the same distribution?
+
+
+---
+
+# All the information
+
+![](lec16_onesamplet_files/figure-html/unnamed-chunk-3-1.png)&lt;!-- --&gt;
+
+---
+
+# All the information
+
+![](lec16_onesamplet_files/figure-html/unnamed-chunk-4-1.png)&lt;!-- --&gt;
+
+---
+
+# t-statistic
+- Recall when talking about hypothesis testing:
+  - We calculate a test statistic that represents our question.
+  - We compare our sample value to the sampling distribution under the null
+- Here the test statistic is a `\(t\)`-statistic.
+
+
+---
+
+# t-statistic
+
+$$
+t = \frac{\bar{x} - \mu}{\frac{s}{\sqrt{N}}}
+$$
+
+- where
+  - `\(s\)` = sample estimated standard deviation of `\(x\)`
+  - `\(N\)` = sample size
+- The numerator = a difference is means
+- The denominator = a estimate of variability
+- `\(t\)` = a standardized difference in means.
+
+---
+
+# And breath
+- **Example:** Suppose I want to know whether the retirement age of Professors in my department is the same as the national average.
+- The national average age of retirement for Prof's 65.
+- So I look at the age of the last five Prof's that have retired at Edinburgh and compare against this value.
+
+---
+
+# Data
+
+
+```
+## # A tibble: 5 x 2
+##   ID      Age
+##   &lt;chr&gt; &lt;dbl&gt;
+## 1 Prof1    40
+## 2 Prof2    70
+## 3 Prof3    85
+## 4 Prof4    80
+## 5 Prof5    75
+```
+
+---
+
+# Hypotheses
+- Let's say I am new to the department and a priori have no idea of the ages they retired.
+- So I specify a two-tailed hypothesis with `\(\alpha\)` = 0.05.
+- So I am simply asking, does my mean differ from the known mean.
+
+---
+
+# Calculation
+
+$$
+t = \frac{\bar{x} - \mu}{\frac{s}{\sqrt{N}}}
+$$
+
+- Steps to calculate `\(t\)`:
+  - Calculate the sample mean ($\bar{x}$).
+  - Calculate the sample standard deviation ($s$).
+  - Check I know my N.
+  - Calculate the standard error of the mean ($\frac{s}{\sqrt{N}}$).
+  - Use all this to calculate t.
+
+---
+
+# Calculation
+
+```r
+df %&gt;%
+  summarise(
+    PopMean = 65,
+    Mean = mean(Age),
+    SD = sd(Age),
+    N = n()
+  ) %&gt;%
+  mutate(
+    SE = SD/sqrt(N)
+  )
+```
+
+```
+## # A tibble: 1 x 5
+##   PopMean  Mean    SD     N    SE
+##     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt; &lt;dbl&gt;
+## 1      65    70  17.7     5  7.91
+```
+
+---
+
+# Calculation
+
+
+```
+## # A tibble: 1 x 5
+##   PopMean  Mean    SD     N    SE
+##     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt; &lt;dbl&gt;
+## 1      65    70  17.7     5  7.91
+```
+
+
+$$
+t = \frac{\bar{x} - \mu}{\frac{s}{\sqrt{N}}} = \frac{70-65}{\frac{17.7}{\sqrt{5}}} = \frac{5}{7.91} = 0.63
+$$
+
+---
+
+# Is our test significant?
+- The sampling distribution for `\(t\)`-statistics is a `\(t\)`-distribution.
+- The t-distribution is a continuous probability distribution very similar to the normal distribution.
+  - Key parameter = degrees of freedom (df)
+	- df are a function of N.
+	- As N increases (and thus as df increases), the t-distribution approaches a normal distribution.
+- For a one sample `\(t\)`-test, we compare our test statistic to a `\(t\)`-distribution with N-1 df.
+
+---
+
+# Is our test significant?
+- So we have all the pieces we need:
+  - Degrees of freedom = N-1 = 5-1 = 4
+  - We have our t-statistic (0.63)
+  - Hypothesis to test (two-tailed)
+  - `\(\alpha\)` level (0.05).
+- So now all we need is the critical value from the associated `\(t\)`-distribution in order to make our decision.
+
+---
+
+# Is our test significant?
+
+
+```r
+tibble(
+  LowerCrit = round(qt(0.025, 4),2),
+  UpperCrit = round(qt(0.975, 4),2),
+)
+```
+
+```
+## # A tibble: 1 x 2
+##   LowerCrit UpperCrit
+##       &lt;dbl&gt;     &lt;dbl&gt;
+## 1     -2.78      2.78
+```
+
+---
+
+# Is our test significant?
+
+![](lec16_onesamplet_files/figure-html/unnamed-chunk-9-1.png)&lt;!-- --&gt;
+
+
+```
+## # A tibble: 1 x 2
+##   LowerCrit UpperCrit
+##       &lt;dbl&gt;     &lt;dbl&gt;
+## 1     -2.78      2.78
+```
+
+---
+
+# Is our test significant?
+- So our critical value is 2.78
+  - Our t-statistic is less than this, 0.63.
+  - So we fail to reject the null hypothesis.
+- t(4)=0.63, p &gt; .05, two-tailed.
+
+
+---
+
+# Exact p-values
+
+
+```r
+tibble(
+  LowerCrit = round(qt(0.025, 4),2),
+  UpperCrit = round(qt(0.975, 4),2),
+  Exactp = round(2*(1-pt(0.63, 4)),2)
+)
+```
+
+```
+## # A tibble: 1 x 3
+##   LowerCrit UpperCrit Exactp
+##       &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;
+## 1     -2.78      2.78   0.56
+```
+
+
+---
+
+# Exact p-values
+
+![](lec16_onesamplet_files/figure-html/unnamed-chunk-12-1.png)&lt;!-- --&gt;
+
+
+
+
+```
+## # A tibble: 1 x 3
+##   LowerCrit UpperCrit Exactp
+##       &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;
+## 1     -2.78      2.78   0.56
+```
+
+---
+
+# In R
+
+
+```r
+t.test(df$Age, mu=65, alternative="two.sided")
+```
+
+```
+## 
+## 	One Sample t-test
+## 
+## data:  df$Age
+## t = 0.63246, df = 4, p-value = 0.5614
+## alternative hypothesis: true mean is not equal to 65
+## 95 percent confidence interval:
+##  48.05027 91.94973
+## sample estimates:
+## mean of x 
+##        70
+```
+
+---
+
+# Write up
+A one-sample t-test was conducted in order to determine if a statistically significant ( `\(\alpha\)` =.05) mean difference existed between the average retirement age of Professors, and the age at retirement of a sample of 5 psychology Professors. The sample scored higher (Mean=70, SD=17.68) than the population (Mean = 65), however the difference was not statistically significant (t(4)=0.63, p &gt; .05, two-tailed). 
+
+---
+
+# Assumptions
+- As noted above, we have some requirements of the data:
+  - DV is continuous.
+- But we also have some additional model assumptions for the test to be valid.
+  - The data are normally distributed.
+  - The data are an independent random sample.
+- (2) we can not directly test.
+- (1) we can test using a QQplot, histograms and a Shapiro-Wilks Test.
+
+---
+
+&lt;iframe src="https://www.menti.com/dahq981cn9" width="100%" height="600px"&gt;&lt;/iframe&gt;
+
+---
+
+&lt;div style='position: relative; padding-bottom: 56.25%; padding-top: 35px; height: 0; overflow: hidden;'&gt;&lt;iframe sandbox='allow-scripts allow-same-origin allow-presentation' allowfullscreen='true' allowtransparency='true' frameborder='0' height='315' src='https://www.mentimeter.com/embed/b4b94ecdca22f1610766f0eac9f78a23/a6e79818b9a1' style='position: absolute; top: 0; left: 0; width: 100%; height: 100%;' width='420'&gt;&lt;/iframe&gt;&lt;/div&gt;
+
+---
+
+# Tasks for this week...
+1. Catch up any tasks from previous weeks. 
+2. Quiz 16: Probability distributions and hypothesis testing
+    - Today at 17:00.
+    - Close Monday 3rd at 17:00
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
