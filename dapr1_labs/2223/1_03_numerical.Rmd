@@ -1,0 +1,766 @@
+---
+title: "Numerical data"
+params: 
+    SHOW_SOLS: TRUE
+    TOGGLE: TRUE
+---
+
+```{r setup, include=FALSE}
+source('assets/setup.R')
+```
+
+
+```{r include=FALSE}
+library(tidyverse)
+library(patchwork)
+psych_disciplines <- read_csv("https://uoepsy.github.io/data/psych_survey.csv")
+```
+
+
+
+<!-- # Handling numeric data {#chap-numeric} -->
+:::green
+__Information about solutions__
+
+Solutions for these exercises are available immediately below each question.  
+We would like to emphasise that much evidence suggests that testing enhances learning, and we __strongly__ encourage you to make a concerted attempt at answering each question *before* looking at the solutions. Immediately looking at the solutions and then copying the code into your work will lead to poorer learning.  
+We would also like to note that there are always many different ways to achieve the same thing in R, and the solutions provided are simply _one_ approach.  
+
+Be sure to check the [**solutions to last week's exercises**](1_02_categorical.html).<br>You can still ask any questions about previous weeks' materials if things aren't clear!
+
+:::
+
+:::lo
+**LEARNING OBJECTIVES**
+
++ LO1: Understand the appropriate visualization for numeric data.
++ LO2: Understand methods to calculate the spread of numeric data.
++ LO3: Understand methods to calculate central tendency for numeric data.
+
+:::
+
+In the previous lab and exercises, we looked into describing and visualising __categorical__ data. 
+We looked at using the __mode__ and __median__ as measures of __central tendency__, before discussing how for __ordered categorical__ data we could look at the __quartiles__ (the points in rank-ordered data below which falls 25%, 50%, 75% and 100% of the data) to gain an understanding of how _spread out_ the data are.  
+We now move to looking at measures of central tendency and of spread for __numeric data__.
+
+# Central tendency  
+
+:::frame  
+
+In the following examples, we are going to use some data on 120 participants' IQ scores (measured on the Wechsler Adult Intelligence Scale (WAIS)), their ages, and their scores on 2 other tests.  
+It is available at https://uoepsy.github.io/data/wechsler.csv  
+
+```{r}
+wechsler <- read_csv("https://uoepsy.github.io/data/wechsler.csv")
+summary(wechsler)
+```
+
+:::
+
+## Mode and median revisited {-}  
+
+We saw for categorical data two different measures of central tendency:
+
++ __Mode:__ The most frequent value (the value that occurs the greatest number of times).  
++ __Median:__ The value for which 50% of observations a lower and 50% are higher. It is the mid-point of the values when they are rank-ordered. 
+
+We applied both of these to categorical data, but we can also use them for __numeric__ data.
+
+|   |  Mode |  Median |  Mean |
+|--:|--:|--:|--:| 
+|  Nominal (unordered categorical) | &#10004; | &#10008; | &#10008; | 
+|  Ordinal (ordered categorical) | &#10004; | &#10004; | **?**<br>(you may see it sometimes for certain types of ordinal data - there's no consensus) |
+|  Numeric Continuous  | &#10004; | &#10004; | &#10004; |
+
+<br>
+The mode of numeric variables is not frequently used. Unlike categorical variables where there are a distinct set of possible values which the data can take, for numeric variables, data can take a many more (or infinitely many) different values. Finding the "most common" is sometimes not possible.  
+<br>
+The most frequent value (the __mode__) of the _iq_ variable is 97:
+```{r}
+# take the "wechsler" dataframe %>%
+# count() the values in the "iq" variable (creates an "n" column), and
+# from there, arrange() the data so that the "n" column is descending - desc()
+wechsler %>%
+    count(iq) %>%
+    arrange(desc(n))
+```
+
+Recall that the __median__ is found by ordering the data from lowest to highest, and finding the mid-point. 
+In the _wechsler_ dataset we have IQ scores for 120 participants. 
+We find the median by ranking them from lowest to highest IQ, and finding the mid-point between the $60^{th}$ and $61^{st}$ participants' scores.  
+  
+We can also use the `median()` function with which we are already familiar:
+```{r}
+median(wechsler$iq)
+```
+
+## Mean {-}  
+
+One of the most frequently used measures of central tendency for __numeric__ data is the __mean__. 
+
+:::yellow
+__Mean:__ $\bar{x}$  
+
+The mean is calculated by summing all of the observations together and then dividing by the total number of obervations ($n$). 
+
+When we have sampled some data, we denote the mean of our sample with the symbol $\bar{x}$ (sometimes referred to as "x bar"). The equation for the mean is:
+
+$$\bar{x} = \frac{\sum\limits_{i = 1}^{n}x_i}{n}$$
+
+`r optbegin("Optional - Help reading mathematical formulae. Click to expand", olabel=FALSE)`
+This might be the first mathematical formula you have seen in a while, so let's unpack it.  
+
+The $\sum$ symbol is used to denote a _series of additions_ - a __"summation".__  
+  
+When we include the bits around it: $\sum\limits_{i = 1}^{n}x_i$ we are indicating that we add together all the terms $x_i$ for values of $i$ between $1$ and $n$: 
+$$\sum\limits_{i = 1}^{n}x_i \qquad = \qquad x_1+x_2+x_3+...+x_n$$ 
+
+So in order to calculate the mean, we do the summation (adding together) of all the values from the $1^{st}$ to the $n^{th}$ (where $n$ is the total number of values), and we divide that by $n$. 
+`r optend()`
+`r optbegin("Optional - Samples and populations", olabel=FALSE)`
+Statistics is all about drawing inferences from some __sampled__ data about the larger __population__ from which it is sampled.  
+
+A statistic which we calculate from our sample provides us with _an estimate_ of something in the population (for instance, we might take the average age of students at Edinburgh University as an estimate of the age of _all_ students).  
+
+Because of this, statisticians have different notations for when we are talking about populations vs talking about samples:  
+
+|  |  Sample|  Population|
+|--:|--:|--:|
+|  Number of observations |  $n$|  $N$|
+|  Mean |  $\bar{x} = \frac{\sum\limits_{i = 1}^{n}x_i}{n}$ |  $\mu = \frac{\sum\limits_{i = 1}^{N}x_i}{N}$ |
+
+`r optend()`
+
+
+:::
+
+We can do the calculation by summing the _iq_ variable, and dividing by the number of observations (in our case we have 120 participants):
+```{r}
+# get the values in the "iq" variable from the "wechsler" dataframe, and
+# sum them all together. Then divide this by 120
+sum(wechsler$iq)/120
+```
+
+Or, more easily, we can use the `mean()` function:
+```{r}
+mean(wechsler$iq)
+```
+
+## Summarising variables {-}
+
+Functions such as `mean()`, `median()`, `min()` and `max()` can quickly summarise data, and we can use them together really easily in combination with `summarise()`.  
+
+:::yellow
+__Summarise()__
+
+The `summarise()` function is used to reduce variables down to a single summary value.
+```{r eval=FALSE}
+# take the data %>%
+# summarise() it, such that there is a value called "summary_value", which
+# is the sum() of "variable1" column, and a value called 
+# "summary_value2" which is the mean() of the "variable2" column.
+data %>%
+  summarise(
+    summary_value = sum(variable1),
+    summary_value2 = mean(variable2)
+  )
+```
+__Note:__ Just like with `mutate()` (introduced in the [previous lab](https://uoepsy.github.io/dapr1/labs/02_categorical.html#Relative_frequencies)) we don't have to keep using the dollar sign `$`, as we have already told it what dataframe to look for the variables in. 
+:::
+
+So if we want to show the mean IQ score and the mean age of our participants:
+```{r}
+# take the "wechsler" dataframe %>%
+# summarise() it, such that there is a value called "mean_iq", which
+# is the mean() of the "iq" variable, and a value called 
+# "mean_age" which is the mean() of the "age" variable. 
+wechsler %>%
+    summarise(
+        mean_iq = mean(iq),
+        mean_age = mean(age)
+    )
+```
+
+# Spread  
+
+## Interquartile range {-}
+
+If we are using the __median__ as our measure of central tendency and we want to discuss how spread out the spread are around it, then we will want to use quartiles (recall that these are linked: the $2^{nd}$ quartile = the median). 
+
+We have already briefly introduced how for __ordinal__ data, the 1st and 3rd quartiles give us information about how spread out the data are across the possible response categories. 
+For numeric data, we can likewise find the 1st and 3rd quartiles in the same way - we rank-order all the data, and find the point at which 25% and 75% of the data falls below. 
+
+The _difference_ between the 1st and 3rd quartiles is known as the __interquartile range (IQR)__.  
+<small>( __Note__, we couldn't take the _difference_ for ordinal data, because "difference" would not be quantifiable - the categories are ordered, but intervals are between categories are unknown)</small>
+
+In R, we can find the IQR as follows:
+```{r}
+IQR(wechsler$age)
+```
+
+Alternatively, we can use this inside `summarise()`:
+```{r}
+# take the "wechsler" dataframe %>%
+# summarise() it, such that there is a value called "median_age", which
+# is the median() of the "age" variable, and a value called "iqr_age", which
+# is the IQR() of the "age" variable.
+wechsler %>% 
+  summarise(
+    median_age = median(age),
+    iqr_age = IQR(age)
+  )
+```
+
+
+## Variance {-}
+
+If we are using the __mean__ as our as our measure of central tendency, we can think of the spread of the data in terms of the __deviations__ (distances from each value to the mean).
+
+Recall that the mean is denoted by $\bar{x}$. If we use $x_i$ to denote the $i^{th}$ value of $x$, then we can denote deviation for $x_i$ as $x_i - \bar{x}$.  
+The deviations can be visualised by the red lines in Figure \@ref(fig:deviations).  
+
+```{r deviations, echo=FALSE, fig.cap="Deviations from the mean"}
+knitr::include_graphics("images/numeric/deviations.png")
+```
+
+:::frame
+__The sum of the deviations from the mean, $x_i - \bar x$, is always zero__
+
+$$
+\sum\limits_{i = 1}^{n} (x_i - \bar{x}) = 0
+$$
+
+The mean is like a center of gravity - the sum of the positive deviations (where $x_i > \bar{x}$) is equal to the sum of the negative deviations (where $x_i < \bar{x}$).
+:::
+
+Because deviations around the mean always sum to zero, in order to express how spread out the data are around the mean, we must we consider __squared deviations__.  
+Squaring the deviations makes them all positive. Observations far away from the mean _in either direction_ will have large, positive squared deviations. The average squared deviation is known as the __variance,__ and denoted by $s^2$
+
+:::yellow
+__Variance:__ $s^2$
+
+The variance is calculated as the average of the squared deviations from the mean.  
+
+When we have sampled some data, we denote the mean of our sample with the symbol $\bar{x}$ (sometimes referred to as "x bar"). The equation for the variance is:
+
+$$s^2 = \frac{\sum\limits_{i=1}^{n}(x_i - \bar{x})^2}{n-1}$$
+
+`r optbegin("Optional: Why n minus 1? Click to expand", olabel=FALSE)`
+The top part of the equation $\sum\limits_{i=1}^{n}(x_i - \bar{x})^2$ can be expressed in $n-1$ terms, so we divide by $n-1$ to get the average.  
+<br>
+__Example:__ If we only have two observations $x_1$ and $x_2$, then we can write out the formula for variance in full quite easily. The top part of the equation would be:
+$$
+\sum\limits_{i=1}^{2}(x_i - \bar{x})^2 \qquad = \qquad (x_1 - \bar{x})^2 + (x_2 - \bar{x})^2
+$$
+
+The mean for only two observations can be expressed as $\bar{x} = \frac{x_1 + x_2}{2}$, so we can substitute this in to the formula above. 
+$$
+(x_1 - \bar{x})^2 + (x_2 - \bar{x})^2 \qquad = \qquad \left(x_1 - \frac{x_1 + x_2}{2}\right)^2 + \left(x_2 - \frac{x_1 + x_2}{2}\right)^2 
+$$
+Which simplifies down to one value:
+$$
+\left(x_1 - \frac{x_1 + x_2}{2}\right)^2 + \left(x_2 - \frac{x_1 + x_2}{2}\right)^2 \qquad = \qquad  \left(\frac{x_1 - x_2}{\sqrt{2}}\right)^2
+$$
+<br>
+So although we have $n=2$ datapoints ($x_1$ and $x_2$), the top part of the equation for the variance has only 1 ($n-1$) units of information. In order to take the average of these bits of information, we divide by $n-1$. 
+`r optend()`
+:::
+
+We can get R to calculate this for us using the `var()` function:
+```{r}
+wechsler %>%
+  summarise(
+    variance_iq = var(iq)
+  )
+```
+
+## Standard deviation {-}
+
+One difficulty in interpreting __variance__ as a measure of spread is that it is in units of __squared deviations.__  It relects the typical _squared_ distance from a value to the mean.  
+Conveniently, by taking the square root of the variance, we can translate the measure back into the units of our original variable. This is known as the __standard deviation.__  
+
+:::yellow
+__Standard Deviation:__ $s$
+
+The standard deviation, denoted by $s$, is a rough estimate of the typical distance from a value to the mean.  
+It is the square root of the variance (the typical _squared_ distance from a value to the mean). 
+
+$$
+s = \sqrt{\frac{\sum\limits_{i=1}^{n}(x_i - \bar{x})^2}{n-1}}
+$$
+
+:::  
+
+
+We can get R to calculate the standard deviation of a variable `sd()` function:
+```{r}
+wechsler %>%
+  summarise(
+    variance_iq = var(iq),
+    sd_iq = sd(iq)
+  )
+```
+
+
+# Visualisations
+
+## Boxplots {-}
+
+Boxplots provide a useful way of visualising the __interquartile range (IQR).__ You can see what each part of the boxplot represents in Figure \@ref(fig:boxplotdesc). 
+
+```{r boxplotdesc, echo=FALSE, fig.cap="Anatomy of a boxplot", out.width = '100%'}
+set.seed(34875)
+px = rnorm(100,10,10)
+mn=min(px[px>quantile(px, .25)-(1.5*IQR(px))])
+mx=max(px[px<quantile(px, .75)+(1.5*IQR(px))])
+outs_up = px[px>quantile(px, .75)+(1.5*IQR(px))]
+outs_lw = px[px<quantile(px, .25)-(1.5*IQR(px))]
+ggplot(data = NULL, aes(x = px)) +
+  geom_boxplot(col="red")+
+  ylim(-1,1)+xlim(-30,45)+
+  theme_classic()+
+  theme(axis.title = element_blank(), axis.text = element_blank(),
+      axis.ticks = element_blank(), axis.line = element_blank())+
+  
+  # Quartiles
+  annotate("text",x=median(px), y=0.7, label="Q2\n(Median)", vjust=1,hjust=0.5, col="grey70")+
+  annotate("text",x=quantile(px, .25), y=0.6, label="Q1", vjust=1,hjust=1, col="grey70")+
+  annotate("text",x=quantile(px, .75), y=0.6, label="Q3", vjust=1,hjust=0, col="grey70")+
+  geom_segment(aes(x=median(px), xend=median(px), y=0.48, yend=0.38), col="grey70",lty="dashed")+
+  geom_segment(aes(x=quantile(px, .25), xend=quantile(px, .25), y=0.48, yend=0.38), col="grey70",lty="dashed")+
+  geom_segment(aes(x=quantile(px, .75), xend=quantile(px, .75), y=0.48, yend=0.38), col="grey70",lty="dashed")+
+  
+  # Whiskers
+  annotate("text",x=mn, y=-0.2, label="Minimum value in data\nwhich is > Q1 - (1.5 * IQR)", vjust=1,hjust=0.5, col="grey70")+
+  annotate("text",x=mx, y=-0.2, label="Maximum value in data\nwhich is < Q3 + (1.5 * IQR)", vjust=1,hjust=0.5, col="grey70")+
+  geom_segment(aes(x=mn, xend=mn, y=0, yend=-0.2),col="grey70",lty="dashed")+
+  geom_segment(aes(x=mx, xend=mx, y=0, yend=-0.2),col="grey70",lty="dashed")+
+  
+  #IQR
+  geom_segment(aes(x=quantile(px, .25), xend=quantile(px, .25), y=0.78, yend=0.85), col="grey70")+
+  geom_segment(aes(x=quantile(px, .75), xend=quantile(px, .75), y=0.78, yend=0.85), col="grey70")+
+  geom_segment(aes(x=quantile(px, .75), xend=quantile(px, .25), y=0.85, yend=0.85), col="grey70")+
+  annotate("label",x=median(px), y=0.9, label="IQR", vjust=1,hjust=0.5, col="grey70")+
+  
+  # Outliers +
+  geom_segment(aes(x=outs_up, xend=mean(outs_up), y=0, yend=0.27), col="grey70", lty="dashed")+
+  annotate("text",x=mean(outs_up), y=0.5, label="Outliers\nDatapoints > Q3 + (1.5 * IQR)", vjust=1,hjust=0.5, col="grey70")+
+  # Outliers -
+  geom_segment(aes(x=outs_lw, xend=mean(outs_lw), y=0, yend=0.27), col="grey70", lty="dashed")+
+  annotate("text",x=mean(outs_lw), y=0.5, label="Outliers\nDatapoints < Q1 - (1.5 * IQR)", vjust=1,hjust=0.5, col="grey70")+
+  
+  NULL
+  
+rm(mn,mx,outs_lw,outs_up,px)
+```
+
+We can create a boxplot of our age variable using the following code:
+```{r}
+# Notice, we put age on the x axis, making the box plot vertical. 
+# If we had set aes(y = age) instead, then it would simply be rotated 90 degrees 
+ggplot(data = wechsler, aes(x = age)) +
+  geom_boxplot()
+```
+
+
+## Histograms {-}
+
+Now that we have learned about the different measures of central tendency and of spread, we can look at how these influence visualisations of numeric variables.  
+
+We can visualise numeric data using a __histogram__, which shows the frequency of values which fall within _bins_ of an equal width. 
+```{r}
+# make a ggplot with the "wechsler" data. 
+# on the x axis put the possible values in the "iq" variable,
+# add a histogram geom (will add bars representing the count 
+# in each bin of the variable on the x-axis)
+ggplot(data = wechsler, aes(x = iq)) + 
+  geom_histogram()
+```
+We can specifiy the width of the bins:
+```{r}
+ggplot(data = wechsler, aes(x = iq)) + 
+  geom_histogram(binwidth = 5)
+```
+
+Let's take a look at the means and standard deviations of participants' scores on the other tests (the _test1_ and _test2_ variables):
+```{r}
+wechsler %>% 
+  summarise(
+    mean_test1 = mean(test1),
+    sd_test1 = sd(test1),
+    mean_test2 = mean(test2),
+    sd_test2 = sd(test2)
+  )
+```
+Tests 1 and 2 have similar means (around 50), but the standard deviation of Test 2 is almost double that of Test 1. We can see this distinction in the visualisation below - the histograms are centered at around the same point (50), but the one for Test 2 is a lot wider than that for Test 1.
+```{r echo=FALSE}
+ggplot(data = wechsler, aes(x = test1)) + 
+  geom_histogram()+
+  xlim(0,100) + theme_classic() +
+ggplot(data = wechsler, aes(x = test2)) + 
+  geom_histogram()+
+  xlim(0,100) +theme_classic()
+```
+
+## Density curves {-}  
+
+In addition to grouping numeric data into _bins_ in order to produce a histogram, we can also visualise a __density curve.__
+  
+For the time being, you can think of the density as a bit similar to the notion of __relative frequency__ which we [discussed in the lab on categorical data](https://uoepsy.github.io/dapr1/labs/02_categorical.html#Relative_frequencies), in that for a density curve, the values on the y-axis are scaled so that the total area under the curve is equal to 1. Because there are infinitely many values that numeric variables could take (e.g., 50, 50.1, 50.01, 5.001, ...), we could group the data into infinitely many bins. In creating a curve for which the total area underneath is equal to one, we can use the area under the curve in a range of values to indicate the proportion of values in that range.  
+
+```{r}
+ggplot(data = wechsler, aes(x = iq)) + 
+  geom_density()+
+  xlim(50,150)
+```
+
+# Skew 
+
+Skewness is a measure of _asymmetry_ in a distribution. Distributions can be _positively skewed_ or _negatively skewed_, and this influences our measures of central tendency and of spread to different degrees (see Figure \@ref(fig:skewplot)). 
+
+```{r, skewplot, echo=FALSE, fig.cap = "Skew influences the mean and median to different degrees."}
+library(sn)
+tibble(
+  x = seq(0, 200, 1),
+  y = dnorm(x, 100, 15),
+  y2 = dsn(x, xi = 180, omega=27.5, alpha = -5),
+  y3 = dsn(x, xi = 20, omega=27.5,alpha = 5),
+) %>%
+  ggplot(.,aes(x=x))+
+  geom_ribbon(aes(ymin=0, ymax=y, fill="Symmetric"), alpha=0.2)+
+  geom_ribbon(aes(ymin=0, ymax=y2, fill="Negative Skew"), alpha=0.2)+
+  geom_ribbon(aes(ymin=0, ymax=y3, fill="Positive Skew"), alpha=0.2)+
+  theme_classic()+
+  scale_fill_manual("",breaks=c("Positive Skew","Symmetric","Negative Skew"), values=c("chartreuse3","blue","red"))+
+  scale_y_continuous(NULL, breaks=NULL,)+
+  theme(axis.line.y = element_blank(), axis.text.x = element_blank(), 
+        axis.title.x = element_blank(), legend.position="bottom")+
+  
+  geom_vline(aes(xintercept=100), lty="dashed", col="blue")+
+  annotate("label",x=100, y=0.029, label="Mode", vjust=1,hjust=0.5, col="blue")+
+  annotate("label",x=100, y=0.031, label="Median", vjust=1,hjust=0.5, col="blue")+
+  annotate("label",x=100, y=0.033, label="Mean", vjust=1,hjust=0.5, col="blue")+
+  
+  geom_vline(xintercept=c(155,165,170), lty="dashed", col="red")+
+  annotate("label",x=170, y=0.029, label="Mode", vjust=1,hjust=0.5, col="red")+
+  annotate("label",x=165, y=0.031, label="Median", vjust=1,hjust=0.5, col="red")+
+  annotate("label",x=155, y=0.033, label="Mean", vjust=1,hjust=0.5, col="red")+
+  
+  geom_vline(xintercept=c(45,35,30), lty="dashed", col="chartreuse3")+
+  annotate("label",x=30, y=0.029, label="Mode", vjust=1,hjust=0.5, col="chartreuse3")+
+  annotate("label",x=35, y=0.031, label="Median", vjust=1,hjust=0.5, col="chartreuse3")+
+  annotate("label",x=45, y=0.033, label="Mean", vjust=1,hjust=0.5, col="chartreuse3")+
+  NULL
+```
+
+---
+
+# Glossary
+
++ __Interquartile Range (IQR):__ The $3^{rd}$ quartile minus the $1^{st}$ quartile. 
++ __Mean:__ The sum of all observations divided by the total number of observations. The center of gravity of a variable. 
++ __Deviation:__ The distance from an observation to the mean value.
++ __Variance:__ The average squared distance from observations to the mean value. 
++ __Standard deviation:__ Square root of variance - can be thought of as the average distance from observations to the mean value.
++ __Boxplot:__ Displays the median and the IQR, and any extreme values.  
++ __Histogram:__ Shows the frequency of values which fall within _bins_ of an equal width. 
++ __Density curve:__ A curve for reflecting the distribution of a variable, for which the area under the curve sums to 1.
++ __Skew:__ A measure of _asymmetry_ in a distribution.
+<br><br>
++ `summarise()` To summarise variables into a single value according to whatever calculation we give it. 
++ `IQR()` To calculate the interquartile range for a given variable. 
++ `mean()` To calculate the mean of a given variable.
++ `sd()` To calculate the standard deviation of a given variable.
++ `var()` To calculate the variance of a given variable. 
++ `geom_boxplot()` To add a boxplot to a ggplot.
++ `geom_histogram()` To add a histogram to a ggplot.
++ `geom_density()` To add a density curve to a ggplot.
++ `geom_vline()` To add a vertical line to a ggplot. 
+<br><br>
+__Note:__ The following functions are introduced in the exercises below.  
++ `filter()` allows us to filter a dataframe to those rows which meet a given condition. It will return all columns.  
++ `select()` allows us to choose certain columns in a dataframe. It will return all rows. 
+
+
+---
+
+# Exercises
+
+:::frame
+The data we are going to use for these exercises is from an experiment using one of the best known tasks in psychology, the "Stroop task".  
+<br>
+130 participants completed an online task in which they saw two sets of coloured words. Participants spoke out loud the colour of each word, and timed how long it took to complete each set. In the first set of words, the words _matched_ the colours they were presented in (e.g., word "blue" was coloured blue). In the second set of words, the words _mismatched_ the colours (e.g., the word "blue" was coloured red, see Figure \@ref(fig:stroop)). Participants' recorded their times for each set (*matching* and *mismatching*).  
+Participants were randomly assigned to either do the task once only, or to record their times after practicing the task twice.  
+<br>
+You can try out the experiment at https://faculty.washington.edu/chudler/java/ready.html.  
+<br>
+The data is available at https://uoepsy.github.io/data/strooptask.csv
+<br><br>
+```{r stroop, echo=FALSE, fig.cap="Stroop Task - Color word interference. Images from  https://faculty.washington.edu/chudler/java/ready.html"}
+knitr::include_graphics("images/numeric/stroop1.png")
+```
+
+:::
+
+`r qbegin(1)` 
+Open a new Rmarkdown file, load the tidyverse package and read in the data.  
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r include=FALSE}
+stroopdata <- read_csv("https://uoepsy.github.io/data/strooptask.csv")
+```
+
+It should look something like this:
+![](images/numeric/freshrmd.png)
+
+Make sure you regularly save the Rmarkdown files you are writing in, and it might help to close the ones from previous weeks to make your Rstudio experience less busy.   
+You can see in the bottom right window, the "Files" tab is open, and there are the Rmardkown files from the previous sets of exercises.  
+`r solend()`
+
+---
+
+`r qbegin(2)`  
+using `summarise()`, show the minimum, maximum, mean and median of the times taken to read the matching word set, and then do the same for the mismatching word set.
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+Matching words
+```{r}
+stroopdata %>%
+  summarise(
+    min_time = min(matching),
+    max_time = max(matching),
+    mean_time = mean(matching),
+    median_time = median(matching)
+  )
+```
+
+Mismatching words
+```{r}
+stroopdata %>%
+  summarise(
+    min_time = min(mismatching),
+    max_time = max(mismatching),
+    mean_time = mean(mismatching),
+    median_time = median(mismatching)
+  )
+```
+`r solend()`
+
+---
+
+`r qbegin(3)` 
+What we are interested in is the differences between these times. For someone who took 10 seconds for the matching set, and 30 seconds for the mismatching set, we want to record the difference of 20 seconds.  
+
+Create a new variable called _stroop_effect_ which is the difference between the _mismatching_ and _matching_ variables.  
+
+__Hint:__ Remember we can use the `mutate()` function to add a new variable. Recall also that we need to _reassign_ this to the name "stroopdata", to make the changes appear in the __environment__ (rather than just printing them out).  
+```{r eval=FALSE}
+stroopdata <- 
+  stroopdata %>%
+  mutate(
+    ?? = ??
+  )
+```
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+stroopdata <- 
+  stroopdata %>%
+  mutate(
+    stroop_effect = mismatching - matching
+  )
+
+# and print it out:
+stroopdata
+```
+`r solend()`
+
+---
+
+`r qbegin(4)`  
+For the _stroop_effect_ variable you just created, produce both a histogram and a density curve.  
+
+What is the more appropriate guess for the mean of this variable?  
+
+a. 0
+a. 2
+a. 6
+a. 8 
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+```{r}
+ggplot(data = stroopdata, aes(x = stroop_effect)) +
+  geom_histogram()
+```
+
+The default binwidth of the histogram here might lead you astray in guessing the mean value - the highest bar by some distance is at 0 seconds.  
+Try changing the binwidth to get a different picture - for example:
+```{r out.width="50%"}
+ggplot(data = stroopdata, aes(x = stroop_effect)) +
+  geom_histogram(binwidth = 2)
+```
+
+In both histograms, you can see that there is quite a lot of data between the values of 0 and 6.  
+
+An advantage of the density curve is that they are better at displaying the distribution shape as they are not influenced by the number of bins. However, this comes at the expense of no longer having the easily interpreted _count_ on the y-axis. A benefit of a histogram is that the viewer can also gain an idea of _how much_ data there is, whereas a density curve of 10 datapoints could be hard to distinguish from one of 100. 
+```{r}
+ggplot(data = stroopdata, aes(x = stroop_effect)) +
+  geom_density()
+```
+`r solend()`
+
+---
+
+`r qbegin(5)`  
+The code below will produce a histogram of the _stroop_effect_ variable and add a vertical line (`geom_vline()`) at zero. 
+
+```{r eval=FALSE}
+ggplot(data = stroopdata, aes(x = stroop_effect)) +
+  geom_histogram() +
+  geom_vline(xintercept = 0)
+```
+
+Calculate the a measure of central tendency for the _stroop_effect_ variable, and add a line to your histogram at that value.  
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+We'll go for the mean here
+```{r}
+stroopdata %>% 
+  summarise(
+    mean_diff = mean(stroop_effect)
+  )
+```
+
+```{r}
+ggplot(data = stroopdata, aes(x = stroop_effect)) +
+  geom_histogram() +
+  geom_vline(xintercept = 2.4)
+```
+`r solend()`
+
+---
+
+`r qbegin(6)`  
+There are some other variables in the Stroop Task dataset.  
+Provide some descriptive statistics for the _age_, _height_ and _practice_ variables.  
+
+For each variable, think: 
+
++ what type of data is it?  
++ what do you want to report about it? central tendency? if so, what measure? or do you want to report frequencies?
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+The _age_ variable is numeric. The distribution of ages in an experiment will depend a bit on how participants were recruited.  
+What do you think the shape of the distribution of the global populations' ages would look like? 
+Are they likely to be evenly spread around a central value - i.e., are there a similar number of <5 year olds as there are >95 year olds? There are probably more <5 year olds? It's probably not symmetric. The median is less sensitive to asymmetry, so let's report that (we would normally want to plot it first too).
+```{r}
+stroopdata %>%
+  summarise(
+    min_age = min(age),
+    max_age = max(age),
+    median_age = median(age),
+    iqr_age = IQR(age)
+  )
+```
+
+Think about what the distribution shape of everbody in the worlds' heights might look like? We would expect it to be reasonably symmetric (evenly distributed around a central value). Probably? The mean is likely appropriate here (again, plotting first would be worthwhile).
+
+```{r}
+stroopdata %>%
+  summarise(
+    min_height = min(height),
+    max_height = max(height),
+    mean_height = mean(height),
+    sd_height = sd(height)
+  )
+```
+
+Lastly, the _practice_ variable is categorical - there are only two categories ("Yes" and "No"). So all we can do is to report the counts (number of datapoints) in each category.
+```{r}
+stroopdata %>%
+  count(practice)
+```
+`r solend()`
+
+---
+
+`r qbegin(7)`  
+Think back to our first lab, in which we learned how to access different sections of data.  
+
+1. Assign the name "no_practice" to a new object, which is all of the rows in the "stroopdata" dataframe where the _practice_ variable is equal to "no". 
+2. Assign the name "practice" to a new object, which is all of the rows in the "stroopdata" dataframe where the _practice_ variable is equal to "yes".  
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+We learned how to do this using `[]` and `$`:
+```{r}
+# In the stroopdata dataframe, give me all the rows for which the
+# condition stroopdata$practice=="no" is TRUE, and give me all the columns.
+# assign this as an object with the name "no_practice"
+no_practice <- stroopdata[stroopdata$practice == "no", ]
+
+#and the same but for practice == "yes"
+practice <- stroopdata[stroopdata$practice == "yes", ]
+
+```
+Notice that when we run this code, the objects __no_practice__ and __practice__ will now show up in the environment (top right of Rstudio). We can see there that they have 69 and 62 observations each. This adds up to the 131 observations in the __stroopdata__ object. 
+`r solend()`
+
+---  
+
+We learned how to tackle things such Question 7 above by making use of `[]` and `$` to specify rows/columns/conditions which we want to access in a dataframe.  
+
+There are two functions which provide similar functionality - `filter()` and `select()`. They are part of the same package as `mutate()` and `summarise()` and are often used in conjunction with the `%>%` operator to tell the functions where to find the variables (meaning we don't need to use `data$variable`, we can just use the variable name)
+
+:::yellow
+__filter()__ 
+
+The `filter()` function allows us to filter a dataframe down to those rows which meet a given condition. It will return all columns.  
+
+```{r eval=FALSE}
+# take the data
+# and filter it to only the rows where the "variable1" column is 
+# equal to "value1". 
+data %>% 
+  filter(variable1 == value1)
+```
+:::  
+
+:::yellow  
+__select()__  
+
+The `select()` function allows us to choose certain columns in a dataframe. It will return all rows. 
+
+```{r eval=FALSE}
+# take the data
+# and select the "variable1" and "variable2" columns
+data %>%
+  select(variable1, variable2)
+```
+:::
+
+`r qbegin(8)`  
+Using `filter()` and `select()`, 
+
+1. Assign the name "no_practice" to a new object, which is all of the rows in the "stroopdata" dataframe where the _practice_ variable is equal to "no". 
+2. Assign the name "practice" to a new object, which is all of the rows in the "stroopdata" dataframe where the _practice_ variable is equal to "yes".  
+3. Assign the name "participants" to a new object, which is all of the rows in the "stroopdata" dataframe where the _age_ variable is greater than or equal to 40, but only the _id_, _age_, and _height_ variables. 
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+We learned how to do this using `[]` and `$`:
+```{r}
+no_practice <- stroopdata %>% filter(practice == "no")
+
+practice <- stroopdata %>% filter(practice == "yes")
+
+participants <- stroopdata %>% filter(age >= 40) %>% select(id, age, height)
+```
+`r solend()`
+
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;"></div>
+

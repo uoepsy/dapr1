@@ -1,0 +1,1046 @@
+---
+title: "Covariance and correlation"
+bibliography: references.bib
+biblio-style: apalike
+link-citation: yes
+params:
+  SHOW_SOLS: TRUE
+  TOGGLE: TRUE
+---
+
+```{r setup, include=FALSE}
+source('assets/setup.R')
+```
+
+```{r include = FALSE}
+knitr:::opts_chunk$set(fig.align = 'center',
+                      fig.height = 5, fig.width = 6,
+                      out.width = '70%')
+
+set.seed(1)
+
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+
+theme_set(theme_light(base_size = 15))
+```
+
+
+:::lo
+
+1. Understand when and how to calculate the summary statistics of covariance and correlation, and how to do this in R.
+1. Learn what different strengths and directions of correlation look like when visualised as a scatterplot of two quantitative variables.  
+1. Learn how to conduct a test to determine whether a correlation is different from zero.
+
+:::
+
+# Recap
+
+In weeks 7-10 of semester 2, we were dealing with a quantitative _response_ variable and a categorical _explanatory_ variables.   
+  
+
+|  Test                    | Description                                                                    |
+|:-------------------------|:-------------------------------------------------------------------------------|
+| One-sample t-test | tests whether the mean of a sample ($\mu$) is  significantly different from an hypothesised value ($\mu_0$, typically equal to 0) |
+| Two-samples t-test | tests whether the difference in the means of two samples ($\mu_1 - \mu_2$) is  significantly different from an hypothesised value ($\mu_0$, typically equal to 0) |
+| Paired-samples t-test | tests whether the mean of the differences computed from paired samples ($\mu_d$) is  significantly different from an hypothesised value ($\mu_0$, typically equal to 0) |
+
+[Last week](2_10_chisquare.html), we began working with categorical response variables. 
+We discussed the chi-square goodness-of-fit test and the chi-square test of independence:  
+
+|  Test                    | Description                                                                    |
+|:-------------------------|:-------------------------------------------------------------------------------|
+|  $\chi^2$ goodness-of-fit| tests whether categorical variable conforms with hypothesized proportions    |
+|  $\chi^2$ independence   | tests whether categorical variable is related to another categorical variable|
+
+This week, we will cover associations between two _quantitative variables_.
+
+# Two quantitative variables 
+
+Over the past few weeks we've looked at different types of variables (outlined above in the recap). Thinking of previous ways we've visualised the data (histograms, bar plots). Now we're focusing on two continuous variables. 
+
+How would you visualise *two quantitative variables* such as age and height? 
+
+`r qbegin()`
+How would you most often visualise the relationship between two quantitative variables?  
+
+What should we fill this plot with?  
+```{r echo=FALSE}
+tibble(age=runif(100,20,80),height=rnorm(100,160,10)) %>%
+  ggplot(.,aes(x=age,y=height))+
+  labs(x="- Age (years) -",y="Height (cm)")+
+  annotate("text",x=50,y=160,label="?", size=30)+
+  xlim(20,80)+ylim(140,180)+
+  theme_classic()
+```
+`r qend()`
+`r solbegin(show = TRUE, toggle=params$TOGGLE)`
+A scatterplot! 
+
+If you record two numeric variables $X$ and $Y$ for each unit, you can represent each uni as a point on a 2D plane. 
+```{r echo=FALSE, message=FALSE,warning=FALSE}
+tibble(age=runif(100,20,80),height=rnorm(100,160,10)) %>%
+  ggplot(.,aes(x=age,y=height))+
+  geom_point()+
+  labs(x="- Age (years) -",y="Height (cm)")+
+  xlim(20,80)+ylim(140,180)+
+  theme_classic()
+```
+`r solend()`
+
+# Variance vs Covariance
+
+Covariance and variance are two commonly used terms in statistics - they sound similar but they're quite different! It's worth looking at both variance and covariance to understand their differences and when to use them. 
+
+- _Variance_: measures how _spread out_ are the data values around the mean.
+
+- _Covariance_: measures how the values of one variable are associated values in the other variable.
+
+## Variance 
+
+Variance measures how spread out values are in a given dataset. The variance is the average squared deviation from the mean. The sample variance $s^2$, it is an unbiased estimator of the population variance.  
+
+:::yellow
+__Unbiased estimator__
+
+An estimator of a given parameter is said to be unbiased if its expected value is _equal_ to the true value of the parameter. In other words, an estimator is unbiased if it produces parameter estimates that are, on average, correct. 
+
+For example, 
+The sample variance ($s^2$) is an unbiased estimator for the population variance ($\sigma^2$) as per definition:
+  $$
+  E(s^2)=\sigma^2
+  $$
+:::
+
+Variance is used when you wish to quantify how spread out values are in a dataset. The higher the variance value, the more spread out they are around the mean.
+
+<br>
+__Formula (sample variance)__
+
+The formula to find the variance of a sample ($s^2$) is:
+
+$$
+s^2 = \frac{\sum (x_i - \overline{x})^2}{n-1}
+$$
+where: 
+
+- $\sum$: the sum over all data values
+- $\overline{x}$: the sample mean 
+- $x_i$: the $i$th observation in the sample 
+- $n$: sample size 
+
+
+<br>
+__Variance example__
+
+```{r}
+ex1 <- c(1, 2, 3, 4, 5, 5, 12, 14, 20, 13, 
+         6, 7, 10, 13, 14, 14, 18, 19, 22, 24) # dataset with 20 values 
+var(ex1)
+
+ex2 <- c(55, 34, 43, 65, 65, 43, 49, 24, 19, 10,
+         6, 13, 19, 24, 25, 30, 36, 43, 49, 55) # another dataset of 20 values
+var(ex2) 
+```
+
+For the first example dataset, the sample variance is `r round(var(ex1), 2)` and the second dataset has a sample variance of `r round(var(ex2), 2)`
+
+As the variance is larger for the second example dataset, this indicates that the values in the second data set are more spread out vs the values in the first example set. 
+
+
+## Covariance 
+
+Covariance measures how the values in _one_ variable are associated with the values of _another_ variable. That is, what values of one variables are typically observed with other values of another variable.
+
+Covariance is a measure of association between two numeric variable. 
+
+- Positive association (positive covariance) indicates that higher values of one variable tend to be observed with higher values of the other variable, or that lower values of one variable tend to be associated with lower values of the other variable.
+
+- Negative association (negative covariance) indicates that higher values of one variable tend to be observed with lower values of the other variable, or that lower values of one variable tend to be associated with higher values of the other variable.
+
+
+<br>
+__Formula (sample covariance)__
+
+$$
+\text{Cov}(X,Y) = \frac{\sum (x_i - \overline{x})(y_i - \overline{y})}{n-1} 
+$$
+
+where: 
+
+- $\sum$: is the sum 
+- $x_i$: the $i$th observation of variable $X$
+- $\overline{x}$: sample mean of variable $X$
+- $y_i$: the $i$th observation of variable $Y$
+- $\overline{y}$: sample mean of variable $Y$
+- $n$: total number of _pairwise_ observations 
+
+
+<br>
+__A visual explanation__
+
+```{r echo=FALSE, message=FALSE,warning=FALSE}
+library(patchwork)
+set.seed(7135)
+tibble(x=runif(10,20,80),y=rnorm(10,160,10)) %>%
+  mutate(y=y+x/2,
+         coldir = ifelse( (x>mean(x) & y>mean(y)) | (x<mean(x) & y<mean(y)), "pos","neg")
+  ) -> df
+
+p1<-ggplot(df,aes(x=x,y=y))+
+  geom_point()+
+  theme_classic(base_size = 15)
+  
+p2<-ggplot(df,aes(x=x,y=y))+
+  geom_point()+
+  theme_classic(base_size = 15)+
+  geom_vline(aes(xintercept=mean(x)), lty="dashed")+
+  annotate("text",x=mean(df$x)+1, y=max(df$y)-5,label=expr(bar("x")))+
+  geom_hline(aes(yintercept=mean(y)), lty="dashed")+
+  annotate("text",x=min(df$x)+5, y=mean(df$y)+1,label=expr(bar("y")))
+  
+p3<-ggplot(df,aes(x=x,y=y))+
+  geom_point()+
+  theme_classic(base_size = 15)+
+  geom_vline(aes(xintercept=mean(x)), lty="dashed")+
+  annotate("text",x=mean(df$x)-1, y=max(df$y)-5,label=expr(bar("x")))+
+  geom_hline(aes(yintercept=mean(y)), lty="dashed")+
+  annotate("text",x=min(df$x)+5, y=mean(df$y)+1,label=expr(bar("y")))+
+  annotate("text",x=mean(df$x)+7, y=202,label=expression(x[i]-bar("x")))+
+  annotate("text",x=71.5, y=mean(df$y)+7,label=expression(y[i]-bar("y")))+
+  geom_segment(aes(x = mean(x), y = 200.9559, xend = 69.47989, yend = 200.9559), color="tomato1", data = df)+
+  geom_segment(aes(x = 69.47989, y = mean(y), xend = 69.47989, yend = 200.9559), color="tomato1",data = df)
+
+
+p4<-ggplot(df,aes(x=x,y=y))+
+  geom_point(aes(col=coldir))+
+  scale_color_manual("",values=c("black","red"))+
+  theme_classic(base_size = 15)+
+  theme(legend.position = "none")+
+  geom_vline(aes(xintercept=mean(x)), lty="dashed")+
+  annotate("text",x=mean(df$x)-1, y=max(df$y)-5,label=expr(bar("x")))+
+  geom_hline(aes(yintercept=mean(y)), lty="dashed")+
+  annotate("text",x=min(df$x)+5, y=mean(df$y)+1,label=expr(bar("y")))+
+  geom_segment(aes(x = mean(x), y = 200.9559, xend = 69.47989, yend = 200.9559), color="tomato1", data = df)+
+  geom_segment(aes(x = 69.47989, y = mean(y), xend = 69.47989, yend = 200.9559), color="tomato1",data = df)+
+  geom_segment(aes(x = mean(x), y = 211.5757, xend = 56.36053, yend = 211.5757), color="tomato1", data = df)+
+  geom_segment(aes(x = 56.36053, y = mean(y), xend = 56.36053, yend = 211.5757), color="tomato1",data = df)+
+  geom_segment(aes(x = mean(x), y = 180.5799, xend = 44.37031, yend = 180.5799), color="tomato1", data = df)+
+  geom_segment(aes(x = 44.37031, y = mean(y), xend = 44.37031, yend = 180.5799), color="tomato1",data = df)
+
+p5<-ggplot(df,aes(x=x,y=y))+
+  geom_point(aes(col=coldir))+
+  scale_color_manual("",values=c("blue","red"))+
+  theme_classic(base_size = 15)+
+  theme(legend.position = "none")+
+  geom_vline(aes(xintercept=mean(x)), lty="dashed")+
+  annotate("text",x=mean(df$x)-1, y=max(df$y)-5,label=expr(bar("x")))+
+  geom_hline(aes(yintercept=mean(y)), lty="dashed")+
+  annotate("text",x=min(df$x)+5, y=mean(df$y)+1,label=expr(bar("y")))+
+  geom_segment(aes(x = mean(x), y = 200.9559, xend = 69.47989, yend = 200.9559), color="tomato1", data = df)+
+  geom_segment(aes(x = 69.47989, y = mean(y), xend = 69.47989, yend = 200.9559), color="tomato1",data = df)+
+  geom_segment(aes(x = mean(x), y = 211.5757, xend = 56.36053, yend = 211.5757), color="tomato1", data = df)+
+  geom_segment(aes(x = 56.36053, y = mean(y), xend = 56.36053, yend = 211.5757), color="tomato1",data = df)+
+  geom_segment(aes(x = mean(x), y = 180.5799, xend = 44.37031, yend = 180.5799), color="tomato1", data = df)+
+  geom_segment(aes(x = 44.37031, y = mean(y), xend = 44.37031, yend = 180.5799), color="tomato1",data = df)+
+  geom_segment(aes(x = mean(x), y = 194.4188, xend = 45.32536, yend = 194.4188), color="skyblue3", data = df)+
+  geom_segment(aes(x = 45.32536, y = mean(y), xend = 45.32536, yend = 194.4188), color="skyblue3",data = df)+
+  geom_segment(aes(x = mean(x), y = 182.6440, xend = 66.73541, yend = 182.6440), color="skyblue3", data = df)+
+  geom_segment(aes(x = 66.73541, y = mean(y), xend = 66.73541, yend = 182.6440), color="skyblue3",data = df)
+```
+
+Consider the following scatterplot:  
+```{r echo=FALSE, message=FALSE}
+p1
+```
+<br>
+Now let's superimpose a vertical dashed line at the mean of $x$ ($\bar{x}$) and a horizontal dashed line at the mean of $y$ ($\bar{y}$):
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+p2
+```
+<br>
+Now let's pick one of the points, call it $x_i$, and show $(x_{i}-\bar{x})$ and $(y_{i}-\bar{y})$.  
+<br>
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+p3
+```
+Notice that this makes a rectangle.  
+<br>
+As $(x_{i}-\bar{x})$ and $(y_{i}-\bar{y})$ are both positive values, their product  $(x_{i}-\bar{x})(y_{i}-\bar{y})$ is positive. 
+
+<br>
+In fact, for all these points in red, the product $(x_{i}-\bar{x})(y_{i}-\bar{y})$ is positive (remember that a negative multiplied by a negative gives a positive): 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+p4
+```
+<br>
+And for these points in blue, the product $(x_{i}-\bar{x})(y_{i}-\bar{y})$ is negative:  
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+p5
+```
+<br>
+Now take another look at the formula for covariance:  
+
+$$\mathrm{Cov}(x,y)=\frac{\sum (x_{i}-\bar{x})(y_{i}-\bar{y})}{n-1}$$
+  
+It is the sum of all these products divided by $n-1$. It is the average of the products! 
+
+
+
+<br>
+__Covariance example__
+
+Suppose we have a an example dataset with 20 values:
+
+```{r}
+example_data <- tibble(ex1, ex2)
+example_data
+
+```
+
+Calculating the covariance manually, we'll first need to calculate the mean score for `ex1` and `ex2`:
+
+```{r}
+example_data <- example_data %>%
+  mutate(
+    mean_ex1 = mean(ex1),
+    mean_ex2 = mean(ex2)
+  )
+
+example_data
+```
+
+Next, to create three new columns which are:
+
+1. ex1 value - mean of ex1: the $(x_i - \overline{x})$ part
+2. ex2 value - mean of ex2: the $(y_i - \overline{y})$ part 
+3. the product of 1. and 2.: calculating the $(x_i - \overline{x})(y_i - \overline{y})$ part
+
+```{r}
+example_data <- example_data %>%
+  mutate(
+    xixbar = ex1 - mean_ex1,
+    yiybar = ex2 - mean_ex2,
+    prod = xixbar * yiybar
+  )
+
+example_data
+```
+
+Next, to sum the products and divide by $n-1$: 
+
+```{r}
+example_data %>%
+  summarise(
+    prod_sum = sum(prod),
+    n = n()
+  )
+
+-241.1/(20-1)
+```
+
+As always, R has a useful function so we don't have to calculate covariance by hand! We'll use the `cov` function to make sure we get the same results.
+
+The function `cov` takes in two variables x = and y =, in this case we want each example variable in our example_data dataset (ex1 and ex2) as all the other columns and values were made to calculate the covariance formula by hand 
+
+```{r}
+cov(example_data$ex1, example_data$ex2)
+```
+
+As we have a negative covariance value, it means that the values of one variable tend to be observed with values of the _opposite_ sign of the other variable. 
+
+You may informally think of a negative covariance value as meaning that the movement in one variable is opposite to the movement of the other variable. 
+For instance:
+
+- if X is moving upwards, Y is moving downwards
+- if X is moving downwards, Y is moving upwards 
+
+If we have a positive covariance value, the opposite is true: the movement in one variable is the _same_ to the movement of the other variable. 
+
+# Correlation ($r$)
+
+Correlation can be thought of as a standardised covariance. It ranges from $-1$ to $+1$, on which the distance from zero indicates the strength of the relationship. Similar to covariance, positive/negative values reflect the nature of the relationship.
+
+__Correlation coefficient__ 
+
+The _correlation coefficient_ is a standardised number which quantifies the strength and direction of the _linear_ relationship between 2 variables: 
+
+- in a population, it is denoted by the Greek letter $\rho$ ("rho")
+- in a sample, it is denoted by $r$
+
+### Formula 
+
+To calculate $r$, we use the following formula:
+
+$$
+r_{x,y} = \frac{\text{Cov}(x,y)}{s_x s_y}
+$$
+This can be expanded to:
+
+$$
+r_{x,y} = \frac{\frac{\sum{(x_i - \bar{x})(y_i - \bar{y})}}{n-1}}{\sqrt{\frac{\sum{(x_i - \bar{x})}^2}{n-1}} \sqrt{\frac{\sum{(x_i - \bar{x})}^2}{n-1}}}
+$$
+
+But don't fret! This can be rearranged to:
+
+$$
+r_{x,y}=\frac{1}{n-1} \sum \left( \frac{x_{i}-\bar{x}}{s_x} \right) \left( \frac{y_{i}-\bar{y}}{s_y} \right)
+$$
+This rearranged formula is very similar to the formula for covariance, but the values $(x_i-\overline{x})$ are divided by the standard deviation $(s_x)$, as are the values $(y_i - \overline{y})$ divided by $s_y$. 
+
+In other words, your are multiplying the z-scores of $X$ and the z-scores of $Y$
+
+$$
+r_{x,y}=\frac{\sum z_{x_i} z_{y_i}}{n-1} 
+$$
+
+This _standardises_ all the values so that they are expressed as the distance in _standard deviations_ from their means ($\overline{x}$ and $\overline{y}$).
+
+<br>
+__Properties of correlation coefficients__
+
+- $-1 \leq r \leq 1$
+- The sign indicates the direction of association 
+  - _positive correlation_ ($r > 0$) means that the values of one variable tend to be higher when values of the other variable are higher
+  - _negative correlation_ ($r < 0$) means that values of one variable tend to be lower when values of the other variable are higher 
+  - _no linear correlation_ ($r \approx 0$) means that the higher/lower values of one variable do not tend to occur with higher/lower values of the other variable 
+- The closer $r$ is to $\pm1$, the stronger the linear relationship
+- $r$ has no units and does not depend on the units of measurement 
+- The correlation between $x$ and $y$ is the same as the correlation between $y$ and $x$ 
+
+### Correlation example 
+
+Earlier, we calculated that $\text{Cov}(ex1,ex2) = -12.689$. To calculate the correlation, we simply divide this number by the standard deviations of the two variables. 
+
+
+
+```{r}
+example_data %>%
+  summarise(
+    s_ex1 = sd(ex1),
+    s_ex2 = sd(ex2)
+  )
+```
+
+```{r}
+-12.689/(6.981932*17.78904)
+```
+
+We can also use the `cor()` function to calculate our correlation coefficient:
+
+```{r}
+cor(example_data$ex1, example_data$ex2)
+```
+
+The numbers are the same (phew). But what does this value mean? As stated above, a negative $r$ value indicates that as one variable increases, the other decreases. Also note, this value of -0.102 is close to 0, so the relationship is very small. 
+
+# Testing significance of the correlation coefficient 
+
+Now that we've seen the formulae for _covariance_ and _correlation_, as well as their associated functions in R, we can use a statistical test to establish the probability of finding an association this strong by chance alone. 
+
+### Hypotheses
+
+__Null hypothesis__
+
+$$
+H_0: \rho = 0
+$$ 
+
+I.e. there is no linear association between $x$ and $y$ in the population.
+
+__Alternative hypothesis__
+
+i. (two-sided) $H_1: \rho \neq 0$ (there is a linear association between $x$ and $y$ in the population)
+ii. (left-tailed) $H_1: \rho < 0$ (there is a _negative_ linear association between $x$ and $y$ in the population)
+iii. (right-tailed) $H_1: \rho > 0$ (there is a _positive_ linear association between $x$ and $y$ in the population)
+
+### Test statistic
+
+Our test statistic is _another_ $t$ statistic (you can never escape them). The formula for which depends on both the observed correlation ($r$) and the sample size ($n$):
+
+$$
+t = r\sqrt{\frac{n-2}{1-r^2}}
+$$
+
+where: 
+
+- $r$: correlation coefficient 
+- $n$: sample size 
+
+### p-value
+
+To calculate the p-value for our $t$-statistic, it's the usual format: 
+
+i. $P(t_{n-2} \leq t)$
+ii. $P(t_{n-2} \geq t)$
+iii. $2 \times P(t_{n-2} \geq |t|)$
+
+where $t_{n-2}$ denotes a $t$-distribution with $n - 2$ degrees of freedom.
+
+
+```{r}
+# correlation coefficient
+r <- cor(example_data$ex1, example_data$ex2)
+
+# sample size
+n <- nrow(example_data)
+
+# t-statistic
+t_stat = r * sqrt((n - 2) / (1 - r^2))
+
+#calculate p-value for t, with df = n-2 
+2 * (1 - pt(abs(t_stat), df = 18))
+
+```
+
+Unsurprisingly, there is no significant relationship between the two made-up variables. 
+
+Alternatively, we can use the `cor.test()` function in R:
+
+```{r}
+cor.test(x = example_data$ex1, y = example_data$ex2, 
+         alternative = "two.sided")
+```
+
+
+# Example: A hypothetical memory test 
+
+Our data for this example is from a (hypothetical) study on memory. Twenty participants studied passages of text (c500 words long), and were tested a week later. The testing phase presented participants with 100 statements about the text. They had to answer whether each statement was true or false, as well as rate their confidence in each answer (on a sliding scale from 0 to 100). The dataset contains, for each participant, the percentage of items correctly answered, and the average confidence rating. Participants' ages were also recorded.
+
+`r qbegin(1)`
+Read in the data from [https://uoepsy.github.io/data/recalldata.csv](https://uoepsy.github.io/data/recalldata.csv) - it is a __.csv__ file - and look at the dimensions of the data as well as some summary statistics. 
+
+Plot the relationship between the percentage of items answered correctly (`recall_accuracy`) and participants' average self-rating of confidence in their answers (`recall_confidence`).  
+
+Plot the relationship between recall accuracy and age. 
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r message=FALSE,warning=FALSE}
+library(tidyverse)
+recalldata <- read_csv("https://uoepsy.github.io/data/recalldata.csv")
+
+dim(recalldata)
+
+summary(recalldata)
+
+ggplot(recalldata, aes(x=recall_confidence, recall_accuracy))+
+  geom_point()
+
+ggplot(recalldata, aes(x=age, recall_accuracy))+
+  geom_point()
+```
+`r solend()`
+
+`r qbegin(2)`
+We're going to calculate the covariance between recall accuracy and recall confidence.  
+
+Create 2 new columns in the memory recall data, one of which is the mean recall accuracy, and one which is the mean recall confidence. 
+
+**Remember** to assign it using `recalldata <- ...` otherwise it will just print out the data with the new columns, rather than store it anywhere. 
+`r qend()`
+`r solbegin(show = params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+recalldata <-
+  recalldata %>% mutate(
+    maccuracy = mean(recall_accuracy),
+    mconfidence = mean(recall_confidence)
+  )
+```
+`r solend()`
+
+`r qbegin(3)`
+Now create three new columns which are:
+
+i. recall accuracy minus the mean recall accuracy - this is the $(x_i - \bar{x})$ part.   
+ii. confidence minus the mean confidence - and this is the $(y_i - \bar{y})$ part.   
+iii. the product of i. and ii. - this is calculating $(x_i - \bar{x})$$(y_i - \bar{y})$.    
+
+`r qend()`
+`r solbegin(show = params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+recalldata <- 
+  recalldata %>% 
+    mutate(
+      acc_minus_mean_acc = recall_accuracy - maccuracy,
+      conf_minus_mean_conf = recall_confidence - mconfidence,
+      prod_acc_conf = acc_minus_mean_acc * conf_minus_mean_conf
+    )
+
+recalldata
+```
+`r solend()`
+
+`r qbegin(4)`
+Finally, sum the products, and divide by $n-1$
+`r qend()`
+`r solbegin(show = params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+recalldata %>%
+  summarise(
+    prod_sum = sum(prod_acc_conf),
+    n = n()
+  )
+
+2243.46 / (20-1)
+```
+`r solend()`
+
+
+## cov()
+
+`r qbegin(5)`
+Check that you get the same results using `cov()` function.  
+
+**Hint:** `cov()` can take two variables `cov(x = , y = )`. Think about how you can use the `$` to pull out the variables we are using here.
+`r qend()`
+`r solbegin(show = params$SHOW_SOLS, toggle=params$TOGGLE)`
+It's the same number!
+```{r}
+cov(recalldata$recall_accuracy, recalldata$recall_confidence)
+```
+`r solend()`
+
+`r qbegin(6)`
+We calculated above that $\mathrm{Cov}(\texttt{recall_accuracy}, \texttt{recall_confidence})$ = `r cov(recalldata$recall_accuracy, recalldata$recall_confidence) %>% round(3)`.  
+  
+To calculate the _correlation_, we simply divide this by the standard deviations of the two variables.  $s_{\texttt{recall_accuracy}} \times s_{\texttt{recall_confidence}}$.  
+Try doing this now.  
+`r qend()`
+`r solbegin(show = params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+recalldata %>% summarise(
+  s_ra = sd(recall_accuracy),
+  s_rc = sd(recall_confidence)
+)
+
+118.08 / (14.527 * 11.622)
+```
+`r solend()`
+
+
+## cor()
+
+`r qbegin(7)`
+Just like R has a `cov()` function for calculating covariance, there is a `cor()` function for calculating correlation!   
+They work in a similar way. Try using `cor()` now and check that we get the same result as above (or near enough, remember that we rounded some numbers above).  
+`r qend()`
+`r solbegin(show = params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+cor(recalldata$recall_accuracy, recalldata$recall_confidence)
+```
+`r solend()`
+
+
+# Correlation matrix  
+
+Lots of psychological datasets will have many many related variables. For instance, if a researcher was interested in job satisfaction, they might give a questionnaire to participants, and we would end up with a dataset with lots of variables (one for each question).  
+
+We will often want to quickly summarise the relationship between all possible pairs of variables. In the lecture, we saw how to do this using the `hetcor()` function from the `polycor` package, giving it a set of variables (or a whole dataset).  
+
+You probably won't have the package `polycor` yet, so you'll need to install it first.  
+
+`r optbegin("Optional: refresher on installing packages",olabel=FALSE,toggle=params$TOGGLE)`
+### Installing packages 
+
+You can install a package either by using `install.packages()` (for example: `install.packages("polycor")`), or by choosing the Packages tab in the bottom right window of RStudio, and clicking the install button.  
+  
+__Note:__ If you run `install.packages()`, you can do this in the __console__ (the bottom-left window in RStudio).  
+Remember that the console works like scratch-paper in that _nothing you write there is saved._  
+
+But we don't want to save the code which installs packages - if we had it in our RMarkdown document, then _every time that you run your code, you will be reinstalling the package_.  
+So running the `install.packages()` line from a code-chunk in your RMarkdown document is completely fine, just be sure to delete this line of code _after_ you have run it.  
+
+
+
+### Loading packages
+Now that we have installed a package, to use it we need to load it first.  
+This is what we are doing when we use `library()`.  
+  
+This line you __should__ keep in your code, because it ensures that your code is reproducible. If you don't include it, then a reader of your code will not know where you got some of the functions from.  
+
+
+`r optend()`
+
+
+`r qbegin(9)`
+
+i. Install the `polycor` package. You only need to install it once, and you will have access to it forever by calling it via `library()`
+ii. Load the `polycor` package.  
+iii. Read in the job satisfaction data from [https://uoepsy.github.io/data/jobsat.csv](https://uoepsy.github.io/data/jobsat.csv). 
+
+:::red
+Use the function __read.csv()__ rather than __read_csv__ due to a problem with the package `polycor`. 
+:::
+
+iv. Create a correlation matrix using the function `hetcor()`, and name it `cormat`.  
+v. Pull out the correlation matrix using `cormat$correlations`.  
+
+`r qend()`
+`r solbegin(show = params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r message=FALSE,warning=FALSE}
+library(polycor)
+
+jobsat <- read.csv("https://uoepsy.github.io/data/jobsat.csv") 
+cormat <- hetcor(jobsat)
+
+cormat$correlations 
+```
+
+:::frame
+As it happens, we don't actually _need_ `hetcor()` here as we can just use `cor()` if we like. However, `hetcor()` can be useful in situations where we want other more complicated types of correlation coefficient to be calculated (see the `type` argument in in `hetcor(x, type = ....)`). 
+```{r eval=FALSE,echo=TRUE}
+cor(jobsat)
+```
+:::
+
+It's a lot of numbers to look at, but each column and each row is a variable, so the left-most column shows the correlations between `V1` and each of `V1`, `V2`, `V3`, ..., `V8`.  
+`r solend()`
+
+It is often to difficult to get a good view of the strength and direction of correlations when they are all printed out.  
+Luckily, we can easily visualise a correlation matrix as a heatmap.  
+
+`r qbegin("10")`
+
+i. Install the `pheatmap` package.  
+ii. Load the `pheatmap` package. 
+iii. visualise your correlation matrix using the function `pheatmap()`.  
+
+`r qend()`
+`r solbegin(show = params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+library(pheatmap)
+pheatmap(cormat$correlations)
+```
+`r solend()`
+
+
+# Cautions! 
+
+Correlation is an invaluable tool for quantifying relationships between variables, but __must be used with care__.  
+
+Below are a few things to be aware of when we talk about correlation. 
+
+
+## Caution 1
+
+:::yellow
+Correlation can be heavily affected by outliers. Always plot your data!
+:::
+
+The two plots below only differ with respect to the inclusion of _one_ observation. However, the correlation coefficient for the two sets of observations is markedly different.  
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+df2<-df
+df2[2,1]<-180
+
+pp1 <- ggplot(df2,aes(x=x,y=y))+
+  geom_point()+
+  theme_classic()+
+  geom_vline(aes(xintercept=mean(x)), lty="dashed")+
+  annotate("text",x=mean(df2$x)+1.5, y=max(df2$y)-5,label=expr(bar("x")))+
+  geom_hline(aes(yintercept=mean(y)), lty="dashed")+
+  annotate("text",x=min(df2$x)+5, y=mean(df2$y)+1,label=expr(bar("y")))+
+  geom_segment(aes(x = mean(x), y = df2[[2,2]], xend = df2[[2,1]], yend = df2[[2,2]]), color="skyblue3", data = df2)+
+  geom_segment(aes(x = df2[[2,1]], y = mean(y), xend = df2[[2,1]], yend = df2[[2,2]]), color="skyblue3",data = df2)+
+  labs(title=paste0("Cov = ",cov(df2[,1],df2[,2]) %>% round(2),"   r = ",cor(df2[,1],df2[,2]) %>% round(2)))+
+  xlim(35,185)
+
+df3<-df2[-2,]
+pp2 <- ggplot(df3,aes(x=x,y=y))+
+  geom_point()+
+  theme_classic()+
+  #geom_vline(aes(xintercept=mean(x)), lty="dashed")+
+  #annotate("text",x=mean(df3$x)+1.5, y=max(df3$y)-5,label=expr(bar("x")))+
+  #geom_hline(aes(yintercept=mean(y)), lty="dashed")+
+  #annotate("text",x=min(df3$x)+5, y=mean(df3$y)+1,label=expr(bar("y")))+
+  #geom_segment(aes(x = mean(x), y = df3[[2,2]], xend = df3[[2,1]], yend = df3[[2,2]]), color="skyblue3", data = df3)+
+  #geom_segment(aes(x = df3[[2,1]], y = mean(y), xend = df3[[2,1]], yend = df3[[2,2]]), color="skyblue3",data = df3)+
+  labs(title=paste0("Cov = ",cov(df3[,1],df3[,2]) %>% round(2),"   r = ",cor(df3[,1],df3[,2]) %>% round(2)))+
+  xlim(35,185)
+
+pp2 / pp1
+```
+
+
+
+## Caution 2
+
+:::yellow
+Zero correlation ($r = 0$) means no linear association. The variables could still be otherwise associated. Always plot your data!
+:::
+
+The correlation coefficient in Figure \@ref(fig:joface) below is negligible, suggesting no _linear_ association. The word "linear" here is crucial - the data are very clearly related. 
+
+```{r joface, echo=FALSE,message=FALSE,warning=FALSE, fig.cap="Unrelated data?"}
+faced<-read_csv("images/covcor/face.csv")
+
+ggplot(faced,aes(x=lm_x,y=lm_y))+
+  geom_point()+
+  theme_classic()+
+  xlim(-3,3)+
+  labs(title=paste0("Cov = ",cov(faced$lm_x,faced$lm_y) %>% round(2),"   r = ",cor(faced$lm_x,faced$lm_y) %>% round(2)))
+```
+
+Similarly, take look at all the sets of data in Figure \@ref(fig:datasaurus) below. The summary statistics (means and standard deviations of each variable, and the correlation) are almost identical, but the visualisations suggest that the data are very different from one another.
+```{r datasaurus, echo=FALSE, fig.cap="Datasaurus! "}
+knitr::include_graphics("https://media1.giphy.com/media/UN2kVJQeMFUje/source.gif")
+```
+__Source:__ Matejka, J., & Fitzmaurice, G. (2017, May). Same stats, different graphs: generating datasets with varied appearance and identical statistics through simulated annealing. In _Proceedings of the 2017 CHI Conference on Human Factors in Computing Systems_ (pp. 1290-1294).  
+
+
+## Caution 3
+
+:::yellow
+Correlation does not imply causation!
+:::
+
+
+```{r xkcdcor, echo=FALSE, fig.cap="https://twitter.com/quantitudepod/status/1309135514839248896"}
+knitr::include_graphics("images/covcor/corcaus.jpeg")
+```
+
+You will have likely heard the phrase "correlation does not imply causation". There is even a whole [wikipedia entry](https://en.wikipedia.org/wiki/Correlation_does_not_imply_causation) devoted to the topic.  
+
+__Just because you observe an association between x and y, we should not deduce that x causes y__
+
+An often cited paper (See Figure \@ref(fig:choco)) which appears to fall foul of this error took a correlation between a country's chocolate consumption and its number of nobel prize winners to suggest a _causal relationship_ between the two:  
+
+```{r choco,echo=FALSE,warning=FALSE,message=FALSE, fig.cap="Chocolate consumption causes more Nobel Laureates?"}
+knitr::include_graphics("https://i.insider.com/5353e29b6da8115322dd4816?width=700&format=jpeg&auto=webp")
+```
+
+_"since chocolate consumption has been documented to improve cognitive function, it seems most likely that in a dose-dependent way, chocolate intake provides the abundant fertile ground needed for the sprouting of Nobel laureates"_    
+[Messerli, Franz. Chocolate Consumption, Cognitive Function, and Nobel Laureates. The New England Journal of Medicine 2012; 367:1562-4, (http://www.nejm.org/doi/full/10.1056/NEJMon1211064)]
+
+
+
+# Example: Sleep and daytime functioning 
+
+A researcher is interested in the relationship between hours slept per night and self-rated effects of sleep on daytime functioning. 
+She recruited 50 healthy adults, and collected data on the Total Sleep Time (TST) over the course of a seven day period via sleep-tracking devices.  
+
+At the end of the seven day period, participants completed a Daytime Functioning (DTF) questionnaire. This involved participants rating their agreement with ten statements (see Table \@ref(tab:sleepitems)). Agreement was measured on a scale from 1-5.  
+
+An overall score of daytime functioning can be calculated by:  
+  
+1. reversing the scores of items 4, 5 and 6.  
+2. Taking the sum of scores across items.  
+3. Subtracting the summed scores from 50 (the max possible score).  
+  
+<small>
+__Note:__ Step 1 is undertaken because those items reflect agreement with _positive_ statements, whereas the other ones are agreement with _negative_ statements. In step 3, subtracting the summed scores from 50 will simply reverse the overall score, meaning that higher scores will indicate better perceived daytime functioning.
+</small>
+
+The data is available as a __.csv__ at [https://uoepsy.github.io/data/sleepdtf.csv](https://uoepsy.github.io/data/sleepdtf.csv).  
+
+
+```{r sleepitems, echo=FALSE}
+tibble(
+  Item = paste0("Item_",1:10),
+  Statement = c("I often felt an inability to concentrate","I frequently forgot things","I found thinking clearly required a lot of effort","I often felt happy","I had lots of energy","I worked efficiently","I often felt irritable" ,"I often felt stressed","I often felt sleepy", "I often felt fatigued")
+) %>%
+  kable(caption="Daytime Functioning Questionnaire") %>%
+  kable_styling(full_width = FALSE)
+```
+
+
+
+`r qbegin(11)`
+Read in the data, and calculate the overall daytime functioning score, following the criteria outlined above. Make this a new column in your dataset.  
+
+_Hint:_ to reverse items 4, 5 and 6, we we need to make all the scores of 1 become 5, scores of 2 become 4, and so on...  
+
+What number satisfies all of these equations?:  
+
++ ? - 5 = 1
++  ? - 4 = 2
++ ? - 3 = 3  
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r message=FALSE}
+sleepdtf <- read_csv("https://uoepsy.github.io/data/sleepdtf.csv")
+
+# To reverse the items, we can simply do 6 minus the score.   
+sleepdtf <- sleepdtf %>%
+  mutate(
+    item_4_rev = 6 - item_4,
+    item_5_rev = 6 - item_5,
+    item_6_rev = 6 - item_6
+  ) 
+
+# Now to we add them up (be sure to use  the reversed items 4-6)
+sleepdtf <- sleepdtf %>%
+  mutate(
+    dtf = 50-(item_1 + item_2 + item_3 + item_4_rev + item_5_rev + 
+          item_6_rev + item_7 + item_8 + item_9 + item_10)
+  )
+```
+`r solend()`
+
+`r qbegin(12)`
+Calculate the correlation between the total sleep time (`TST`) and the overall daytime functioning score.  
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+cor(sleepdtf$TST, sleepdtf$dtf)
+```
+`r solend()`
+
+`r qbegin(13)`
+Conduct a test to establish the probability of observing a correlation this strong in a sample of this size assuming the true correlation to be 0.  
+  
+Write a sentence or two summarising the results. 
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+cor.test(sleepdtf$TST, sleepdtf$dtf)
+```
+
+:::int
+
+There was a strong positive correlation between total sleep time and self-reported daytime functioning score ($r$ = `r cor(sleepdtf$TST, sleepdtf$dtf) %>% round(2)`, $t(48)$ = `r cor.test(sleepdtf$TST, sleepdtf$dtf)$statistic %>% round(2)`, $p < .001$) in the current sample. As total sleep time increased, levels of self-reported daytime functioning increased.  
+
+:::
+
+`r solend()`
+
+`r qbegin(14)`
+Create a correlation matrix of the items in the daytime functioning questionnaire.  
+
+You will first need to select the relevant columns. 
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+To select the relevant columns, there are loads of different methods we can use.  
+We could do this:
+```{r eval=FALSE}
+sleepdtf %>% 
+  select(item_1, item_2, item_3, item_4, item_5, 
+         item_6, item_7, item_8, item_9, item_10)
+```
+
+Or, shorthand, because we know the columns are in order, we can use the following to select everything between `item_1` and `item_10`.  
+```{r eval=FALSE}
+sleepdtf %>% 
+  select(item_1:item_10)
+```
+
+Or, yet another option (this one was in the lecture):
+```{r eval=FALSE}
+sleepdtf[, 2:11]
+```
+This will keep all columns from the 2nd column (item_1) to the 11th (item_10). 
+
+:::frame
+**Refresher**  
+
+You may remember that there are always lots of ways to do the same thing in R. You may be more comfortable using functions like `select()`, and `filter()`, but don't forget that there are other ways, such as the use of square brackets `[]`, known as 'indexing'. These can come in pretty handy, so it's good to have them in your toolbox.  
+
+When you index a dataset, you can specify the rows that you want, and the columns that you want `mydata[rows, columns]`.  
+So we can use:   
+```{r eval=FALSE}
+mydata[1, 4:5]
+```
+To give us the first row, and the 4th and 5th columns.
+
+To refresh more of this stuff, it's worth going back over the [very first lab](../01_data_types.html#Accessing_parts_of_the_data)
+
+:::
+
+To make the correlation matrix, we just pass any of these to the `hetcor()` function from the `polycor` package!  
+
+```{r}
+dtfmatrix <-
+  sleepdtf %>% 
+  select(item_1:item_10) %>% 
+  as.data.frame() %>%
+  hetcor()
+
+dtfmatrix$correlations
+```
+
+`r solend()`
+
+`r qbegin(15)`
+Visualise your correlation matrix using `pheatmap()` from the `pheatmap` package. 
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+pheatmap(dtfmatrix$correlations)
+```
+
+`r solend()`
+
+`r qbegin(16)`
+Spend a bit of time thinking about what this correlation matrix shows you, and read the item statements again (Table \@ref(tab:sleepitems)).  
+
+Try creating and visualising a new correlation matrix using the reversed items 4, 5, and 6. What do you expect to be different?  
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+Items 4, 5, and 6 are all positively correlated with one another, and negatively correlated with Items 1, 2, and 3.  
+
+This makes sense, because Items 4, 5, and 6 are all the _positive_ statements, so someone who agrees with those is likely to disagree with the more negative statements.  
+
+Furthermore, Items 1, 2, and 3 all seem more strongly correlated with one another than with Items 7, 8, 9 and 10. Are there any differences between these items? It sort of looks like Items 1-3 are all about how well people _functioned_, whereas 7-10 is about how they _felt_. This could flag up interesting avenues for future research.  
+
+If we change to using the reversed Items 4-6, the direction (but not the strength) of the correlations with these items will change:
+```{r}
+# not the most elegant way to do this, but can see clearly what it's doing:
+dtfmatrix2 <-
+  sleepdtf %>% 
+  select(item_1, item_2, item_3, item_4_rev, item_5_rev, 
+         item_6_rev, item_7, item_8, item_9, item_10) %>%
+  as.data.frame() %>%
+  hetcor()
+
+dtfmatrix2$correlations
+
+pheatmap(dtfmatrix2$correlations)
+```
+`r solend()`
+
+`r qbegin(17)`
+What items on the daytime functioning questionnaire correlate most strongly with the Total Sleep Time (TST)?  
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+# not the most elegant way to do this, but can see clearly what it's doing:
+dtfmatrix3 <-
+  sleepdtf %>% 
+  select(TST, item_1, item_2, item_3, item_4_rev, item_5_rev, 
+         item_6_rev, item_7, item_8, item_9, item_10) %>%
+  as.data.frame() %>%
+  hetcor()
+
+dtfmatrix3$correlations
+
+pheatmap(dtfmatrix3$correlations)
+```
+`r solend()`
+
+`r qbegin(18)`
+__Open-ended:__ Think about this study in terms of _causation_.  
+  
+Claim: _Less sleep causes poorer daytime functioning._  
+  
+Why might it be inappropriate to make the claim above based on these data alone? Think about what sort of study could provide stronger evidence for such a claim.  
+
+Things to think about:  
+
++ comparison groups.   
++ random allocation.  
++ measures of daytime functioning.   
++ measures of sleep time.  
++ other (unmeasured) explanatory variables.  
+  
+`r qend()`
+
+# Glossary 
+
+- *Variance.* A measure of how spread out values are in a data set. 
+- *Covariance.* A measure of how changes in one variable area associated with changes in a second variable.  
+- *Linear relationship.* An equation, when graphed, gives you a straight line - a straight line relationship between two variables. Also known as a linear association. 
+- *Correlation.* Measures the linear relationship between two variables $x$ and $y$. It has a value between $-1$ and $1$. 
+
+<!-- Formatting -->
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;"></div>
