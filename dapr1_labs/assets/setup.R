@@ -21,7 +21,5 @@ theme_set(
     theme_bw(base_size = 15)
 )
 
-# libraries
-require(tidyverse)
-
+# kable settings
 options(knitr.table.format = "simple")
