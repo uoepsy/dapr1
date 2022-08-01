@@ -1,0 +1,280 @@
+---
+title: "Categorical data"
+subtitle: "Semester 1 - Week 2"
+---
+
+
+```{r setup}
+#| include: false
+
+source('assets/setup.R')
+```
+
+
+
+## Formative report A
+
+In the first five weeks of the course you should produce a PDF report using Rmarkdown for which you will receive formative feedback in week 6. Throughout those weeks, you will be working with a simulated dataset arising from a lexical decision task, adapted from @nordmann2022.
+
+The report should not include any reference to R code or functions, but be written or a generic reader who is only assumed to have a basic statistical understanding without any R knowledge. You should also avoid any R code output or printout in the PDF file.
+
+
+### Data
+
+**Lexical Decision Task**.  One hundred participants were asked to decide whether a presented word was a real word or a non-word. The data include 100 rows (one for each participant) and 7 variables:
+
+```{r, echo=F}
+require(tidyverse)
+tribble(
+    ~'Variable Name', ~'Description',
+    'id', 'Participant ID',
+    'age', 'Age',
+    'language', 'Language group (1 = monolingual, 2 = bilingual)',
+    'rt_word', 'Reaction time (ms) for word trials',
+    'rt_nonword', 'Reaction time (ms) for non-word trials',
+    'acc_word', 'Accuracy for word trials',
+    'acc_nonword', 'Accuracy for non-word trials'
+) %>% 
+    knitr::kable()
+```
+
+You can download the data from this link: <https://uoepsy.github.io/data/ldt_data.csv>.
+
+
+### Tasks
+
+For formative report A, you will be asked to perform the following tasks, each related to a week of teaching in this course:
+
+A1) Read the data into R and inspect it  
+
+:::{.callout-note}
+### This week's task
+
+
+A2) Display and describe the categorical data  
+:::
+
+A3) Display and describe the numerical data  
+A4) Display and describe a relationship of interest between two or three variables of your choice
+
+__This week you will only focus on task A2.__ Below there are some guided sub-steps you may want to consider to complete task A2.
+
+
+### A2 sub-tasks
+
+:::{.callout-note}
+To see the hints, hover your cursor on the superscript numbers.
+:::
+
+- Reopen last week's Rmd file, as we will continue and build on last week's work.^[
+Just joking! No hint is needed here :-)
+]
+
+- Create a plot displaying the language distribution in the sample.^[
+Hint: we display categorical variables with barplots. Consider the `geom_bar()` function.
+]
+
+- Describe the language distribution in the sample.^[Hint: We describe categorical variables with frequency distributions. Consider using the `count` function from tidyverse.]
+
+- Create a new column showing the frequencies as percentages. Do you notice anything different with the actual frequencies? Why?^[
+Hint: the following may be useful `mutate()`, `sum()`, `round`. In a report, you may only want to avoid duplication and only show the absolute frequencies.
+]
+
+- What is the mode of the distribution?^[Which is the most common category? In other words, which category has the highest frequency?]
+
+
+
+<!-- Solution -->
+
+```{r, echo=FALSE, eval=FALSE}
+# week 1
+library(tidyverse)
+lex_dec <- read_csv("https://uoepsy.github.io/data/ldt_data.csv")
+head(lex_dec)
+nrow(lex_dec)
+ncol(lex_dec)
+glimpse(lex_dec)
+summary(lex_dec)
+lex_dec$age[lex_dec$age == -99] <- NA
+lex_dec$age[lex_dec$age == 555] <- NA
+summary(lex_dec)
+
+lex_dec$language <- factor(lex_dec$language, 
+                           levels = c(1, 2),
+                           labels = c('monolingual', 'bilingual'))
+glimpse(lex_dec)
+summary(lex_dec)
+
+# week 2
+ggplot(lex_dec, aes(x = language)) +
+    geom_bar() +
+    labs(x = "Language group")
+
+lex_dec %>%
+    count(language)
+
+lex_dec %>%
+    count(language) %>%
+    mutate(
+        Perc = 100 * (n / sum(n)),
+    )
+```
+
+<!-- End -->
+
+## Worked example
+
+Consider the dataset available at <https://uoepsy.github.io/data/RestaurantTips.csv>, containing 157 observations on the following 7 variables:
+
+```{r, echo=FALSE}
+tribble(
+    ~'Variable Name', ~'Description',
+    'Bill', 'Size of the bill (in dollars)',
+    'Tip', 'Size of the tip (in dollars)',
+    'Credit', 'Paid with a credit card? n or y',
+    'Guests', 'Number of people in the group',
+    'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday',
+    'Server', 'Code for specific waiter/waitress: A, B, or C',
+    'PctTip', 'Tip as a percentage of the bill'
+) %>%
+    knitr::kable()
+```
+
+These data were collected by the owner of a bistro in the US, who was interested in understanding the tipping patterns of their customers. The data are adapted from @lock2020.
+
+```{r}
+library(tidyverse)  # we use read_csv and glimpse from tidyverse
+tips <- read_csv("https://uoepsy.github.io/data/RestaurantTips.csv")
+
+glimpse(tips)
+
+tips$Day <- factor(tips$Day, 
+                   levels = c("m", "t", "w", "th", "f"),
+                   labels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"))
+
+tips$Credit <- factor(tips$Credit, 
+                      levels = c("n", "y"),
+                      labels = c("No", "Yes"))
+
+tips$Server <- factor(tips$Server)
+
+glimpse(tips)
+
+tips <- tips %>%
+    mutate(
+        PctTip = ifelse(PctTip > 100, NA, PctTip)
+    )
+```
+
+```{r}
+plt_credit <- ggplot(tips, aes(x = Credit)) +
+    geom_bar() +
+    labs(x = "Paid by credit card?")
+plt_credit
+```
+
+You can even flip the bars if you wished to:
+
+```{r}
+ggplot(tips, aes(x = Credit)) +
+    geom_bar() +
+    labs(x = "Paid by credit card?") +
+    coord_flip()
+```
+
+
+You can use the `patchwork` package to place graphs side by side. Simply create an object for each graph, and concatenate the objects with `|` for horizontal concatenation and `/` for vertical concatenation of graphs.
+
+::: {.callout-note}
+## Rotate x-axis labels
+
+To rotate x-axis labels, you can use this code:
+`theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))`
+
+Don't worry, no one remembers it, and people always google "rotate x-axis labels ggplot" to find it.
+:::
+
+```{r}
+#| column: page
+#| fig-height: 5
+#| fig-width: 12
+
+library(patchwork)
+
+plt1 <- ggplot(tips, aes(x = Credit)) +
+    geom_bar() +
+    labs(x = "Paird by credit card?")
+
+plt2 <- ggplot(tips, aes(x = Day)) +
+    geom_bar() +
+    labs(x = "Day of week") +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+plt3 <- ggplot(tips, aes(x = Server)) +
+    geom_bar()
+
+plt1 | plt2 | plt3
+```
+
+::: {.column-margin}
+Run `install.packages("patchwork")` first in your R console
+:::
+
+
+```{r}
+tbl_credit <- tips %>%
+    count(Credit) %>%
+    mutate(perc = round((n / sum(n)) * 100, 2))
+tbl_credit
+```
+
+```{r}
+tbl_day <- tips %>%
+    count(Day) %>%
+    mutate(perc = round((n / sum(n)) * 100, 2))
+tbl_day
+```
+
+```{r}
+tbl_server <- tips %>%
+    count(Server) %>%
+    mutate(perc = round((n / sum(n)) * 100, 2))
+tbl_server
+```
+
+You can create nice tables with the `kable` command or the `pander` command:
+
+```{r}
+library(kableExtra)
+
+kable(tbl_credit) %>% kable_styling(full_width = FALSE)
+kable(tbl_day) %>% kable_styling(full_width = FALSE)
+kable(tbl_server) %>% kable_styling(full_width = FALSE)
+
+kable(list(tbl_credit, tbl_day, tbl_server)) %>%
+    kable_styling()
+```
+
+
+From the univariate distribution (or marginal distribution) of each categorical variable we see that the most common payment method was not a credit card, and the most common day of the week to dine at that restaurant was wednesday. Finally, the most common server among the parties was B. 
+
+::: {.column-margin}
+The most common value is the __mode__.
+:::
+
+## Student Glossary
+
+To conclude the lab, create a glossary of R functions. You can do so by opening Microsoft Word, Excel, or OneNote and creating a table with two columns: one where you should write the name of an R function, and the other column where you should provide a brief description of what the function does.
+
+This "do it yourself" glossary is an opportunity for you to revise what you have learned in today's lab and write down a few take-home messages. You will find this glossary handy as a reference to keep next to you when you will be doing the assessed weekly quizzes.
+
+Below you can find an example to get you started:
+
+| Function   | Use & Package |
+|:-----------|:--------------|
+| `%>%` | ? |
+| `geom_bar` | ? |
+| `count`     | ?   |
+| `mutate`     | ?   |
+| `sum`      | ?   |
+| `round`     | ?   |

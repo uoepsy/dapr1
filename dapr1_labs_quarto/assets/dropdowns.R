@@ -121,7 +121,7 @@ optbegin<-function(label=NULL,olabel=TRUE,show=TRUE, toggle=TRUE){
             id1 <- paste0("opt-start-", id)
             id2 <- paste0("opt-body-", id)
             part1 <- paste0("<div class=\"optional-begin\">",
-                            ifelse(toggle, sprintf("<span id='%s' class=\"fa fa-chevron-circle-right optional-icon clickable\" onclick=\"toggle_visibility('%s', '%s')\">  %s</span>",id1, id2, id1, olab),""),
+                            ifelse(toggle, sprintf("<span id='%s' class=\"fa fa-chevron-circle-right optional-icon clickable\" onclick=\"toggle_visibility('%s', '%s')\"> <span class=\"olab\">%s</span></span>",id1, id2, id1, olab),""),
                             "</div>",
                             ifelse(toggle, paste0("<div class=\"optional-body\" id = \"",id2, "\" style=\"display: none;\">"), "<div class=\"optional-body\">")
             )

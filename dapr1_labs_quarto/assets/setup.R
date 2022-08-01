@@ -25,5 +25,5 @@ theme_set(
     theme_bw(base_size = 15)
 )
 
-# # kable settings
+# kable settings
 # options(knitr.table.format = "simple")
