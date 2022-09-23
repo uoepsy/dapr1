@@ -1,6 +1,7 @@
 ---
 title: "Categorical data"
 subtitle: "Semester 1 - Week 2"
+callout-appearance: simple
 ---
 
 
@@ -8,79 +9,252 @@ subtitle: "Semester 1 - Week 2"
 #| include: false
 
 source('assets/setup.R')
+library(tidyverse)
 ```
 
 
 
 ## Formative report A
 
-In the first five weeks of the course you should produce a PDF report using Rmarkdown for which you will receive formative feedback in week 6. Throughout those weeks, you will be working with a simulated dataset arising from a lexical decision task, adapted from @nordmann2022.
+In the first five weeks of the course your group should produce a PDF report using Rmarkdown, to be submitted at the end of week 5. You will receive formative feedback on your submission in week 6.  
+The submitted report should be a PDF file of 4 pages at most. In week 5, you can add an Appendix in which you will collate all the R code in a chunk with the setting `results = 'hide'`, which does not count towards the page limit.  
+The report should not include any reference to R code or functions, but be written for a generic reader who is only assumed to have a basic statistical understanding without any R knowledge. You should also avoid any R code output or printout in the PDF file.
 
-The report should not include any reference to R code or functions, but be written or a generic reader who is only assumed to have a basic statistical understanding without any R knowledge. You should also avoid any R code output or printout in the PDF file.
+:::{.callout-tip collapse="true"}
+### Hiding R code or ouput
+
+:::{.panel-tabset}
+#### Hiding R code
+
+To not show the code of an R code chunk, and only show the output, write:
+
+````
+```{{r, echo=FALSE}}
+# code goes here
+```
+````
+
+#### Hiding R output
+
+To show the code of an R code chunk, but hide the output, write:
+
+````
+```{{r, results='hide'}}
+# code goes here
+```
+````
+
+#### Hiding R code and output
+
+To hide both code and output of an R code chunk, write:
+
+````
+```{{r, include=FALSE}}
+# code goes here
+```
+````
+:::
+:::
 
 
 ### Data
 
-**Lexical Decision Task**.  One hundred participants were asked to decide whether a presented word was a real word or a non-word. The data include 100 rows (one for each participant) and 7 variables:
+:::{.callout-important}
+For formative report A, please only focus on the variables `Movie` to `Year`, ignoring anything beyond that. 
+In other words, do not analyse the variables `IQ1` to `PrivateTransport` in the next five weeks of the course, we will use those later in the course.
+:::
 
-```{r, echo=F}
-require(tidyverse)
-tribble(
-    ~'Variable Name', ~'Description',
-    'id', 'Participant ID',
-    'age', 'Age',
-    'language', 'Language group (1 = monolingual, 2 = bilingual)',
-    'rt_word', 'Reaction time (ms) for word trials',
-    'rt_nonword', 'Reaction time (ms) for non-word trials',
-    'acc_word', 'Accuracy for word trials',
-    'acc_nonword', 'Accuracy for non-word trials'
-) %>% 
-    knitr::kable()
-```
+**Hollywood Movies**. At the link <https://uoepsy.github.io/data/hollywood_movies_subset.csv> you will find data on Hollywood movies released between 2012 and 2018 from the top 5 lead studios and top 10 genres. The following variables were recorded:
 
-You can download the data from this link: <https://uoepsy.github.io/data/ldt_data.csv>.
+- `Movie`: Title of the movie 
+- `LeadStudio`: Primary U.S. distributor of the movie 
+- `RottenTomatoes`: Rotten Tomatoes rating (critics) 
+- `AudienceScore`: Audience rating (via Rotten Tomatoes) 
+- `Genre`: One of Action Adventure, Black Comedy, Comedy, Concert, Documentary, Drama, Horror, Musical, Romantic Comedy, Thriller, or Western 
+- `TheatersOpenWeek`: Number of screens for opening weekend 
+- `OpeningWeekend`: Opening weekend gross (in millions) 
+- `BOAvgOpenWeekend`: Average box office income per theater, opening weekend 
+- `Budget`: Production budget (in millions) 
+- `DomesticGross`: Gross income for domestic (U.S.) viewers (in millions) 
+- `WorldGross`: Gross income for all viewers (in millions) 
+- `ForeignGross`: Gross income for foreign viewers (in millions) 
+- `Profitability`: WorldGross as a percentage of Budget 
+- `OpenProfit`: Percentage of budget recovered on opening weekend 
+- `Year`: Year the movie was released
+- (Ignore for now) `IQ1`-`IQ50`: IQ score of each of 50 audience raters
+- (Ignore for now) `Snacks`: How many of the 50 audience raters brought snacks
+- (Ignore for now) `PrivateTransport`: How many of the 50 audience raters reached the cinema via private transportation
 
 
 ### Tasks
 
-For formative report A, you will be asked to perform the following tasks, each related to a week of teaching in this course:
+For formative report A, you will be asked to perform the following tasks, each related to a week of teaching in this course.  
+__This week you will only focus on task A2.__ In the next section you will find some guided sub-steps you may want to consider to complete task A2.
 
-A1) Read the data into R and inspect it  
+
+A1) Read the data into R, inspect it, and write a concise introduction to the data and its structure  
 
 :::{.callout-note}
 ### This week's task
-
-
 A2) Display and describe the categorical data  
 :::
 
 A3) Display and describe the numerical data  
-A4) Display and describe a relationship of interest between two or three variables of your choice
-
-__This week you will only focus on task A2.__ Below there are some guided sub-steps you may want to consider to complete task A2.
+A4) Display and describe a relationship of interest between two or three variables of your choice  
+A5) Finish the report write-up, knit to PDF, and submit the PDF for formative feedback
 
 
 ### A2 sub-tasks
 
-:::{.callout-note}
+::: {.callout-tip}
+#### Tip
+
 To see the hints, hover your cursor on the superscript numbers.
 :::
 
-- Reopen last week's Rmd file, as we will continue and build on last week's work.^[
-Just joking! No hint is needed here :-)
+In this section you will find some guided sub-steps you may want to consider to complete task A2.
+
+- Reopen last week's Rmd file, as you will continue last week's work and build on it.^[
+Hint: ask last week's driver for the Rmd file, they should share it with the group via email or Teams.
 ]
 
-- Create a plot displaying the language distribution in the sample.^[
-Hint: we display categorical variables with barplots. Consider the `geom_bar()` function.
+:::{.callout-note collapse="true"}
+#### Selecting a subset of columns
+
+Consider a table of toy data comprising a participant identifier (id: 1 to 5), the participant age, the course (A or B) they are enrolled into, and their height:
+
+```{r}
+toy_data <- tibble(
+    id = 1:5,
+    age = c(18, 20, 25, 22, 19),
+    course = c("A", "B", "A", "B", "A"),
+    height = c(171, 180, 168, 193, 174)
+)
+toy_data
+```
+
+To select the first two columns, you can either say the range `from`:`to` using numbers or the names of the columns:
+
+```{r}
+toy_data %>%
+    select(1:3)
+```
+
+```{r}
+toy_data %>%
+    select(id:course)
+```
+
+However, if you check the data in `toy_data`, those didn't change. The result of the above computation was only printed to the screen but not stored. 
+
+```{r}
+toy_data
+```
+
+To store it, we need to assign the result:
+
+```{r}
+toy_data <- toy_data %>%
+    select(id:course)
+```
+
+```{r}
+toy_data
+```
+
+By doing the above, we have overwritten the data stored in `toy_data` with the selected columns.
+
+:::
+
+- Overwrite the data to only include the first 15 variables (i.e. columns).^[Hint: the `select()` function from `tidyverse`]
+
+- Create a plot displaying the frequency distribution of movie genres.[^geom-bar]
+
+[^geom-bar]: Hint: we display categorical variables with barplots. Consider the `geom_bar()` function.
+
+    Example: For the `toy_data` from above, the frequency distribution of course enrollment is:
+
+    ```{r}
+    ggplot(toy_data, aes(x = course)) +
+        geom_bar() +
+        labs(x = "Enrollment per course", y = "Frequency")
+    ```
+
+- Create a plot displaying the frequency distribution of the lead studios.^[
+Hint: similar to above, change the column to `LeadStudio`.
 ]
 
-- Describe the language distribution in the sample.^[Hint: We describe categorical variables with frequency distributions. Consider using the `count` function from tidyverse.]
-
-- Create a new column showing the frequencies as percentages. Do you notice anything different with the actual frequencies? Why?^[
-Hint: the following may be useful `mutate()`, `sum()`, `round`. In a report, you may only want to avoid duplication and only show the absolute frequencies.
+- Would it make sense to create a plot of the frequency distribution of movie names?^[
+Hint: what would be the height of each bar? Would adding such a plot to a report bring any insights and be useful to a decision maker?
 ]
 
-- What is the mode of the distribution?^[Which is the most common category? In other words, which category has the highest frequency?]
+::: {.callout-tip}
+#### Tip
+
+Before applying a function to your data, you should always ask yourself if what you are about to do is going to convey any insight about the data, compared to just looking at the data itself.  
+The goal of data analysis is to to go from a multitude of values to insights that provide actionable information from a quick glance.
+:::
+
+- Describe the distribution of movie genres. You may want to include both the frequency and the percentage frequency.[^movies-freq-distr]
+
+[^movies-freq-distr]: Hint: We describe categorical variables with frequency distributions.
+
+    Consider using the `count` function from tidyverse and `mutate` for adding percentages.
+    
+    Example:
+    
+    ```{r}
+    toy_data %>%
+        count(course) %>%
+        mutate(
+            perc = round(n / sum(n) * 100, 2)
+        )
+    ```
+    
+
+:::{.callout-note collapse="true"}
+#### Alternative
+
+Consider this code:
+
+```{r}
+toy_data %>%
+    count(course) %>%
+    mutate(
+        perc = round(n / sum(n) * 100, 2)
+    )
+```
+
+You can change the names of the frequency from `n` to `Freq` and `perc` to `Perc` using:
+
+```{r}
+toy_data %>%
+    count(course, name = "Freq") %>%
+    mutate(
+        Perc = round(Freq / sum(Freq) * 100, 2)
+    )
+```
+
+An alternative to the above involves using the `group_by()`, `summarise()`, and `n()` functions from `tidyverse`. 
+The `n()` function counts the number of values, and we use it inside `summarise()` because we are summarising the data with a number. Before `summarise`, we use `group_by(course)` to tell R to do the computation for each unique `course` entry, i.e. for each group of rows defined by `course`.
+
+```{r}
+toy_data %>%
+    group_by(course) %>%
+    summarise(
+        Freq = n()
+    ) %>%
+    mutate(
+        Perc = round(Freq / sum(Freq) * 100, 2)
+    )
+```
+
+:::
+
+- What is the most common genre and the most common lead studio?^[
+Hint: What is the mode of `Genre` and `LeadStudio`? In other words, which category in each of those frequency distributions has the highest frequency?  
+Tip: You may want to order the frequency tables in descending order. The function `arrange(desc(<column_of_freq>))` may help.
+]
 
 
 
@@ -89,44 +263,55 @@ Hint: the following may be useful `mutate()`, `sum()`, `round`. In a report, you
 ```{r, echo=FALSE, eval=FALSE}
 # week 1
 library(tidyverse)
-lex_dec <- read_csv("https://uoepsy.github.io/data/ldt_data.csv")
-head(lex_dec)
-nrow(lex_dec)
-ncol(lex_dec)
-glimpse(lex_dec)
-summary(lex_dec)
-lex_dec$age[lex_dec$age == -99] <- NA
-lex_dec$age[lex_dec$age == 555] <- NA
-summary(lex_dec)
-
-lex_dec$language <- factor(lex_dec$language, 
-                           levels = c(1, 2),
-                           labels = c('monolingual', 'bilingual'))
-glimpse(lex_dec)
-summary(lex_dec)
+movies <- read_csv("https://uoepsy.github.io/data/hollywood_movies_subset.csv")
+head(movies)
+nrow(movies)
+ncol(movies)
+dim(movies)
+glimpse(movies)
+summary(movies)
 
 # week 2
-ggplot(lex_dec, aes(x = language)) +
+library(patchwork)
+
+movies <- movies %>%
+    select(1:15)
+
+freqGenre <- ggplot(movies, aes(x = Genre)) +
     geom_bar() +
-    labs(x = "Language group")
+    labs(x = "Movie genre", y = "Frequency") +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+freqLeadStudio <- ggplot(movies, aes(x = LeadStudio)) +
+    geom_bar() +
+    labs(x = "Lead studio", y = "Frequency") +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+freqGenre | freqLeadStudio
 
-lex_dec %>%
-    count(language)
+movies %>% 
+    count(Genre, name = 'Freq') %>% 
+    mutate(Perc = Freq / sum(Freq) * 100) %>% 
+    mutate(Perc = round(Perc, 2)) %>% 
+    arrange(desc(Freq))
 
-lex_dec %>%
-    count(language) %>%
-    mutate(
-        Perc = 100 * (n / sum(n)),
-    )
+movies %>% 
+    count(LeadStudio, name = 'Freq') %>% 
+    mutate(Perc = Freq / sum(Freq) * 100) %>% 
+    mutate(Perc = round(Perc, 2)) %>% 
+    arrange(desc(Freq))
+
 ```
 
 <!-- End -->
+
 
 ## Worked example
 
 Consider the dataset available at <https://uoepsy.github.io/data/RestaurantTips.csv>, containing 157 observations on the following 7 variables:
 
 ```{r, echo=FALSE}
+library(tidyverse)
+library(kableExtra)
+
 tribble(
     ~'Variable Name', ~'Description',
     'Bill', 'Size of the bill (in dollars)',
@@ -137,7 +322,8 @@ tribble(
     'Server', 'Code for specific waiter/waitress: A, B, or C',
     'PctTip', 'Tip as a percentage of the bill'
 ) %>%
-    knitr::kable()
+    kbl() %>%
+    kable_styling(full_width = FALSE)
 ```
 
 These data were collected by the owner of a bistro in the US, who was interested in understanding the tipping patterns of their customers. The data are adapted from @lock2020.
@@ -145,9 +331,27 @@ These data were collected by the owner of a bistro in the US, who was interested
 ```{r}
 library(tidyverse)  # we use read_csv and glimpse from tidyverse
 tips <- read_csv("https://uoepsy.github.io/data/RestaurantTips.csv")
+```
 
+```{r}
+head(tips)
+```
+
+:::{.column-margin}
+`head()` shows the top 6 rows of data. Use the `n = ...` option to change the default behaviour, e.g. `head(<data>, n = 10)`.
+:::
+
+```{r}
 glimpse(tips)
+```
 
+:::{.column-margin}
+`glimpse` is part of the tidyverse package and is used to check the type of each variable.
+:::
+
+We can use better labels for the categorical variables:
+
+```{r}
 tips$Day <- factor(tips$Day, 
                    levels = c("m", "t", "w", "th", "f"),
                    labels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"))
@@ -159,21 +363,56 @@ tips$Credit <- factor(tips$Credit,
 tips$Server <- factor(tips$Server)
 
 glimpse(tips)
+```
 
+:::{.column-margin}
+The categorical variable `course` in `toy_data` with levels "A" and "B" can have the values relabelled to "Year1" and "Year2" via:
+
+```
+toy_data$course <- factor(
+  toy_data$course, 
+  levels = c("A", "B"), 
+  labels = c("Year1", "Year2")
+)
+```
+:::
+
+Last week, we also saw that if someone tipped more than 100% of the bill size, it was likely a data input error and we decided to replace that value with NA (not available):
+
+::: {.column-margin}
+The `mutate` function takes as arguments:
+
+- column name  
+- =  
+- how to compute that column
+:::
+
+::: {.column-margin}
+The syntax for `ifelse` is:
+```
+ifelse(test_condition, 
+       value_if_true, 
+       avalue_if_false)
+```
+:::
+
+```{r}
 tips <- tips %>%
     mutate(
         PctTip = ifelse(PctTip > 100, NA, PctTip)
     )
 ```
 
+This displays the frequency distribution of credit card payers:
+
 ```{r}
 plt_credit <- ggplot(tips, aes(x = Credit)) +
     geom_bar() +
-    labs(x = "Paid by credit card?")
+    labs(x = "Paid by credit card?", y = "Count")
 plt_credit
 ```
 
-You can even flip the bars if you wished to:
+You can even flip the coordinates, if you wish to, using the `coord_flip()` function:
 
 ```{r}
 ggplot(tips, aes(x = Credit)) +
@@ -182,16 +421,22 @@ ggplot(tips, aes(x = Credit)) +
     coord_flip()
 ```
 
+You can use the `patchwork` package to place graphs side by side. Simply create an object for each graph, and concatenate the objects with `|` for horizontal concatenation and `/` for vertical concatenation of graphs. You can even combine this by using parentheses, e.g. (plot1 | plot2) / (plot3 | plot4) for 2 rows and 2 columns.
 
-You can use the `patchwork` package to place graphs side by side. Simply create an object for each graph, and concatenate the objects with `|` for horizontal concatenation and `/` for vertical concatenation of graphs.
+::: {.column-margin}
+Run `install.packages("patchwork")` first in your R console
+:::
 
-::: {.callout-note}
+We can display the frequency distribution of all the categorical variables: Credit, Day, and Server:
+
+::: {.callout-note collapse="true"}
 ## Rotate x-axis labels
 
-To rotate x-axis labels, you can use this code:
-`theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))`
-
-Don't worry, no one remembers it, and people always google "rotate x-axis labels ggplot" to find it.
+To rotate x-axis labels by 90 degrees, you can use this code:  
+`theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))`  
+To rotate the labels by 45 degrees, you can use:
+`theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))`  
+Don't worry, no one remembers it. People always google "rotate x-axis labels ggplot" to find it.
 :::
 
 ```{r}
@@ -203,60 +448,116 @@ library(patchwork)
 
 plt1 <- ggplot(tips, aes(x = Credit)) +
     geom_bar() +
-    labs(x = "Paird by credit card?")
+    labs(x = "Paird by credit card?", y = "Count") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 
 plt2 <- ggplot(tips, aes(x = Day)) +
     geom_bar() +
-    labs(x = "Day of week") +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+    labs(x = "Day of week", y = "Count") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 
 plt3 <- ggplot(tips, aes(x = Server)) +
-    geom_bar()
+    geom_bar() +
+    labs(y = "Count") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 
 plt1 | plt2 | plt3
 ```
 
-::: {.column-margin}
-Run `install.packages("patchwork")` first in your R console
-:::
-
+A frequency table can be obtained using:
 
 ```{r}
 tbl_credit <- tips %>%
     count(Credit) %>%
-    mutate(perc = round((n / sum(n)) * 100, 2))
+    mutate(
+        perc = round((n / sum(n)) * 100, 2)
+    )
 tbl_credit
 ```
 
 ```{r}
 tbl_day <- tips %>%
     count(Day) %>%
-    mutate(perc = round((n / sum(n)) * 100, 2))
+    mutate(
+        perc = round((n / sum(n)) * 100, 2)
+    )
 tbl_day
 ```
 
 ```{r}
 tbl_server <- tips %>%
     count(Server) %>%
-    mutate(perc = round((n / sum(n)) * 100, 2))
+    mutate(
+        perc = round((n / sum(n)) * 100, 2)
+    )
 tbl_server
 ```
 
-You can create nice tables with the `kable` command or the `pander` command:
+You can create nice tables with the `kbl` command from the `kableExtra` package.
 
-```{r}
+:::{.column-margin}
+Run `install.packages("kableExtra")` first in your R console
+:::
+
+```{r, eval=FALSE}
 library(kableExtra)
 
-kable(tbl_credit) %>% kable_styling(full_width = FALSE)
-kable(tbl_day) %>% kable_styling(full_width = FALSE)
-kable(tbl_server) %>% kable_styling(full_width = FALSE)
-
-kable(list(tbl_credit, tbl_day, tbl_server)) %>%
-    kable_styling()
+kbl(list(tbl_credit, tbl_day, tbl_server), booktabs = TRUE)
 ```
 
+<!-- Test -->
 
-From the univariate distribution (or marginal distribution) of each categorical variable we see that the most common payment method was not a credit card, and the most common day of the week to dine at that restaurant was wednesday. Finally, the most common server among the parties was B. 
+```{r}
+#| tbl-cap: Frequency tables of categorical variables
+#| tbl-subcap: 
+#|   - "Paid with a credit card"
+#|   - "Day of the week"
+#|   - "Server"
+#| layout-ncol: 3
+#| echo: false
+
+kbl(tbl_credit) %>% kable_styling(full_width = FALSE)
+kbl(tbl_day) %>% kable_styling(full_width = FALSE)
+kbl(tbl_server) %>% kable_styling(full_width = FALSE)
+```
+
+<!-- End test -->
+
+:::{.callout-note collapse="true"}
+#### Arranging by descending frequency
+
+Add `arrange(desc(column_of_freq))`. For example:
+
+```{r}
+tbl_day <- tips %>%
+    count(Day) %>%
+    mutate(
+        perc = round((n / sum(n)) * 100, 2)
+    ) %>%
+    arrange(desc(n))
+tbl_day
+```
+
+:::
+
+:::{.callout-note collapse="true"}
+#### Rename the frequency and percent columns
+
+Add `arrange(desc(column_of_freq))`. For example:
+
+```{r}
+tbl_day <- tips %>%
+    count(Day, name = "Freq") %>%
+    mutate(
+        Perc = round((Freq / sum(Freq)) * 100, 2)
+    ) %>%
+    arrange(desc(Freq))
+tbl_day
+```
+
+:::
+
+From the univariate distribution (or marginal distribution) of each categorical variable we see that the most common payment method was not a credit card, and the most common day of the week to dine at that restaurant was Wednesday. Finally, most parties were waited on by server B. 
 
 ::: {.column-margin}
 The most common value is the __mode__.
@@ -266,11 +567,17 @@ The most common value is the __mode__.
 
 To conclude the lab, add the new functions to the glossary of R functions that you started last week. 
 
-| Function   | Use & Package |
+| Function   | Use and package |
 |:-----------|:--------------|
+| `factor` | ? |
 | `%>%` | ? |
 | `geom_bar` | ? |
+| `labs` | ? |
 | `count`     | ?   |
 | `mutate`     | ?   |
 | `sum`      | ?   |
 | `round`     | ?   |
+| `coord_flip` | ? |
+| `kbl` | ? |
+| `arrange` | ? |
+| `desc` | ? |
