@@ -6,8 +6,8 @@ df = read_csv("HollywoodMovies.csv")
 
 glimpse(df)
 
-df = df %>% 
-    filter(!str_detect(LeadStudio, "Weinstein"))
+# df = df %>%
+#     filter(!str_detect(LeadStudio, "Weinstein"))
 
 glimpse(df)
 
@@ -45,11 +45,13 @@ df.2 %>%
 # normal data
 N = nrow(df.2)
 for (i in 1:50) {
-    df.2[, sprintf('IQ%0d', i)] = rnorm(N, 100, 15)
+    df.2[, sprintf('IQ%0d', i)] = round(rnorm(N, 100, 15), 0)
 }
 
 df.2 %>%
-    pivot_longer(IQ1:IQ50, names_to = 'Viewer', values_to = 'ViewersIQ')
+    pivot_longer(IQ1:IQ50, names_to = 'Viewer', values_to = 'ViewersIQ') %>%
+    ggplot(aes(ViewersIQ)) +
+    geom_density()
 
 
 # binomial data
