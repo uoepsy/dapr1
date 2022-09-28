@@ -1,0 +1,494 @@
+---
+title: "Numeric data"
+subtitle: "Semester 1 - Week 3"
+callout-appearance: simple
+---
+
+
+```{r setup}
+#| include: false
+
+source('assets/setup.R')
+library(tidyverse)
+```
+
+
+::: {.callout-note collapse="true"}
+## Instructions Recap - Formative Report A
+
+### Formative report A {-}
+
+In the first five weeks of the course your group should produce a PDF report using Rmarkdown, to be submitted at the end of week 5. You will receive formative feedback on your submission in week 6.  
+The submitted report should be a PDF file of 4 pages at most. In week 5, you can add an Appendix in which you will collate all the R code in a chunk with the setting `results = 'hide'`, which does not count towards the page limit.  
+The report should not include any reference to R code or functions, but be written for a generic reader who is only assumed to have a basic statistical understanding without any R knowledge. You should also avoid any R code output or printout in the PDF file.
+
+### Data {-}
+
+:::{.callout-important}
+For formative report A, please only focus on the variables `Movie` to `Year`, ignoring anything beyond that. 
+In other words, do not analyse the variables `IQ1` to `PrivateTransport` in the next five weeks of the course, we will use those later in the course.
+:::
+
+**Hollywood Movies**. At the link <https://uoepsy.github.io/data/hollywood_movies_subset.csv> you will find data on Hollywood movies released between 2012 and 2018 from the top 5 lead studios and top 10 genres. The following variables were recorded:
+
+- `Movie`: Title of the movie 
+- `LeadStudio`: Primary U.S. distributor of the movie 
+- `RottenTomatoes`: Rotten Tomatoes rating (critics) 
+- `AudienceScore`: Audience rating (via Rotten Tomatoes) 
+- `Genre`: One of Action Adventure, Black Comedy, Comedy, Concert, Documentary, Drama, Horror, Musical, Romantic Comedy, Thriller, or Western 
+- `TheatersOpenWeek`: Number of screens for opening weekend 
+- `OpeningWeekend`: Opening weekend gross (in millions) 
+- `BOAvgOpenWeekend`: Average box office income per theater, opening weekend 
+- `Budget`: Production budget (in millions) 
+- `DomesticGross`: Gross income for domestic (U.S.) viewers (in millions) 
+- `WorldGross`: Gross income for all viewers (in millions) 
+- `ForeignGross`: Gross income for foreign viewers (in millions) 
+- `Profitability`: WorldGross as a percentage of Budget 
+- `OpenProfit`: Percentage of budget recovered on opening weekend 
+- `Year`: Year the movie was released
+- (Ignore for now) `IQ1`-`IQ50`: IQ score of each of 50 audience raters
+- (Ignore for now) `Snacks`: How many of the 50 audience raters brought snacks
+- (Ignore for now) `PrivateTransport`: How many of the 50 audience raters reached the cinema via private transportation
+:::
+
+
+## Tasks
+
+For formative report A, you will be asked to perform the following tasks, each related to a week of teaching in this course.  
+__This week you will only focus on task A3.__ In the next section you will find some guided sub-steps you may want to consider to complete task A3.
+
+
+A1) Read the data into R, inspect it, and write a concise introduction to the data and its structure  
+A2) Display and describe the categorical variables  
+
+:::{.callout-note}
+### This week's task
+A3) Display and describe six numerical variables of your choice  
+:::
+
+A4) Display and describe a relationship of interest between two or three variables of your choice  
+A5) Finish the report write-up, knit to PDF, and submit the PDF for formative feedback
+
+
+## A3 sub-tasks
+
+::: {.callout-tip}
+#### Tip
+
+To see the hints, hover your cursor on the superscript numbers.
+:::
+
+In this section you will find some guided sub-steps you may want to consider to complete task A3.
+
+- Reopen last week's Rmd file, as you will continue last week's work and build on it.^[
+Hint: ask last week's driver for the Rmd file, they should share it with the group via email or Teams.  
+To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
+]
+
+::: {.callout-note collapse="true"}
+#### Visualising the distribution of numerical data
+
+We display numeric variables with histograms, density plots, or boxplots. Respectively, these use the function `geom_histogram()`, `geom_density()`, or `geom_boxplot()` from ggplot2, which is a package automatically loaded when you load tidyverse via `library(tidverse)`. For illustration purposes, we will use the starwars dataset from `tidyverse`, containing information on Starwars characters.
+
+```{r}
+library(tidyverse)
+glimpse(starwars)
+```
+
+:::{.panel-tabset}
+##### Histogram
+
+The distribution of the character heights (cm) can be displayed with a histogram:
+
+```{r}
+ggplot(starwars, aes(x = height)) +
+    geom_histogram(color = 'gray', fill = 'lightblue') +
+    labs(x = "Character height", y = "Frequency")
+```
+
+##### Density plot
+
+The distribution of the character heights (cm) can be displayed with a density plot:
+
+```{r}
+ggplot(starwars, aes(x = height)) +
+    geom_density(color = 'dodgerblue') +
+    labs(x = "Character height")
+```
+
+##### Boxplot
+
+The distribution of the character heights (cm) can be displayed with a box plot:
+
+```{r}
+ggplot(starwars, aes(x = height)) +
+    geom_boxplot() +
+    labs(x = "Character height")
+```
+
+:::
+
+:::
+
+- Create six plots, each displaying the distribution of:[^num-hist]
+
+    + Production budgets
+    + Audience scores
+    + Rotten Tomatoes ratings
+    + World gross income
+    + Foreign gross income
+    + Year of movie release
+
+[^num-hist]: Hint: `geom_histogram()`, `geom_density()`, or `geom_boxplot()`
+
+- Arrange the above plots as a single figure comprising 2 by 3 panels[^num-patchwork]
+
+[^num-patchwork]: Hint: the `|` and `/` functions from the `patchwork` package.
+
+    For example, if `plt1`, `plt2`, `plt3`, and `plt4` are plots, this creates a single figure:
+    
+    `(plt1 | plt2) / (plt3 | plt4)`
+
+
+::: {.callout-note collapse="true"}
+#### Compute the mean and standard deviation of a variable
+
+Consider again the starwars dataset. The mean and SD of the height variable can be computed as:
+
+```{r}
+starwars %>%
+    summarise(M = mean(height, na.rm = TRUE),
+              SD = sd(height, na.rm = TRUE)) %>%
+    round(digits = 2)
+```
+
+To make a nice table for the PDF document, you can use the `kbl()` function from the `kableExtra` package:
+
+```{r eval = FALSE}
+library(kableExtra)
+
+starwars %>%
+    summarise(M = mean(height, na.rm = TRUE),
+              SD = sd(height, na.rm = TRUE)) %>%
+    kbl(booktabs = TRUE, digits = 2)
+```
+
+```{r echo = FALSE}
+library(kableExtra)
+
+starwars %>%
+    summarise(M = mean(height, na.rm = TRUE),
+              SD = sd(height, na.rm = TRUE)) %>%
+    kbl(digits = 2) %>%
+    kable_styling(full_width = FALSE)
+```
+:::
+
+- Create a table of descriptive statistics that summarises the production budgets using the mean and standard deviation.^[
+Hint: the `summarise()` function from tidyverse, `mean()` and `sd()`. <br><br>
+Hint: if you remember, there are NAs in the variable. What do you need to add to the `mean()` and `sd()` function to ensure they do not affect the computation?
+]
+
+::: {.callout-note collapse="true"}
+#### Table of descriptive statistics
+
+Using summarise for more than a couple of variables would make the job very tedious and long. There is a shortcut, which uses the `describe` function from the psych package.  
+The following code creates a table of descriptive statistics (via the `describe` function from the psych package) and ensures the table is in proper format by using the `kbl` function from the kableExtra package.
+
+```{r eval=FALSE}
+library(kableExtra) # for the kbl function
+library(psych)      # for the describe function
+
+starwars %>%
+    select(height, mass) %>%
+    describe() %>%
+    kbl(digits = 2, booktabs = TRUE)   # kbl converts to a nice PDF table
+```
+
+```{r echo=FALSE}
+library(kableExtra) # for the kbl function
+library(psych)      # for the describe function
+
+starwars %>%
+    select(height, mass) %>%
+    describe() %>%
+    kbl(digits = 2) %>%
+    kable_styling(full_width = FALSE)
+```
+
+To only show the columns `n`, `mean`, `sd`, `median` you can use:
+
+```{r eval=FALSE}
+library(kableExtra) # for the kbl function
+library(psych)      # for the describe function
+
+starwars %>%
+    select(height, mass) %>%
+    describe() %>%
+    select(n, mean, sd, median) %>%
+    kbl(digits = 2, booktabs = TRUE)   # kbl converts to a nice PDF table
+```
+
+```{r echo=FALSE}
+library(kableExtra) # for the kbl function
+library(psych)      # for the describe function
+
+starwars %>%
+    select(height, mass) %>%
+    describe() %>%
+    select(n, mean, sd, median) %>%
+    kbl(digits = 2) %>%
+    kable_styling(full_width = FALSE)
+```
+
+:::
+
+- Create a table of descriptive statistics that summarises (using the mean and standard deviation) the six numeric variables which you plotted above. [^num-descr-stats]  
+
+[^num-descr-stats]: Hint: the `describe` function from the `psych` package.
+    
+
+- Write up a summary of what you have reported in the table, using proper rounding to 2 decimal places and avoiding any reference to R code or functions.
+
+:::{.callout-tip collapse="true"}
+### Hiding R code or ouput
+
+:::{.panel-tabset}
+#### Hiding R code
+
+To not show the code of an R code chunk, and only show the output, write:
+
+````
+```{{r, echo=FALSE}}
+# code goes here
+```
+````
+
+#### Hiding R output
+
+To show the code of an R code chunk, but hide the output, write:
+
+````
+```{{r, results='hide'}}
+# code goes here
+```
+````
+
+#### Hiding R code and output
+
+To hide both code and output of an R code chunk, write:
+
+````
+```{{r, include=FALSE}}
+# code goes here
+```
+````
+:::
+:::
+
+- Make sure that all R code and output is not visible in the PDF report. The PDF report should only include text, tables and plots.
+
+
+## Worked example
+
+Consider the dataset available at <https://uoepsy.github.io/data/RestaurantTips.csv>, containing 157 observations on the following 7 variables:
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(kableExtra)
+
+tribble(
+    ~'Variable Name', ~'Description',
+    'Bill', 'Size of the bill (in dollars)',
+    'Tip', 'Size of the tip (in dollars)',
+    'Credit', 'Paid with a credit card? n or y',
+    'Guests', 'Number of people in the group',
+    'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday',
+    'Server', 'Code for specific waiter/waitress: A, B, or C',
+    'PctTip', 'Tip as a percentage of the bill'
+) %>%
+    kbl() %>%
+    kable_styling(full_width = FALSE)
+```
+
+These data were collected by the owner of a bistro in the US, who was interested in understanding the tipping patterns of their customers. The data are adapted from @lock2020.
+
+```{r}
+library(tidyverse)  # we use read_csv and glimpse from tidyverse
+tips <- read_csv("https://uoepsy.github.io/data/RestaurantTips.csv")
+head(tips)
+glimpse(tips)
+```
+
+```{r}
+tips$Day <- factor(tips$Day, 
+                   levels = c("m", "t", "w", "th", "f"),
+                   labels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"))
+
+tips$Credit <- factor(tips$Credit, 
+                      levels = c("n", "y"),
+                      labels = c("No", "Yes"))
+
+tips$Server <- factor(tips$Server)
+
+glimpse(tips)
+```
+
+```{r}
+tips <- tips %>%
+    mutate(
+        PctTip = ifelse(PctTip > 100, NA, PctTip)
+    )
+```
+
+We can create a histogram of tips via:
+
+```{r}
+ggplot(tips, aes(x = Bill)) + 
+    geom_histogram(color = 'white') + 
+    labs(x = "Size of the tip (US dollars)")
+```
+
+We can create a single figure with the distribution of all numeric variables by using the patchwork package:
+
+```{r}
+#| column: page
+#| fig-height: 6
+#| fig-width: 8
+
+library(patchwork)
+
+pltBill <- ggplot(tips, aes(x = Bill)) +
+    geom_histogram(color = 'white', fill = 'lightblue') +
+    labs(x = "Size of the bill (US dollars)")
+
+pltTip <- ggplot(tips, aes(x = Tip)) +
+    geom_histogram(color = 'white', fill = 'lightblue') +
+    labs(x = "Size of the tip (US dollars)")
+
+pltGuests <- ggplot(tips, aes(x = Guests)) +
+    geom_bar(fill = 'lightblue') +
+    labs(x = "Number of people in the group")
+
+pltPctTip <- ggplot(tips, aes(x = PctTip)) +
+    geom_histogram(color = 'white', fill = 'lightblue') +
+    labs(x = "Tip as a percentage of the bill")
+
+(pltBill | pltTip) / (pltGuests | pltPctTip)
+```
+
+
+To summarise one numeric variable, you can use the `summarise` function from tidyverse, which takes the data and computes a numeric summary. The syntax is:
+
+```
+data %>%
+    summarise(
+        column_name = computation
+    )
+```
+
+This computes the mean and SD of tip size (in US dollars):
+
+```{r eval=F}
+tips %>%
+    summarise(
+        M = mean(Tip, na.rm = TRUE),
+        SD = sd(Tip, na.rm = TRUE)
+    ) %>%
+    kbl(digits = 2, booktabs = TRUE)
+```
+
+```{r echo=F}
+tips %>%
+    summarise(
+        M = mean(Tip, na.rm = TRUE),
+        SD = sd(Tip, na.rm = TRUE)
+    ) %>%
+    kbl(digits = 2) %>%
+    kable_styling(full_width = FALSE)
+```
+
+To summarise all of the numeric variables into a single table of descriptive statistics you can use the `describe` function from the psych package:
+
+```{r eval=F}
+library(kableExtra)
+library(psych)
+
+tips %>%
+    select(Bill, Tip, Guests, PctTip) %>%
+    describe() %>%
+    kbl(booktabs = TRUE, digits = 2)
+```
+
+```{r echo=F}
+library(kableExtra)
+library(psych)
+
+tips %>%
+    select(Bill, Tip, Guests, PctTip) %>%
+    describe() %>%
+    kbl(digits = 2) %>%
+    kable_styling(full_width = FALSE)
+```
+
+To only keep the sample size, mean, SD, median, min, max, we use the `select` function from tidyverse:
+
+```{r eval=F}
+library(kableExtra)
+library(psych)
+
+tips %>%
+    select(Bill, Tip, Guests, PctTip) %>%
+    describe() %>%
+    select(n, mean, sd, median, min, max) %>%
+    kbl(booktabs = TRUE, digits = 2)
+```
+
+```{r echo=F}
+library(kableExtra)
+library(psych)
+
+tips %>%
+    select(Bill, Tip, Guests, PctTip) %>%
+    describe() %>%
+    select(n, mean, sd, median, min, max) %>%
+    kbl(digits = 2) %>%
+    kable_styling(full_width = FALSE)
+```
+
+
+:::{.callout-warning}
+#### Use the appropriate summary for each variable type
+
+Ensure that you summarise variables correctly:
+
+- For categorical variables use frequency tables
+- For continuous variables use a table of descriptive statistics (mean, SD, Median, etc.)
+
+You should not summarise categorical variables with the mean, SD, and this is why it's important to use `select()` before `describe()` to only keep the variables that are continuous.
+
+:::
+
+
+:::{.callout-tip}
+#### Example writeup
+
+The distributions of bill size, tip size, and group size are skewed to the right. The distribution of tips, as a percentage of the total bill, appears to be approximately bell shaped, with three outliers in the right tail of the distribution.  
+The average bill was about \$22.73, with a SD of \$12.16. The average tip was \$3.81, with a SD of \$2.37, corresponding to an average tip as a percentage of the total bill of \$16.59, with a SD of \$4.39. The average party size comprised 2 guests, with a SD of roughly 1 person.
+:::
+
+
+## Student Glossary
+
+To conclude the lab, add the new functions to the glossary of R functions that you started last week. 
+
+| Function   | Use and package |
+|:-----------|:--------------|
+| `geom_histogram` | ? |
+| `geom_density` | ? |
+| `geom_boxplot` | ? |
+| patchwork: `|` and `/` | ? |
+| `summarise` | ? |
+| `select` | ? |
+| `kbl` | ? |
+| `describe` | ? |
