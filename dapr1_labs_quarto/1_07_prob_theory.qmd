@@ -1,0 +1,306 @@
+---
+title: "Probability Theory"
+subtitle: "Semester 1 - Week 7"
+callout-appearance: simple
+---
+
+
+```{r setup}
+#| include: false
+
+source('assets/setup.R')
+library(tidyverse)
+```
+
+
+::: {.callout-note collapse="true"}
+## Formative report B
+
+In the next five weeks of the course you should produce a PDF report using Rmarkdown for which you will receive formative feedback in week 12. 
+The report should not include any reference to R code or functions, but be written or a generic reader who is only assumed to have a basic statistical understanding without any R knowledge. You should also avoid any R code output or printout in the PDF file.
+
+:::{.callout-tip collapse="true"}
+### Hiding R code or ouput
+
+:::{.panel-tabset}
+#### Hiding R code
+
+To not show the code of an R code chunk, and only show the output, write:
+
+````
+```{{r, echo=FALSE}}
+# code goes here
+```
+````
+
+#### Hiding R output
+
+To show the code of an R code chunk, but hide the output, write:
+
+````
+```{{r, results='hide'}}
+# code goes here
+```
+````
+
+#### Hiding R code and output
+
+To hide both code and output of an R code chunk, write:
+
+````
+```{{r, include=FALSE}}
+# code goes here
+```
+````
+:::
+:::
+
+
+### Data {-}
+
+**Hollywood Movies**. At the link <https://uoepsy.github.io/data/hollywood_movies_subset.csv> you will find data on Hollywood movies released between 2012 and 2018 from the top 5 lead studios and top 10 genres. The following variables were recorded:
+
+- `Movie`: Title of the movie 
+- `LeadStudio`: Primary U.S. distributor of the movie 
+- `RottenTomatoes`: Rotten Tomatoes rating (critics) 
+- `AudienceScore`: Audience rating (via Rotten Tomatoes) 
+- `Genre`: One of Action Adventure, Black Comedy, Comedy, Concert, Documentary, Drama, Horror, Musical, Romantic Comedy, Thriller, or Western 
+- `TheatersOpenWeek`: Number of screens for opening weekend 
+- `OpeningWeekend`: Opening weekend gross (in millions) 
+- `BOAvgOpenWeekend`: Average box office income per theater, opening weekend 
+- `Budget`: Production budget (in millions) 
+- `DomesticGross`: Gross income for domestic (U.S.) viewers (in millions) 
+- `WorldGross`: Gross income for all viewers (in millions) 
+- `ForeignGross`: Gross income for foreign viewers (in millions) 
+- `Profitability`: WorldGross as a percentage of Budget 
+- `OpenProfit`: Percentage of budget recovered on opening weekend 
+- `Year`: Year the movie was released
+- `IQ1`-`IQ50`: IQ score of each of 50 audience raters
+- `Snacks`: How many of the 50 audience raters brought snacks
+- `PrivateTransport`: How many of the 50 audience raters reached the cinema via private transportation
+:::
+
+
+## Tasks
+
+For formative report B, you will be asked to perform the following tasks, each related to a week of teaching in this course.  
+__This week you will only focus on task B1.__ In the next section you will find some guided sub-steps you may want to consider to complete task B1.
+
+:::{.callout-note}
+### This week's task
+B1) Read the data into R, inspect it, and write a concise introduction to the data and its structure 
+:::
+
+B2) X  
+B3) X 
+B4) X 
+B5) Finish the report write-up, knit to PDF, and submit the PDF for formative feedback
+
+
+## B1 sub-tasks
+
+::: {.callout-tip}
+#### Tip
+
+To see the hints, hover your cursor on the superscript numbers.
+:::
+
+In this section you will find some guided sub-steps you may want to consider to complete task B1.
+
+- Open a new Rmd file, as you will be starting a new report to build upon each week.
+
+```{r}
+library(tidyverse)  # we use read_csv and glimpse from tidyverse
+movies <- read_csv("https://uoepsy.github.io/data/hollywood_movies_subset.csv")
+head(movies)
+glimpse(movies)
+```
+
+- Choose 2 movie genres and subset your data to only include these. 
+
+```{r}
+movies2 <- movies %>% 
+    filter(Genre == "Action" | Genre ==  "Horror")
+```
+
+- Recode the Audience Score variable so that those scoring less than or equal to 50 are coded as "Below" and those tipping over 50 are "Above":
+
+```{r}
+movies2 <- movies2 %>%
+    mutate(Rating = ifelse(AudienceScore<=50, 'Below', 'Above'))
+```
+
+- Ensure Rating and Genre are factors:
+
+```{r}
+movies2$Genre <- as_factor(movies2$Genre)
+movies2$Rating <- as_factor(movies2$Rating)
+```
+
+- Create a contingency table displaying how many ratings were above or below average for each of your chosen genres.
+
+```{r}
+freq_tbl <- table(movies2$Genre, movies2$Rating)
+freq_tbl
+```
+
+- Transform the table of counts to a relative frequency table. Do the numbers in the table satisfy the requirements of probabilities?
+
+
+```{r}
+rel_freq_tbl <- freq_tbl %>%
+    prop.table() %>%
+  addmargins()
+rel_freq_tbl
+```
+
+- All values in the proportions table are greater than or equal 0:
+
+```{r}
+all(rel_freq_tbl >= 0)
+```
+
+- All values in the proportions table are less than or equal 1:
+
+```{r}
+all(rel_freq_tbl <= 1)
+```
+
+- The values in the relative frequency table sum to 1, which is the probability of the sample space:
+
+```{r}
+sum(rel_freq_tbl)
+```
+
+- Visualise the relative frequency table as a mosaic plot:
+
+```{r}
+plot(rel_freq_tbl)
+```
+    
+- Write up a summary of what you have reported in the table, using proper rounding to 2 decimal places and avoiding any reference to R code or functions.
+
+
+## Worked Example
+
+Consider the dataset available at <https://uoepsy.github.io/data/RestaurantTips.csv>, containing 157 observations on the following 7 variables:
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(kableExtra)
+
+tribble(
+    ~'Variable Name', ~'Description',
+    'Bill', 'Size of the bill (in dollars)',
+    'Tip', 'Size of the tip (in dollars)',
+    'Credit', 'Paid with a credit card? n or y',
+    'Guests', 'Number of people in the group',
+    'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday',
+    'Server', 'Code for specific waiter/waitress: A, B, or C',
+    'PctTip', 'Tip as a percentage of the bill'
+) %>%
+    kbl() %>%
+    kable_styling(full_width = FALSE)
+```
+
+These data were collected by the owner of a bistro in the US, who was interested in understanding the tipping patterns of their customers. The data are adapted from @lock2020.
+
+```{r}
+library(tidyverse)  # we use read_csv and glimpse from tidyverse
+tips <- read_csv("https://uoepsy.github.io/data/RestaurantTips.csv")
+head(tips)
+glimpse(tips)
+```
+
+Filter data to only include Servers A and B:
+
+```{r}
+#option A and B panels for this Q
+tips2 <- tips %>% 
+    filter(Server != "C")
+```
+
+
+
+Recode the Tip variable so that those tipping less than or equal to 15% are coded as "Below" and those tipping over 15% are "Above":
+
+```{r}
+tips2 <- tips2 %>%
+    mutate(Tip_Avg = ifelse(PctTip <=15, 'Below', 'Above'))
+
+table(tips$Tip_Avg)
+```
+
+Ensure Server and Tip_Avg are factors:
+```{r}
+tips2$Server <- as_factor(tips2$Server)
+tips2$Tip_Avg <- as_factor(tips2$Tip_Avg)
+```
+
+
+Create a contingency table displaying how many customers were served by each server and if they left a below or above average tip.
+
+```{r}
+freq_tbl <- table(tips2$Server, tips2$Tip_Avg)
+freq_tbl
+```
+
+Transform the table of counts to a relative frequency table.
+
+Do the numbers in the table satisfy the requirements of probabilities?
+
+Display the relative frequency table as a mosaic plot and comment on what it highlights.
+
+```{r}
+rel_freq_tbl <- freq_tbl %>%
+    prop.table()
+rel_freq_tbl
+```
+
+All values in the proportions table are greater than or equal 0:
+
+```{r}
+all(rel_freq_tbl >= 0)
+```
+
+All values in the proportions table are less than or equal 1:
+
+```{r}
+all(rel_freq_tbl <= 1)
+```
+
+The values in the relative frequency table sum to 1, which is the probability of the sample space:
+
+```{r}
+sum(rel_freq_tbl)
+```
+
+Visualise the relative frequency table as a mosaic plot:
+
+```{r}
+plot(rel_freq_tbl)
+```
+
+:::{.callout-tip}
+#### Example writeup
+
+The distributions of bill size, tip size, and group size are skewed to the right. The distribution of tips, as a percentage of the total bill, appears to be approximately bell shaped, with three outliers in the right tail of the distribution.  
+The average bill was about \$22.73, with a SD of \$12.16. The average tip was \$3.81, with a SD of \$2.37, corresponding to an average tip as a percentage of the total bill of \$16.59, with a SD of \$4.39. The average party size comprised 2 guests, with a SD of roughly 1 person.
+:::
+
+
+## Student Glossary
+
+To conclude the lab, add the new functions to the glossary of R functions that you started last week. 
+
+| Function   | Use and package |
+|:-----------|:--------------|
+| `filter` | ? |
+| `mutate` | ? |
+| `table` | ? |
+| `ifelse` | ? |
+| `freq_tbl` | ? |
+| `prop.table` | ? |
+| `addmargins` | ? |
+| `all` | ? |
+| `plot` | ? |
