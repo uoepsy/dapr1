@@ -10,53 +10,28 @@ callout-appearance: simple
 
 source('assets/setup.R')
 library(tidyverse)
+movies <- read_csv("https://uoepsy.github.io/data/hollywood_movies_subset.csv")
 ```
 
 
 ::: {.callout-note collapse="true"}
-## Formative report B
+### Formative report B
 
 In the next five weeks of the course you should produce a PDF report using Rmarkdown for which you will receive formative feedback in week 12. 
+
 The report should not include any reference to R code or functions, but be written or a generic reader who is only assumed to have a basic statistical understanding without any R knowledge. You should also avoid any R code output or printout in the PDF file.
 
-:::{.callout-tip collapse="true"}
-### Hiding R code or ouput
-
-:::{.panel-tabset}
-#### Hiding R code
-
-To not show the code of an R code chunk, and only show the output, write:
-
-````
-```{{r, echo=FALSE}}
-# code goes here
-```
-````
-
-#### Hiding R output
-
-To show the code of an R code chunk, but hide the output, write:
-
-````
-```{{r, results='hide'}}
-# code goes here
-```
-````
-
-#### Hiding R code and output
-
-To hide both code and output of an R code chunk, write:
-
-````
-```{{r, include=FALSE}}
-# code goes here
-```
-````
-:::
 :::
 
+::: {.callout-important collapse="true"}
+## Create a new RMD file
 
-### Data {-}
+Create a new Rmd file for formative report B which you will build upon each week in your group.
+
+:::
+
+::: {.callout-note collapse="true"} 
+### Data
 
 **Hollywood Movies**. At the link <https://uoepsy.github.io/data/hollywood_movies_subset.csv> you will find data on Hollywood movies released between 2012 and 2018 from the top 5 lead studios and top 10 genres. The following variables were recorded:
 
@@ -78,24 +53,23 @@ To hide both code and output of an R code chunk, write:
 - `IQ1`-`IQ50`: IQ score of each of 50 audience raters
 - `Snacks`: How many of the 50 audience raters brought snacks
 - `PrivateTransport`: How many of the 50 audience raters reached the cinema via private transportation
-:::
 
+:::
 
 ## Tasks
 
 For formative report B, you will be asked to perform the following tasks, each related to a week of teaching in this course.  
-__This week you will only focus on task B1.__ In the next section you will find some guided sub-steps you may want to consider to complete task B1.
+__This week you will only focus on task B1.__ 
 
 :::{.callout-note}
 ### This week's task
-B1) Read the data into R, inspect it, and write a concise introduction to the data and its structure 
+B1) Create and summarise categorical variables, before calculating probabilities. 
 :::
 
-B2) X  
-B3) X 
-B4) X 
-B5) Finish the report write-up, knit to PDF, and submit the PDF for formative feedback
-
+B2) Investigate if events are independent, and compute probabilities.   
+B3) Computing and plotting probabilities with a binomial distribution.  
+B4) Computing and plotting probabilities with a normal distribution. 
+B5) Plot standard error of the mean, and finish the report write-up (i.e., knit to PDF, and submit the PDF for formative feedback).
 
 ## B1 sub-tasks
 
@@ -103,83 +77,108 @@ B5) Finish the report write-up, knit to PDF, and submit the PDF for formative fe
 #### Tip
 
 To see the hints, hover your cursor on the superscript numbers.
+
 :::
 
 In this section you will find some guided sub-steps you may want to consider to complete task B1.
 
-- Open a new Rmd file, as you will be starting a new report to build upon each week.
+- Choose the top 3 most frequent movie genres, and filter your data to only include these rows[^top3-filter]. 
 
+[^top3-filter]: Hint: use `sort()` to find top 3 movie genres, and `filter()` to select the specific 3 genres. 
+                Example: For the `starwars` dataset, we can filter to include only Humans and Droids using the following code:
+             
 ```{r}
-library(tidyverse)  # we use read_csv and glimpse from tidyverse
-movies <- read_csv("https://uoepsy.github.io/data/hollywood_movies_subset.csv")
-head(movies)
-glimpse(movies)
+sort(table(starwars$species))
+
+starwars2 <- starwars %>% 
+    filter(species == "Human" | species ==  "Droid")
 ```
 
-- Choose 2 movie genres and subset your data to only include these. 
+- Create a variable called "Rating" where the Audience Score variable is recoded so that those scoring less than or equal to 50 are coded as "Bad" and those scoring over 50 are "Good"[^func-if-else].
+
+[^func-if-else]: Hint: use `ifelse()` and `mutate()` functions to create a new 'Rating' variable capturing whether movies are good or bad. 
+                 Example: For the `starwars` dataset, we can create a variable to capture whether characters were short (<180cm) or tall (>180cm) based on their recorded height using the following code:
 
 ```{r}
-movies2 <- movies %>% 
-    filter(Genre == "Action" | Genre ==  "Horror")
+starwars2 <- starwars2 %>%
+    mutate(size = ifelse(height <180, 's', 't'))
 ```
 
-- Recode the Audience Score variable so that those scoring less than or equal to 50 are coded as "Below" and those tipping over 50 are "Above":
+- Ensure Rating and Genre are coded as factors[^func-factor].
+
+[^func-factor]: Hint: use the `factor()` function.
+                Example: If I wanted to give better labes for my size variable, I could use the following code. Since the names are fine as is for species, I will just specify `factor()`.
 
 ```{r}
-movies2 <- movies2 %>%
-    mutate(Rating = ifelse(AudienceScore<=50, 'Below', 'Above'))
+starwars2$size <- factor(
+                  starwars2$size,
+                  levels = c("s", "t"),
+                  labels = c("short", "tall"))
+                  
+starwars2$species <- factor(starwars2$species)
 ```
 
-- Ensure Rating and Genre are factors:
+
+- Create a contingency table displaying how many ratings were good or bad for each of your chosen genres [^func-table].
+
+[^func-table]: Hint: use the `table()` function, passing to it the two columns that you want to be included in your contingency table.
+               Example: For the `starwars` dataset, if I wanted a contingency table displaying how many humans and droids were short and tall, I could use the following code: 
+               
+```{r}
+swars_freq_tbl <- table(starwars2$species, starwars2$size)
+swars_freq_tbl
+```
+             
+- Transform the table of counts to a relative frequency table[^func-prop-tbl].
+
+[^func-prop-tbl]: Hint: use the `prop.table()` function. You will want to pass your contingency table created above to this. 
+               Example: For the `starwars` dataset, if I wanted a relative frequency table, I could use the following code: 
 
 ```{r}
-movies2$Genre <- as_factor(movies2$Genre)
-movies2$Rating <- as_factor(movies2$Rating)
+swars_rel_freq_tbl <- swars_freq_tbl %>%
+    prop.table()
+swars_rel_freq_tbl
 ```
 
-- Create a contingency table displaying how many ratings were above or below average for each of your chosen genres.
+- Do the numbers in the table satisfy the requirements of probabilities[^prob-01]?
+
+[^prob-01]: Hint: Recall the requirements of probabilities - are the proportions >= 0 or <= 1?; and that the values in the relative frequency table should sum to 1.  The `all()` and `sum()` functions could be useful here. 
+            Example: For the `starwars` dataset, I could check these requirements using the following code: 
 
 ```{r}
-freq_tbl <- table(movies2$Genre, movies2$Rating)
-freq_tbl
+all(swars_rel_freq_tbl >= 0)
+all(swars_rel_freq_tbl <= 1)
+sum(swars_rel_freq_tbl)
 ```
 
-- Transform the table of counts to a relative frequency table. Do the numbers in the table satisfy the requirements of probabilities?
+- Instead of checking the probability requirements manually, add a "sum" column to your relative frequency table[^func-addmargins]. 
 
+[^func-addmargins]: Hint: Use the `addmargins()` function.
+                    Example: For the `starwars` dataset, I could add this using the following code:
 
 ```{r}
-rel_freq_tbl <- freq_tbl %>%
+swars_rel_freq_sum <- swars_freq_tbl %>%
     prop.table() %>%
-  addmargins()
-rel_freq_tbl
+    addmargins()
+swars_rel_freq_sum
 ```
 
-- All values in the proportions table are greater than or equal 0:
+- Visualise the relative frequency table as a mosaic plot, making sure to add a main title and clear axis titles[^func-mosaic].
+
+[^func-addmargins]: Hint: Make sure to load the `ggmosaic()` package so that you can specify `geom_mosaic()` when building your plot. To add a title, as well as x- and y-axis titles, specify `labs(title = , x = , y = )`
+                    Example: For the `starwars` dataset, I create a mosaic plot using the following code:
 
 ```{r}
-all(rel_freq_tbl >= 0)
-```
+library(ggmosaic)
+m_plot <- ggplot(starwars2) +
+    geom_mosaic(aes(x = product(species, size), fill = species)) +
+    labs(title='Starwars Mosaic Plot Example Title', x = "Size", y = "Species")
+m_plot
 
-- All values in the proportions table are less than or equal 1:
-
-```{r}
-all(rel_freq_tbl <= 1)
-```
-
-- The values in the relative frequency table sum to 1, which is the probability of the sample space:
-
-```{r}
-sum(rel_freq_tbl)
-```
-
-- Visualise the relative frequency table as a mosaic plot:
-
-```{r}
-plot(rel_freq_tbl)
+#why are there NAs in above??
 ```
     
-- Write up a summary of what you have reported in the table, using proper rounding to 2 decimal places and avoiding any reference to R code or functions.
-
+- Write up a summary of what you have reported above, using proper rounding to 2 decimal places and avoiding any reference to R code or functions.
 
 ## Worked Example
 
@@ -212,44 +211,49 @@ head(tips)
 glimpse(tips)
 ```
 
-Filter data to only include Servers A and B:
+We can filter our data to only include rows of data from Servers A and B, and save this filtered data to a new dataset called "tips2". 
+
+Because we want to include severs A and B, but **not** C, we can use the `!=` (or does not equal) operator[^help-operators]. 
+
+[^help-operators]: Hint: Some common operators include: 
+| Operator    | Description |
+|:------------|:--------------|
+| <           | less than |
+| >           | more than |
+| <=          | less than or equal to |
+| >=          | less than or equal to |
+| ==          | (only) equal to |
+| !=          | not equal to |
 
 ```{r}
-#option A and B panels for this Q
 tips2 <- tips %>% 
     filter(Server != "C")
 ```
 
-
-
-Recode the Tip variable so that those tipping less than or equal to 15% are coded as "Below" and those tipping over 15% are "Above":
+Consider if, for example, we wanted to recode the Tip variable so that those tipping less than or equal to 15% were coded as "Below" average, and those tipping over 15% were coded as "Above" average (15% being used as below/above average tips cut-off in relation to usual US tipping rates). To do so, we could create a new variable called "Tip_Avg".
 
 ```{r}
 tips2 <- tips2 %>%
     mutate(Tip_Avg = ifelse(PctTip <=15, 'Below', 'Above'))
 
-table(tips$Tip_Avg)
+table(tips2$Tip_Avg)
 ```
 
-Ensure Server and Tip_Avg are factors:
+Now that we have the variables we want, it would be a good point to make these both factors:
+
 ```{r}
-tips2$Server <- as_factor(tips2$Server)
-tips2$Tip_Avg <- as_factor(tips2$Tip_Avg)
+tips2$Server <- factor(tips2$Server)
+tips2$Tip_Avg <- factor(tips2$Tip_Avg)
 ```
 
-
-Create a contingency table displaying how many customers were served by each server and if they left a below or above average tip.
+To visually represent the distribution of how many customers were served by each server and if they left a below or above average tip, we could Create a contingency table:
 
 ```{r}
 freq_tbl <- table(tips2$Server, tips2$Tip_Avg)
 freq_tbl
 ```
 
-Transform the table of counts to a relative frequency table.
-
-Do the numbers in the table satisfy the requirements of probabilities?
-
-Display the relative frequency table as a mosaic plot and comment on what it highlights.
+We could then transform the table of counts above to instead represent a relative frequency table: 
 
 ```{r}
 rel_freq_tbl <- freq_tbl %>%
@@ -257,41 +261,58 @@ rel_freq_tbl <- freq_tbl %>%
 rel_freq_tbl
 ```
 
-All values in the proportions table are greater than or equal 0:
+Before we interpret our results, we must ensure that the numbers above satisfy the requirements of probabilities. We can do this two ways:
+
+::: {.panel-tabset}
+
+#### Manually
+
+Check that all values in the proportions table are greater than or equal 0, and less than or equal to 1:
 
 ```{r}
 all(rel_freq_tbl >= 0)
 ```
 
-All values in the proportions table are less than or equal 1:
-
 ```{r}
 all(rel_freq_tbl <= 1)
 ```
 
-The values in the relative frequency table sum to 1, which is the probability of the sample space:
+#### Using `addmargins()`
+
+Instead of checking manually, we can use the function `addmargins()` to check that the probabilities sum to 1:
 
 ```{r}
-sum(rel_freq_tbl)
+rel_freq_tbl <- freq_tbl %>%
+    prop.table() %>%
+    addmargins()
+rel_freq_tbl
 ```
 
-Visualise the relative frequency table as a mosaic plot:
+:::
+
+In order to visualise our results in a figure, we could use a mosaic plot:
 
 ```{r}
-plot(rel_freq_tbl)
+#| label: fig-mos
+#| tbl-cap: Association between Servers and Tips
+library(ggmosaic)
+mos_plot <- ggplot(tips2) +
+    geom_mosaic(aes(x = product(Server, Tip_Avg), fill = Server)) +  
+    labs(title = "Association between Servers and Tips", x = "Tip", y = "Server")
+mos_plot
 ```
-
+ 
 :::{.callout-tip}
 #### Example writeup
 
-The distributions of bill size, tip size, and group size are skewed to the right. The distribution of tips, as a percentage of the total bill, appears to be approximately bell shaped, with three outliers in the right tail of the distribution.  
-The average bill was about \$22.73, with a SD of \$12.16. The average tip was \$3.81, with a SD of \$2.37, corresponding to an average tip as a percentage of the total bill of \$16.59, with a SD of \$4.39. The average party size comprised 2 guests, with a SD of roughly 1 person.
+More customers tipped above (64%) than below (36%) average. Both Server A and Server B received an equal distribution of tips above average (32%), but server B had a higher proportion of tips below average (20%) in comparison to server A (16%). These associations are visually represented in @fig-mos.
+
 :::
 
 
 ## Student Glossary
 
-To conclude the lab, add the new functions to the glossary of R functions that you started last week. 
+To conclude the lab, add the new functions to the glossary of `R` functions. 
 
 | Function   | Use and package |
 |:-----------|:--------------|
@@ -299,8 +320,8 @@ To conclude the lab, add the new functions to the glossary of R functions that y
 | `mutate` | ? |
 | `table` | ? |
 | `ifelse` | ? |
-| `freq_tbl` | ? |
 | `prop.table` | ? |
 | `addmargins` | ? |
 | `all` | ? |
-| `plot` | ? |
+| `geom_mosaic` | ? |
+
