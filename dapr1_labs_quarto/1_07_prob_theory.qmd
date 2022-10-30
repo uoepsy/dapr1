@@ -14,24 +14,57 @@ movies <- read_csv("https://uoepsy.github.io/data/hollywood_movies_subset.csv")
 ```
 
 
-::: {.callout-note collapse="true"}
-### Formative report B
+## Formative Report B instructions
 
-In the next five weeks of the course you should produce a PDF report using Rmarkdown for which you will receive formative feedback in week 12. 
+::: {.callout-important collapse="true"}
+### Are you registered for your group on Learn?
 
-The report should not include any reference to R code or functions, but be written or a generic reader who is only assumed to have a basic statistical understanding without any R knowledge. You should also avoid any R code output or printout in the PDF file.
+Go to the course Learn page, on the left-hand side click "Groups information", then the lab, and then the group name. Click Sign up.
+:::
 
+::: {.callout-important collapse="true"}
+### Change driver this week
+
+In the next five weeks your group will be creating a new formative report, Formative Report B. 
+
+- Choose a driver for this week
+    + The driver should login to the PC provided with the desk, and access RStudio Server
+    + The driver is the only person allowed to type the report during this lab
+- The others in the group are the navigators
+    + Navigators are responsible for suggesting and commenting on the strategy that the driver needs to follow to answer the tasks, as well as correct typos and coding errors.
+
+- It is important that your group chooses a driver for this week, and in the next weeks the driver rotates every week to ensure that everyone in the group has contributed to the writing of the report.
 :::
 
 ::: {.callout-important collapse="true"}
 ## Create a new RMD file
 
-Create a new Rmd file for formative report B which you will build upon each week in your group.
+- Create a new Rmd file for formative report B which you will build upon each week in your group.
+
+- At the end of each lab, save the Rmd file and share it with your group. If you go to your group area on Learn, you can click "Send Email" to share the file with your group.
 
 :::
 
+::: {.callout-note collapse="true"}
+### Formative report B - Instructions
+
+- In the next five weeks of the course you should produce a PDF report using Rmarkdown for which you will receive formative feedback in week 12. 
+
+- The report should not include any reference to R code or functions, but be written or a generic reader who is only assumed to have a basic statistical understanding without any R knowledge. You should also avoid any R code output or printout in the PDF file.
+
+- You will be required to submit a PDF file by 12 noon on Friday the 2nd of December 2022 via Learn. One person needs to submit on behalf of your group.
+
+- The report should be at most 6 pages long. At the end of the report, you are allowed two appendices which both don't count towards the page limit. 
+
+    + Appendix A will contain any tables or figures which you cannot fit in the page limit (no text allowed)
+    + Appendix B will contain the code to reproduce the report results (just like Formative Report A).
+
+- No extensions allowed. As this is group-based work, no extensions are possible.
+:::
+
+
 ::: {.callout-note collapse="true"} 
-### Data
+### Formative report B - Data
 
 **Hollywood Movies**. At the link <https://uoepsy.github.io/data/hollywood_movies_subset.csv> you will find data on Hollywood movies released between 2012 and 2018 from the top 5 lead studios and top 10 genres. The following variables were recorded:
 
@@ -66,10 +99,10 @@ __This week you will only focus on task B1.__
 B1) Create and summarise categorical variables, before calculating probabilities. 
 :::
 
-B2) Investigate if events are independent, and compute probabilities.   
+B2) Investigate if events are independent, and compute probabilities.  
 B3) Computing and plotting probabilities with a binomial distribution.  
-B4) Computing and plotting probabilities with a normal distribution. 
-B5) Plot standard error of the mean, and finish the report write-up (i.e., knit to PDF, and submit the PDF for formative feedback).
+B4) Computing and plotting probabilities with a normal distribution.  
+B5) Plot standard error of the mean, and finish the report write-up (i.e., knit to PDF, and submit the PDF for formative feedback).  
 
 ## B1 sub-tasks
 
@@ -82,17 +115,23 @@ To see the hints, hover your cursor on the superscript numbers.
 
 In this section you will find some guided sub-steps you may want to consider to complete task B1.
 
-- Choose the top 3 most frequent movie genres, and filter your data to only include these rows[^top3-filter]. 
+- Choose the top 3 most frequent movie genres, and filter your data to only include these rows.[^top3-filter]
 
-[^top3-filter]: Hint: use `sort()` to find top 3 movie genres, and `filter()` to select the specific 3 genres. 
+[^top3-filter]: Hint: use `sort(table(DATA$COLUMN))` to find top 3 movie genres, and `filter()` to select the specific 3 genres. 
 
-    Example: For the `starwars` dataset, we can filter to include only Humans and Droids using the following code:
+    Example: For the `starwars` dataset, we can filter to include only the two most frequent species, Humans and Droids, via the following code:
              
-    ```{r}
+    ```{r, results='hide'}
+    # sort the frequency table
     sort(table(starwars$species))
-
+    
+    # or, for decreasing order, you can use:
+    sort(table(starwars$species), decreasing = TRUE)
+    
+    # keep only the rows where species is Human or Droid
+    # in R, or is the vertical bar |
     starwars2 <- starwars %>% 
-                 filter(species == "Human" | species ==  "Droid")
+        filter(species == "Human" | species ==  "Droid")
     ```
 
 - Create a variable called "Rating" where the Audience Score variable is recoded so that those scoring less than or equal to 50 are coded as "Bad" and those scoring over 50 are "Good".[^func-if-else]
@@ -103,26 +142,29 @@ In this section you will find some guided sub-steps you may want to consider to 
 
     ```{r}
     starwars2 <- starwars2 %>%
-                 mutate(size = ifelse(height <180, 's', 't'))
+        mutate(size = ifelse(height < 180, 's', 't'))
     ```
+    
+    In the code above, `mutate()` changes to data to include
+    a column named `size`, computed with the computation that follows the equal sign.  
+    The `ifelse` function checks a condition (is `height < 180`?) and uses the value `'s'` if the condition is TRUE, and `'t'` if the condition is FALSE.
 
-- Ensure Rating and Genre are coded as factors[^func-factor].
+- Ensure Rating and Genre are coded as factors.[^func-factor]
 
 [^func-factor]: Hint: use the `factor()` function.
 
-    Example: If I wanted to give better labes for my size variable, I could use the following code. Since the names are fine as is for species, I will just specify `factor()`.
+    Example: For the starwars data, if I wanted to give better labes for my size variable, I could use the following code. Since the names are fine as is for species, I will just specify `factor()`.
 
     ```{r}
-    starwars2$size <- factor(
-                            starwars2$size,
-                            levels = c("s", "t"),
-                            labels = c("short", "tall"))
-                  
+    starwars2$size <- factor(starwars2$size,
+                             levels = c("s", "t"),
+                             labels = c("short", "tall"))
+    
     starwars2$species <- factor(starwars2$species)
     ```
 
 
-- Create a contingency table displaying how many ratings were good or bad for each of your chosen genres [^func-table].
+- Create a contingency table displaying how many ratings were good or bad for each of your chosen genres.[^func-table]
 
 [^func-table]: Hint: use the `table()` function, passing to it the two columns that you want to be included in your contingency table.
 
@@ -133,7 +175,7 @@ In this section you will find some guided sub-steps you may want to consider to 
     swars_freq_tbl
     ```
              
-- Transform the table of counts to a relative frequency table[^func-prop-tbl].
+- Transform the table of counts to a relative frequency table.[^func-prop-tbl]
 
 [^func-prop-tbl]: Hint: use the `prop.table()` function. You will want to pass your contingency table created above to this. 
 
@@ -141,11 +183,11 @@ In this section you will find some guided sub-steps you may want to consider to 
 
     ```{r}
     swars_rel_freq_tbl <- swars_freq_tbl %>%
-                          prop.table()
+        prop.table()
     swars_rel_freq_tbl
     ```
 
-- Do the numbers in the table satisfy the requirements of probabilities[^prob-01]?
+- Do the numbers in the table satisfy the requirements of probabilities?[^prob-01]
 
 [^prob-01]: Hint: Recall the requirements of probabilities - are the proportions >= 0 or <= 1?; and that the values in the relative frequency table should sum to 1.  The `all()` and `sum()` functions could be useful here. 
 
@@ -157,7 +199,7 @@ In this section you will find some guided sub-steps you may want to consider to 
     sum(swars_rel_freq_tbl)
     ```
 
-- Instead of checking the probability requirements manually, add a "sum" column to your relative frequency table[^func-addmargins]. 
+- Instead of checking the probability requirements manually, add a "sum" column to your relative frequency table.[^func-addmargins]
 
 [^func-addmargins]: Hint: Use the `addmargins()` function.
 
@@ -165,12 +207,12 @@ In this section you will find some guided sub-steps you may want to consider to 
 
     ```{r}
     swars_rel_freq_sum <- swars_freq_tbl %>%
-                          prop.table() %>%
-                          addmargins()
+        prop.table() %>%
+        addmargins()
     swars_rel_freq_sum
     ```
 
-- Visualise the relative frequency table as a mosaic plot, making sure to add a main title and clear axis titles[^func-mosaic].
+- Visualise the relative frequency table as a mosaic plot, making sure to add a main title and clear axis titles.[^func-mosaic]
 
 [^func-mosaic]: Hint: Make sure to load the `ggmosaic()` package so that you can specify `geom_mosaic()` when building your plot. To add a title, as well as x- and y-axis titles, specify `labs(title = , x = , y = )`.
 
@@ -178,15 +220,18 @@ In this section you will find some guided sub-steps you may want to consider to 
 
     ```{r}
     #| label: fig-swars1
-    #| tbl-cap: Starwars Mosaic Plot Example Title
+    #| fig-cap: "Starwars Mosaic Plot Example Title"
     library(ggmosaic)
     m_plot <- ggplot(starwars2) +
-              geom_mosaic(aes(x = product(species, size), fill = species)) +
-              labs(title='Starwars Mosaic Plot Example Title', x = "Size", y = "Species")
+        geom_mosaic(aes(x = product(species, size), fill = species)) +
+        labs(title = "Starwars Mosaic Plot Example Title", 
+             x = "Size", 
+             y = "Species",
+             fill = "Species")
     m_plot
     ```
 
-- Does your plot have any `NAs`? If so, you can drop the missing values before re-plotting[^func-drop]. 
+- Does your plot have any `NAs`? If so, you can drop the missing values before re-plotting.[^func-drop] 
 
 [^func-drop]: Hint: Here you could make sense of the `drop_na()` function.
 
@@ -194,8 +239,8 @@ In this section you will find some guided sub-steps you may want to consider to 
 
     ```{r}
     starwars2 <- starwars2 %>%
-                 drop_na(size) %>%
-                 mutate(size = factor(size))
+        drop_na(size) %>%
+        mutate(size = factor(size))
     ```
 
     ```{r}
@@ -203,12 +248,17 @@ In this section you will find some guided sub-steps you may want to consider to 
     #| tbl-cap: Starwars Mosaic Plot Example Title - No NAs
     library(ggmosaic)
     m_plot <- ggplot(starwars2) +
-              geom_mosaic(aes(x = product(species, size), fill = species)) +
-              labs(title='Starwars Mosaic Plot Example Title', x = "Size", y = "Species")
+        geom_mosaic(aes(x = product(species, size), fill = species)) +
+        labs(title = "Starwars Mosaic Plot Example Title", 
+             x = "Size", 
+             y = "Species",
+             fill = "Species")
     m_plot
     ```
 
-- Write up a summary of what you have reported above, using proper rounding to 2 decimal places and avoiding any reference to R code or functions.
+- In the introduction section of your report, write up a small introduction to the data.
+
+- In the analysis section of your report, write up a summary of what you have reported above, using proper rounding to 2 decimal places and avoiding any reference to R code or functions.
 
 ## Worked Example
 
@@ -243,9 +293,12 @@ glimpse(tips)
 
 We can filter our data to only include rows of data from Servers A and B, and save this filtered data to a new dataset called "tips2". 
 
-Because we want to include severs A and B, but **not** C, we can use the `!=` (or does not equal) operator[^help-operators]. 
+Because we want to include severs A and B, but **not** C, we can use the `!=` (or does not equal) operator. 
 
-[^help-operators]: Hint: Some common operators include: 
+:::{.column-margin}
+
+Some common operators include: 
+
 | Operator    | Description |
 |:------------|:--------------|
 | <           | less than |
@@ -254,6 +307,9 @@ Because we want to include severs A and B, but **not** C, we can use the `!=` (o
 | >=          | less than or equal to |
 | ==          | (only) equal to |
 | !=          | not equal to |
+| %in%        | is \<left\> a member of \<right\>? |
+
+:::
 
 ```{r}
 tips2 <- tips %>% 
@@ -324,7 +380,7 @@ In order to visualise our results in a figure, we could use a mosaic plot:
 
 ```{r}
 #| label: fig-mos
-#| tbl-cap: Association between Servers and Tips
+#| fig-cap: "Association between Servers and Tips"
 library(ggmosaic)
 mos_plot <- ggplot(tips2) +
     geom_mosaic(aes(x = product(Server, Tip_Avg), fill = Server)) +  
@@ -348,10 +404,13 @@ To conclude the lab, add the new functions to the glossary of `R` functions.
 |:-----------|:--------------|
 | `filter` | ? |
 | `mutate` | ? |
+| `drop_na` | ? |
+| `factor` | ? |
 | `table` | ? |
 | `ifelse` | ? |
 | `prop.table` | ? |
 | `addmargins` | ? |
 | `all` | ? |
+| `|` | ? |
 | `geom_mosaic` | ? |
 
