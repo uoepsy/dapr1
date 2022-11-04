@@ -9,7 +9,26 @@ callout-appearance: simple
 
 source('assets/setup.R')
 library(tidyverse)
+
 movies <- read_csv("https://uoepsy.github.io/data/hollywood_movies_subset.csv")
+
+movies2 <- movies %>%
+    filter(Genre %in% c("Drama", "Action", "Comedy")) %>%
+    mutate(Rating = ifelse(AudienceScore <= 50, 'Bad', 'Good')) %>%
+    mutate(Genre = factor(Genre),
+           Rating = factor(Rating))
+
+movies_prop <- table(movies2$Genre, movies2$Rating) %>%
+    prop.table() %>%
+    addmargins()
+movies_prop
+
+movies_prop[, 2] / movies_prop[, 3]
+
+library(ggmosaic)
+m_plot <- ggplot(movies2) +
+    geom_mosaic(aes(x = product(Rating), fill = Rating, conds = product(Genre)))
+m_plot
 ```
 
 
@@ -78,7 +97,7 @@ B5) Plot standard error of the mean, and finish the report write-up (i.e., knit 
 ## B2 sub-tasks
 
 ::: {.callout-tip}
-#### Tip
+### Tip
 
 To see the hints, hover your cursor on the superscript numbers.
 :::
@@ -117,63 +136,104 @@ starwars2 <- starwars2 %>%
     mutate(size = factor(size))
 ```
 
-- Reopen last week's Rmd file, as you will continue last week's work (i.e., the top 3 most frequent movie genres that were rated as 'good' and 'bad'), and build on it[^share-file].
+- Reopen last week's Rmd file, as you will continue last week's work (i.e., the top 3 most frequent movie genres that were rated as 'good' and 'bad'), and build on it.[^share-file]
 
 [^share-file]: Hint: Ask last week's driver for the Rmd file, they should share it with the group via email or Teams. To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
 
-- What’s the probability of a movie being rated as Good[^p-good]?
+- What’s the probability of a movie being rated as Good?[^p-good]
 
-[^p-good]: Hint: If we were to ask whats the probability of a species being short (i.e., P(short)), we would calculate the following: 
+[^p-good]: Hint: For the starwars example data, if we were to ask what is the probability of a species being short, i.e. P(short), we would calculate the following: 
 
-    P(Droid and short) + P(Ewok and short) + P(Human and short) + P(Wookiee and short) = 0.10256410 + 0.02564103 + 0.38461538 + 0.00000000 = 0.51282051 ≈ 0.51.
+    P(Droid ∩ short) + P(Ewok ∩ short) + P(Human ∩ short) + P(Wookiee ∩ short) = 0.10256410 + 0.02564103 + 0.38461538 + 0.00000000 = 0.51282051 ≈ 0.51.
                  
     Alternatively, we would use look in the "Sum" value under the "short" column of our table. 
 
     ```{r}
     swars_rel_freq_sum
-    #P(short) = 0.51282051 ≈ 0.51
+    # P(short) = 0.51282051 ≈ 0.51
     ```
 
-- Given that a viewer watched a Drama movie, what's the probability of them giving a good rating[^p-genre-good]?
+- Given that a viewer watched a Drama movie, what's the probability of them giving a good rating?[^p-genre-good]
 
-[^p-genre-good]: Hint: If we were to ask whats the probability of being short for the Human species(i.e., P(short | human)), we could calculate the following:
-                    P(short | human) = (0.38461538 / 0.79487179) = 0.483871 ≈ 0.48. 
+[^p-genre-good]: Hint: For the starwars example data, if we were to ask what is the probability of being short for the Human species, i.e. P(short | human), we could calculate the following:
 
+    P(short | human) = P(short ∩ human) / P(human) = (0.38461538 / 0.79487179) = 0.483871 ≈ 0.48. 
+    
     ```{r}
     swars_rel_freq_sum
-    #P(short | human) = (0.38461538 / 0.79487179) = 0.483871 ≈ 0.48 
+    # P(short | human) = P(short ∩ human) / P(human) = 
+    # (0.38461538 / 0.79487179) = 0.483871 ≈ 0.48 
     ```
 
 - Given that a viewer watched an Action movie, what's the probability of them giving a good rating?
 
 - Given that a viewer watched a Comedy movie, what's the probability of them giving a good rating?
 
-- What’s the probability of viewer watching a non-comedy movie **and** rating it as Bad[^p-bad]?
+- Given that a viewer gave a bad rating, what’s the probability of them having watched a non-drama movie? [^p-bad]
 
-[^p-bad]: Hint: If we were to ask whats the probability of a non-human being short, we could calculate the following:
-
-```{r}
-#Need to update solution!!!!!!!!!!!!!!!!!!!!!
-```
-
-
-- What’s the probability of a rater watching a Drama movie **or** rating a movie as Bad[^p-dr-bad]?
-
-[^p-dr-bad]: Hint: If we were to ask whats the probability of a species being Droid or being tall (i.e., P(Droid or tall)), we would compute the probability as follows: 
+[^p-bad]: Hint: For the starwars example data, if we were to ask what is the probability of a character being not a human given they are short, we could calculate the following:
 
     ```{r}
     swars_rel_freq_sum
-    #P(Droid) = 0.12820513 ≈ 0.13
-    #P(tall) = 0.48717949 ≈ 0.49
-    #P(Droid ∩ tall) = 0.02564103 ≈ 0.03
+    # P((~human) | short) = 
+    # (P(droid ∩ short) + P(ewok ∩ short) + P(wookiee ∩ short)) / P(short) =
+    # (0.10256410 + 0.02564103 + 0.00000000) / 0.51282051 = 0.25
+    ```
+
+
+::: {.callout-note collapse="true"}
+### Advanced material
+
+Consider three mutually exclusive events $A_1, A_2, A_3$ and another event $B$.  
+
+We have that:
+
+$$
+\begin{aligned}
+P\big((\sim A_3) | B\big) 
+&= P\big( (A_1 \cup A_2) | B \big) \\
+&= \frac{P\big((A_1 \cup A_2) \cap B\big)}{P(B)} \\
+&= \frac{P\big((A_1 \cap B) \cup (A_2 \cap B)\big)}{P(B)} \\
+&= \frac{P(A_1 \cap B) + P(A_2 \cap B)}{P(B)}
+\end{aligned}
+$$
+
+Suppose $A_1 = Action$, $A_2 = Comedy$, $A_3 = Drama$, and $B = Bad$.
+
+$$
+\begin{aligned}
+P\big((\sim Drama) \mid Bad\big) 
+&= P\big( (Action \cup Comedy) \mid Bad \big) \\
+&= \frac{P\big((Action \cup Comedy) \cap Bad\big)}{P(Bad)} \\
+&= \frac{P\big((Action \cap Bad) \cup (Comedy \cap Bad)\big)}{P(Bad)} \\
+&= \frac{P(Action \cap Bad) + P(Comedy \cap Bad)}{P(Bad)}
+\end{aligned}
+$$
+
+:::
+
+
+- What’s the probability of a rater watching a Drama movie **or** rating a movie as Bad?[^p-dr-bad]
+
+[^p-dr-bad]: Hint: If we were to ask what is the probability of a species being Droid or being tall, i.e. P(Droid ∪ tall), we would compute the probability as:
     
-    #P(Droid) + P(tall) - P(Droid ∩ tall) = (0.13 + 0.49) - 0.03
-    # ≈ 0.59
+    P(Droid ∪ tall) = P(Droid) + P(tall) - P(Droid ∩ tall)
+    
+    ```{r}
+    swars_rel_freq_sum
+    # P(Droid) = 0.12820513
+    # P(tall) = 0.48717949
+    # P(Droid ∩ tall) = 0.02564103
+    
+    # P(Droid ∪ tall) = P(Droid) + P(tall) - P(Droid ∩ tall) = 
+    # 0.12820513 + 0.48717949 - 0.02564103 = 0.5897436 ≈ 0.59
     ```
 
 - Do you think that a movie receiving a Good rating is independent of Genre?[^genre-indep]
 
-[^genre-indep]: Hint: Recall that we say that two events $A$ and $B$ are independent if knowing that one occurred doesn’t change the probability of the other occurring. In our example, we would say that the events seem to be dependent, given that the conditional probabilities are different from P(short). For example, the probability of being short for Ewoks and Droids is much higher than $P(short)$:
+[^genre-indep]: Hint: Recall that we say that two events $A$ and $B$ are independent if knowing that one occurred doesn’t change the probability of the other occurring, i.e. $P(A | B) = P(A)$. 
+
+    In the starwars example, we would say that being short seem to be dependent on the species, given that the conditional probabilities are different from P(short). For example, the probability of being short for Ewoks and Droids is much higher than P(short):
 
     ```{r}
     #P(short) ≈ 0.51
@@ -183,13 +243,13 @@ starwars2 <- starwars2 %>%
     #P(short | wookiee) ≈ 0
     ```
 
-- Based on your analysis above, which movie Genre do you think lead studios should invest in for their next movie[^genre-invest]?
+- Based on your analysis above, which movie Genre do you think lead studios should invest in for their next movie?[^genre-invest]
 
 [^genre-invest]: Hint: Here it would be useful to think about which movie genre offers the best audience experience - lead studios will likely want to invest in making movies in Genres that people enjoy watching!
 
-- Visualise the relative frequency table as a conditional mosaic plot, making sure to add a main title and clear axis titles.[^func-mosaic]
+- Using a conditional mosaic plot, display the conditional distribution of movie genres being rated as either good or bad, making sure to add a main title and clear axis titles.[^func-mosaic]
 
-[^func-mosaic]: Hint: Make sure to load the `ggmosaic()` package so that you can specify `geom_mosaic()` when building your plot. To add a title, as well as x- and y-axis titles, specify `labs(title = , x = , y = )`. This week we will also need to specify the `conds()` argument. 
+[^func-mosaic]: Hint: Make sure to load the `ggmosaic` package so that you can specify `geom_mosaic()` when building your plot. To add a title, as well as x- and y-axis titles, specify `labs(title = , x = , y = )`. This week we will also need to specify the `conds()` argument. 
 
     Example: For the `starwars` dataset, I create a mosaic plot using the following code, and specify conds() within my aes() argument:
 
@@ -208,9 +268,16 @@ starwars2 <- starwars2 %>%
 
 - In the analysis section of your report, write up a summary of what you have reported above, using proper rounding to 2 decimal places and avoiding any reference to R code or functions. In particular, focus on whether events were independent, and which genre of movie lead studios should consider investing in based on audience ratings.[^proper-notation] 
 
-[^proper-notation]: Hint: You may want to consider using proper notation in your write-up (as you have seen in lectures). To do so, you can use `$ name $`. For example, if I wanted to specify the general addition rule, in the main Rmd file (i.e., not a code chunk) I could write `$p(A \bigcup B) = p(A) + p(B) - p(A \bigcap B)$`. This would render in my main file as:
+[^proper-notation]: Hint: You may want to consider using proper notation in your write-up (as you have seen in lectures). To do so, you can use `$ name $`. For example, if I wanted to specify the general addition rule, in the main Rmd file (i.e., not a code chunk) I could write `$p(A \cup B) = p(A) + p(B) - p(A \cap B)$`. This would render in my main file as:
 
-    $p(A \bigcup B) = p(A) + p(B) - p(A \bigcap B)$
+    $p(A \cup B) = p(A) + p(B) - p(A \cap B)$
+    
+    To get the $\cup$ symbol, use the command `$A \cup B$`.
+    
+    To get the $\cap$ symbol, use the command `$A \cap B$`.
+    
+    
+
 
 ## Worked Example
 
@@ -247,26 +314,32 @@ Working with the "Tip_Avg" variable created last week, we can see our relative f
 
 ```{r}
 tips2 <- tips %>%
-    mutate(Tip_Avg = ifelse(PctTip <=15, 'Below', 'Above'))
+    mutate(Tip_Avg = ifelse(PctTip <= 15, 'Below', 'Above'))
 
 rel_freq_tbl <- table(tips2$Server, tips2$Tip_Avg) %>%
     prop.table() %>%
     addmargins()
 rel_freq_tbl
-
 ```
 
 
 - What’s the probability of a customer tipping above average?
 
 ```{r}
-#P(above) = 0.25477707 + 0.25477707 + 0.12738854
-#P(above) = 0.63694268
+# P(above) = 0.25477707 + 0.25477707 + 0.12738854
+# P(above) = 0.63694268
+```
+
+```{r}
+# indexing: table[row numbers, col numbers]
+rel_freq_tbl[4, 1]
+# or indexing: table[row names, col names]
+rel_freq_tbl['Sum', 'Above']
 ```
 
 $P(Above) ≈ 0.64$
 
-- What’s the probability of server A receiving an above average tip?
+- Given that the server is A, what's the probability of receiving an above average tip?
 
 ```{r}
 #P(above | server A) = 0.25477707 / 0.38216561
@@ -275,7 +348,7 @@ $P(Above) ≈ 0.64$
 
 $P(Above | Server A) ≈ 0.67$
 
-- What’s the probability of server B receiving an above average tip?
+- Given that the server is B, what's the probability of receiving an above average tip?
 
 ```{r}
 #P(above | server B) = 0.25477707 / 0.41401274
@@ -284,7 +357,7 @@ $P(Above | Server A) ≈ 0.67$
 
 $P(Above | Server B) ≈ 0.62$
 
-- What’s the probability of server C receiving an above average tip?
+- Given that the server is C, what's the probability of receiving an above average tip?
 
 ```{r}
 #P(above | server C) = 0.12738854 / 0.20382166
@@ -293,33 +366,34 @@ $P(Above | Server B) ≈ 0.62$
 
 $P(Above | Server C) ≈ 0.63$
 
-- What’s the probability of Server A or B receiving a below average tip?
+- Given that a server received a tip below average, what's the probability of them being Server A or B?
 
 ```{r}
-#Need to update solution!!!!!!!!!!!!!!!!!!!!!
-#P(below | server A) + P(below | server B)
-0.12738854 + 0.15923567
-# 0.2866242
+# P( (server A ∪ server B) | below ) = 
+# (P( server A ∩ below ) + P( server B ∩ below )) / P(below) = 
+# (0.12738854  + 0.15923567) / 0.36305732 =
+# 0.7894737 
 ```
 
-$P(Below | Server A or B) ≈ 0.29$
+$P((Server A \cup Server B) \mid Below) ≈ 0.79$
 
 - What’s the probability of the customer being served by server A **or** tipping below 15%?
 
 ```{r}
-#P(server A) = 0.38216561
-#P(below) = 0.36305732
-#P(server A ∩ below) = 0.12738854
+# P(server A) = 0.38216561
+# P(below) = 0.36305732
+# P(server A ∩ below) = 0.12738854
 
-#P(server A) + P(below) - P(server A ∩ below) = (0.38216561 + 0.36305732) - 0.12738854
-# ≈ 0.62
+# P(server A) + P(below) - P(server A ∩ below) = 
+# (0.38216561 + 0.36305732) - 0.12738854 =
+# 0.6178344 ≈ 0.62
 ```
 
-$P(Server A or Below) ≈ 0.62$
+$P(Server A \cup Below) ≈ 0.62$
 
 - Is tipping above average independent of the server?
 
-No, the events seem to be dependent. The conditional probabilities are different from P(above), even though to a small degree. In particular, the probability of tipping above average after service from Server A is higher.
+No, the events seem to be dependent, but very weakly. The conditional probabilities of tipping above average for each server are different from P(above), even though to a small degree. In particular, the probability of tipping above average after service from Server A is higher.
 
 - Based on your analysis above, which server do you think offers the best customer service based on their tips?
 
@@ -333,7 +407,10 @@ Server A appears to offer the best service to their customers, based solely on t
 library(ggmosaic)
 mos_cond_plot <- ggplot(tips2) +
     geom_mosaic(aes(x = product(Tip_Avg), fill = Tip_Avg, conds = product(Server))) +  
-    labs(title = "Conditional Association between Servers and Tips", x = "Server", y = "Tip Average", fill = "Tip Average")
+    labs(title = "Conditional Association between Servers and Tips", 
+         x = "Server", 
+         y = "Tip Average", 
+         fill = "Tip Average")
 mos_cond_plot
 ```
 
@@ -344,13 +421,47 @@ It was more likely for customers to tip above (64%) than below (36%) average. Th
 
 :::
 
+
+::: {.callout-note collapse="true"}
+### Advanced material: Three definitions of independence
+
+Recall the frequency table
+
 ```{r}
-# Is P(server A and above) equal to P(server A) * P(above) ?
-
-
-0.38216561 * 0.63694268 #P(Server A) * P(Above)
-#0.25477707 is P(Server A ∩ Above)
+rel_freq_tbl
 ```
+
+The following three definitions of independence are equivalent. Two events $A$ and $B$ are independent if one of these holds:
+
+- $P(A | B) = P(A)$
+- or $P(B | A) = P(B)$
+- or $P(A \cap B) = P(A) P(B)$
+
+For now, let's focus on the third definition. To see if tipping above average is independent of the specific server, we can checks that condition separately for each server:
+
+A. Is $P(Server A \cap Above)$ equal to $P(Server A) P(Above)$?
+
+```{r}
+# 0.25477707 is P(Server A ∩ Above)
+0.38216561 * 0.63694268 # P(Server A) * P(Above)
+```
+
+B. Is $P(Server B \cap Above)$ equal to $P(Server B) P(Above)$?
+
+```{r}
+# 0.25477707 is P(Server B ∩ Above)
+0.41401274 * 0.63694268 # P(Server B) * P(Above)
+```
+
+C. Is $P(Server C \cap Above)$ equal to $P(Server C) P(Above)$?
+
+```{r}
+# 0.12738854 is P(Server C ∩ Above)
+0.20382166 * 0.63694268 # P(Server C) * P(Above)
+```
+
+For server A and B, the values are close enough but not exactly equal. However, for server C, the values are identical up to the 2nd decimal place. This suggests the events are dependent, but to a small extent.
+:::
 
 
 ## Student Glossary
