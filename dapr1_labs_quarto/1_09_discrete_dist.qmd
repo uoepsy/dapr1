@@ -32,7 +32,6 @@ m_plot <- ggplot(movies2) +
 m_plot
 ```
 
-
 ::: {.callout-note collapse="true"}
 ### Instructions Recap - Formative Report B
 
@@ -49,7 +48,6 @@ m_plot
 
 - No extensions allowed. As this is group-based work, no extensions are possible.
 :::
-
 
 ::: {.callout-note collapse="true"} 
 ### Formative report B - Data
@@ -83,7 +81,6 @@ For formative report B, you will be asked to perform the following tasks, each r
 
 __This week you will only focus on task B3.__ 
 
-
 B1) Create and summarise categorical variables, before calculating probabilities. 
 B2) Investigate if events are independent, and compute probabilities.  
 
@@ -109,12 +106,13 @@ In this section you will find some guided sub-steps you may want to consider to 
 
 [^share-file]: Hint: Ask last week's driver for the Rmd file, they should share it with the group via email or Teams. To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
 
-- A new movie theatre is opening in California, and the management team are reviewing the requirements of their snack stalls. A [recent survey](http://fj.webedia.us/features/snack-statistics-surveyme-findings-reveal-moviegoers-concession-preferences) suggested that 49% of movie viewers always by some form of snack item (i.e., popcorn, drinks, sweets) when watching a movie. Estimate how many viewers out of the 50 who watched each movie from the the top 3 genres bought a snack.[^snack-rbinom]
+- A new movie theatre is opening in Texas, and the management team are reviewing the requirements of their snack stalls. A [recent survey](http://fj.webedia.us/features/snack-statistics-surveyme-findings-reveal-moviegoers-concession-preferences) suggested that 49% of movie viewers always buy some form of snack item (i.e., popcorn, drinks, sweets) when watching a movie. Estimate how many viewers out of the 50 who watched each movie from the the top 3 genres bought a snack.[^snack-rbinom]
 
 [^snack-rbinom] Here we need to use the function `rbinom()`, as we are interested in randomly sampling trials from a binomial distribution. The function `rbinom()` will require you to state three arguments: (1) n - the number of trials to sample, (2) size - the number of events associated with each trial, and (3) prob - the probability of an event occurring.
 
 ```{r}
-rbinom(299, 50, 0.49)
+snack_est <- rbinom(299, 50, 0.49)
+snack_est
 ```
 
 - What is the probability that exactly half of the audience for each movie (i.e., 25 viewers) bought snacks[^snack-dbinom]?
@@ -122,7 +120,8 @@ rbinom(299, 50, 0.49)
 [^snack-dbinom] Here we need to use the function `dbinom()`, as we are interested in the probability of getting one specific result. The function `dbinom()` will require you to state three arguments: (1) x - the number of 'successful' outcomes that you expect, (2) size - the number of events, and (3) prob - the probability of success on a given event.
 
 ```{r}
-dbinom(25, 50, 0.49)
+snack_25 <- dbinom(25, 50, 0.49)
+snack_25
 ```
 
 - What is the probability that more than half of the audience for each movie (i.e., **more than** 25 viewers) bought snacks[^snack-pbinom]?
@@ -130,57 +129,60 @@ dbinom(25, 50, 0.49)
 [^snack-pbinom] Here we need to use the function `pbinom()`, as we are interested in the cumulative probability of getting a specific result. The function `pbinom()` will require you to state four arguments: (1) q - the number of 'successful' outcomes that you expect, (2) size - the number of events, (3) prob - the probability of success on a given event, and (4) lower.tail - specify which side of the probability distribution to test from, where TRUE if looking for 'less than', or FALSE if 'more/greater than'. 
 
 ```{r}
-pbinom(25, 50, 0.49, lower.tail=FALSE)
+snack_cumul_prob <- pbinom(25, 50, 0.49, lower.tail=FALSE)
+snack_cumul_prob
 ```
 
 - Using `ggplot()`, visualise the binomial distribution of snacks, making sure to add a main title and clear axis titles.[^func-dist]
 
 [^func-dist] On our y axis, we want include percentages (not counts), so we should use `..prop..` as the y variable. It would also be useful to ensure that your x-axis covers the full range of possible values (i.e., 0-50) - you can specify this using the argument `xlim()`.
 
-
 ```{r}
 snack_plot <- ggplot() +
-    geom_bar(data = movies2, aes(x = Snacks, y = ..prop..)) + 
-    xlim(0, 50)
+    geom_bar(data = movies2, aes(x = snack_est, y = ..prop..)) + 
+    xlim(0, 50) + 
+    labs(title = "Probability of snack purchase for \n50 viewers of each movie")
 snack_plot
 ```
 
 - Based on the probabilities you have reported above, do you think that the new movie theatre should invest in multiple snack stations, or just one? Justify your answer. 
 
-
 - As noted above, the new movie theatre is still in the planning phase, so planners are reviewing whether they should increase their car park space, or add a bus stop on the theatre grounds. A [recent survey](http://fj.webedia.us/features/snack-statistics-surveyme-findings-reveal-moviegoers-concession-preferences) suggested that 70% of movie viewers travel to the cinema via private transport. Estimate how many viewers out of the 50 who watched each movie from the the top 3 genres traveled via private transport?
 
 ```{r}
-rbinom(299, 50, 0.70)
+transport_est <- rbinom(299, 50, 0.70)
 ```
 
 - What is the probability that exactly half of the audience for each movie (i.e., 25 viewers) traveled via private transport?
 
 ```{r}
-dbinom(25, 50, 0.70)
+transport_25 <- dbinom(25, 50, 0.70)
 ```
 
 - What is the probability that less than half of the audience for each movie (i.e., less than 25 viewers) traveled via private transport?
 
 ```{r}
-pbinom(25, 50, 0.70)
+transport_cumul_prob <- pbinom(25, 50, 0.70)
+transport_cumul_prob
 ```
 
 - Using `ggplot()`, visualise the binomial distribution of snacks, making sure to add a main title and clear axis titles.
 
 ```{r}
 transport_plot <- ggplot() +
-    geom_bar(data = movies2, aes(x = PrivateTransport, y = ..prop..)) + 
-    xlim(0, 50)
+    geom_bar(data = movies2, aes(x = transport_est, y = ..prop..)) + 
+    xlim(0, 50) + 
+    labs(title = "Probability of using private transport for \n50 viewers of each movie")
 transport_plot
 ```
-- Based on the probabilities you have reported above, do you think that the new movie theatre should add a bus stop on theatre grouds, or increase their car park capacity? Justify your answer. 
+
+- Based on the probabilities you have reported above, do you think that the new movie theatre should add a bus stop on theatre grounds, or increase their car park capacity? Justify your answer. 
 
 - In the analysis section of your report, write up a summary of what you have reported above, using proper rounding to 2 decimal places and avoiding any reference to R code or functions. 
 
 ## Worked Example
 
-Consider the dataset available at <https://uoepsy.github.io/data/RestaurantTips.csv>, containing 157 observations on the following 7 variables:
+Consider the dataset available at <https://uoepsy.github.io/data/RestaurantTips2.csv>, containing 99 observations on the following 8 variables:
 
 ```{r, echo=FALSE}
 library(tidyverse)
@@ -194,7 +196,8 @@ tribble(
     'Guests', 'Number of people in the group',
     'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday',
     'Server', 'Code for specific waiter/waitress: A, B, or C',
-    'PctTip', 'Tip as a percentage of the bill'
+    'PctTip', 'Tip as a percentage of the bill',
+    'HadCoffee', 'Number of guests in the group who had coffee'
 ) %>%
     kbl() %>%
     kable_styling(full_width = FALSE)
@@ -204,124 +207,53 @@ These data were collected by the owner of a bistro in the US, who was interested
 
 ```{r}
 library(tidyverse)  # we use read_csv and glimpse from tidyverse
-tips <- read_csv("https://uoepsy.github.io/data/RestaurantTips.csv")
+tips <- read_csv("https://uoepsy.github.io/data/RestaurantTips2.csv")
+tips <- read_csv("C:/DAPR Labs/dapr1/internal_data/sem1/RestaurantTips2.csv")
 head(tips)
 ```
 
-Working with the "Tip_Avg" variable created last week, we can see our relative frequency table for all of our servers (A, B, and C) who were tipped either Above or Below the standard tipping rate in the US (i.e., 15%). 
+The owner of the bistro is interested in coffee sales, and whether they should consider introducing a 2 for 1 coffee deal to entice customers to purchase one of their Christmas coffees. Another option they are considering is starting a loyalty scheme for customers to be rewarded for every coffee purchase. Your job is to advise them on which scheme they should run to benefit most customers. For context, Americans drink *a lot* of coffee, and although slightly less than Norwegians (where 89.4% of (Norwegians drink at least one coffee per day!)[]), it is estimated that approximately 75% of US residents drink coffee. 
 
+- If we wanted to estimate how many guests out of each group ordered a coffee at the Bistro, we could calculate the following: 
 
 ```{r}
-tips2 <- tips %>%
-    mutate(Tip_Avg = ifelse(PctTip <= 15, 'Below', 'Above'))
-
-rel_freq_tbl <- table(tips2$Server, tips2$Tip_Avg) %>%
-    prop.table() %>%
-    addmargins()
-rel_freq_tbl
+est <- rbinom(99, 2, 0.75)
+est
 ```
 
-
-- What’s the probability of a customer tipping above average?
+- If we wanted to calculate the probability that exactly 1 person from each group ordered a coffee, we would calculate the following:
 
 ```{r}
-# P(above) = 0.25477707 + 0.25477707 + 0.12738854
-# P(above) = 0.63694268
+exact <- dbinom(1, 2, 0.75)
+exact
+```
+- If we wanted to calculate the probability that more than 1 person from the group ordered a coffee, we would calculate the following:
+
+```{r}
+prob <- pbinom(1, 2, 0.75, lower.tail = FALSE)
+prob
 ```
 
-```{r}
-# indexing: table[row numbers, col numbers]
-rel_freq_tbl[4, 1]
-# or indexing: table[row names, col names]
-rel_freq_tbl['Sum', 'Above']
-```
-
-$P(Above) ≈ 0.64$
-
-- Given that the server is A, what's the probability of receiving an above average tip?
+- To visualise our findings, we could use a plot the proportion of groups of customers who bought 0, 1, or 2 coffees:
 
 ```{r}
-#P(above | server A) = 0.25477707 / 0.38216561
-#P(above | server A) = 0.6666667
-```
+#| label: fig-coffee
+#| fig-cap: "Probability of groups of 2 purchasing a coffee"
+coffee_plot <- ggplot() +
+    geom_bar(data = tips, aes(x = est, y = ..prop..)) + 
+    xlim(-1,3) + 
+    labs(title = "Probability of groups of 2 \npurchasing a coffee")
+coffee_plot
 
-$P(Above | Server A) ≈ 0.67$
-
-- Given that the server is B, what's the probability of receiving an above average tip?
-
-```{r}
-#P(above | server B) = 0.25477707 / 0.41401274
-#P(above | server B) = 0.6153846
-```
-
-$P(Above | Server B) ≈ 0.62$
-
-- Given that the server is C, what's the probability of receiving an above average tip?
-
-```{r}
-#P(above | server C) = 0.12738854 / 0.20382166
-#P(above | server C) = 0.625
-```
-
-$P(Above | Server C) ≈ 0.63$
-
-- Given that a server received a tip below average, what's the probability of them being Server A or B?
-
-```{r}
-# P( (server A ∪ server B) | below ) = 
-# (P( server A ∩ below ) + P( server B ∩ below )) / P(below) = 
-# (0.12738854  + 0.15923567) / 0.36305732 =
-# 0.7894737 
-```
-
-$P((Server A \cup Server B) \mid Below) ≈ 0.79$
-
-- What’s the probability of the customer being served by server A **or** tipping below 15%?
-
-```{r}
-# P(server A) = 0.38216561
-# P(below) = 0.36305732
-# P(server A ∩ below) = 0.12738854
-
-# P(server A) + P(below) - P(server A ∩ below) = 
-# (0.38216561 + 0.36305732) - 0.12738854 =
-# 0.6178344 ≈ 0.62
-```
-
-$P(Server A \cup Below) ≈ 0.62$
-
-- Is tipping above average independent of the server?
-
-No, the events seem to be dependent, but very weakly. The conditional probabilities of tipping above average for each server are different from P(above), even though to a small degree. In particular, the probability of tipping above average after service from Server A is higher.
-
-- Based on your analysis above, which server do you think offers the best customer service based on their tips?
-
-Server A appears to offer the best service to their customers, based solely on their personal tips - they had a much higher probability of receiving an above average tip (67%) than a below average tip (33%).
-
-- To visualise our findings, we could use a conditional mosaic plot:
-
-```{r}
-#| label: fig-mos_cond_plot
-#| fig-cap: "Conditional Association between Servers and Tips"
-library(ggmosaic)
-mos_cond_plot <- ggplot(tips2) +
-    geom_mosaic(aes(x = product(Tip_Avg), fill = Tip_Avg, conds = product(Server))) +  
-    labs(title = "Conditional Association between Servers and Tips", 
-         x = "Server", 
-         y = "Tip Average", 
-         fill = "Tip Average")
-mos_cond_plot
 ```
 
 :::{.callout-tip}
 
 #### Example writeup
 
-It was more likely for customers to tip above (64%) than below (36%) average. Though it was likely that all servers would receive an above average tip, tipping did not appear to be independent of server, based on conditional probabilities. Based on their personal tips, Server A appeared to offer the best service, where they were more likely to receive an above average tip (67%). Servers B and C were almost equally likely to receive above average tips (62% and 63% respectively). These associations are visually represented in @fig-mos_cond_plot.
+The owner of the bistro should not consider running a 2 for 1 offer on Christmas coffees. It is most likely that groups of two customers will already buy two coffees when they visit the bistro (64%). Instead, the owner might want to offer a loyalty scheme to reward customers for purchasing coffees, regardless of the quantity, as this will also reward parties of two where only one person purchases a coffee. This proabability distribution is visually represented in @fig-coffee.
 
 :::
-
-
 
 ## Student Glossary
 
