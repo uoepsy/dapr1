@@ -102,17 +102,26 @@ To see the hints, hover your cursor on the superscript numbers.
 
 In this section you will find some guided sub-steps you may want to consider to complete task B3.
 
+
 - Reopen last week's Rmd file, as you will continue last week's work, and build on it.[^share-file]
 
 [^share-file]: Hint: Ask last week's driver for the Rmd file, they should share it with the group via email or Teams. To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
 
-- A new movie theatre is opening in Texas, and the management team are reviewing the requirements of their snack stalls. A [recent survey](http://fj.webedia.us/features/snack-statistics-surveyme-findings-reveal-moviegoers-concession-preferences) suggested that 49% of movie viewers always buy some form of snack item (i.e., popcorn, drinks, sweets) when watching a movie. Estimate how many viewers out of the 50 who watched each movie from the the top 3 genres bought a snack.[^snack-rbinom]
+A new movie theatre is opening in Texas, and the management team are reviewing the requirements of their snack stalls. A [recent survey](http://fj.webedia.us/features/snack-statistics-surveyme-findings-reveal-moviegoers-concession-preferences) suggested that 49% of movie viewers always buy some form of snack item (i.e., popcorn, drinks, sweets) when watching a movie. 
+
+- Estimate the parameter $P$ of the binomial from the sample data
+
+```{r}
+p_snack <-  mean(movies2$Snacks) / 50
+p_snack
+```
+
+- Estimate how many viewers out of the 50 who watched each movie from the the top 3 genres bought a snack.[^snack-rbinom]
 
 [^snack-rbinom] Here we need to use the function `rbinom()`, as we are interested in randomly sampling trials from a binomial distribution. The function `rbinom()` will require you to state three arguments: (1) n - the number of trials to sample, (2) size - the number of events associated with each trial, and (3) prob - the probability of an event occurring.
 
 ```{r}
-snack_est <- rbinom(299, 50, 0.49)
-snack_est
+movies2$snack_est <- rbinom(n = 299, size = 50, prob = 0.48)
 ```
 
 - What is the probability that exactly half of the audience for each movie (i.e., 25 viewers) bought snacks[^snack-dbinom]?
@@ -120,8 +129,7 @@ snack_est
 [^snack-dbinom] Here we need to use the function `dbinom()`, as we are interested in the probability of getting one specific result. The function `dbinom()` will require you to state three arguments: (1) x - the number of 'successful' outcomes that you expect, (2) size - the number of events, and (3) prob - the probability of success on a given event.
 
 ```{r}
-snack_25 <- dbinom(25, 50, 0.49)
-snack_25
+movies2$snack_25 <- dbinom(x = 25, size = 50, prob = 0.48)
 ```
 
 - What is the probability that more than half of the audience for each movie (i.e., **more than** 25 viewers) bought snacks[^snack-pbinom]?
@@ -129,25 +137,43 @@ snack_25
 [^snack-pbinom] Here we need to use the function `pbinom()`, as we are interested in the cumulative probability of getting a specific result. The function `pbinom()` will require you to state four arguments: (1) q - the number of 'successful' outcomes that you expect, (2) size - the number of events, (3) prob - the probability of success on a given event, and (4) lower.tail - specify which side of the probability distribution to test from, where TRUE if looking for 'less than', or FALSE if 'more/greater than'. 
 
 ```{r}
-snack_cumul_prob <- pbinom(25, 50, 0.49, lower.tail=FALSE)
-snack_cumul_prob
+movies2$snack_cumul_prob <- pbinom(q = 25, size = 50, prob = 0.48, lower.tail=FALSE)
 ```
 
-- Using `ggplot()`, visualise the binomial distribution of snacks, making sure to add a main title and clear axis titles.[^func-dist]
+- Using `ggplot()`, visualise the binomial distribution, making sure to add a main title and clear axis titles.[^func-dist]
 
-[^func-dist] On our y axis, we want include percentages (not counts), so we should use `..prop..` as the y variable. It would also be useful to ensure that your x-axis covers the full range of possible values (i.e., 0-50) - you can specify this using the argument `xlim()`.
+[^func-dist] On our y axis, we want include percentages (not counts), so we should use `after_stat(prop)` as the y variable. It would also be useful to ensure that your x-axis covers the full range of possible values (i.e., 0-50) - you can specify this using the argument `xlim()`.
 
 ```{r}
 snack_plot <- ggplot() +
-    geom_bar(data = movies2, aes(x = snack_est, y = ..prop..)) + 
+    geom_bar(data = movies2, aes(x = snack_est, y = after_stat(prop))) + 
     xlim(0, 50) + 
-    labs(title = "Probability of snack purchase for \n50 viewers of each movie")
+    labs(title = "Proportion of auidence of each movie who bought snacks", x = "No. of Viewers")
 snack_plot
+```
+
+- Superimpose the theoretical binomial distribution on top of your plot.
+
+```{r}
+grid.x = seq(min(movies2$Snacks), max(movies2$Snacks), 1)
+grid.y = dbinom(grid.x, 50, p_snack)
+
+snack_plot +
+    geom_point(data = tibble(grid.x, grid.y), aes(grid.x, grid.y), color = 'red')
 ```
 
 - Based on the probabilities you have reported above, do you think that the new movie theatre should invest in multiple snack stations, or just one? Justify your answer. 
 
-- As noted above, the new movie theatre is still in the planning phase, so planners are reviewing whether they should increase their car park space, or add a bus stop on the theatre grounds. A [recent survey](http://fj.webedia.us/features/snack-statistics-surveyme-findings-reveal-moviegoers-concession-preferences) suggested that 70% of movie viewers travel to the cinema via private transport. Estimate how many viewers out of the 50 who watched each movie from the the top 3 genres traveled via private transport?
+As noted above, the new movie theatre is still in the planning phase, so planners are reviewing whether they should increase their car park space, or add a bus stop on the theatre grounds. A recent survey suggested that 70% of movie viewers travel to the cinema via private transport. 
+
+- Estimate the parameter $P$ of the binomial from the sample data
+
+```{r}
+p_transport <-  mean(movies2$PrivateTransport) / 50
+p_transport
+```
+
+- Estimate how many viewers out of the 50 who watched each movie from the the top 3 genres traveled via private transport?
 
 ```{r}
 transport_est <- rbinom(299, 50, 0.70)
@@ -163,17 +189,27 @@ transport_25 <- dbinom(25, 50, 0.70)
 
 ```{r}
 transport_cumul_prob <- pbinom(25, 50, 0.70)
-transport_cumul_prob
 ```
 
-- Using `ggplot()`, visualise the binomial distribution of snacks, making sure to add a main title and clear axis titles.
+- Using `ggplot()`, visualise the binomial distribution, making sure to add a main title and clear axis titles.[^func-dist]
+
 
 ```{r}
 transport_plot <- ggplot() +
-    geom_bar(data = movies2, aes(x = transport_est, y = ..prop..)) + 
+    geom_bar(data = movies2, aes(x = transport_est, y = after_stat(prop))) + 
     xlim(0, 50) + 
-    labs(title = "Probability of using private transport for \n50 viewers of each movie")
-transport_plot
+    labs(title = "Proportion of viewers of each movie who \nused private transport", x = "No. of Viewers")
+transport_plot 
+```
+
+- Superimpose the theoretical binomial distribution on top of your plot. 
+
+```{r}
+grid.x = seq(min(movies2$PrivateTransport), max(movies2$PrivateTransport), 1)
+grid.y = dbinom(grid.x, 50, p_transport)
+
+transport_plot +
+    geom_point(data = tibble(grid.x, grid.y), aes(grid.x, grid.y), color = 'red')
 ```
 
 - Based on the probabilities you have reported above, do you think that the new movie theatre should add a bus stop on theatre grounds, or increase their car park capacity? Justify your answer. 
@@ -207,45 +243,58 @@ These data were collected by the owner of a bistro in the US, who was interested
 
 ```{r}
 library(tidyverse)  # we use read_csv and glimpse from tidyverse
-tips <- read_csv("https://uoepsy.github.io/data/RestaurantTips2.csv")
 tips <- read_csv("C:/DAPR Labs/dapr1/internal_data/sem1/RestaurantTips2.csv")
 head(tips)
 ```
 
 The owner of the bistro is interested in coffee sales, and whether they should consider introducing a 2 for 1 coffee deal to entice customers to purchase one of their Christmas coffees. Another option they are considering is starting a loyalty scheme for customers to be rewarded for every coffee purchase. Your job is to advise them on which scheme they should run to benefit most customers. For context, Americans drink *a lot* of coffee, and although slightly less than Norwegians (where 89.4% of (Norwegians drink at least one coffee per day!)[]), it is estimated that approximately 75% of US residents drink coffee. 
 
+- To calculate the parameter $P$ of the binomial from the sample data, we could run the follwoing code: 
+
+```{r}
+p_coffee <- mean(tips$HadCoffee) / 2
+p_coffee 
+```
+
 - If we wanted to estimate how many guests out of each group ordered a coffee at the Bistro, we could calculate the following: 
 
 ```{r}
-est <- rbinom(99, 2, 0.75)
-est
+tips$coffee_est <- rbinom(99, 2, 0.83)
+tips$coffee_est
 ```
 
 - If we wanted to calculate the probability that exactly 1 person from each group ordered a coffee, we would calculate the following:
 
 ```{r}
-exact <- dbinom(1, 2, 0.75)
-exact
+tips$coffee_1 <- dbinom(1, 2, 0.83)
+tips$coffee_1 
 ```
+
 - If we wanted to calculate the probability that more than 1 person from the group ordered a coffee, we would calculate the following:
 
 ```{r}
-prob <- pbinom(1, 2, 0.75, lower.tail = FALSE)
-prob
+tips$coffee_cumul_prob <- pbinom(1, 2, 0.83, lower.tail = FALSE)
+tips$coffee_cumul_prob 
 ```
 
-- To visualise our findings, we could use a plot the proportion of groups of customers who bought 0, 1, or 2 coffees:
+- To visualise our findings, we could use a plot the proportion of groups of customers who bought 0, 1, or 2 coffees, and superimpose the theoretical binomial distribution on top:
 
 ```{r}
 #| label: fig-coffee
-#| fig-cap: "Probability of groups of 2 purchasing a coffee"
-coffee_plot <- ggplot() +
-    geom_bar(data = tips, aes(x = est, y = ..prop..)) + 
-    xlim(-1,3) + 
-    labs(title = "Probability of groups of 2 \npurchasing a coffee")
-coffee_plot
+#| fig-cap: "Proportion of couples who bought 0-2 coffees"
 
+grid.x = seq(min(tips$HadCoffee), max(tips$HadCoffee), 1)
+grid.y = dbinom(grid.x, 2, p_coffee)
+
+
+coffee_plot <- ggplot() +
+    geom_bar(data = tips, aes(x = coffee_est, y = after_stat(prop))) + 
+    geom_point(data = tibble(grid.x, grid.y), aes(grid.x, grid.y), color = 'red') + 
+    xlim(-1, 3) + 
+    labs(title = "Proportion of couples who bought 0-2 coffees", x = "No. of Coffees Purchased")
+coffee_plot 
 ```
+
 
 :::{.callout-tip}
 
