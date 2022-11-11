@@ -1,0 +1,335 @@
+---
+title: "Random Variables (Discrete)"
+subtitle: "Semester 1 - Week 9"
+callout-appearance: simple
+---
+
+```{r setup}
+#| include: false
+
+set.seed(532)
+source('assets/setup.R')
+library(tidyverse)
+
+movies <- read_csv("https://uoepsy.github.io/data/hollywood_movies_subset.csv")
+
+movies2 <- movies %>%
+    filter(Genre %in% c("Drama", "Action", "Comedy")) %>%
+    mutate(Rating = ifelse(AudienceScore <= 50, 'Bad', 'Good')) %>%
+    mutate(Genre = factor(Genre),
+           Rating = factor(Rating))
+
+movies_prop <- table(movies2$Genre, movies2$Rating) %>%
+    prop.table() %>%
+    addmargins()
+movies_prop
+
+movies_prop[, 2] / movies_prop[, 3]
+
+library(ggmosaic)
+m_plot <- ggplot(movies2) +
+    geom_mosaic(aes(x = product(Rating), fill = Rating, conds = product(Genre)))
+m_plot
+```
+
+
+::: {.callout-note collapse="true"}
+### Instructions Recap - Formative Report B
+
+- In this block of the course (weeks 7-11), you should produce a PDF report using Rmarkdown for which you will receive formative feedback in week 12. 
+
+- The report should not include any reference to R code or functions, but be written or a generic reader who is only assumed to have a basic statistical understanding without any R knowledge. You should also avoid any R code output or printout in the PDF file.
+
+- You will be required to submit a PDF file by 12 noon on Friday the 2nd of December 2022 via Learn. One person needs to submit on behalf of your group.
+
+- The report should be at most 6 pages long. At the end of the report, you are allowed two appendices which both don't count towards the page limit. 
+
+    + Appendix A will contain any tables or figures which you cannot fit in the page limit (no text allowed)
+    + Appendix B will contain the code to reproduce the report results (just like Formative Report A).
+
+- No extensions allowed. As this is group-based work, no extensions are possible.
+:::
+
+
+::: {.callout-note collapse="true"} 
+### Formative report B - Data
+
+**Hollywood Movies**. At the link <https://uoepsy.github.io/data/hollywood_movies_subset.csv> you will find data on Hollywood movies released between 2012 and 2018 from the top 5 lead studios and top 10 genres. The following variables were recorded:
+
+- `Movie`: Title of the movie 
+- `LeadStudio`: Primary U.S. distributor of the movie 
+- `RottenTomatoes`: Rotten Tomatoes rating (critics) 
+- `AudienceScore`: Audience rating (via Rotten Tomatoes) 
+- `Genre`: One of Action Adventure, Black Comedy, Comedy, Concert, Documentary, Drama, Horror, Musical, Romantic Comedy, Thriller, or Western 
+- `TheatersOpenWeek`: Number of screens for opening weekend 
+- `OpeningWeekend`: Opening weekend gross (in millions) 
+- `BOAvgOpenWeekend`: Average box office income per theater, opening weekend 
+- `Budget`: Production budget (in millions) 
+- `DomesticGross`: Gross income for domestic (U.S.) viewers (in millions) 
+- `WorldGross`: Gross income for all viewers (in millions) 
+- `ForeignGross`: Gross income for foreign viewers (in millions) 
+- `Profitability`: WorldGross as a percentage of Budget 
+- `OpenProfit`: Percentage of budget recovered on opening weekend 
+- `Year`: Year the movie was released
+- `IQ1`-`IQ50`: IQ score of each of 50 audience raters
+- `Snacks`: How many of the 50 audience raters brought snacks
+- `PrivateTransport`: How many of the 50 audience raters reached the cinema via private transportation
+
+:::
+
+## Tasks
+
+For formative report B, you will be asked to perform the following tasks, each related to a week of teaching in this course.  
+
+__This week you will only focus on task B3.__ 
+
+
+B1) Create and summarise categorical variables, before calculating probabilities. 
+B2) Investigate if events are independent, and compute probabilities.  
+
+:::{.callout-note}
+### This week's task
+B3) Computing and plotting probabilities with a binomial distribution.
+:::
+  
+B4) Computing and plotting probabilities with a normal distribution.  
+B5) Plot standard error of the mean, and finish the report write-up (i.e., knit to PDF, and submit the PDF for formative feedback).  
+
+## B3 sub-tasks
+
+::: {.callout-tip}
+### Tip
+
+To see the hints, hover your cursor on the superscript numbers.
+:::
+
+In this section you will find some guided sub-steps you may want to consider to complete task B3.
+
+- Reopen last week's Rmd file, as you will continue last week's work, and build on it.[^share-file]
+
+[^share-file]: Hint: Ask last week's driver for the Rmd file, they should share it with the group via email or Teams. To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
+
+- A new movie theatre is opening in California, and the management team are reviewing the requirements of their snack stalls. A [recent survey](http://fj.webedia.us/features/snack-statistics-surveyme-findings-reveal-moviegoers-concession-preferences) suggested that 49% of movie viewers always by some form of snack item (i.e., popcorn, drinks, sweets) when watching a movie. Estimate how many viewers out of the 50 who watched each movie from the the top 3 genres bought a snack.[^snack-rbinom]
+
+[^snack-rbinom] Here we need to use the function `rbinom()`, as we are interested in randomly sampling trials from a binomial distribution. The function `rbinom()` will require you to state three arguments: (1) n - the number of trials to sample, (2) size - the number of events associated with each trial, and (3) prob - the probability of an event occurring.
+
+```{r}
+rbinom(299, 50, 0.49)
+```
+
+- What is the probability that exactly half of the audience for each movie (i.e., 25 viewers) bought snacks[^snack-dbinom]?
+
+[^snack-dbinom] Here we need to use the function `dbinom()`, as we are interested in the probability of getting one specific result. The function `dbinom()` will require you to state three arguments: (1) x - the number of 'successful' outcomes that you expect, (2) size - the number of events, and (3) prob - the probability of success on a given event.
+
+```{r}
+dbinom(25, 50, 0.49)
+```
+
+- What is the probability that more than half of the audience for each movie (i.e., **more than** 25 viewers) bought snacks[^snack-pbinom]?
+
+[^snack-pbinom] Here we need to use the function `pbinom()`, as we are interested in the cumulative probability of getting a specific result. The function `pbinom()` will require you to state four arguments: (1) q - the number of 'successful' outcomes that you expect, (2) size - the number of events, (3) prob - the probability of success on a given event, and (4) lower.tail - specify which side of the probability distribution to test from, where TRUE if looking for 'less than', or FALSE if 'more/greater than'. 
+
+```{r}
+pbinom(25, 50, 0.49, lower.tail=FALSE)
+```
+
+- Using `ggplot()`, visualise the binomial distribution of snacks, making sure to add a main title and clear axis titles.[^func-dist]
+
+[^func-dist] On our y axis, we want include percentages (not counts), so we should use `..prop..` as the y variable. It would also be useful to ensure that your x-axis covers the full range of possible values (i.e., 0-50) - you can specify this using the argument `xlim()`.
+
+
+```{r}
+snack_plot <- ggplot() +
+    geom_bar(data = movies2, aes(x = Snacks, y = ..prop..)) + 
+    xlim(0, 50)
+snack_plot
+```
+
+- Based on the probabilities you have reported above, do you think that the new movie theatre should invest in multiple snack stations, or just one? Justify your answer. 
+
+
+- As noted above, the new movie theatre is still in the planning phase, so planners are reviewing whether they should increase their car park space, or add a bus stop on the theatre grounds. A [recent survey](http://fj.webedia.us/features/snack-statistics-surveyme-findings-reveal-moviegoers-concession-preferences) suggested that 70% of movie viewers travel to the cinema via private transport. Estimate how many viewers out of the 50 who watched each movie from the the top 3 genres traveled via private transport?
+
+```{r}
+rbinom(299, 50, 0.70)
+```
+
+- What is the probability that exactly half of the audience for each movie (i.e., 25 viewers) traveled via private transport?
+
+```{r}
+dbinom(25, 50, 0.70)
+```
+
+- What is the probability that less than half of the audience for each movie (i.e., less than 25 viewers) traveled via private transport?
+
+```{r}
+pbinom(25, 50, 0.70)
+```
+
+- Using `ggplot()`, visualise the binomial distribution of snacks, making sure to add a main title and clear axis titles.
+
+```{r}
+transport_plot <- ggplot() +
+    geom_bar(data = movies2, aes(x = PrivateTransport, y = ..prop..)) + 
+    xlim(0, 50)
+transport_plot
+```
+- Based on the probabilities you have reported above, do you think that the new movie theatre should add a bus stop on theatre grouds, or increase their car park capacity? Justify your answer. 
+
+- In the analysis section of your report, write up a summary of what you have reported above, using proper rounding to 2 decimal places and avoiding any reference to R code or functions. 
+
+## Worked Example
+
+Consider the dataset available at <https://uoepsy.github.io/data/RestaurantTips.csv>, containing 157 observations on the following 7 variables:
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(kableExtra)
+
+tribble(
+    ~'Variable Name', ~'Description',
+    'Bill', 'Size of the bill (in dollars)',
+    'Tip', 'Size of the tip (in dollars)',
+    'Credit', 'Paid with a credit card? n or y',
+    'Guests', 'Number of people in the group',
+    'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday',
+    'Server', 'Code for specific waiter/waitress: A, B, or C',
+    'PctTip', 'Tip as a percentage of the bill'
+) %>%
+    kbl() %>%
+    kable_styling(full_width = FALSE)
+```
+
+These data were collected by the owner of a bistro in the US, who was interested in understanding the tipping patterns of their customers. The data are adapted from @lock2020.
+
+```{r}
+library(tidyverse)  # we use read_csv and glimpse from tidyverse
+tips <- read_csv("https://uoepsy.github.io/data/RestaurantTips.csv")
+head(tips)
+```
+
+Working with the "Tip_Avg" variable created last week, we can see our relative frequency table for all of our servers (A, B, and C) who were tipped either Above or Below the standard tipping rate in the US (i.e., 15%). 
+
+
+```{r}
+tips2 <- tips %>%
+    mutate(Tip_Avg = ifelse(PctTip <= 15, 'Below', 'Above'))
+
+rel_freq_tbl <- table(tips2$Server, tips2$Tip_Avg) %>%
+    prop.table() %>%
+    addmargins()
+rel_freq_tbl
+```
+
+
+- What’s the probability of a customer tipping above average?
+
+```{r}
+# P(above) = 0.25477707 + 0.25477707 + 0.12738854
+# P(above) = 0.63694268
+```
+
+```{r}
+# indexing: table[row numbers, col numbers]
+rel_freq_tbl[4, 1]
+# or indexing: table[row names, col names]
+rel_freq_tbl['Sum', 'Above']
+```
+
+$P(Above) ≈ 0.64$
+
+- Given that the server is A, what's the probability of receiving an above average tip?
+
+```{r}
+#P(above | server A) = 0.25477707 / 0.38216561
+#P(above | server A) = 0.6666667
+```
+
+$P(Above | Server A) ≈ 0.67$
+
+- Given that the server is B, what's the probability of receiving an above average tip?
+
+```{r}
+#P(above | server B) = 0.25477707 / 0.41401274
+#P(above | server B) = 0.6153846
+```
+
+$P(Above | Server B) ≈ 0.62$
+
+- Given that the server is C, what's the probability of receiving an above average tip?
+
+```{r}
+#P(above | server C) = 0.12738854 / 0.20382166
+#P(above | server C) = 0.625
+```
+
+$P(Above | Server C) ≈ 0.63$
+
+- Given that a server received a tip below average, what's the probability of them being Server A or B?
+
+```{r}
+# P( (server A ∪ server B) | below ) = 
+# (P( server A ∩ below ) + P( server B ∩ below )) / P(below) = 
+# (0.12738854  + 0.15923567) / 0.36305732 =
+# 0.7894737 
+```
+
+$P((Server A \cup Server B) \mid Below) ≈ 0.79$
+
+- What’s the probability of the customer being served by server A **or** tipping below 15%?
+
+```{r}
+# P(server A) = 0.38216561
+# P(below) = 0.36305732
+# P(server A ∩ below) = 0.12738854
+
+# P(server A) + P(below) - P(server A ∩ below) = 
+# (0.38216561 + 0.36305732) - 0.12738854 =
+# 0.6178344 ≈ 0.62
+```
+
+$P(Server A \cup Below) ≈ 0.62$
+
+- Is tipping above average independent of the server?
+
+No, the events seem to be dependent, but very weakly. The conditional probabilities of tipping above average for each server are different from P(above), even though to a small degree. In particular, the probability of tipping above average after service from Server A is higher.
+
+- Based on your analysis above, which server do you think offers the best customer service based on their tips?
+
+Server A appears to offer the best service to their customers, based solely on their personal tips - they had a much higher probability of receiving an above average tip (67%) than a below average tip (33%).
+
+- To visualise our findings, we could use a conditional mosaic plot:
+
+```{r}
+#| label: fig-mos_cond_plot
+#| fig-cap: "Conditional Association between Servers and Tips"
+library(ggmosaic)
+mos_cond_plot <- ggplot(tips2) +
+    geom_mosaic(aes(x = product(Tip_Avg), fill = Tip_Avg, conds = product(Server))) +  
+    labs(title = "Conditional Association between Servers and Tips", 
+         x = "Server", 
+         y = "Tip Average", 
+         fill = "Tip Average")
+mos_cond_plot
+```
+
+:::{.callout-tip}
+
+#### Example writeup
+
+It was more likely for customers to tip above (64%) than below (36%) average. Though it was likely that all servers would receive an above average tip, tipping did not appear to be independent of server, based on conditional probabilities. Based on their personal tips, Server A appeared to offer the best service, where they were more likely to receive an above average tip (67%). Servers B and C were almost equally likely to receive above average tips (62% and 63% respectively). These associations are visually represented in @fig-mos_cond_plot.
+
+:::
+
+
+
+## Student Glossary
+
+To conclude the lab, add the new functions to the glossary of `R` functions. 
+
+| Function   | Use and package |
+|:-----------|:--------------|
+| `rbinorm() `     | ? |
+| `pbinom()`      | ? |
+| `dbinom() `     | ? |
+
