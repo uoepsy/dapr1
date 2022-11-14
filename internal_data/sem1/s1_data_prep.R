@@ -62,13 +62,14 @@ barplot(table(df.2$Snacks))
 barplot(table(df.2$PrivateTransport))
 
 
-
 # E(X) = n * p
 # SD(X) = sqrt(n * p * (1-p))
+
 p = mean(df.2$Snacks) / 50
 sd.x = sqrt(50 * p * (1-p))
 grid.x = seq(min(df.2$Snacks), max(df.2$Snacks), 1)
 grid.y = dbinom(grid.x, 50, p)
+
 # library(fitdistrplus)
 # fitdist(df.2$Snacks, "binom", start = list(prob = 0.5), fix.arg = list(size = N))
 
