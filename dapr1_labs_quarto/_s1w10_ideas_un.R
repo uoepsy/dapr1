@@ -64,26 +64,27 @@ tips2_long
 ggplot(tips2_long, aes(x = IQ)) + 
     geom_histogram(color = 'white')
 
+
 # Fit Normal distribution
 # =====
 
-# Fit Normal distribution, requires estimating the parameters mu and sigma using
-# the sample mean and sample standard deviation
+# Fitting a Normal distribution to the sample data requires estimating the 
+# parameters mu and sigma using the sample mean and sample standard deviation
 mu_hat = mean(tips2_long$IQ)
 sigma_hat = sd(tips2_long$IQ)
 
 # dnorm
-#   I would tell students that dnorm means the normal distribution/curve at x
-#       i.e. this is not a probability but the density
-#   dnorm(x, mean = mu_hat, sd = sigma_hat) = normal distribution 
-#       N(mu_hat, sigma_hat) at x
+# * I would tell students that dnorm means the normal distribution/curve at x
+#   i.e. this is not a probability but the density (do they see density in lecture?)
+# * dnorm(x, mean = mu_hat, sd = sigma_hat) = normal distribution 
+#   N(mu_hat, sigma_hat) at x
 
 # Plot fitted Normal distribution on top of the sample distribution
-#   Grid of x values for plotting - Use mean - 4*SD, mean + 4*SD to cover 
-#       100% of the values. 
-#   Usually mean - 3*SD, mean + 3*SD covers 100% of values but in this case 
-#       one escaped!
-#   y_grid is the Normal curve at x_grid
+# * Grid of x values for plotting - Use mean - 4*SD, mean + 4*SD to cover 
+#   100% of the values. 
+# * Usually mean - 3*SD, mean + 3*SD covers 100% of values but in this case 
+#   one escaped!
+# * y_grid is the Normal curve at x_grid
 normal_distr <- tibble(
     x_grid = seq( mu_hat - 4 * sigma_hat, mu_hat + 4 * sigma_hat, by = 0.1 ),
     y_grid = dnorm( x_grid, mean = mu_hat, sd = sigma_hat )
@@ -142,6 +143,10 @@ qnorm(0.75, mean = mu_hat, sd = sigma_hat)
 #   Do they agree?
 summary(tips2_long$IQ)
 
+# What is the interval comprising 95% of the people's IQ scores in the sample?
+#   0.975 - 0.025 = 0.95
+qnorm(c(0.025, 0.975), mean = mu_hat, sd = sigma_hat)
+
 
 # Important points
 # =====
@@ -153,10 +158,12 @@ summary(tips2_long$IQ)
 #   that the random variable takes a value within a specific interval, as 
 #   the probability that it takes on any specific value is 0, P(X = a) = 0
 
+
 # Functions
 # =====
 #   dnorm, pnorm, mutate, pivot_longer, paste, relocate, rename (if you want?),
 #   seq, geom_histogram, geom_line or stat/geom_function
+
 
 # Readings
 # =====
