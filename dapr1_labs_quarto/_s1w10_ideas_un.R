@@ -64,6 +64,9 @@ tips2_long
 ggplot(tips2_long, aes(x = IQ)) + 
     geom_histogram(color = 'white')
 
+ggplot(tips2_long, aes(x = IQ)) + 
+    geom_density()
+
 
 # Fit Normal distribution
 # =====
@@ -72,6 +75,10 @@ ggplot(tips2_long, aes(x = IQ)) +
 # parameters mu and sigma using the sample mean and sample standard deviation
 mu_hat = mean(tips2_long$IQ)
 sigma_hat = sd(tips2_long$IQ)
+
+# For reporting
+#   \hat{\mu}
+#   \hat{\sigma}
 
 # dnorm
 # * I would tell students that dnorm means the normal distribution/curve at x
@@ -117,6 +124,7 @@ pnorm(100, mu_hat, sigma_hat)
 pnorm(100, mu_hat, sigma_hat, lower.tail = FALSE)
 
 # P(a < X < b) = P(X < b) - P(X < a)
+#   P(80 < X < 100) = P(X < 100) - P(X < 80)
 pnorm(100, mu_hat, sigma_hat) - pnorm(80, mu_hat, sigma_hat)
 
 
