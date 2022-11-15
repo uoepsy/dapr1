@@ -83,7 +83,7 @@ For formative report B, you will be asked to perform the following tasks, each r
 
 __This week you will only focus on task B3.__ 
 
-B1) Create and summarise categorical variables, before calculating probabilities. 
+B1) Create and summarise categorical variables, before calculating probabilities.  
 B2) Investigate if events are independent, and compute probabilities.  
 
 :::{.callout-note}
@@ -118,7 +118,7 @@ A [recent survey](http://fj.webedia.us/features/snack-statistics-surveyme-findin
 
 In this lab, you will need to consider both the `Snacks` and `Private Transport` variables from the Hollywood movies dataset when answering the questions below. 
 
-- Reopen last week's Rmd file, as you will continue last week's work, and build on it.[^share-file]
+- Reopen last week's Rmd file, and continue building on last week's work. Make sure you are still using the movies dataset filtered to only include the top 3 genres.[^share-file]
 
 [^share-file]: Hint: Ask last week's driver for the Rmd file, they should share it with the group via email or Teams. To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
 
@@ -126,17 +126,36 @@ In this lab, you will need to consider both the `Snacks` and `Private Transport`
 
 - Plot separately the sample frequency distribution of both the `Snacks` and `Private Transport`variables with barplots.[^plot-freq]
 
-[^plot-freq]: Hint: You will need to first compute the frequency distribution of each variable, before plotting these as individual barplots (here you will want to specify `geom_col()`)
+[^plot-freq]: Hint: 
+
+    First compute the frequency distribution of each variable, using `count()` and `mutate()`. 
+    
+    Next, plot each frequency distribution as a barplot. Since you already have the bar heights, use `geom_col()` to create the bars. 
+    
+    Warning: The function `geom_bar()`, instead, does the counting for you and uses the data set instead of the frequency table.
 
 - What kind of distribution do these follow? Estimate the parameters of your two distributions from the sample data.[^est-params]
 
-[^est-params]: Hint: The expected value $E(X)$ of a Binomial distribution (i.e., the mean) is $E(X) = n * p$ where $n$ = number of trials = size, and $p$ is the probability of success. From this, we have that $p = E(X) / n$. In your movies sample data, `size = 50` and `n = 299`. 
+[^est-params]: Hint: A Binomial distribution has two parameters, the number of trials or size ($n$) and the probability of success ($p$).
 
-- Plot the fitted Binomial distribution on top of the sample frequency distribution for each variable. Is the Binomial distribution a good model for each variable?
+    To estimate the size, use the information from the study design.
+
+    To estimate the probability of success use the following fact. The expected value $E(X)$ of a Binomial distribution (i.e., the mean) is $E(X) = n * p$ where $n$ = number of trials = size, and $p$ is the probability of success. From this, we have that $p = E(X) / n$. In your movies sample data, the number of trials (size) is 50, as you have the number of people that bought snacks or travelled via private transport out of the 50 movie raters. 
+
+- Plot the fitted Binomial distribution on top of the sample frequency distribution for each variable. Is the Binomial distribution a good model for each variable?[^plt-binom]
+
+[^plt-binom]: First, create a new tibble with two columns: (1) the possible values of the Binomial distribution, and (2) the probabilities of each outcome.
+
+    Next, take the barplots previously created and use `geom_point(data = ?, aes(x = ?, y = ?))` to add the Binomial probabilities on top of each barplot.
+    
+    If the plot looks weird, are your bar heights probabilities or counts? The Binomial probabilities are, as the words says, probabilities so make sure you plot two relatable measures.
+
 
 - What is the probability that exactly half of the audience for each movie (i.e., 25 viewers) bought snacks? What is the probability that exactly half traveled via private transport?[^half-dbinom]
 
-[^half-dbinom]: Hint: Here we need to use the function `dbinom()`, as we are interested in the probability of getting one specific result. The function `dbinom()` will require you to state three arguments: (1) x - the number of 'successful' outcomes that you expect, (2) size - the number of events, and (3) prob - the probability of success on a given event.
+[^half-dbinom]: Hint: Here we need to use the function `dbinom()`, as we are interested in the probability of getting one specific result. 
+
+    The function `dbinom()` will require you to state three arguments: (1) x - the value(s) you want to compute the probability for, (2) size - the number of trials, and (3) prob - the probability of success.
 
     ```
     dbinom(x = ?, size = ?, prob = ?)
@@ -144,7 +163,9 @@ In this lab, you will need to consider both the `Snacks` and `Private Transport`
 
 - What is the probability that **more than** half of the audience for each movie (i.e., >25 viewers) bought snacks? What is the probability that **less than** half of the audience for each movie (i.e., <25 viewers) traveled via private transport?[^snack-pbinom]
 
-[^snack-pbinom]: Hint: Here we need to use the function `pbinom()`, as we are interested in the cumulative probability of getting a specific result. The function `pbinom()` will require you to state four arguments: (1) q - the number of 'successful' outcomes that you expect, (2) size - the number of events, (3) prob - the probability of success on a given event, and (4) lower.tail - specify which side of the probability distribution to test from, where TRUE if looking for 'less than', or FALSE if 'more/greater than'. 
+[^snack-pbinom]: Hint: Here we need to use the function `pbinom()`, as we are interested in the cumulative probability of getting a specific result. 
+
+    The function `pbinom()` will require you to state four arguments: (1) q - the number of 'successful' outcomes, (2) size - the number of trials, (3) prob - the probability of success, and (4) lower.tail - specify which side of the probability distribution to test from, where TRUE if looking for '<=', or FALSE if '>'. 
 
     ```
     pbinom(q = ?, size = ?, prob = ..., lower.tail=FALSE)
