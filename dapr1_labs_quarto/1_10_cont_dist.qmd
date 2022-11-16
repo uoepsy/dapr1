@@ -1,0 +1,422 @@
+---
+title: "Random Variables (Continuous)"
+subtitle: "Semester 1 - Week 10"
+callout-appearance: simple
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup}
+#| include: false
+
+set.seed(532)
+source('assets/setup.R')
+library(tidyverse)
+
+movies <- read_csv("https://uoepsy.github.io/data/hollywood_movies_subset.csv")
+
+movies2 <- movies %>%
+    filter(Genre %in% c("Drama", "Action", "Comedy")) %>%
+    mutate(Rating = ifelse(AudienceScore <= 50, 'Bad', 'Good')) %>%
+    mutate(Genre = factor(Genre),
+           Rating = factor(Rating))
+
+movies_prop <- table(movies2$Genre, movies2$Rating) %>%
+    prop.table() %>%
+    addmargins()
+movies_prop
+
+movies_prop[, 2] / movies_prop[, 3]
+
+library(ggmosaic)
+m_plot <- ggplot(movies2) +
+    geom_mosaic(aes(x = product(Rating), fill = Rating, conds = product(Genre)))
+m_plot
+
+#week 4
+movies2_long <- movies2 %>%
+    pivot_longer(IQ1:IQ50, names_to = "ID", values_to = "IQ")
+movies2_long 
+
+p1 <- ggplot(movies2_long, aes(x = IQ)) + 
+    geom_histogram()
+
+p2 <- ggplot(movies2_long, aes(x = IQ)) + 
+    geom_density()
+
+mu_hat = mean(movies2_long$IQ)
+sigma_hat = sd(movies2_long$IQ)
+
+movies_normal_distr <- tibble(
+    x_grid = seq( mu_hat - 4 * sigma_hat, mu_hat + 4 * sigma_hat, by = 0.1 ),
+    y_grid = dnorm( x_grid, mean = mu_hat, sd = sigma_hat ))
+
+samp_fitted <- ggplot() + 
+    geom_histogram(data = movies2_long, aes(x = IQ, y = after_stat(density)), color = 'white') +
+    geom_line(data = movies_normal_distr, aes(x = x_grid, y = y_grid), color = 'red', linewidth = 1)
+
+
+#probs 
+pnorm(97.4, mu_hat, sigma_hat)
+pnorm(97.4, mu_hat, sigma_hat, lower.tail = FALSE)
+pnorm(107.4, mu_hat, sigma_hat) - pnorm(87.4, mu_hat, sigma_hat)
+
+#quarts
+qnorm(0.25, mean = mu_hat, sd = sigma_hat)
+qnorm(0.5, mean = mu_hat, sd = sigma_hat)
+qnorm(0.75, mean = mu_hat, sd = sigma_hat)
+summary(movies2_long$IQ)
+qnorm(c(0.025, 0.975), mean = mu_hat, sd = sigma_hat)
+
+```
+
+::: {.callout-note collapse="true"}
+### Instructions Recap - Formative Report B
+
+- In this block of the course (weeks 7-11), you should produce a PDF report using Rmarkdown for which you will receive formative feedback in week 12. 
+
+- The report should not include any reference to R code or functions, but be written or a generic reader who is only assumed to have a basic statistical understanding without any R knowledge. You should also avoid any R code output or printout in the PDF file.
+
+- You will be required to submit a PDF file by 12 noon on Friday the 2nd of December 2022 via Learn. One person needs to submit on behalf of your group.
+
+- The report should be at most 6 pages long. At the end of the report, you are allowed two appendices which both don't count towards the page limit. 
+
+    + Appendix A will contain any tables or figures which you cannot fit in the page limit (no text allowed)
+    + Appendix B will contain the code to reproduce the report results (just like Formative Report A).
+
+- No extensions allowed. As this is group-based work, no extensions are possible.
+:::
+
+::: {.callout-note collapse="true"} 
+### Formative report B - Data
+
+**Hollywood Movies**. At the link <https://uoepsy.github.io/data/hollywood_movies_subset.csv> you will find data on Hollywood movies released between 2012 and 2018 from the top 5 lead studios and top 10 genres. The following variables were recorded:
+
+- `Movie`: Title of the movie 
+- `LeadStudio`: Primary U.S. distributor of the movie 
+- `RottenTomatoes`: Rotten Tomatoes rating (critics) 
+- `AudienceScore`: Audience rating (via Rotten Tomatoes) 
+- `Genre`: One of Action Adventure, Black Comedy, Comedy, Concert, Documentary, Drama, Horror, Musical, Romantic Comedy, Thriller, or Western 
+- `TheatersOpenWeek`: Number of screens for opening weekend 
+- `OpeningWeekend`: Opening weekend gross (in millions) 
+- `BOAvgOpenWeekend`: Average box office income per theater, opening weekend 
+- `Budget`: Production budget (in millions) 
+- `DomesticGross`: Gross income for domestic (U.S.) viewers (in millions) 
+- `WorldGross`: Gross income for all viewers (in millions) 
+- `ForeignGross`: Gross income for foreign viewers (in millions) 
+- `Profitability`: WorldGross as a percentage of Budget 
+- `OpenProfit`: Percentage of budget recovered on opening weekend 
+- `Year`: Year the movie was released
+- `IQ1`-`IQ50`: IQ score of each of 50 audience raters
+- `Snacks`: How many of the 50 audience raters brought snacks
+- `PrivateTransport`: How many of the 50 audience raters reached the cinema via private transportation
+
+:::
+
+## Tasks
+
+For formative report B, you will be asked to perform the following tasks, each related to a week of teaching in this course.  
+
+__This week you will only focus on task B4.__ 
+
+B1) Create and summarise categorical variables, before calculating probabilities.  
+B2) Investigate if events are independent, and compute probabilities.  
+B3) Computing and plotting probabilities with a binomial distribution.
+
+:::{.callout-note}
+### This week's task
+  
+B4) Computing and plotting probabilities with a normal distribution.  
+
+:::
+
+B5) Plot standard error of the mean, and finish the report write-up (i.e., knit to PDF, and submit the PDF for formative feedback).  
+
+## B4 sub-tasks
+
+::: callout-tip
+### Tip
+
+To see the hints, hover your cursor on the superscript numbers.
+:::
+
+::: callout-important
+### Important
+
+- Focus on completing all of the lab tasks, and leave non-essential things like changing colors for later.
+
+- If, after looking at the hint, you still have no clue on how to answer a question, check the worked example below!
+:::
+
+In this section you will find some guided sub-steps you may want to consider to complete task B4.
+
+As detailed last week, a new movie theatre is opening in Texas soon. The management team are thinking of innovative launch events, and they'd like to host a movie trivia night where viewers can compete to win free cinema tickets for the year! They want to make sure however that their questions aren't too easy, or too difficult, so gave viewers an IQ test so that they could see where to pitch their questions. 
+
+According to a [recent survey](https://worldpopulationreview.com/state-rankings/average-iq-by-state), the average IQ in Texas is 97.4. If at least 50% of movie viewers have an IQ score above this value, but less than 60% do, the the management team won't need to make any changes (i.e., make it easier or harder) to their trivia questions.
+
+In this lab, you will need to consider both the `IQ1`-`IQ50` variables from the Hollywood movies dataset when answering the questions below. 
+
+- Reopen last week's Rmd file, and continue building on last week's work. Make sure you are still using the movies dataset filtered to only include the top 3 genres.[^share-file]
+
+[^share-file]: Hint: Ask last week's driver for the Rmd file, they should share it with the group via email or Teams. To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
+
+- Consider the `IQ1`-`IQ50` variables, are they discrete or continuous? 
+
+- Currently the data are in wide format, but we want a single column of IQ scores. Pivot the data so that it is in long format.[^func-pivot]
+
+[^func-pivot]: Hint: When the data is wide, we can make it long using `pivot_longer()`. When we make data longer, we’re essentially making lots of columns into 2 longer columns. Below, in the animation, the wide variable x, y and z go into a new longer column called 'name' (specified by the argument `names_to = `) that specifies which (x/y/z) it came from, and the values get put into the 'val' column (specified by the argument `values_to = `).
+
+    ```{r echo=FALSE, fig.cap="Source: https://fromthebottomoftheheap.net/2019/10/25/pivoting-tidily/"}
+    knitr::include_graphics("https://www.fromthebottomoftheheap.net/assets/img/posts/tidyr-longer-wider.gif")
+    ```
+
+- Discuss how this new 'IQ' column can be considered an independent sample of IQ scores
+
+- Plot the sample distribution of the `IQ` variable using both a histogram and density plot.[^plot-freq]
+
+[^plot-freq]: Hint: Here you will need to specify `geom_col()` and `geom_density()`. Recall that you can use the `patchwork` package to arrange plots either adjacent to one another (via `|`) or stacked (via `/`)
+
+- What kind of distribution do your plots follow? Estimate the parameters of your distribution from the sample data.[^est-params]
+
+[^est-params]: Hint: A normal distribution has two parameters, the sample mean ($\hat{\mu}$) and the sample standard deviation ($\hat{\sigma}$).
+
+- Plot the fitted normal distribution on top of the sample distribution. Is the normal distribution a good fit?[^plt-norm]
+
+[^plt-norm]: Hint: Here you will need to consider using `dnorm()`, as you are interested in the normal distribution at values of x. First you will need to consider how many standard deviations above and below the mean to give when specifying your grid of x-axis values (hint: it's between 1-5!). Next you will need to specify the grid for your y-axis - here use the `dnorm()` function, specifying your x-axis grid, sample mean, and sample standard deviation. 
+
+- Calculate the following:[^probs-IQ]
+    * The probability of a movie viewer having an IQ score <97.4
+    * The probability of a movie viewer having an IQ score >97.4
+    * The probability of a movie viewer having an IQ score between 87.4-107.4
+
+[^probs-IQ]: Hint: Here you are being asked to calculate:       
+                    * P(X <= x) = P(X < x) 
+                    * P(X >= x) = P(X > x)
+                    * P(a < X < b) = P(X < b) - P(X < a)
+                    
+- Calculate the following:[^quant-IQ]
+    * The value of IQ that 25% of movie watchers have scores equal to or less than
+    * The value of IQ that 50% of movie watchers have scores equal to or less than
+    * The value of IQ that 75% of movie watchers have scores equal to or less than
+    * The interval comprising 95% of the people's IQ scores in the sample
+
+[^quant-IQ]: Hint: For the first three questions, you are being asked to calculate P(X <= x) = P(X < x) at the first, second, and third quartiles respectively. For the final question, you are looking for those values ranging from 2.5% to 97.5% (the 5% is split between the lower and upper tails). 
+
+- How do the normal quartiles computed above compare to those obtained from the `summary()` function?
+
+- Based on the probabilities you have reported above, do you think that the new movie theatre should simplify the questions for their trivia night, make them harder, or make no changes? Justify your answer. 
+
+- In the analysis section of your report, write up a summary of what you have reported above, using proper rounding to 2 decimal places and avoiding any reference to R code or functions. 
+
+
+## Worked Example
+
+The dataset available at <https://uoepsy.github.io/data/RestaurantTips2.csv> was collected by the owner of a US bistro, and contains 99 observations on 10 variables. 
+It is a subset of the RestaurantTips.csv data presented in the past weeks, focusing only on parties of 2 people.^[Data adapted from @lock2020.]
+
+Following from the bistro owner's interest in whether they should consider introducing a 2 for 1 coffee deal or a loyalty scheme, they are also considering running a weekly quiz night in the bistro. The quiz is only open to pairs of individuals, and given that the bistro is located in a student area, the owner wants to make the quiz very demanding, and therefore wants the questions to be at a level where someone with a 'superior' or 'well above average' IQ (i.e., scores 120+) would be challenged. We need to advise the bistro owner whether the questions that they have generated are at their desired level of difficulty. 
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(kableExtra)
+
+tribble(
+    ~'Variable Name', ~'Description',
+    'Bill', 'Size of the bill (in dollars)',
+    'Tip', 'Size of the tip (in dollars)',
+    'Credit', 'Paid with a credit card? n or y',
+    'Guests', 'Number of people in the group',
+    'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday',
+    'Server', 'Code for specific waiter/waitress: A, B, or C',
+    'PctTip', 'Tip as a percentage of the bill',
+    'HadCoffee', 'Number of guests in the group who had coffee',
+    'IQ1', 'Score on IQ test for guest 1',
+    'IQ2', 'Score on IQ test for guest 2'
+) %>%
+    kable(format = 'simple')
+```
+
+```{r}
+library(tidyverse)
+tips2 <- read_csv("https://uoepsy.github.io/data/RestaurantTips2.csv")
+head(tips2)
+```
+
+- If we were asked to describe what kind of variables `IQ1` and `IQ2` were, and to comment on the kind of probability distribution it may follow, we could say:
+
+IQ1 and IQ2 represent the IQ scores of each individual within a group of two. These are both continuous variables that could be modeled by a normal distribution.
+
+- We could transform the `tips2` dataset from wide to long format using the follwing command:
+
+```{r}
+tips2_long <- tips2 %>%
+    pivot_longer(IQ1:IQ2, names_to = "ID", values_to = "IQ_Scores")
+tips2_long
+```
+
+- We can plot the sample distribution of the `IQ_Scores` variable as following, and present them side by side:
+
+Compute the frequency distribution and relative frequency:
+
+```{r}
+library(patchwork)
+plt_hist <- ggplot(tips2_long, aes(x = IQ_Scores)) + 
+    geom_histogram()
+
+plt_dens <- ggplot(tips2_long, aes(x = IQ_Scores)) + 
+    geom_density()
+
+plt_hist | plt_dens 
+```
+
+:::{.callout-tip collapse="true"}
+### Fitting a distribution
+
+Fitting a normal distribution to data involves estimating the parameters of the distribution from the data. In other words, we want to find values for $\hat{\mu}$ and $\hat{\sigma}$ from the variable `IQ_Scores` in the our data.
+
+:::
+
+- We can now fit a normal distribution to the variable. To do so, we need to start by estimating the parameters of the normal distribution:
+
+    + $\hat{\mu}$, the mean IQ score in the sample
+    + $\hat{\sigma}$, the estimated standard deviation in the sample
+
+```{r}
+# The mean of IQ scores
+tips_mu_hat = mean(tips2_long$IQ_Scores) 
+
+# The standard deviation of IQ scores
+tips_sigma_hat = sd(tips2_long$IQ_Scores)
+```
+
+- We can then compare the sample distribution to the normal distribution, and comment on whether the normal fit is good:
+
+We need to give the value 4 SDs above and below the mean, because the IQ scores are so widespread and we don't want to exclude any values!
+
+```{r}
+normal_distr <- tibble(
+    x_grid = seq(tips_mu_hat  - 4 * tips_sigma_hat, tips_mu_hat  + 4 * tips_sigma_hat, by = 0.1),
+    y_grid = dnorm( x_grid, mean = tips_mu_hat, sd = tips_sigma_hat)
+)
+```
+
+We can plot the sample distribution and put on top the fitted normal distribution on top:
+
+```{r}
+#| label: fig-IQ
+#| fig-cap: "Distribution of Bistro Customer IQ Scores."
+
+bistro_iq <- ggplot() + 
+    geom_histogram(data = tips2_long, aes(x = IQ_Scores, y = after_stat(density)), color = 'white') +
+    geom_line(data = normal_distr, aes(x = x_grid, y = y_grid, color = 'red'))
+bistro_iq
+```
+
+The normal distribution seems to be a good fit for the sample distribution, as the probabilities tend to agree.
+
+- We can calculate the probability that a bistro customer has an IQ at a given specific value, for example:
+
+::: {.panel-tabset}
+
+## P(X <= x) = P(X < x) when x = 120
+
+To calculate the probability that a bistro customer has an IQ below 120, we can compute the following: 
+
+```{r}
+pnorm(120, tips_mu_hat, tips_sigma_hat)
+```
+
+## P(X >= x) = P(X > x) when x = 120
+
+To calculate the probability that a bistro customer has an IQ above 120, we can compute the following:
+
+```{r}
+pnorm(120, tips_mu_hat, tips_sigma_hat, lower.tail = FALSE)
+```
+
+or alternatively
+
+```{r}
+1 - pnorm(120, tips_mu_hat, tips_sigma_hat)
+```
+
+## P(a < X < b) when a = 110 and b = 130
+
+To calculate the probability that a bistro customer has an IQ between 100 and 130, we can compute the following:
+
+P(a < X < b) = P(X < b) - P(X < a) when a = 100 and b = 130 so that P(100 < X < 130) = P(X < 130) - P(X < 100)
+
+```{r}
+pnorm(130, tips_mu_hat, tips_sigma_hat) - pnorm(100, tips_mu_hat, tips_sigma_hat)
+```
+
+:::
+
+- We can calculate the value of IQ that a specific percentage of bistro customers have scores equal to or less than, for example:
+
+::: {.panel-tabset}
+
+## P(X <= x) when x = 0.25
+
+To calculate the value of IQ that 25% of bistro customers have scores equal to or less than, we can compute the following: 
+
+```{r}
+qnorm(0.25, tips_mu_hat, tips_sigma_hat)
+```
+
+## P(X <= x) when x = 0.50
+
+To calculate the value of IQ that 50% of bistro customers have scores equal to or less than, we can compute the following: 
+
+```{r}
+qnorm(0.5, tips_mu_hat, tips_sigma_hat)
+```
+
+## P(X <= x) when x = 0.75
+
+To calculate the value of IQ that 75% of bistro customers have scores equal to or less than, we can compute the following: 
+
+```{r}
+qnorm(0.75, tips_mu_hat, tips_sigma_hat)
+```
+
+:::
+
+- We can also comment on how these normal quartiles values compare to those from the `summary()` output:
+
+```{r}
+summary(tips2_long$IQ_Scores)
+```
+
+The estimated quartiles are very similar to those from the summary output, again suggesting that the sample IQ data follows a normal distribution.
+
+- To summarise the IQ scores of the bistro customers, we could compute where 95% of the customers scores are between:
+
+```{r}
+qnorm(c(0.025, 0.975), mean = tips_mu_hat, sd = tips_sigma_hat)
+```
+
+95% of the bistro customers had IQ scores between 68 and 130.
+
+:::{.callout-tip}
+
+#### Example writeup
+
+@fig-IQ displays the distribution of IQ scores, with a normal distribution superimposed as a red histogram. The majority of bistro customers (95%) have IQ scores between 68 and 130. Based on our analysis above, 48% of bistro customers are likely to have IQ scores above average (i.e., above 100), though there is less than a 10% chance that customers have superior IQ scores (i.e., above 120). Therefore the bistro owner has set the questions to his quiz at the desired level of difficulty - the vast majority of his customers should find the questions extremely challenging. However, if the Bistro owner did want to make some changes, they should only consider making the quiz more difficult. 
+
+:::
+
+## Student Glossary
+
+To conclude the lab, add the new functions to the glossary of `R` functions. 
+
+| Function   | Use and package |
+|:-----------|:--------------|
+| `dnorm() `     | ? |
+| `pnorm() `     | ? |
+| `pivot_longer() `     | ? |
+| `seq() `     | ? |
+| `geom_histogram() `     | ? |
+| `geom_density() `     | ? |
+| `geom_line() `     | ? |
+| `after_stat()`      | ? |
