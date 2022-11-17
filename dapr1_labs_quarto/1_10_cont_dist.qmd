@@ -11,7 +11,10 @@ editor_options:
 
 set.seed(532)
 source('assets/setup.R')
+
 library(tidyverse)
+library(ggmosaic)
+library(patchwork)
 
 movies <- read_csv("https://uoepsy.github.io/data/hollywood_movies_subset.csv")
 
@@ -28,7 +31,6 @@ movies_prop
 
 movies_prop[, 2] / movies_prop[, 3]
 
-library(ggmosaic)
 m_plot <- ggplot(movies2) +
     geom_mosaic(aes(x = product(Rating), fill = Rating, conds = product(Genre)))
 m_plot
@@ -39,13 +41,16 @@ movies2_long <- movies2 %>%
 movies2_long 
 
 p1 <- ggplot(movies2_long, aes(x = IQ)) + 
-    geom_histogram()
+    geom_histogram(colour = 'white')
 
 p2 <- ggplot(movies2_long, aes(x = IQ)) + 
     geom_density()
+p1 | p2
 
-mu_hat = mean(movies2_long$IQ)
-sigma_hat = sd(movies2_long$IQ)
+mu_hat <- mean(movies2_long$IQ)
+mu_hat
+sigma_hat <- sd(movies2_long$IQ)
+sigma_hat
 
 movies_normal_distr <- tibble(
     x_grid = seq( mu_hat - 4 * sigma_hat, mu_hat + 4 * sigma_hat, by = 0.1 ),
@@ -54,12 +59,12 @@ movies_normal_distr <- tibble(
 samp_fitted <- ggplot() + 
     geom_histogram(data = movies2_long, aes(x = IQ, y = after_stat(density)), color = 'white') +
     geom_line(data = movies_normal_distr, aes(x = x_grid, y = y_grid), color = 'red', linewidth = 1)
-
+samp_fitted
 
 #probs 
 pnorm(97.4, mu_hat, sigma_hat)
 pnorm(97.4, mu_hat, sigma_hat, lower.tail = FALSE)
-pnorm(107.4, mu_hat, sigma_hat) - pnorm(87.4, mu_hat, sigma_hat)
+pnorm(109, mu_hat, sigma_hat) - pnorm(90, mu_hat, sigma_hat)
 
 #quarts
 qnorm(0.25, mean = mu_hat, sd = sigma_hat)
@@ -154,45 +159,48 @@ As detailed last week, a new movie theatre is opening in Texas soon. The managem
 
 According to a [recent survey](https://worldpopulationreview.com/state-rankings/average-iq-by-state), the average IQ in Texas is 97.4. If at least 50% of movie viewers have an IQ score above this value, but less than 60% do, the the management team won't need to make any changes (i.e., make it easier or harder) to their trivia questions.
 
-In this lab, you will need to consider both the `IQ1`-`IQ50` variables from the Hollywood movies dataset when answering the questions below. 
+In this lab, you will need to consider the variables `IQ1` to `IQ50` (i.e. the IQ score of each of the 50 audience raters for each movie) from the Hollywood movies dataset when answering the questions below. 
 
 - Reopen last week's Rmd file, and continue building on last week's work. Make sure you are still using the movies dataset filtered to only include the top 3 genres.[^share-file]
 
 [^share-file]: Hint: Ask last week's driver for the Rmd file, they should share it with the group via email or Teams. To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
 
-- Consider the `IQ1`-`IQ50` variables, are they discrete or continuous? 
+- Consider the `IQ1`-`IQ50` variables, are they discrete or continuous?^[Hint: Technically, the values you see in the data are discrete, but in Psychology they are considered as coming from a continuous scale that we can only measure with discrete precision.]
 
 - Currently the data are in wide format, but we want a single column of IQ scores. Pivot the data so that it is in long format.[^func-pivot]
 
-[^func-pivot]: Hint: When the data is wide, we can make it long using `pivot_longer()`. When we make data longer, we’re essentially making lots of columns into 2 longer columns. Below, in the animation, the wide variable x, y and z go into a new longer column called 'name' (specified by the argument `names_to = `) that specifies which (x/y/z) it came from, and the values get put into the 'val' column (specified by the argument `values_to = `).
+[^func-pivot]: Hint: When the data is wide, we can make it long using `pivot_longer()`. When we make data longer, we’re essentially making lots of columns into 2 longer columns. Below, in the animation, the wide variable x, y and z go into a new longer column called `name` (specified by the argument `names_to = `) that specifies which (x/y/z) it came from, and the values get put into the 'val' column (specified by the argument `values_to = `).
 
     ```{r echo=FALSE, fig.cap="Source: https://fromthebottomoftheheap.net/2019/10/25/pivoting-tidily/"}
     knitr::include_graphics("https://www.fromthebottomoftheheap.net/assets/img/posts/tidyr-longer-wider.gif")
     ```
 
-- Discuss how this new 'IQ' column can be considered an independent sample of IQ scores
+- As each movie was rated by a different pool of 50 audience raters, discuss how this new `IQ` column can be considered an independent sample of IQ scores.
 
-- Plot the sample distribution of the `IQ` variable using both a histogram and density plot.[^plot-freq]
+- Plot the sample distribution of the `IQ` variable either using a histogram or density plot.[^plot-freq]
 
-[^plot-freq]: Hint: Here you will need to specify `geom_col()` and `geom_density()`. Recall that you can use the `patchwork` package to arrange plots either adjacent to one another (via `|`) or stacked (via `/`)
+[^plot-freq]: Hint: Here you will need to specify `geom_histogram()` or `geom_density()`. 
+
+    To save space, if you wish to plot this next to another  plot, recall that you can use the `patchwork` package to arrange plots either adjacent to one another (via `|`) or stacked (via `/`).
 
 - What kind of distribution do your plots follow? Estimate the parameters of your distribution from the sample data.[^est-params]
 
-[^est-params]: Hint: A normal distribution has two parameters, the sample mean ($\hat{\mu}$) and the sample standard deviation ($\hat{\sigma}$).
+[^est-params]: Hint: A normal distribution has two parameters, the mean ($\mu$) and the standard deviation ($\sigma$).
 
 - Plot the fitted normal distribution on top of the sample distribution. Is the normal distribution a good fit?[^plt-norm]
 
 [^plt-norm]: Hint: Here you will need to consider using `dnorm()`, as you are interested in the normal distribution at values of x. First you will need to consider how many standard deviations above and below the mean to give when specifying your grid of x-axis values (hint: it's between 1-5!). Next you will need to specify the grid for your y-axis - here use the `dnorm()` function, specifying your x-axis grid, sample mean, and sample standard deviation. 
 
 - Calculate the following:[^probs-IQ]
-    * The probability of a movie viewer having an IQ score <97.4
-    * The probability of a movie viewer having an IQ score >97.4
-    * The probability of a movie viewer having an IQ score between 87.4-107.4
+    * The probability of a movie viewer having an IQ score <97.4, i.e. less than the Texas average.
+    * The probability of a movie viewer having an IQ score >97.4, i.e. more than the Texas average.
+    * The probability of a movie viewer having an IQ score between 90-109, corresponding to the Average category in the Wechsler Intelligence Scale.
 
 [^probs-IQ]: Hint: Here you are being asked to calculate:       
-                    * P(X <= x) = P(X < x) 
-                    * P(X >= x) = P(X > x)
-                    * P(a < X < b) = P(X < b) - P(X < a)
+
+    * P(X <= x) = P(X < x)  
+    * P(X >= x) = P(X > x)  
+    * P(a < X < b) = P(X < b) - P(X < a)
                     
 - Calculate the following:[^quant-IQ]
     * The value of IQ that 25% of movie watchers have scores equal to or less than
@@ -200,7 +208,13 @@ In this lab, you will need to consider both the `IQ1`-`IQ50` variables from the 
     * The value of IQ that 75% of movie watchers have scores equal to or less than
     * The interval comprising 95% of the people's IQ scores in the sample
 
-[^quant-IQ]: Hint: For the first three questions, you are being asked to calculate P(X <= x) = P(X < x) at the first, second, and third quartiles respectively. For the final question, you are looking for those values ranging from 2.5% to 97.5% (the 5% is split between the lower and upper tails). 
+[^quant-IQ]: Hint: 
+
+    For the first three questions, you are being asked to calculate the quantile x such that P(X <= x) is 0.25, 0.50, and 0.75 respectively. That is, you are asked to find the first, second, and third quartiles respectively. 
+    
+    For the final question, you are looking for those values that comprise the middle 0.95 of the distribution, i.e. cutting an area of 0.025 to the left and 0.975 = 1 - 0.025 to the right. 
+    The 5% probability is split between the lower and upper tails of the distribution. 
+    In symbols, you are asked to calculate P(a < X < b) where a is the 2.5th percentile and b is the 97.5th percentile. 
 
 - How do the normal quartiles computed above compare to those obtained from the `summary()` function?
 
@@ -246,7 +260,7 @@ head(tips2)
 
 IQ1 and IQ2 represent the IQ scores of each individual within a group of two. These are both continuous variables that could be modeled by a normal distribution.
 
-- We could transform the `tips2` dataset from wide to long format using the follwing command:
+- We could transform the `tips2` dataset from wide to long format using the following command:
 
 ```{r}
 tips2_long <- tips2 %>%
@@ -254,25 +268,70 @@ tips2_long <- tips2 %>%
 tips2_long
 ```
 
-- We can plot the sample distribution of the `IQ_Scores` variable as following, and present them side by side:
+::: column-margin
+**pivot_longer()**  
 
-Compute the frequency distribution and relative frequency:
+Pivot longer takes "wide" data and transforms them to "long" form. 
+An example is given below:
 
 ```{r}
+toy_data <- tibble(
+    a = c(1, 2, 3),
+    x1 = c(11, 12, 13),
+    x2 = c(21, 22, 23)
+)
+toy_data
+```
+
+```{r}
+long_toy_data <- toy_data %>%
+    pivot_longer(x1:x2, names_to = "x", values_to = "score")
+long_toy_data
+```
+
+:::
+
+
+- We can plot the sample distribution of the `IQ_Scores` variable either using a histogram or a density plot.
+
+Let's plot both the histogram and density plot for instructional purposes only, in a report you would only report one of the two as they show similar information. We plot both now for instructional purposes and, in particular, we ask you to focus on the differences in the y axes.
+
+```{r}
+#| fig-height: 3
 library(patchwork)
 plt_hist <- ggplot(tips2_long, aes(x = IQ_Scores)) + 
-    geom_histogram()
+    geom_histogram(colour = 'white') +
+    labs(x = "IQ scores")
 
 plt_dens <- ggplot(tips2_long, aes(x = IQ_Scores)) + 
-    geom_density()
+    geom_density() + 
+    labs(x = "IQ scores")
 
 plt_hist | plt_dens 
 ```
 
+As you will notice, the plot on the left panel shows counts on the y axis, i.e. the absolute frequency of each bin interval. The plot on the right panel, instead, shows the density on the y axis. If we wanted to plot on top of the histogram a normal curve, we would need to change the y axis of the histogram to be a comparable measure, i.e. also a density rather than a count.
+
+You can do so by adding `y = after_stat(density)` in the aes() specification, and you can now see that both y axes agree:
+
+```{r}
+#| fig-height: 3
+plt_hist <- ggplot(tips2_long, aes(x = IQ_Scores, y = after_stat(density))) + 
+    geom_histogram(colour = 'white') +
+    labs(x = "IQ scores")
+
+plt_dens <- ggplot(tips2_long, aes(x = IQ_Scores)) + 
+    geom_density() + 
+    labs(x = "IQ scores")
+
+plt_hist | plt_dens 
+```
+
+
 :::{.callout-tip collapse="true"}
 ### Fitting a distribution
 
-Fitting a normal distribution to data involves estimating the parameters of the distribution from the data. In other words, we want to find values for $\hat{\mu}$ and $\hat{\sigma}$ from the variable `IQ_Scores` in the our data.
+Fitting a normal distribution to data involves estimating the parameters of the distribution from the data. In other words, we want to find values for $\mu$ and $\sigma$ from the variable `IQ_Scores` in the our data, and we denote the estimated parameters with $\hat{\mu}$ and $\hat{\sigma}$. You create those symbols, you can type in the Rmd file `$\hat{\mu}$` and `$\hat{\sigma}$`.
 
 :::
 
@@ -282,43 +341,55 @@ Fitting a normal distribution to data involves estimating the parameters of the 
     + $\hat{\sigma}$, the estimated standard deviation in the sample
 
 ```{r}
-# The mean of IQ scores
-tips_mu_hat = mean(tips2_long$IQ_Scores) 
+# The mean of the sample of IQ scores
+tips_mu_hat <- mean(tips2_long$IQ_Scores) 
+tips_mu_hat
 
-# The standard deviation of IQ scores
-tips_sigma_hat = sd(tips2_long$IQ_Scores)
+# The standard deviation of the sample of IQ scores
+tips_sigma_hat <- sd(tips2_long$IQ_Scores)
+tips_sigma_hat
 ```
 
 - We can then compare the sample distribution to the normal distribution, and comment on whether the normal fit is good:
 
-We need to give the value 4 SDs above and below the mean, because the IQ scores are so widespread and we don't want to exclude any values!
+First we will create a tibble with the normal distribution at a grid of x values.
+
+::: column-margin
+__M $\pm$ 4 * SD vs M $\pm$ 3 * SD__  
+Typically, the interval M $\pm$ 3 * SD includes roughly all of the distribution values (99.7\%). However, in this case a few IQ scores escape the interval (as they are so widespread). As such, we extended the plotting interval to M $\pm$ 4 * SD.  
+Feel free to try with a grid of x values between mean $\pm$ 3 * SD, and you will see that some scores exceed the plot range.
+:::
 
 ```{r}
 normal_distr <- tibble(
-    x_grid = seq(tips_mu_hat  - 4 * tips_sigma_hat, tips_mu_hat  + 4 * tips_sigma_hat, by = 0.1),
-    y_grid = dnorm( x_grid, mean = tips_mu_hat, sd = tips_sigma_hat)
+    x_grid = seq(tips_mu_hat - 4 * tips_sigma_hat, 
+                 tips_mu_hat + 4 * tips_sigma_hat, 
+                 by = 0.1),
+    y_grid = dnorm(x_grid, mean = tips_mu_hat, sd = tips_sigma_hat)
 )
 ```
 
-We can plot the sample distribution and put on top the fitted normal distribution on top:
+We can plot the sample distribution and put the fitted normal distribution on top:
 
 ```{r}
 #| label: fig-IQ
 #| fig-cap: "Distribution of Bistro Customer IQ Scores."
 
 bistro_iq <- ggplot() + 
-    geom_histogram(data = tips2_long, aes(x = IQ_Scores, y = after_stat(density)), color = 'white') +
-    geom_line(data = normal_distr, aes(x = x_grid, y = y_grid, color = 'red'))
+    geom_histogram(data = tips2_long, aes(x = IQ_Scores, y = after_stat(density)), 
+                   color = 'white') +
+    geom_line(data = normal_distr, aes(x = x_grid, y = y_grid),
+              color = 'red') +
+    labs(x = "IQ scores")
 bistro_iq
 ```
 
-The normal distribution seems to be a good fit for the sample distribution, as the probabilities tend to agree.
+The normal distribution seems to be a good fit for the sample distribution, as the shape of the histogram tends to agree with the normal distribution across all possible values. The histogram appears to be symmetric around the mean and follows the normal bell-shaped curve.
 
-- We can calculate the probability that a bistro customer has an IQ at a given specific value, for example:
+- We can use the fitted normal distribution to calculate the probabilities, for example:
 
 ::: {.panel-tabset}
-
-## P(X <= x) = P(X < x) when x = 120
+## P(X < 120)
 
 To calculate the probability that a bistro customer has an IQ below 120, we can compute the following: 
 
@@ -326,45 +397,72 @@ To calculate the probability that a bistro customer has an IQ below 120, we can 
 pnorm(120, tips_mu_hat, tips_sigma_hat)
 ```
 
-## P(X >= x) = P(X > x) when x = 120
+## P(X > 120)
 
 To calculate the probability that a bistro customer has an IQ above 120, we can compute the following:
 
 ```{r}
+# P(X > 120)
 pnorm(120, tips_mu_hat, tips_sigma_hat, lower.tail = FALSE)
 ```
 
 or alternatively
 
 ```{r}
+# 1 - P(X < 120)
 1 - pnorm(120, tips_mu_hat, tips_sigma_hat)
 ```
 
-## P(a < X < b) when a = 110 and b = 130
+
+## P(X > 100)
+
+To calculate the probability that a bistro customer has an IQ above 100, we can compute the following:
+
+```{r}
+# P(X > 100)
+pnorm(100, tips_mu_hat, tips_sigma_hat, lower.tail = FALSE)
+```
+
+or alternatively
+
+```{r}
+# 1 - P(X < 100)
+1 - pnorm(100, tips_mu_hat, tips_sigma_hat)
+```
+
+
+## P(100 < X < 130)
 
 To calculate the probability that a bistro customer has an IQ between 100 and 130, we can compute the following:
 
 P(a < X < b) = P(X < b) - P(X < a) when a = 100 and b = 130 so that P(100 < X < 130) = P(X < 130) - P(X < 100)
 
 ```{r}
+# P(100 < X < 130) = 
+# P(X < 130) - P(X < 100)
 pnorm(130, tips_mu_hat, tips_sigma_hat) - pnorm(100, tips_mu_hat, tips_sigma_hat)
 ```
 
 :::
 
+
 - We can calculate the value of IQ that a specific percentage of bistro customers have scores equal to or less than, for example:
+
+::: columns-margin
+s.t. means such that
+:::
 
 ::: {.panel-tabset}
 
-## P(X <= x) when x = 0.25
+## x s.t. P(X <= x) = 0.25
 
 To calculate the value of IQ that 25% of bistro customers have scores equal to or less than, we can compute the following: 
 
 ```{r}
-qnorm(0.25, tips_mu_hat, tips_sigma_hat)
+qnorm(p = 0.25, mean = tips_mu_hat, sd = tips_sigma_hat)
 ```
 
-## P(X <= x) when x = 0.50
+## x s.t. P(X <= x) = 0.50
 
 To calculate the value of IQ that 50% of bistro customers have scores equal to or less than, we can compute the following: 
 
@@ -372,7 +470,7 @@ To calculate the value of IQ that 50% of bistro customers have scores equal to o
 qnorm(0.5, tips_mu_hat, tips_sigma_hat)
 ```
 
-## P(X <= x) when x = 0.75
+## x s.t. P(X <= x) = 0.75
 
 To calculate the value of IQ that 75% of bistro customers have scores equal to or less than, we can compute the following: 
 
@@ -388,21 +486,39 @@ qnorm(0.75, tips_mu_hat, tips_sigma_hat)
 summary(tips2_long$IQ_Scores)
 ```
 
-The estimated quartiles are very similar to those from the summary output, again suggesting that the sample IQ data follows a normal distribution.
+The estimated quartiles are very similar to those from the summary output, providing further indication that the sample of IQ scores follows a normal distribution.
 
-- To summarise the IQ scores of the bistro customers, we could compute where 95% of the customers scores are between:
+- To summarise the IQ scores of the bistro customers, we could compute the interval comprising the middle 95% of the customers IQ scores:
+
+If we want 0.95 probability in the middle, we need to split the leftover 0.05 probability equally between the two tails: 0.025 in the left, and 0.025 in the right. However, `qnorm()` wants the probability to the left, so we will give 0.025 and 0.975 = 1 - 0.025 as values.
 
 ```{r}
 qnorm(c(0.025, 0.975), mean = tips_mu_hat, sd = tips_sigma_hat)
 ```
 
-95% of the bistro customers had IQ scores between 68 and 130.
+95% of the bistro customers had IQ scores between 69 and 130.
+
+
+:::{.callout-note collapse="true"}
+### Alternatively
+
+Alternatively, to specify that one probability is on the left tail and the other is on the upper tail, you have to run two separate statements:
+
+```{r}
+qnorm(0.025, mean = tips_mu_hat, sd = tips_sigma_hat)
+qnorm(0.025, mean = tips_mu_hat, sd = tips_sigma_hat, lower.tail = FALSE)
+```
+
+:::
+
+
+For a classification of IQ scores, see the [Wechsler Intelligence Scales classification table](https://en.wikipedia.org/wiki/IQ_classification#Wechsler_Intelligence_Scales).
 
 :::{.callout-tip}
 
 #### Example writeup
 
-@fig-IQ displays the distribution of IQ scores, with a normal distribution superimposed as a red histogram. The majority of bistro customers (95%) have IQ scores between 68 and 130. Based on our analysis above, 48% of bistro customers are likely to have IQ scores above average (i.e., above 100), though there is less than a 10% chance that customers have superior IQ scores (i.e., above 120). Therefore the bistro owner has set the questions to his quiz at the desired level of difficulty - the vast majority of his customers should find the questions extremely challenging. However, if the Bistro owner did want to make some changes, they should only consider making the quiz more difficult. 
+@fig-IQ displays the distribution of IQ scores, with a normal distribution superimposed as a red histogram. Most of the bistro customers (95%) have IQ scores between 69 and 130. Based on our analysis above, 48% of bistro customers are likely to have IQ scores above 100, though there is less than a 10% chance that customers have superior IQ scores (i.e., above 120). Therefore the bistro owner has set the questions to his quiz at the desired level of difficulty - the vast majority of his customers should find the questions extremely challenging. However, if the Bistro owner did want to make some changes, they should only consider making the quiz more difficult. 
 
 :::
 
