@@ -39,11 +39,38 @@ tips$Day <- factor(tips$Day,
                    labels = c("Mon", "Tue", "Wed", "Thu", "Fri"))
 
 # Sample distribution of PctTip
+#   What is the shape?
 ggplot(tips, aes(x = PctTip)) + 
     geom_histogram(color = 'white')
 
 ggplot(tips, aes(x = PctTip)) + 
     geom_density()
+
+
+# Sampling distribution of the mean
+source('https://uoepsy.github.io/files/rep_sample_n.R')
+
+tmp.10 <- tips %>%
+    rep_sample_n(n = 10, samples = 1000) %>%
+    group_by(sample) %>%
+    summarise(M = mean(PctTip))
+
+tmp.30 <- tips %>%
+    rep_sample_n(n = 30, samples = 1000) %>%
+    group_by(sample) %>%
+    summarise(M = mean(PctTip))
+
+tmp.100 <- tips %>%
+    rep_sample_n(n = 100, samples = 1000) %>%
+    group_by(sample) %>%
+    summarise(M = mean(PctTip))
+
+ggplot() +
+    geom_density(data = tmp.10, aes(x = M), colour = 'black') +
+    geom_density(data = tmp.30, aes(x = M), colour = 'red') +
+    geom_density(data = tmp.100, aes(x = M), colour = 'blue')
+
+# As n -> \infty, the distribution gets closer to a normal, and the SE decreases
 
 
 # Sample distribution of the mean
@@ -141,3 +168,5 @@ tips %>%
               SD = sd(PctTip),
               SE = SD / sqrt(n)) %>%
     mutate(IsSESmaller = SE < SD)
+
+
