@@ -75,6 +75,7 @@ ggplot() +
 
 # Sample distribution of the mean
 # - We will focus on the distribution of the average PctTip
+# Xbar ~ N( mu_xbar = mu, sigma/sqrt(n) )
 # =====
 
 # Mean, SE
@@ -88,7 +89,7 @@ se
 # xbar ~ N(16.59, 0.35)
 
 
-# Note the variability of means is < variability of sample data
+# Note the variability of means is <= variability of sample data
 sd(tips$PctTip)
 se
 
@@ -128,6 +129,12 @@ plt1 <- ggplot(tips, aes(x = Day, y = PctTip)) +
     stat_summary(fun.data = function(x) mean_se(x, 2))
 plt1
 
+
+ggplot(tips, aes(x = Day, y = PctTip)) + 
+    stat_summary(fun.data = function(x) mean_se(x, 2)) +
+    ylim(0, 50) +
+    coord_flip()
+
 plt2 <- ggplot(tbl) +
     geom_pointrange(aes(x = Day, y = xbar,
                         ymin = xbar - 2 * se,
@@ -145,7 +152,8 @@ ggplot(tips, aes(x = PctTip, y = Day)) +
 # Compare variability of means to that of data?
 plt3 <- ggplot(tips, aes(x = PctTip, y = Day)) + 
     stat_summary(fun.data = function(x) mean_se(x, 2)) +
-    xlim(0, 100)
+    xlim(0, 100) +
+    labs(x = "Avg PctTip")
 plt3
 
 # How good is the Mean, SE when the distribution is skewed?
@@ -169,4 +177,16 @@ tips %>%
               SE = SD / sqrt(n)) %>%
     mutate(IsSESmaller = SE < SD)
 
+
+# Labs
+ggplot(movies2, aes(x = AudienceScore, y = LeadStudio)) + 
+    geom_density_ridges()
+
+# Total average
+# Average by lead studio
+# Compare the averages
+# M, SE because we compare estimates (means) to the overall mean
+# different from M, SD as the SD compares each point to the sample mean.
+
+# Report any differences
 
