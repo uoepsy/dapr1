@@ -1,0 +1,721 @@
+---
+title: "Sampling"
+subtitle: "Semester 1 - Week 11"
+callout-appearance: simple
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup}
+#| include: false
+
+set.seed(532)
+source('assets/setup.R')
+
+library(tidyverse)
+library(ggmosaic)
+library(patchwork)
+
+movies <- read_csv("https://uoepsy.github.io/data/hollywood_movies_subset.csv")
+
+movies2 <- movies %>%
+    filter(Genre %in% c("Drama", "Action", "Comedy")) %>%
+    mutate(Rating = ifelse(AudienceScore <= 50, 'Bad', 'Good')) %>%
+    mutate(Genre = factor(Genre),
+           Rating = factor(Rating))
+
+movies_prop <- table(movies2$Genre, movies2$Rating) %>%
+    prop.table() %>%
+    addmargins()
+movies_prop
+
+movies_prop[, 2] / movies_prop[, 3]
+
+m_plot <- ggplot(movies2) +
+    geom_mosaic(aes(x = product(Rating), fill = Rating, conds = product(Genre)))
+m_plot
+
+#week 4
+movies2_long <- movies2 %>%
+    pivot_longer(IQ1:IQ50, names_to = "ID", values_to = "IQ")
+movies2_long 
+
+p1 <- ggplot(movies2_long, aes(x = IQ)) + 
+    geom_histogram(colour = 'white')
+
+p2 <- ggplot(movies2_long, aes(x = IQ)) + 
+    geom_density()
+p1 | p2
+
+mu_hat <- mean(movies2_long$IQ)
+mu_hat
+sigma_hat <- sd(movies2_long$IQ)
+sigma_hat
+
+movies_normal_distr <- tibble(
+    x_grid = seq( mu_hat - 4 * sigma_hat, mu_hat + 4 * sigma_hat, by = 0.1 ),
+    y_grid = dnorm( x_grid, mean = mu_hat, sd = sigma_hat ))
+
+samp_fitted <- ggplot() + 
+    geom_histogram(data = movies2_long, aes(x = IQ, y = after_stat(density)), color = 'white') +
+    geom_line(data = movies_normal_distr, aes(x = x_grid, y = y_grid), color = 'red', linewidth = 1)
+samp_fitted
+
+#probs 
+pnorm(97.4, mu_hat, sigma_hat)
+pnorm(97.4, mu_hat, sigma_hat, lower.tail = FALSE)
+pnorm(109, mu_hat, sigma_hat) - pnorm(90, mu_hat, sigma_hat)
+
+#quarts
+qnorm(0.25, mean = mu_hat, sd = sigma_hat)
+qnorm(0.5, mean = mu_hat, sd = sigma_hat)
+qnorm(0.75, mean = mu_hat, sd = sigma_hat)
+summary(movies2_long$IQ)
+qnorm(c(0.025, 0.975), mean = mu_hat, sd = sigma_hat)
+
+#week 5
+
+#checking data & distribution - normal and no outliers
+ggplot(movies2, aes(x = AudienceScore)) + 
+    geom_density()
+
+ggplot(movies2, aes(x = AudienceScore)) + 
+    geom_histogram()
+
+#mean and se
+n_movies <- nrow(movies2)
+n_movies
+
+xbar_movies <- mean(movies2$AudienceScore)
+xbar_movies
+
+se_movies <- sd(movies2$AudienceScore) / sqrt(n_movies)
+se_movies
+
+#variation by lead studio
+tbl_movies <- movies2 %>%
+    group_by(LeadStudio) %>% 
+    summarise(n = n(),
+              xbar = mean(AudienceScore),
+              se = sd(AudienceScore) / sqrt(n)) %>%
+    mutate(xbar = round(xbar, 2),
+           se = round(se, 2)) %>% 
+    as.data.frame()
+tbl_movies
+
+#viz association lead studio and audience score
+ggplot(movies2, aes(x = LeadStudio, y = AudienceScore)) + 
+    stat_summary(fun.data = function(x) mean_se(x, 2)) + 
+    coord_flip() + 
+    ylim(0,100)
+
+
+```
+
+
+::: {.callout-important collapse="false"}
+## This week: Submission of Formative report B {-}
+
+- Your group must submit one PDF file for formative report B by 12 noon on Friday 2nd December 2022.
+
+- To submit go to the course Learn page, click "Assessment" from the left-hand side menu, then click "Report submission", and then "Submit Formative Report B here (PDF file only)".
+
+    + Only one person per group is required to submit on behalf of the entire group. However, to ensure that everyone in the group can see the feedback, please double check that you self-registered in the group on Learn (see group name on the desk).
+
+- As mentioned on the Course Information page, there will be no extensions allowed for group-based reports.
+
+- You will receive formative feedback on your submission during the labs of week 12. Please attend your lab next week!
+
+- The submitted report should be a PDF file of 4 pages at most. 
+
+- You can add an Appendix in which you will collate all the R code in a chunk with the settings `results = 'hide', fig.show = 'hide'`. This will not count towards the page limit.  
+
+- Excluding the Appendix, the report should not include any reference to R code or functions, but be written for a generic reader who is only assumed to have a basic statistical understanding without any R knowledge.
+:::
+
+
+::: {.callout-note collapse="true"}
+## Data {-}
+
+**Hollywood Movies**. At the link <https://uoepsy.github.io/data/hollywood_movies_subset.csv> you will find data on Hollywood movies released between 2012 and 2018 from the top 5 lead studios and top 10 genres. The following variables were recorded:
+
+- `Movie`: Title of the movie 
+- `LeadStudio`: Primary U.S. distributor of the movie 
+- `RottenTomatoes`: Rotten Tomatoes rating (critics) 
+- `AudienceScore`: Audience rating (via Rotten Tomatoes) 
+- `Genre`: One of Action Adventure, Black Comedy, Comedy, Concert, Documentary, Drama, Horror, Musical, Romantic Comedy, Thriller, or Western 
+- `TheatersOpenWeek`: Number of screens for opening weekend 
+- `OpeningWeekend`: Opening weekend gross (in millions) 
+- `BOAvgOpenWeekend`: Average box office income per theater, opening weekend 
+- `Budget`: Production budget (in millions) 
+- `DomesticGross`: Gross income for domestic (U.S.) viewers (in millions) 
+- `WorldGross`: Gross income for all viewers (in millions) 
+- `ForeignGross`: Gross income for foreign viewers (in millions) 
+- `Profitability`: WorldGross as a percentage of Budget 
+- `OpenProfit`: Percentage of budget recovered on opening weekend 
+- `Year`: Year the movie was released
+- `IQ1`-`IQ50`: IQ score of each of 50 audience raters
+- `Snacks`: How many of the 50 audience raters brought snacks
+- `PrivateTransport`: How many of the 50 audience raters reached the cinema via private transportation
+:::
+
+## Tasks
+
+For formative report B, you will be asked to perform the following tasks, each related to a week of teaching in this course.  
+
+__This week you will only focus on task B5.__ 
+
+B1) Create and summarise categorical variables, before calculating probabilities.  
+B2) Investigate if events are independent, and compute probabilities.  
+B3) Computing and plotting probabilities with a binomial distribution.
+B4) Computing and plotting probabilities with a normal distribution.  
+
+:::{.callout-note}
+### This week's task
+  
+B5) Plot standard error of the mean, and finish the report write-up (i.e., knit to PDF, and submit the PDF for formative feedback).  
+:::
+
+## B5 sub-tasks
+
+::: callout-tip
+### Tip
+
+To see the hints, hover your cursor on the superscript numbers.
+:::
+
+In this section you will find some guided sub-steps you may want to consider to complete task B5.
+
+An investor has gotten in touch and has asked you to consult on what Lead Studio they should invest in, based on audience scores of the top three movie genres. They want to be presented with two options:
+
+    * High risk option: Highest audience scores, regardless of standard error
+    * Low risk option: Least spread in scores, but with highest average possible
+
+- Reopen last week's Rmd file, and continue building on last week's work. Make sure you are still using the movies dataset filtered to only include the top 3 genres.[^share-file]
+
+[^share-file]: Hint: Ask last week's driver for the Rmd file, they should share it with the group via email or Teams. To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
+
+- Describe the distribution of the audience scores and note if there are any unusual obersvations (e.g., outliers).[^out-dist]
+
+[^out-dist]: Hint: It would be a good idea to visualise your data to try and identify any outliers in the data. You may want to consider using `geom_density()` or `geom_histogram()`.
+
+- Calculate the sample mean and standard error of the mean [^mean-se]. 
+
+    [^mean-se]: Hint: You can calcualte these parameters for a **sample** as follows: 
+     * Mean: $\bar{x}$ (x-bar) or $\hat{\mu}$ (mu-hat) is the mean computed from the sample data (sample statistic).
+    * Standard Deviation: The standard error of a statistic, denoted $SE$, is the standard deviation of its sampling distribution. The sample statistic can be denoted as $s$ or $\hat{\sigma}$ (sigma-hat), and can be calculated as follows:
+
+
+- Calculate how your estimated sample statistics vary across Lead Studios, and interpret your output[^group-stats].
+
+[^group-stats]: Hint: In order to have sample statistics for each Lead Studio, you will need to summarise your data, and use the `group_by()` function in the process. 
+
+- Is the variation of means equal to or less than the variability of the sample data[^se-sd]?
+
+[^se-sd]: Hint: Compare the standard error to the standard deviation. 
+
+- Visualise the association between Lead Studios and Audience Scores[^assoc-viz].
+
+[^assoc-viz]: Hint: You can also use the `coord_flip()` function to 'flip' your axes - it might make it easier to read your plot. 
+
+- Based on what you have reported above, what high and low risk options will you present to the investor? Justify your answer. 
+
+- In the analysis section of your report, write up a summary of what you have reported above, using proper rounding to 2 decimal places and avoiding any reference to R code or functions. 
+
+- Organise the Rmd file to have the following structure (click 'Report B Structure' below to expand)
+
+:::{.callout-tip collapse="true"}
+
+### Report B Structure
+
+````
+---
+title: "Formative report B"
+author: "Group ?.?"
+date: "Write the date here"
+output: bookdown::pdf_document2
+---
+````
+
+::: {.column-margin}
+This is the **metadata** block. It includes the:
+
+- document title
+- author name
+- date (to leave empty, use an empty string `""`)
+- the output type
+
+The output type could be `html_document`, `pdf_document`, etc.   
+We use `bookdown::pdf_document2` so that we can reference figures, which `pdf_document` doesn't let you do.  
+The code `bookdown::pdf_document2` simply means to use the `pdf_document2` type from the `bookdown` package.
+:::
+
+<br><br><br><br><br><br><br><br><br><br><br><br>
+
+````
+```{{r setup, include=FALSE}}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE)
+```
+````
+
+:::{.column-margin}
+This is the **setup chunk** and should always be included in your Rmd document. It sets the global options for **all** code chunks that will follow.
+
+- If `echo=TRUE`, the R code in chunks is displayed. If FALSE, not.
+- If `message=TRUE`, information messages are displayed. If FALSE, not.
+- If `warning=TRUE`, warning messages are printed. If FALSE, not.
+
+If you want to change the setting in a specific code chunk, you can do so via:
+````
+```{{r, echo=FALSE}}
+# A code chunk
+```
+````
+:::
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+````
+```{{r, include=FALSE}}
+# week 1 code below
+library(tidyverse)
+
+# week 2 code below
+pltEye <- ggplot(starwars, aes(x = eye_color)) + 
+    geom_bar()
+
+# week 3 code below
+
+# week 4 code below
+```
+````
+
+:::{.column-margin}
+This code chunks contains your rough work from each week. Give names to plots and tables, so that you can reference those later on. The option `include=FALSE` hides both code and output.  
+To run each line of code while you are working, put your cursor on the line and press Control + Enter on Windows or Command + Enter on a macOS.
+:::
+
+
+````
+## Introduction
+
+Write here an introduction to the data, the variables, and anything worth of notice in the data.
+
+
+## Analysis
+
+Present here your tables, plots, and results. In the code chunk below, you do 
+not need to put the chunk option `echo=FALSE` as you set this option globally 
+in the setup chunk. 
+
+```{{r}}
+pltEye
+```
+
+If you didn't set it globally, you would need to put it in the chunk options:
+
+```{{r, echo=FALSE}}
+pltEye
+```
+
+More text...
+
+
+## Discussion
+
+Write up your take home messages here...
+````
+
+:::{.column-margin}
+This contains your actual textual reporting, as well as tables and figures. To show in place a plot previously created, just include the plot name in a code chunk with the option `echo = FALSE` to hide the code but display the output.
+:::
+
+
+````
+## Appendix
+
+```{{r, echo=TRUE, results='hide', fig.show='hide'}}
+# copy and paste here all your R code
+
+# week 1 code below
+library(tidyverse)
+
+# week 2 code below
+pltEye <- ggplot(starwars, aes(x = eye_color)) + 
+    geom_bar()
+
+# week 3 code below
+
+# week 4 code below
+```
+
+````
+
+:::{.column-margin}
+This allows the marker to see the code you used to obtain your results. Please note that only the code should be visible in the appendix, no output.  
+The chunk options `echo=TRUE`, `results='hide'`, `fig.show='hide'` ensure that the appendix code is visible (echo=TRUE), the output is hidden (results='hide'), and figures are hidden (fig.show='hide').
+
+The appendix does not count towards the 4-page limit.
+:::
+
+
+- Knit the document to PDF
+
+- Submit the PDF file on Learn:
+    + Go to the Learn page of the course
+    + Click Assessments on the left-hand side menu
+    + Click Report submission
+    + Click Formative Report B
+    + Follow the instructions
+
+
+:::{.callout-tip collapse="true"}
+### Referencing figures
+
+First, you need to pick a **unique** label for the code chunk that displays the figure, in this case `short-label` but you should use a more descriptive name.
+
+````
+```{{r short-label, fig.cap = "Figure caption"}}
+pltEye <- ggplot(starwars, aes(x = eye_color)) + 
+    geom_bar() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+pltEye
+```
+````
+
+```{r short-label, fig.cap = "Figure caption", echo=FALSE}
+pltEye <- ggplot(starwars, aes(x = eye_color)) + 
+    geom_bar() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+pltEye
+```
+
+```
+To reference a figure, for example the one above, you would 
+write see Figure \@ref(fig:short-label).
+```
+
+which, when you Knit to PDF, becomes:
+
+To reference a figure, for example the one above, you would write see Figure 1.
+:::
+
+
+:::{.callout-tip collapse="true"}
+### Referencing tables
+
+First, you need to pick a **unique** label for the code chunk that displays the table, in this case `tbl-short-label` but you should use a more descriptive name.
+
+````
+```{{r tbl-short-label, echo=FALSE}}
+library(kableExtra)
+tblEye <- starwars %>%
+    count(eye_color) %>%
+    kbl(booktabs = TRUE, caption = "Short table caption")
+tblEye
+```
+````
+
+```{r echo=F}
+library(kableExtra)
+tblEye <- starwars %>%
+    count(eye_color) %>%
+    kbl(caption = "Short table caption") %>%
+    kable_styling(full_width = FALSE)
+tblEye
+```
+
+```
+The table is referenced as, see Table \@ref(tab:tbl-short-label).
+```
+
+Which, when you knit to PDF, is displayed as:
+
+The table is referenced as, see Table 1.
+
+For details on styling PDF tables, see [this link](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_pdf.pdf).
+
+:::
+
+:::{.callout-tip collapse="true"}
+### Reducing figure size
+
+You could place multiple panels into a single figure using the functions `|` and `/` from the `patchwork` package.
+
+You could adjust the figure height and width by playing with a few options for the numbers `fig.height = ?` and `fig.width = ?`, for example 5 and 4, or 12 and 8, and so on. Please note this is typically found by trial and error. Keep in mind, however, that the figure labels should still be legible in the plot you show.
+
+````
+```{{r, fig.height = 5, fig.width = 4}}
+# your code to display the figure here
+```
+````
+
+:::
+
+:::{.callout-tip collapse="true"}
+### Hiding R code or ouput
+
+:::{.panel-tabset}
+#### Hiding R code
+
+To not show the code of an R code chunk, and only show the output, write:
+
+````
+```{{r, echo=FALSE}}
+# code goes here
+```
+````
+
+#### Hiding R output
+
+To show the code of an R code chunk, but hide the output, write:
+
+````
+```{{r, results='hide'}}
+# code goes here
+```
+````
+
+To hide both text output and figures, use:
+
+````
+```{{r, results='hide', fig.show='hide'}}
+# code goes here
+```
+````
+
+#### Hiding R code and output
+
+To hide both code and output of an R code chunk, write:
+
+````
+```{{r, include=FALSE}}
+# code goes here
+```
+````
+:::
+:::
+
+:::
+
+
+## Worked Example
+
+The dataset available at <https://uoepsy.github.io/data/RestaurantTips.csv> was collected by the owner of a US bistro, and contains 157 observations on 7 variables.^[Data adapted from @lock2020.]
+
+The bistro owners servers are concerned that some shifts are more profitable than others, and that their rota needs to be updated so that they all get the chance to maximise their tips. They have asked the owner to find out what days the highest percentage of tips are given, on average. They have also asked the owner to tell them the days on which variation in percentage tips is highest and lowest. We need to advise the bistro owner so that they can update their servers with the requested information. 
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(kableExtra)
+
+tribble(
+    ~'Variable Name', ~'Description',
+    'Bill', 'Size of the bill (in dollars)',
+    'Tip', 'Size of the tip (in dollars)',
+    'Credit', 'Paid with a credit card? n or y',
+    'Guests', 'Number of people in the group',
+    'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday',
+    'Server', 'Code for specific waiter/waitress: A, B, or C',
+    'PctTip', 'Tip as a percentage of the bill'
+) %>%
+    kable(format = 'simple')
+```
+
+```{r}
+library(tidyverse)
+library(patchwork)
+tips <- read_csv("https://uoepsy.github.io/data/RestaurantTips.csv")
+head(tips)
+```
+
+- First we want to prepare our data, and check for any unusual or impossible values (e.g., outliers). One useful way to do this would be to plot our data:
+
+```{r}
+ggplot(tips, aes(x = PctTip)) + 
+    geom_histogram()
+```
+
+We can see one outlier (on the far right of the plot), where the percentage tip appears to be more than 2 x the total bill(!), so lets inspect that outlier:
+
+```{r}
+tips %>%
+    filter(PctTip > 100)
+```
+
+We can see that the 'Tip' column has an NA value, so perhaps the 'PctTip' value of 221 was a data input error? If so, we want to remove the outlier:
+
+```{r}
+tips <- tips %>%
+    filter(PctTip <= 100)
+```
+
+- Since we are interested in looking at the percentage tips across weekdays, we may want to give our 'Day' variable better labels for levels:
+
+```{r}
+tips$Day <- factor(tips$Day, 
+                   levels = c("m", "t", "w", "th", "f"),
+                   labels = c("Mon", "Tue", "Wed", "Thu", "Fri"))
+```
+
+- If we were asked to describe the shape of the distribution of the 'PctTip' variable, we could use either a histogram or a density plot:
+
+::: {.panel-tabset}
+
+## Histogram
+
+```{r}
+ggplot(tips, aes(x = PctTip)) + 
+    geom_histogram()
+```
+
+## Density
+
+```{r}
+ggplot(tips, aes(x = PctTip)) + 
+    geom_density()
+```
+
+:::
+
+And say that the percentage tip follows a normal distribution, but it is slightly negatively skewed. This suggested that there were more individuals tipping well above the mean than below (i.e., more extremely high tips)
+
+
+- Now that we have visualised our distribution, it would be useful to estimate the centre and spread of our data. In other words, calculate the sample mean and standard error of the mean. 
+
+:::{.callout-tip collapse="true"}
+### Sample Statistics
+
+* Mean: $\bar{x}$ (x-bar) or $\hat{\mu}$ (mu-hat) is the mean computed from the sample data (sample statistic).
+
+* Standard Deviation: The standard error of a statistic, denoted $SE$, is the standard deviation of its sampling distribution. The sample statistic can be denoted as $s$ or $\hat{\sigma}$ (sigma-hat), and can be calculated as follows:
+
+$$
+\sigma_{\bar X} = \frac{\sigma}{\sqrt{n}}
+$$
+:::
+
+We can calculate our sample statistics as follows:
+
+```{r}
+n_tips <- nrow(tips)
+n_tips
+xbar_tips <- mean(tips$PctTip)
+xbar_tips
+se_tips <- sd(tips$PctTip) / sqrt(n_tips)
+se_tips
+```
+
+- We can then check how our sample statistics vary across each day of the week: 
+
+```{r}
+#| label: tbl-tips-day
+#| tbl-cap: Descriptive Statistics for % Tips by Day
+tbl_tips <- tips %>%
+    group_by(Day) %>% 
+    summarise(n = n(),
+              xbar = mean(PctTip),
+              se = sd(PctTip) / sqrt(n)) %>%
+    mutate(xbar = round(xbar, 2),
+           se = round(se, 2)) %>% 
+    as.data.frame() 
+tbl_tips
+
+```
+
+- If we were asked to interpret the sample statistics for each day, we could summarise as below:
+
+    * Interpreting $\bar{x}$ / $\hat{\mu}$
+        * Of the days of the week, Tuesday was when the highest average percentage tips were received, and Monday the lowest
+        * Apart from Tuesday (when the average percentage tip is likely to be above average), the other days of the week are very close to the average tipping rate (15%)
+
+
+    * Interpreting $s$ / $\hat{\sigma}$
+        * The percentage of tips varied most on Tuesdays on Fridays, where tips would either be very generous or measly
+
+- Next we want to visualise the association between days and percentage tip. We can either do this using `ggplot()` or do so manually based on our tibble we created above (`tbl_tips`):
+
+::: {.panel-tabset}
+
+## `ggplot()`
+
+```{r}
+#| label: fig-tips-day1
+#| fig-cap: "% Tips by Day."
+plt1 <- ggplot(tips, aes(x = Day, y = PctTip)) + 
+    stat_summary(fun.data = function(x) mean_se(x, 2)) +
+    ylim(0, 50)
+plt1
+```
+
+## Manually 
+
+```{r}
+#| label: fig-tips-day2
+#| fig-cap: "% Tips by Day."
+plt2 <- ggplot(tbl_tips) +
+    geom_pointrange(aes(x = Day, y = xbar,
+                        ymin = xbar - 2 * se,
+                        ymax = xbar + 2 * se)) + 
+    ylim(0,50)
+plt2
+```
+
+:::
+
+We can then arrange our two plots side by side to see if they match, which they do:
+
+```{r}
+plt1 | plt2
+```
+
+- How good is the mean, SE when the distribution is skewed?
+
+```{r}
+library(ggridges)
+plt3 <- ggplot(tips, aes(x = PctTip, y = Day)) + 
+    geom_density_ridges() +
+    xlim(0, 50)
+plt3
+```
+
+
+
+
+- We know that the variability of the mean Percentage Tip across each day of the week should be equal to or less than the variability of the sample data. We can check that this is the case:
+
+```{r}
+tips %>%
+    group_by(Day) %>% 
+    summarise(n = n(),
+              xbar = mean(PctTip),
+              SD = sd(PctTip),
+              SE = SD / sqrt(n)) %>%
+    mutate(IsSESmaller = SE < SD) 
+```
+
+For each entry in the 'IsSESmaller' column, we can see that it is true!
+
+:::{.callout-tip}
+
+#### Example writeup
+
+The bistro servers are correct - percentage tips do vary by day (see @tbl-tips-day). These differences are displayed in @fig-tips-day1. 
+
+As displayed above, Tuesdays are when servers received the highest average percentage tips, and Mondays were the lowest. In terms of variability, all days of the week (aside from Tuesday when the percentage of tip is more likely to be above average), are very close to the average tipping rate (15%). 
+:::
+
+## Student Glossary
+
+To conclude the lab, add the new functions to the glossary of `R` functions. 
+
+| Function   | Use and package |
+|:-----------|:--------------|
+| `dnorm() `     | ? |
+| `pnorm() `     | ? |
+| `pivot_longer() `     | ? |
+| `seq() `     | ? |
+| `geom_histogram() `     | ? |
+| `geom_density() `     | ? |
+| `geom_line() `     | ? |
+| `after_stat()`      | ? |
