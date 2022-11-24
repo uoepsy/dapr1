@@ -1,0 +1,135 @@
+---
+title: 'Week 10: Continuous Probability Distribution Live R'
+author: "Monica Truelove-Hill"
+date: '2022-11-21'
+output: pdf_document
+---
+
+This week, we've talked about continuous probability distributions. In the Live R, we will cover the functions associated with continuous random variables and probability distributions. 
+
+First, let's load the tidyverse and then create some data for this Live R. 
+
+```{r, message = F}
+library(tidyverse)
+```
+
+## Generating the Data
+
+Imagine that you are a statistics instructor and you're developing an assessment. You give the exam to 150 students and record that the time it takes students to complete the exam, as well as their score. 
+
+We can use the _rnorm()_ function to generate a set of random, continuous values that approximate a normal distribution. We'll need to pass as arguments the total _sample size_, the _mean_, and the _sd_ of the data we'd like to generate. 
+
+```{r}
+set.seed(820)
+dat <- tibble(examTime = round(rnorm(150, mean = 45, sd = 10), 2), 
+              examScore = round(rnorm(150, mean = 55, sd = 10), 2))
+
+summary(dat)
+```
+
+## Describing the Data
+
+Although we specified a mean and sd, note that the _rnorm_ function will just create data that has similar parameters, but may not perfectly match. It's still a good idea to check the mean and standard deviation of your data:
+
+```{r}
+mean(dat$examTime)
+sd(dat$examTime)
+
+mean(dat$examScore)
+sd(dat$examScore)
+
+```
+
+It's also a good idea to visualise the data. In this case, we can use a histogram to look at the frequency distribution of continuous variables. Let's first examine the _examTime_ variable.
+
+```{r}
+hist(dat$examTime)
+
+ggplot(dat, aes(examTime)) + geom_histogram(binwidth = 2, colour = 'black')
+```
+We can see that the data seem to be shaped like a normal distribution, but we can also overlay a normal curve to check how well the data follow the shape of the curve. We can do this using the _dnorm_ function, which produces the probability density of a normal distribution with a given mean and standard deviation. Note that if we want to overlay a normal curve, we have to specify that the $y$-axis of the histogram should show density rather than raw count data. 
+
+```{r}
+ggplot(dat, aes(examTime)) + geom_histogram(aes(y=..density..), binwidth = 2, colour = 'black') + 
+  stat_function(fun = dnorm, args = list(mean = mean(dat$examTime), sd = sd(dat$examTime)))
+```
+
+Now let's check the _examScore_ variable, with the normal curve. This time, let's add a red dashed line to show the mean.
+
+```{r}
+p <- ggplot(dat, aes(examScore)) + geom_histogram(aes(y=..density..), binwidth = 2, colour = 'black') + 
+  stat_function(fun = dnorm, args = list(mean = mean(dat$examScore), sd = sd(dat$examScore))) +
+  geom_vline(xintercept = mean(dat$examScore), colour = 'red', linetype = 'dashed')
+
+p
+```
+
+## Assessing the Assessment
+
+if no parameters are specified, standard normal M = 0, SD = 1
+
+As the instructor, you want the test to be challenging, but not excessively difficult. You want to compute the likelihood that a student will fail the current version of this test. To do this, you can calculate the probability of a student scoring below 40 on this assessment. To do this, you can use the _pnorm_ function:
+
+```{r}
+
+pnorm(40, mean=mean(dat$examScore), sd=sd(dat$examScore))
+
+```
+
+You also want to know the probability of students scoring within each grade band (A, B, C, D). To calculate the likelihood of a student getting a B on the exam, you can use the pnorm function as well:
+
+```{r}
+pnorm(69, mean=mean(dat$examScore), sd=sd(dat$examScore))
+pnorm(60, mean=mean(dat$examScore), sd=sd(dat$examScore))
+
+qnorm(.95, mean=mean(dat$examTime), sd=sd(dat$examTime))
+```
+
+You can repeat this for each grade band:
+```{r}
+pnorm(59, mean=mean(dat$examScore), sd=sd(dat$examScore)) - pnorm(50, mean=mean(dat$examScore), sd=sd(dat$examScore))
+pnorm(49, mean=mean(dat$examScore), sd=sd(dat$examScore)) - pnorm(40, mean=mean(dat$examScore), sd=sd(dat$examScore))
+```
+You can also look at the probability of a student getting an A. There are two options by which you can do this:
+
+```{r}
+1- pnorm(70, mean=mean(dat$examScore), sd=sd(dat$examScore))
+
+pnorm(70, mean=mean(dat$examScore), sd=sd(dat$examScore), lower.tail = F)
+
+```
+
+Now, imagine that you want to get a sense of whether the majority of students will have enough time to complete the test. For future assessments, you want to set the time limit as the point by which 95% of the students will have completed the exam. To compute this, you can use the _qnorm()_ function, which takes a quantile and then produces the corresponding value of $x$ given a normal distribution with specific mean and sd parameters:
+
+```{r}
+qnorm(.95, mean=mean(dat$examTime), sd=sd(dat$examTime))
+```
+
+
+```{r}
+mScore <- mean(dat$examScore)
+sdScore <- sd(dat$examScore)
+
+markBand <- tibble(Mark = c('A', 'B', 'C', 'D', 'F'), 
+                   Probability = round(c(pnorm(70, mean=mScore, sd=sdScore, lower.tail = F), 
+                            pnorm(69, mean=mScore, sd=sdScore) - pnorm(60, mean=mScore, sd=sdScore),
+                            pnorm(59, mean=mScore, sd=sdScore) - pnorm(50, mean=mScore, sd=sdScore), 
+                            pnorm(49, mean=mScore, sd=sdScore) - pnorm(40, mean=mScore, sd=sdScore),
+                            pnorm(40, mean=mScore, sd=sdScore)), 2))
+```
+
+## Write-Up Example
+
+We developed a statistics assessment and administered it to `r nrow(dat)` students. Students scored between `r min(dat$examScore)` and `r max(dat$examScore)` points on the exam ($\mu$ = `r round(mean(dat$examScore),2)`, $\sigma$ = `r round(sd(dat$examScore),2)`; see Figure 1). 
+
+```{r, echo=F}
+p + ggtitle(label = 'Figure 1') + labs(x='Exam Score', y = 'Density')
+```
+
+The probability of students getting each mark can be found in Table 1.
+
+```{r, echo=F}
+knitr::kable(markBand, caption='Probability of Each Mark')
+```
+
+95% of the students were able to complete the exam in `r round(qnorm(.95, mean=mean(dat$examTime), sd=sd(dat$examTime)), 2)` minutes.
