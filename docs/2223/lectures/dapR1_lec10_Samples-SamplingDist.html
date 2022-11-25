@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Week 11: Samples, Statistics &amp; Sampling Distributions </title>
+    <meta charset="utf-8" />
+    <meta name="author" content="DapR1 Team" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <script src="libs/kePrint/kePrint.js"></script>
+    <link href="libs/lightable/lightable.css" rel="stylesheet" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# <b>Week 11: Samples, Statistics &amp; Sampling Distributions </b>
+]
+.subtitle[
+## Data Analysis for Psychology in R 1<br><br>
+]
+.author[
+### DapR1 Team
+]
+.institute[
+### Department of Psychology<br>The University of Edinburgh
+]
+
+---
+
+
+
+
+
+
+
+
+# Week's Learning Objectives
+1. Understand the difference between a population parameter and a sample statistic.
+2. Understand the concept and construction of sampling distributions. 
+3. Understand the effect of sample size on the sampling distribution.
+4. Understand how to quantify the variability of a sample statistic and sampling distribution (standard error). 
+
+---
+# Topics for today
+- Understand the principles of sampling from populations.
+- Be familiar with the specific statistical terminology for sampling.
+- Understand the concept of a sampling distribution.
+
+---
+## Concepts to carry forward
+- Data can be of different types.
+
+--
+
+- Dependent on type (continuous vs. categorical), we can visualise and describe the distribution of data differently.
+
+--
+
+- When thinking about events ("things happening") we can assign probabilities to the event.
+
+--
+
+- We can define a probability distribution that describes the probability of all possible events.
+
+---
+## Why are These Concepts Relevant to Psych Stats?
+- In psychology, we design a study, measure variables, and use these measurements to calculate a value that carries some meaning.
+    - E.g., reaction time of one group vs another.
+
+--
+
+
+- Given it has meaning based on the study design, we want to know something about the value:
+    - Is it unusual or not?
+    - This is what we'll be focusing on throughout the remainder of the course. 
+
+--
+
+- **Today:**
+    - We will talk about populations, samples, and sampling.
+    - Basic concepts of sampling may seem simple and intuitive.
+    - These concepts will be very useful when we start talking about _statistical inference_, or how we make decisions about data.
+
+---
+## Populations vs Samples
+- In statistics, we often refer to populations and samples
+    - **Population:** The group of people about whom you'd like to make inferences
+    - **Sample:** The subset of the population from whom you will collect data to make these inferences
+
+--
+
+- To get the most accurate measure of our variable of interest, it would be ideal to collect data from the entire population; however, this is not feasible unless:
+    - The population is small and easily defined
+    - All members are easily accessible
+    - All members are willing to provide data
+
+--
+
+- In the majority of cases, researchers take data from samples and use these results to make inferences about the population as a whole. 
+
+- Let's visualise this...
+
+---
+## Populations vs Samples
+
+- Suppose I wanted to know the proportion of UG students at the University of Edinburgh born in Scotland?
+    - In stats talk, _all_ UG at the UoE are our **population**.
+
+.center[
+&lt;img src="dapR1_lec10_SamplingDist_files/Population.png" width="65%" height="65%" /&gt;
+]
+
+---
+## Populations vs Samples
+
+- Suppose I wanted to know the proportion of UG students at the University of Edinburgh born in Scotland?
+    - In stats talk, _all_ UG at the UoE are our **population**.
+    - The proportion of students born in Scotland is a **population parameter** (a measure that describes the entire population).
+
+.center[
+&lt;img src="dapR1_lec10_SamplingDist_files/PopulationMetric.png" width="65%" height="65%" /&gt;
+]
+
+---
+## Populations vs Samples
+- So how can we collect this information? 
+
+--
+
+- We could send out an email requesting all students to provide their place of birth...but it's not likely that all students will respond. 
+
+--
+
+- We could ask instructors to collect this data from students in their classes, but not every student will attend each class, and not every instructor will comply.
+
+--
+
+- Even with this relatively small, accessible population, it's not likely we could collect information from every single member.
+
+---
+## Populations vs Samples
+
+- Instead, we have to use the data from students who _do_ respond to make inferences about the overall student population 
+    - In this case, these students are our **sample**
+    - The proportion of _these_ students born in Scotland is a **sample parameter**, or a **point-estimate**
+
+.center[
+&lt;img src="dapR1_lec10_SamplingDist_files/FullSample.png" width="75%" height="75%" /&gt;
+]
+
+---
+## Parameters and point-estimates
+- It is the population parameter (proportion of Scottish born students at UoE) we are interested in. This is a *true* value of the world.
+
+--
+
+- We can draw a sample, and calculate this proportion in the sample.
+- In a single sample, this **point-estimate** is our best guess at the population parameter.
+
+--
+
+.center[
+&lt;img src="dapR1_lec10_SamplingDist_files/Samples.png" width="60%" height="60%" /&gt;
+]
+
+---
+## 2021/22 actual proportion
+- If we draw multiple samples, we can produce a **sampling distribution**, which is a probability distribution of some statistic obtained from repeatedly sampling the population. 
+
+--
+
+- Let's use real data from this year to demonstrate this concept further (this is actually data regarding country of residence rather than birthplace, but we'll go with it for the purpose of this example).
+
+&lt;table class="table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Scottish &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; n &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Freq &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; No &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 20090 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.7 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Yes &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8665 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.3 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+--
+
+- Using these data, let's simulate drawing a bunch of samples of students from the University and see what proportion of each sample is born in Scotland.
+
+--
+
+To do this, we'll...
+
+  - 1) Randomly select 10 students from the population.
+  - 2) Create a histogram showing how frequently our sample demonstrated specific proportions of Scotland-born students.
+
+---
+## A brief note on notation...
+
+- It's important to know that although you may have seen these different types of notation used interchangeably in the past, they are actually slightly different when one is referring to a _population_ versus a _sample_:
+
+
+
+|Population | Parameter         | Sample   |
+|-----------|-------------------|----------|
+| `\(\mu\)`     | Mean              | `\(\bar{x}\)`|
+| `\(\sigma\)`  | Standard Deviation| `\(s\)`      |
+| `\(N\)`       | Size              | `\(n\)`      |
+
+---
+## Visualizing sampling distributions
+
+- Imagine we took only a single sample of 10 students. 
+- Our histogram looks pretty empty at the moment, but we can use this to get a sense of what a full histogram will show.
+- This also shows you how a single small sample may (or may not!) capture the truth of the overall population.
+
+.center[
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-6-1.svg)&lt;!-- --&gt;
+]
+
+
+---
+## Visualizing sampling distributions
+
+- Now, let's look at a histogram that shows the distribution of our results if we took 10 samples of 10 students each.
+
+.center[
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-7-1.svg)&lt;!-- --&gt;
+]
+
+---
+## Visualizing sampling distributions
+
+- If we were to repeat this process 2 more times, we can create three sampling distributions, each of which look different.
+
+- Each sampling distribution is characterising the _sampling variability_ in our estimate of the parameter of interest (proportion of Scottish students at UoE).
+
+- **Do samples with values close to the population value tend to be more or less likely?**
+
+.center[
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-8-1.svg)&lt;!-- --&gt;
+]
+
+
+---
+## More samples
+- So far we have taken 10 samples...what if we took more? 
+- Let's imagine we sampled 10 students 100 times. 
+
+--
+
+.center[
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-9-1.svg)&lt;!-- --&gt;
+]
+
+--
+
+- **What do you notice about these three plots compared to the previous three plots?**
+    
+---
+## Bigger samples
+
+- We've been taking samples of 10 students. Let's see what happens when we increase our sample size to `\(n = 50\)`, and then `\(n = 100\)`. 
+
+.center[
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-10-1.svg)&lt;!-- --&gt;
+]
+
+---
+## Properties of sampling distributions
+- Remember: frequency distributions are characterising the variability in sample estimates.
+    - Variability can be thought of as the spread in data/plots.
+
+--
+
+- So as we increase `\(n\)`, we are getting less variable samples (harder to get an unrepresentative sample as your `\(n\)` increases).
+
+--
+
+- Let's put this phenomenon in the language of probability: 
+    - As `\(n\)` increases, the probability of observing an estimate in a sample that is a long way from the population parameter (here 0.30) decreases (becomes less probable).
+
+--
+
+- So when we have large samples, our estimates from those samples are likely to be closer to the population value.
+    - That's good!
+
+---
+## Standard error
+- We can formally calculate the "narrowness" of a sampling distribution, or the **standard error**
+
+.center[
+
+### `\(SE=\frac{\sigma}{\sqrt{N}}\)`
+
+]
+
+--
+
+- This is essentially calculating the standard deviation (as we have done before) of the sampling distribution, with a key difference:
+      - The standard deviation describes the variability _within_ one sample
+      - The standard error describes variability _across_ multiple samples.
+      
+--
+
+- The standard error gives you a sense of how different `\(\bar{x}\)` is likely to be from `\(\mu\)`
+
+--
+
+- In this example where we're working with binomial data, the standard error indicates how greatly a particular sample proportion is likely to differ from the proportion in the population. 
+
+---
+## Properties of sampling distributions
+
+.pull-left[
+- Mean of the sampling distribution is close to `\(\mu\)`, even with a small number of samples.
+
+- As the number of samples increases:
+  - `\(\bar{x}\)` of the sampling distribution approaches `\(\mu\)`.
+  - The sampling distribution approaches a normal distribution.
+    - `\(\bar{x}s\)` pile up around the population value
+    
+]
+
+.pull-right[
+
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-11-1.svg)&lt;!-- --&gt;![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-11-2.svg)&lt;!-- --&gt;
+
+]
+
+---
+count: false
+
+## Properties of sampling distributions
+
+.pull-left[
+- Mean of the sampling distribution is close to `\(\mu\)`, even with a small number of samples.
+
+- As the number of samples increases:
+  - `\(\bar{x}\)` of the sampling distribution approaches `\(\mu\)`.
+  - The sampling distribution approaches a normal distribution.
+    - `\(\bar{x}s\)` pile up around the population value
+    
+- As `\(n\)` per sample increases, the SE of the sampling distribution decreases (becomes narrower).
+    - With large n, all our point-estimates are closer to the population parameter.
+]
+
+.pull-right[
+
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-12-1.svg)&lt;!-- --&gt;![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-12-2.svg)&lt;!-- --&gt;
+
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-13-1.svg)&lt;!-- --&gt;
+
+]
+
+---
+## Two Related Concepts
+
+- What we've seen throughout the lecture demonstrates **The Law of Large Numbers**
+    - This states that as `\(n\)` increases, `\(\bar{x}\)` approaches `\(\mu\)`
+
+--
+
+- Another important and related concept is the **Central Limit Theorem**.  
+    - The central limit theorem (roughly) states that when estimates of `\(\bar{x}\)` are based on increasingly large samples ( `\(n\)` ), the sampling distribution of `\(\bar{x}\)` becomes more normal (symmetric), and narrower (quantified by the standard error).
+    - To demonstrate this, let's explore some different distributions.
+    
+---
+## Uniform distribution
+
+.pull-left[
+- Continuous probability distribution 
+
+- There is an equal probability for all values within a given range.
+]
+
+.pull-right[
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-14-1.svg)&lt;!-- --&gt;
+]
+
+
+---
+## Uniform distribution
+
+
+.pull-left[
+.center[
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-16-1.svg)&lt;!-- --&gt;![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-16-2.svg)&lt;!-- --&gt;
+]]
+
+.pull-right[
+.center[
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-17-1.svg)&lt;!-- --&gt;![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-17-2.svg)&lt;!-- --&gt;
+]]
+
+---
+## Chi-square distribution
+
+.pull-left[
+- Continuous probability distribution
+- Non-symmetric
+]
+
+.pull-right[
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-18-1.svg)&lt;!-- --&gt;
+]
+
+
+---
+## Chi-square distribution
+
+.pull-left[
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-20-1.svg)&lt;!-- --&gt;![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-20-2.svg)&lt;!-- --&gt;
+]
+
+.pull-right[
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-21-1.svg)&lt;!-- --&gt;![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-21-2.svg)&lt;!-- --&gt;
+]
+
+---
+## t-distribution
+
+.pull-left[
+- Continuous probability distribution.
+- Symmetric and uni-modal (similar to the normal distribution).
+  - "Heavier tails" = greater chance of observing a value further from the mean
+]
+
+.pull-right[
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-22-1.svg)&lt;!-- --&gt;
+]
+
+---
+## t-distribution
+
+
+.pull-left[
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-24-1.svg)&lt;!-- --&gt;![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-24-2.svg)&lt;!-- --&gt;
+]
+
+.pull-right[
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-25-1.svg)&lt;!-- --&gt;![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-25-2.svg)&lt;!-- --&gt;
+]
+
+---
+## Central Limit Theorem
+
+- These examples all demonstrate the Central Limit Theorem
+- When `\(n\)` is large enough, `\(\bar{x}s\)` approximate a normal distribution around `\(\mu\)`, regardless of the underlying population distribution
+
+.center[
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-26-1.svg)&lt;!-- --&gt;![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-26-2.svg)&lt;!-- --&gt;![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-26-3.svg)&lt;!-- --&gt;
+]
+
+.center[
+![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-27-1.svg)&lt;!-- --&gt;![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-27-2.svg)&lt;!-- --&gt;![](dapR1_lec10_Samples-SamplingDist_files/figure-html/unnamed-chunk-27-3.svg)&lt;!-- --&gt;
+]
+
+---
+## Features of samples
+- Is our sample...
+    - Biased?
+    - Representative?
+    - Random?
+
+--
+
+- If a sample of `\(n\)` is drawn at random, it is likely to be unbiased and representative of `\(N\)`
+
+- Our point estimates from such samples will be good guesses at the population parameter.
+
+---
+# Summary of today
+- Samples are used to estimate the population. 
+- Samples provide point estimates of population parameters. 
+- Properties of samples and sampling distributions.
+- Properties of good samples.
+
+---
+# Next tasks
+
++ This week:
+  + Complete your lab
+  + Come to office hours
+  + No weekly quiz - submit group Formative Report B by Friday 12 noon.
+
++ Next week, there will be no new lecture material:
+  + No lectures on Monday and Tuesday next week
+  + Use next week to review and catch up on weeks 7-11.
+  + In semester 2 we will begin looking at inference.
+
++ Labs will still take place next week:
+  + Make sure you still go to labs next week
+  + You will receive in-person feedback on Formative Report B
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
