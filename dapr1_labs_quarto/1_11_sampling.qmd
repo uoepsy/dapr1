@@ -113,8 +113,29 @@ ggplot(movies2, aes(x = LeadStudio, y = AudienceScore)) +
 ```
 
 
+## Formative Report B
+
 ::: {.callout-important collapse="false"}
-## This week: Submission of Formative report B {-}
+## Formative report B - Structure {-}
+
+- The submitted report should be a PDF file of 6 pages at most. 
+
+- It should include 3 sections:
+
+    + Introduction - Write here an introduction to the data, the variables, and anything worth of notice in the data.
+    + Analysis - Present here your tables, plots, and results. Make sure to interpret what you present.
+    + Discussion - Write up your take home messages here...
+
+- After those, you can add after two Appendices which will __not__ count towards the 6-page limit:
+
+    + Appendix A - where you can put any additional tables or plot that you may not be able to fit in the page limit. However, please ensure these plots are related to the interpretation provided.
+    + Appendix B - where you will collate all the R code in a chunk with the settings `echo=TRUE, results='hide', fig.show='hide'`.
+
+- Excluding the Appendix, the report should not include any reference to R code or functions, but be written for a generic reader who is only assumed to have a basic statistical understanding without any R knowledge.
+:::
+
+::: {.callout-important collapse="false"}
+## Formative report B - Submission Instructions {-}
 
 - Your group must submit one PDF file for formative report B by 12 noon on Friday 2nd December 2022.
 
@@ -125,17 +146,11 @@ ggplot(movies2, aes(x = LeadStudio, y = AudienceScore)) +
 - As mentioned on the Course Information page, there will be no extensions allowed for group-based reports.
 
 - You will receive formative feedback on your submission during the labs of week 12. Please attend your lab next week!
-
-- The submitted report should be a PDF file of 4 pages at most. 
-
-- You can add an Appendix in which you will collate all the R code in a chunk with the settings `results = 'hide', fig.show = 'hide'`. This will not count towards the page limit.  
-
-- Excluding the Appendix, the report should not include any reference to R code or functions, but be written for a generic reader who is only assumed to have a basic statistical understanding without any R knowledge.
 :::
 
 
 ::: {.callout-note collapse="true"}
-## Data {-}
+### Formative report B - Data {-}
 
 **Hollywood Movies**. At the link <https://uoepsy.github.io/data/hollywood_movies_subset.csv> you will find data on Hollywood movies released between 2012 and 2018 from the top 5 lead studios and top 10 genres. The following variables were recorded:
 
@@ -154,7 +169,7 @@ ggplot(movies2, aes(x = LeadStudio, y = AudienceScore)) +
 - `Profitability`: WorldGross as a percentage of Budget 
 - `OpenProfit`: Percentage of budget recovered on opening weekend 
 - `Year`: Year the movie was released
-- `IQ1`-`IQ50`: IQ score of each of 50 audience raters
+- `IQ1`-`IQ50`: IQ score of each of 50 audience raters (every movie had different raters)
 - `Snacks`: How many of the 50 audience raters brought snacks
 - `PrivateTransport`: How many of the 50 audience raters reached the cinema via private transportation
 :::
@@ -186,37 +201,46 @@ To see the hints, hover your cursor on the superscript numbers.
 
 In this section you will find some guided sub-steps you may want to consider to complete task B5.
 
-An investor has gotten in touch and has asked you to consult on what Lead Studio they should invest in, based on audience scores of the top three movie genres. They want to be presented with two options:
-
-    * High risk option: Highest audience scores, regardless of standard error
-    * Low risk option: Least spread in scores, but with highest average possible
+> __Context__
+> 
+> An investor has gotten in touch and has asked you to consult on what Lead Studio they should invest in, based on audience scores of the top three movie genres. They want to be presented with two options:
+>
+> A. High risk option: Highest average audience score, irrespectively of the standard error  
+> B. Low risk option: Smallest spread in audience scores, but with highest average audience score possible
 
 - Reopen last week's Rmd file, and continue building on last week's work. Make sure you are still using the movies dataset filtered to only include the top 3 genres.[^share-file]
 
 [^share-file]: Hint: Ask last week's driver for the Rmd file, they should share it with the group via email or Teams. To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
 
-- Describe the distribution of the audience scores and note if there are any unusual obersvations (e.g., outliers).[^out-dist]
+- Visualise the distribution of the audience scores and note if there are any unusual observations (e.g., outliers).[^out-dist]
 
-[^out-dist]: Hint: It would be a good idea to visualise your data to try and identify any outliers in the data. You may want to consider using `geom_density()` or `geom_histogram()`.
+[^out-dist]: Hint: It would be a good idea to visualise your data to try and identify any outliers in the data. You may want to consider one of these functions: `geom_density()`, `geom_histogram()`, `geom_boxplot()`.
 
-- Calculate the sample mean and standard error of the mean [^mean-se]. 
+- To advise the investor on the average audience score, calculate the sample mean and standard error.[^mean-se]
 
-    [^mean-se]: Hint: You can calcualte these parameters for a **sample** as follows: 
-     * Mean: $\bar{x}$ (x-bar) or $\hat{\mu}$ (mu-hat) is the mean computed from the sample data (sample statistic).
-    * Standard Deviation: The standard error of a statistic, denoted $SE$, is the standard deviation of its sampling distribution. The sample statistic can be denoted as $s$ or $\hat{\sigma}$ (sigma-hat), and can be calculated as follows:
+[^mean-se]: Hint: You can calculate the mean and standard error as: 
+
+    * Mean: $\bar{x}$ (x-bar, written `$\bar{x}$`) or $\hat{\mu}$ (mu-hat, written `$\hat{\mu}$`) is the mean computed from the sample data (sample statistic).
+
+    * Standard error: The standard error of the mean, denoted $SE$, is the standard deviation of its sampling distribution. The standard error can be calculated as $SE = \sigma / \sqrt{n}$ but, we also need to estimate the population standard deviation $\sigma$ with the sample standard deviation $s$. The sample estimate of the standard error is:
+$$
+SE = \frac{s}{\sqrt{n}}
+$$
 
 
-- Calculate how your estimated sample statistics vary across Lead Studios, and interpret your output[^group-stats].
+- Calculate the estimated means, along with a measure of their variability, across Lead Studios, and interpret your output[^group-stats].
 
-[^group-stats]: Hint: In order to have sample statistics for each Lead Studio, you will need to summarise your data, and use the `group_by()` function in the process. 
+[^group-stats]: Hint: In order to have sample statistics for each Lead Studio, you will need to use the `group_by()` function before summarising the data with the sample mean and the standard error.
 
-- Is the variation of means equal to or less than the variability of the sample data[^se-sd]?
+- Is the variation of means equal to or less than the variability of the sample data?[^se-sd]
 
-[^se-sd]: Hint: Compare the standard error to the standard deviation. 
+[^se-sd]: Hint: Compare the standard error to the standard deviation. Recall, the standard deviation tells you how much each data point varies around the mean, while the standard error of the mean tells you how much the means (from different random samples) vary with respect to their mean (the unknown population mean).
 
-- Visualise the association between Lead Studios and Audience Scores[^assoc-viz].
+- Visualise the average audience scores and SEs vary between the Lead Studios[^assoc-viz].
 
-[^assoc-viz]: Hint: You can also use the `coord_flip()` function to 'flip' your axes - it might make it easier to read your plot. 
+[^assoc-viz]: Hint: Some of these functions may be useful: `stat_summary()`, `geom_pointrange()`.
+
+    You can also use the `coord_flip()` function to 'flip' your axes - it might make it easier to read your plot. 
 
 - Based on what you have reported above, what high and low risk options will you present to the investor? Justify your answer. 
 
@@ -234,6 +258,7 @@ title: "Formative report B"
 author: "Group ?.?"
 date: "Write the date here"
 output: bookdown::pdf_document2
+toc: false
 ---
 ````
 
@@ -247,10 +272,11 @@ This is the **metadata** block. It includes the:
 
 The output type could be `html_document`, `pdf_document`, etc.   
 We use `bookdown::pdf_document2` so that we can reference figures, which `pdf_document` doesn't let you do.  
-The code `bookdown::pdf_document2` simply means to use the `pdf_document2` type from the `bookdown` package.
+The code `bookdown::pdf_document2` simply means to use the `pdf_document2` type from the `bookdown` package.  
+The code `toc: false` hides the table of contents.
 :::
 
-<br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ````
 ```{{r setup, include=FALSE}}
@@ -277,16 +303,18 @@ If you want to change the setting in a specific code chunk, you can do so via:
 
 ````
 ```{{r, include=FALSE}}
-# week 1 code below
+# week 7 code below
 library(tidyverse)
 
-# week 2 code below
+# week 8 code below
 pltEye <- ggplot(starwars, aes(x = eye_color)) + 
     geom_bar()
 
-# week 3 code below
+# week 9 code below
 
-# week 4 code below
+# week 10 code below
+
+# week 11 code below
 ```
 ````
 
@@ -332,7 +360,15 @@ This contains your actual textual reporting, as well as tables and figures. To s
 
 
 ````
-## Appendix
+## Appendix A - Additional tables and figures
+
+Insert here any additional tables or figures that you could not fit in the 
+6-page limit.
+````
+
+
+````
+## Appendix B - R code
 
 ```{{r, echo=TRUE, results='hide', fig.show='hide'}}
 # copy and paste here all your R code
@@ -558,7 +594,7 @@ tips$Day <- factor(tips$Day,
                    labels = c("Mon", "Tue", "Wed", "Thu", "Fri"))
 ```
 
-- If we were asked to describe the shape of the distribution of the 'PctTip' variable, we could use either a histogram or a density plot:
+- If we were asked to describe the shape of the distribution of the 'PctTip' variable, we could use either a histogram, a density plot, or a boxplot:
 
 ::: {.panel-tabset}
 
@@ -566,7 +602,7 @@ tips$Day <- factor(tips$Day,
 
 ```{r}
 ggplot(tips, aes(x = PctTip)) + 
-    geom_histogram()
+    geom_histogram(colour = 'white')
 ```
 
 ## Density
@@ -576,9 +612,16 @@ ggplot(tips, aes(x = PctTip)) +
     geom_density()
 ```
 
+## Boxplot
+
+```{r}
+ggplot(tips, aes(x = PctTip)) + 
+    geom_boxplot()
+```
+
 :::
 
-And say that the percentage tip follows a normal distribution, but it is slightly negatively skewed. This suggested that there were more individuals tipping well above the mean than below (i.e., more extremely high tips)
+The distribution of percentage tip is not exactly normal as it shows a slight skew to the right. This suggests that there were more individuals tipping well above the mean than below (i.e., more extremely high tips)
 
 
 - Now that we have visualised our distribution, it would be useful to estimate the centre and spread of our data. In other words, calculate the sample mean and standard error of the mean. 
@@ -588,10 +631,10 @@ And say that the percentage tip follows a normal distribution, but it is slightl
 
 * Mean: $\bar{x}$ (x-bar) or $\hat{\mu}$ (mu-hat) is the mean computed from the sample data (sample statistic).
 
-* Standard Deviation: The standard error of a statistic, denoted $SE$, is the standard deviation of its sampling distribution. The sample statistic can be denoted as $s$ or $\hat{\sigma}$ (sigma-hat), and can be calculated as follows:
+* Standard error: The standard error of the mean, denoted $SE$, is the standard deviation of its sampling distribution. The standard error is $SE = \sigma / \sqrt{n}$ but, as we do not know the population standard deviation $\sigma$ we must estimate that with the sample standard deviation $s$, leading to this formula for the standard error of the mean:
 
 $$
-\sigma_{\bar X} = \frac{\sigma}{\sqrt{n}}
+\sigma_{\bar X} = \frac{s}{\sqrt{n}}
 $$
 :::
 
@@ -609,29 +652,48 @@ se_tips
 - We can then check how our sample statistics vary across each day of the week: 
 
 ```{r}
-#| label: tbl-tips-day
-#| tbl-cap: Descriptive Statistics for % Tips by Day
+#| eval: false
+library(kableExtra)
+
 tbl_tips <- tips %>%
     group_by(Day) %>% 
     summarise(n = n(),
               xbar = mean(PctTip),
               se = sd(PctTip) / sqrt(n)) %>%
     mutate(xbar = round(xbar, 2),
-           se = round(se, 2)) %>% 
-    as.data.frame() 
-tbl_tips
+           se = round(se, 2))
+tbl_tips %>%
+    kbl(digits = 2, booktabs = TRUE)
+```
 
+```{r}
+#| label: tbl-tips-day
+#| tbl-cap: "Descriptive statistics of tips, as a percentage of the total bill, by day"
+#| echo: false
+library(kableExtra)
+
+tbl_tips <- tips %>%
+    group_by(Day) %>% 
+    summarise(n = n(),
+              xbar = mean(PctTip),
+              se = sd(PctTip) / sqrt(n)) %>%
+    mutate(xbar = round(xbar, 2),
+           se = round(se, 2))
+tbl_tips %>%
+    kbl(digits = 2, 
+        caption = "Descriptive statistics of tips, as a percentage of the total bill, by day") %>%
+    kable_styling(full_width = FALSE)
 ```
 
 - If we were asked to interpret the sample statistics for each day, we could summarise as below:
 
     * Interpreting $\bar{x}$ / $\hat{\mu}$
-        * Of the days of the week, Tuesday was when the highest average percentage tips were received, and Monday the lowest
-        * Apart from Tuesday (when the average percentage tip is likely to be above average), the other days of the week are very close to the average tipping rate (15%)
+        * Of the days of the week, Tuesday was when the highest average percentage tips were received, and Monday the lowest.
+        * Apart from Tuesday (when the average percentage tip is likely to be above average), the other days of the week are very close to 15%.
 
 
-    * Interpreting $s$ / $\hat{\sigma}$
-        * The percentage of tips varied most on Tuesdays on Fridays, where tips would either be very generous or measly
+    * Interpreting $SE$
+        * The percentage of tips varied most on Tuesdays on Fridays, where tips would either be very generous or measly.
 
 - Next we want to visualise the association between days and percentage tip. We can either do this using `ggplot()` or do so manually based on our tibble we created above (`tbl_tips`):
 
@@ -669,17 +731,15 @@ We can then arrange our two plots side by side to see if they match, which they 
 plt1 | plt2
 ```
 
-- How good is the mean, SE when the distribution is skewed?
+<!-- - How good is the mean, SE when the distribution is skewed? -->
 
-```{r}
-library(ggridges)
-plt3 <- ggplot(tips, aes(x = PctTip, y = Day)) + 
-    geom_density_ridges() +
-    xlim(0, 50)
-plt3
-```
-
-
+<!-- ```{r} -->
+<!-- library(ggridges) -->
+<!-- plt3 <- ggplot(tips, aes(x = PctTip, y = Day)) +  -->
+<!--     geom_density_ridges() + -->
+<!--     xlim(0, 50) -->
+<!-- plt3 -->
+<!-- ``` -->
 
 
 - We know that the variability of the mean Percentage Tip across each day of the week should be equal to or less than the variability of the sample data. We can check that this is the case:
@@ -711,7 +771,7 @@ To conclude the lab, add the new functions to the glossary of `R` functions.
 
 | Function   | Use and package |
 |:-----------|:--------------|
-| `dnorm() `     | ? |
+| `group_by() `     | ? |
 | `pnorm() `     | ? |
 | `pivot_longer() `     | ? |
 | `seq() `     | ? |
