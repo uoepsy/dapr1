@@ -167,7 +167,7 @@ To see the hints, hover your cursor on the superscript numbers.
 
 - Visualise the distribution of the variable of interest (`gradratew`). What is the shape of the distribution? Are there any outliers?^[Hint: `geom_histogram()`, `geom_density()`, `geom_boxplot()` may be useful functions.]
 
-- Provide a table of descriptive statistics for the variable of interest. At a minimum, ensure that it includes both a measure of centre and spread.^[Hint: `summarise()` from the tidyverse package or `describe()` from the psych package]
+- Compute and interpret a table of descriptive statistics for the variable of interest. At a minimum, ensure that it includes both a measure of centre and spread.^[Hint: `summarise()` from the tidyverse package or `describe()` from the psych package]
 
 - Compute a 95% confidence interval for the mean graduation rate of female college students in 2012.[^ci-mean]
 
@@ -269,13 +269,13 @@ The boxplot highlights an outlier (40). However, this value is well within the p
 :::
 
 ```{r}
-plt1 <- ggplot(pass_scores, aes(x = PASS)) + 
+plt_hist <- ggplot(pass_scores, aes(x = PASS)) + 
     geom_histogram(color = 'white')
 
-plt2 <- ggplot(pass_scores, aes(x = PASS)) + 
+plt_box <- ggplot(pass_scores, aes(x = PASS)) + 
     geom_boxplot()
 
-plt1 / plt2
+plt_hist / plt_box
 ```
 
 Descriptive statistics:
@@ -305,15 +305,17 @@ stats %>%
 When estimating a parameter, in this case the mean score on the Procrastination Assessment Scale for Students (PASS) for all Edinburgh University students, we do not just report the estimate (sample average score), but also something that reflects our uncertainty in the estimate. This can either be the standard error or a confidence interval. If asked to compute a 95% confidence interval for the mean score on the Procrastination Assessment Scale for Students (PASS) for all Edinburgh University students, we could do:
 
 ```{r}
-# Standard error
+# Sample mean
 xbar <- stats$M
-sd <- stats$SD
+
+# Standard error
+s <- stats$SD
 n <- stats$n
-se <- sd / sqrt(n)
+se <- s / sqrt(n)
 se
 
 # Quantiles
-tstar <- qt(c(0.025, 0.975), df = n-1)
+tstar <- qt(c(0.025, 0.975), df = n - 1)
 tstar
 
 # CI
@@ -335,7 +337,7 @@ These three code chunks should not be visible in the report. You can simply repo
  
 :::{.callout-tip}
 #### Example introduction
-A random sample of 20 students from the University of Edinburgh completed a questionnaire measuring their total endorsement of procrastination. The data, available from <https://uoepsy.github.io/data/pass_scores.csv>, were used to investigate the average procrastination score of all Edinburgh University students. The recorded variables included a subject identifier (`sid`), the school of each subject (`school`), and the total score on the Procrastination Assessment Scale for Students (`PASS`). The data do not include any impossible values for the PASS scores, as they were all within the possible range of 0 -- 90. To answer the question of interest, in the following we will only focus on the total PASS score variable.
+A random sample of 20 students from the University of Edinburgh completed a questionnaire measuring their total endorsement of procrastination. The data, available from <https://uoepsy.github.io/data/pass_scores.csv>, were used to estimate the average procrastination score of all Edinburgh University students. The recorded variables included a subject identifier (`sid`), the school of each subject (`school`), and the total score on the Procrastination Assessment Scale for Students (`PASS`). The data do not include any impossible values for the PASS scores, as they were all within the possible range of 0 -- 90. To answer the question of interest, in the following we will only focus on the total PASS score variable.
 :::
 
 :::{.callout-tip}
