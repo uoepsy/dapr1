@@ -213,7 +213,9 @@ knitr::include_graphics('images/tbl3.png')
     + You should think about your particular study to see if this is the case.
     
 - Example: developing a rapid test for diabetes:
-    
+
+$$H_0 : \text{Person} = \text{Non-diabetic}$$
+
 ```{r}
 knitr::include_graphics('images/ht-errors-type2.png')
 ```
@@ -264,7 +266,7 @@ knitr::include_graphics('images/e2.png')
 ```
 
 - In red:  
-  $\alpha = 0.05$ = P(Rejecting $H_0$ | $H_0$ is true)
+  $\alpha = 0.05$ = P(Rejecting $H_0$ | $H_0$ is true) = P(Type I error)
 
 ---
 # Visually
@@ -274,7 +276,7 @@ knitr::include_graphics('images/e3.png')
 ```
 
 - In blue:  
-  $\beta$ = P(Not rejecting $H_0$ | $H_0$ is false)
+  $\beta$ = P(Not rejecting $H_0$ | $H_0$ is false) = P(Type II error)
 
 ---
 # Visually
@@ -404,6 +406,8 @@ $$
 
 <br>
 
+__Note:__  
+
 Recall, instead, that the probability of rejecting a **true** null hypothesis is the significance level:
 
 $$
@@ -500,18 +504,35 @@ class: inverse, center, middle
 
 - Cohen's $D$ was introduced as a measure of "effect size", to report whether the result may be of real-world value or not.
 
-- Consider a test for __one population mean__:
+- Consider a one-sample t-test for a population mean:
 
 $$H_0 : \mu = \mu_0 \\ H_1 : \mu \neq \mu_0$$
 
-- For a test of __one population mean__, Cohen'D is defined as:
-
-$$D = \frac{\bar x - \mu_0}{s}$$
-
-that is, the difference between the sample and the hypothesised mean, measured in units of the __standard deviation__. (Careful: not the standard error!)
+- For a test of __one population mean__, Cohen's D is defined as:
+    
+    $$D = \frac{\bar x - \mu_0}{s}$$
+    
+    that is, the difference between the sample and the hypothesised mean, measured in units of the __standard deviation__. (Careful: not the standard error!)
 
 ---
 # Effect size
+
+- Below are some rough guidelines on how to interpret the size of the effect.
+
+- These are not exact labels, but a loose guidance based on empirical research.
+
+| Verbal label         | Magnitude of $D$ in absolute value |
+|:--------------------:|:-----------------:|
+| Small (or weak)      | $\leq 0.20$       |
+| Medium (or moderate) | $\approx 0.50$    |
+| Large (or strong)    | $\geq 0.80$       |
+
+- What about in between the categories?
+
+    + Use "small to medium" or "medium to large" effect size.
+    
+---
+# Why not simply the difference?
 
 - Why not just the difference $\bar x - \mu_0$?
 
@@ -521,41 +542,25 @@ that is, the difference between the sample and the hypothesised mean, measured i
 
 --
 
-- __Scenario 1__: $$D = 5 - 3 = 2$$
+- __Scenario 1__: $$d = 5 - 3 = 2$$
 
 --
 
-- __Scenario 2__: $$D = 500000 - 499998 = 2$$
+- __Scenario 2__: $$d = 500000 - 499998 = 2$$
 
 --
 
-- Clearly a difference of $D = 2$ in Scenario 1 is more substantial and of higher practical impact. However, a difference of $D = 2$ in Scenario 2 is less substantial and of pretty much no practical impact.
+- Clearly a difference of $d = 2$ in Scenario 1 is more substantial and of higher practical impact. However, a difference of $d = 2$ in Scenario 2 is less substantial and of pretty much no practical impact.
 
 --
 
-- Dividing the difference by the SD of the data (which is in the same unit of measurement as the data itself), gives you a measure that does not depend on the unit of measurement.
+- Dividing the difference by the SD of the data (which is in the same unit of measurement as the data itself), gives you a measure that does not depend on the unit of measurement. Hence why you should use Cohen's D.
 
 
 
 ???
 
 km to cm
-
----
-# Effect size
-
-Below are some rough guidelines on how to interpret the size of the effect.
-
-These are not exact labels, but a loose guidance based on empirical research.
-
-| Verbal label | Magnitude of $D$ |
-|:-------------|:-----------------|
-| Small        | $d \leq 0.20$    |
-| Medium       | $d \approx 0.50$ (e.g., $D$ between 0.20 and 0.79)   |
-| Large        | $d \geq 0.80$    |
-
-
-
 
 ---
 class: inverse, center, middle
@@ -584,7 +589,7 @@ class: inverse, center, middle
 
 - You want to perform a test to check whether the population mean is 0 or different from 0. $$H_0: \mu = 0 \quad \text{vs} \quad H_1 : \mu \neq 0$$
 
-    + The value 0 is the value $\mu_0$ specified in the null hypothesis.
+    + The value 0 corresponds to $\mu_0$ in the null hypothesis.
     
     + The sampling distribution of the mean will be $N(0, 1.291)$
 
@@ -641,7 +646,7 @@ class: inverse, center, middle
 
 - The results from a t-test for a population mean are valid when:
 
-    1. The obtained sample data are a random sample from population of interest
+    1. The obtained sample data are a random sample from the population of interest
     
         + (This is called "independence" by some authors.)
 
@@ -653,7 +658,7 @@ class: inverse, center, middle
 ---
 # Random sample
 
-- Consider whether the sample was randomly selected from the population of interest before generalizing the test conclusion to that population.
+- Consider whether the sample was randomly selected from the population of interest before generalising the test conclusion to that population.
 
     - Each unit should have been sampled independently of the others.
     
@@ -940,6 +945,27 @@ ggplot(iq_sample, aes(sample = iq)) +
 ```
 ]
 
+
+---
+# Problematic QQ-plots
+
+```{r echo=FALSE, fig.height = 5, fig.width = 10}
+library(patchwork)
+df1 <- data.frame(y = rexp(100))
+df2 <- data.frame(y = runif(100, 2, 10))
+plt1 <- ggplot(df1, aes(sample = y)) + 
+    geom_qq() +
+    geom_qq_line() +
+    labs(x = "Theoretical quantiles", 
+         y = "Sample quantiles")
+plt2 <- ggplot(df2, aes(sample = y)) + 
+    geom_qq() +
+    geom_qq_line() +
+    labs(x = "Theoretical quantiles", 
+         y = "Sample quantiles")
+plt1 | plt2
+```
+
 ---
 # Shapiro-Wilk normality test
 
@@ -953,7 +979,7 @@ Another hypothesis test, but this time:
 shapiro.test(iq_sample$iq)
 ```
 
-At the 5% significance level, we performed a Shapiro-Wilk test against the null hypothesis of normality of the population data: $W = 0.95, p = 0.3$. The sample data do not provide sufficient evidence to reject the null hypothesis of normality in the population.
+At the 5% significance level, we performed a Shapiro-Wilk test against the null hypothesis of normality of the population data: $W = 0.95, p = 0.3$. The sample data did not provide sufficient evidence to reject the null hypothesis of normality in the population.
 
 ---
 class: inverse, center, middle
