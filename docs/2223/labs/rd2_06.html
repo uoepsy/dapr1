@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.361">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>DAPR1 - One sample t-test</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark"><script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script><script>
+function toggle_visibility(id1, id2) {
+var e = document.getElementById(id1);
+var f = document.getElementById(id2);
+e.style.display = ((e.style.display!='none') ? 'none' : 'block');
+if(f.classList.contains('fa-chevron-circle-right')) {
+    f.classList.add('fa-chevron-circle-down')
+    f.classList.remove('fa-chevron-circle-right')
+} else {
+    f.classList.add('fa-chevron-circle-right')
+    f.classList.remove('fa-chevron-circle-down')
+}
+}
+</script><script src="https://kit.fontawesome.com/120b08a6f5.js" crossorigin="anonymous"></script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script><link rel="stylesheet" href="assets/styles.css">
+</head>
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg navbar-dark "><div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">DAPR1</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+<li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-semester-1" role="button" data-bs-toggle="dropdown" aria-expanded="false" rel="" target="">
+ <span class="menu-text">Semester 1</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-semester-1">
+<li>
+    <a class="dropdown-item" href="./1_01_design_and_data.html" rel="" target="">
+ <span class="dropdown-text">S1-W1: Research design &amp; data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./1_02_categorical_data.html" rel="" target="">
+ <span class="dropdown-text">S1-W2: Categorical data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./1_03_numeric_data.html" rel="" target="">
+ <span class="dropdown-text">S1-W3: Numeric data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./1_04_relationships.html" rel="" target="">
+ <span class="dropdown-text">S1-W4: Relationships</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./1_05_formative_report_a.html" rel="" target="">
+ <span class="dropdown-text">S1-W5: Formative Report A</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./1_07_prob_theory.html" rel="" target="">
+ <span class="dropdown-text">S1-W7: Probability Theory</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./1_08_prob_rules.html" rel="" target="">
+ <span class="dropdown-text">S1-W8: Probability Rules</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./1_09_discrete_dist.html" rel="" target="">
+ <span class="dropdown-text">S1-W9: Discrete Random Variables</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./1_10_cont_dist.html" rel="" target="">
+ <span class="dropdown-text">S1-W10: Continuous Random Variables</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./1_11_sampling.html" rel="" target="">
+ <span class="dropdown-text">S1-W11: Sampling</span></a>
+  </li>  
+    </ul>
+</li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-semester-2" role="button" data-bs-toggle="dropdown" aria-expanded="false" rel="" target="">
+ <span class="menu-text">Semester 2</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-semester-2">
+<li>
+    <a class="dropdown-item" href="./2_01_confint.html" rel="" target="">
+ <span class="dropdown-text">S2-W1: Confidence intervals</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./2_02_ht_pvalues.html" rel="" target="">
+ <span class="dropdown-text">S2-W2: HT (p-values)</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./2_03_ht_critvalues.html" rel="" target="">
+ <span class="dropdown-text">S2-W3: HT (critical values)</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./2_04_htci.html" rel="" target="">
+ <span class="dropdown-text">S2-W4: Connecting HT and CIs</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./2_05_hterrorspower.html" rel="" target="">
+ <span class="dropdown-text">S2-W5: Errors, Power, Effect size, Assumptions</span></a>
+  </li>  
+    </ul>
+</li>
+</ul>
+<ul class="navbar-nav navbar-nav-scroll ms-auto">
+<li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-readings---sem.-1" role="button" data-bs-toggle="dropdown" aria-expanded="false" rel="" target="">
+ <span class="menu-text">Readings - Sem. 1</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-readings---sem.-1">
+<li>
+    <a class="dropdown-item" href="./rd1_01.html" rel="" target="">
+ <span class="dropdown-text">S1-W1: Getting started with R and RStudio</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./rd1_02.html" rel="" target="">
+ <span class="dropdown-text">S1-W2: Categorical data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./rd1_03.html" rel="" target="">
+ <span class="dropdown-text">S1-W3: Numeric data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./rd1_04.html" rel="" target="">
+ <span class="dropdown-text">S1-W4: Relationships</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./rd1_05.html" rel="" target="">
+ <span class="dropdown-text">S1-W5: Functions</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./rd1_07.html" rel="" target="">
+ <span class="dropdown-text">S1-W7: Probability 1</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./rd1_08.html" rel="" target="">
+ <span class="dropdown-text">S1-W8: Probability 2</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./rd1_09.html" rel="" target="">
+ <span class="dropdown-text">S1-W9: Discrete random variables</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./rd1_10.html" rel="" target="">
+ <span class="dropdown-text">S1-W10: Continuous random variables</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./rd1_11.html" rel="" target="">
+ <span class="dropdown-text">S1-W11: Sampling</span></a>
+  </li>  
+    </ul>
+</li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-readings---sem.-2" role="button" data-bs-toggle="dropdown" aria-expanded="false" rel="" target="">
+ <span class="menu-text">Readings - Sem. 2</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-readings---sem.-2">
+<li>
+    <a class="dropdown-item" href="./rd2_01.html" rel="" target="">
+ <span class="dropdown-text">S2-W1: Confidence intervals</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./rd2_02.html" rel="" target="">
+ <span class="dropdown-text">S2-W2: HT (p-values)</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./rd2_03.html" rel="" target="">
+ <span class="dropdown-text">S2-W3: HT (critical values)</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./rd2_04.html" rel="" target="">
+ <span class="dropdown-text">S2-W4: Connecting HT and CIs</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./rd2_05.html" rel="" target="">
+ <span class="dropdown-text">S2-W5: Errors, Power, Effect size, Assumptions</span></a>
+  </li>  
+    </ul>
+</li>
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html" rel="" target="">
+ <span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./about.html" rel="" target="">
+ <span class="menu-text">About</span></a>
+  </li>  
+</ul>
+<div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
+   
+  <ul>
+<li>
+<a href="#one-sample-t-test-procedure" id="toc-one-sample-t-test-procedure" class="nav-link active" data-scroll-target="#one-sample-t-test-procedure"><span class="header-section-number">1</span> One-sample t-test procedure</a>
+  <ul class="collapse">
+<li><a href="#null-hypothesis" id="toc-null-hypothesis" class="nav-link" data-scroll-target="#null-hypothesis"><span class="header-section-number">1.1</span> Null hypothesis</a></li>
+  <li><a href="#alternative-hypothesis" id="toc-alternative-hypothesis" class="nav-link" data-scroll-target="#alternative-hypothesis"><span class="header-section-number">1.2</span> Alternative hypothesis</a></li>
+  </ul>
+</li>
+  <li>
+<a href="#t-statistic" id="toc-t-statistic" class="nav-link" data-scroll-target="#t-statistic"><span class="header-section-number">2</span> t-statistic</a>
+  <ul class="collapse">
+<li><a href="#the-t-distribution" id="toc-the-t-distribution" class="nav-link" data-scroll-target="#the-t-distribution"><span class="header-section-number">2.1</span> The t-distribution</a></li>
+  </ul>
+</li>
+  <li><a href="#critical-values-and-significance" id="toc-critical-values-and-significance" class="nav-link" data-scroll-target="#critical-values-and-significance"><span class="header-section-number">3</span> Critical values and significance</a></li>
+  <li>
+<a href="#recap-and-moving-forward-body-temperature-data" id="toc-recap-and-moving-forward-body-temperature-data" class="nav-link" data-scroll-target="#recap-and-moving-forward-body-temperature-data"><span class="header-section-number">4</span> Recap and moving forward: Body Temperature data</a>
+  <ul class="collapse">
+<li><a href="#critical-t-value" id="toc-critical-t-value" class="nav-link" data-scroll-target="#critical-t-value"><span class="header-section-number">4.1</span> Critical t-value</a></li>
+  <li><a href="#p-value" id="toc-p-value" class="nav-link" data-scroll-target="#p-value"><span class="header-section-number">4.2</span> P-value</a></li>
+  <li><a href="#calculating-a-one-sample-t-test-with-one-function" id="toc-calculating-a-one-sample-t-test-with-one-function" class="nav-link" data-scroll-target="#calculating-a-one-sample-t-test-with-one-function"><span class="header-section-number">4.3</span> Calculating a one-sample t-test with one function</a></li>
+  </ul>
+</li>
+  <li><a href="#assumptions" id="toc-assumptions" class="nav-link" data-scroll-target="#assumptions"><span class="header-section-number">5</span> Assumptions</a></li>
+  <li>
+<a href="#worked-example" id="toc-worked-example" class="nav-link" data-scroll-target="#worked-example"><span class="header-section-number">6</span> Worked example</a>
+  <ul class="collapse">
+<li><a href="#pets-weights" id="toc-pets-weights" class="nav-link" data-scroll-target="#pets-weights"><span class="header-section-number">6.1</span> Pets’ weights</a></li>
+  <li><a href="#cat-weights" id="toc-cat-weights" class="nav-link" data-scroll-target="#cat-weights"><span class="header-section-number">6.2</span> Cat weights!</a></li>
+  </ul>
+</li>
+  <li><a href="#glossary" id="toc-glossary" class="nav-link" data-scroll-target="#glossary"><span class="header-section-number">7</span> Glossary</a></li>
+  </ul></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
+<h1 class="title">One sample t-test</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header><p>A one-sample t-test is a statistical procedure to test whether or not the mean of a population (<span class="math inline">\(\mu\)</span>) is equal to some hypothesised value (<span class="math inline">\(\mu_0\)</span>). Examples when you would use a one-sample t-test include:</p>
+<ul>
+<li>Is the average weight of a dog greater than 20kg?<br>
+</li>
+<li>Is the mean body temperature not equal to 37 °C?<br>
+</li>
+<li>On the Beck Depression Inventory (BDI), a score of &gt;25 is considered clinical diagnosis of depression. Is the average score of our population of interest (for instance, people with a specific disease) significantly above this cutoff?</li>
+</ul>
+<section id="one-sample-t-test-procedure" class="level2" data-number="1"><h2 data-number="1" class="anchored" data-anchor-id="one-sample-t-test-procedure">
+<span class="header-section-number">1</span> One-sample t-test procedure</h2>
+<section id="null-hypothesis" class="level3" data-number="1.1"><h3 data-number="1.1" class="anchored" data-anchor-id="null-hypothesis">
+<span class="header-section-number">1.1</span> Null hypothesis</h3>
+<p>A one-sample t-test always has the null hypothesis:</p>
+<p><span class="math display">\[ H_0: \mu = \mu_0 \]</span></p>
+<p>I.e. the population mean is equal to some hypothesised value, <span class="math inline">\(\mu_0\)</span>.</p>
+</section><section id="alternative-hypothesis" class="level3" data-number="1.2"><h3 data-number="1.2" class="anchored" data-anchor-id="alternative-hypothesis">
+<span class="header-section-number">1.2</span> Alternative hypothesis</h3>
+<p>The alternative hypotheses can be two-sided, or one-sided (left-tailed or right-tailed).</p>
+<ul>
+<li>
+<strong>Two-sided/Two-tailed:</strong> <span class="math inline">\(H_1 : \mu \neq \mu_0\)</span><br>
+(population mean is not equal to some hypothesised value <span class="math inline">\(\mu_0\)</span>)<br>
+</li>
+<li>
+<strong>Left-sided/Left-tailed:</strong> <span class="math inline">\(H_1 : \mu &lt; \mu_0\)</span><br>
+(population mean is less than some hypothesised value <span class="math inline">\(\mu_0\)</span>)<br>
+</li>
+<li>
+<strong>Right-sided/Right-tailed:</strong> <span class="math inline">\(H_1 : \mu &gt; \mu_0\)</span><br>
+(population mean is greater than some hypothesised value <span class="math inline">\(\mu_0\)</span>)</li>
+</ul></section></section><section id="t-statistic" class="level2" data-number="2"><h2 data-number="2" class="anchored" data-anchor-id="t-statistic">
+<span class="header-section-number">2</span> t-statistic</h2>
+<p>The test statistic is the t-statistic:</p>
+<p><span class="math display">\[t = \frac{\bar{x} - \mu_0}{s/\sqrt{n}} \]</span></p>
+<p>where</p>
+<ul>
+<li>
+<span class="math inline">\(\bar{x}\)</span> = sample mean</li>
+<li>
+<span class="math inline">\(\mu_0\)</span> = hypothesised value</li>
+<li>
+<span class="math inline">\(s\)</span> = standard deviation of the sample</li>
+<li>
+<span class="math inline">\(n\)</span> = sample size</li>
+</ul>
+<p>As we have produced a sample, we are using the sample statistics to estimate the population parameters. When the population standard deviation (<span class="math inline">\(\sigma\)</span>) is <em>unknown</em>, we estimate it using the sample standard deviation (<span class="math inline">\(s\)</span>).</p>
+<section id="the-t-distribution" class="level3" data-number="2.1"><h3 data-number="2.1" class="anchored" data-anchor-id="the-t-distribution">
+<span class="header-section-number">2.1</span> The t-distribution</h3>
+<p>The t-distribution is a family of distributions that look almost identical to the standard normal distribution. The t-distribution is very important when working with small sample sizes, e.g.&nbsp;<span class="math inline">\(n &lt; 30\)</span>. As the sample size increases, the more the t-distribution will look like the standard normal distribution.</p>
+<p>The particular shape of the t-distribution is determined by the <strong>degrees of freedom</strong>, or df in short. You can see the <span class="math inline">\(t\)</span>-distribution for different degrees of freedom below.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure"><p><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Student_t_pdf.svg/1024px-Student_t_pdf.svg.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<figcaption class="figure-caption">The t-distribution. (Source: https://en.wikipedia.org/wiki/Student%27s_t-distribution)</figcaption></figure>
+</div>
+</div>
+</div>
+<p>Notice that as the degrees of freedom (<span class="math inline">\(\nu\)</span> in the plot below) gets bigger (so as <span class="math inline">\(n\)</span> gets bigger), the more the <span class="math inline">\(t\)</span>-distribution fits a normal distribution.</p>
+<div class="callout callout-style-simple callout-note callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Optional: If you want to know more about degrees of freedom
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Degrees of freedom are the number of independent observations in a set of data. When we are estimating a mean from a single sample, the degrees of freedom is equal to the sample size minus one (<span class="math inline">\(n-1\)</span>).</p>
+<p>This means that the sampling distribution of <span class="math inline">\(t\)</span>-statistics from samples of size 10, would follow a <span class="math inline">\(t\)</span>-distribution with <span class="math inline">\(10-1\)</span> degrees of freedom.</p>
+<p><strong>Why do we subtract 1 from the number of observations?</strong><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<p>Degrees of freedom can alternatively be seen as the number of values that are free to vary in a data set. For example, if we have 3 sets of numbers which have a mean of 10:</p>
+<ul>
+<li>
+<span class="math inline">\(a\)</span>: {9,10,11}</li>
+<li>
+<span class="math inline">\(b\)</span>: {8,10,12}</li>
+<li>
+<span class="math inline">\(c\)</span>: {5,10,15}</li>
+</ul>
+<p>Once you have chosen the first two numbers in the set, the third number is fixed. I.e. you cannot choose the third item in the set. If you choose set <span class="math inline">\(a\)</span>, once you’ve chosen numbers 9 and 10, the next number <strong>must</strong> be 11 in order to get a mean of 10. The only numbers that are free to vary are the first two, thus the degrees of freedom for a set of three numbers, is two.</p>
+</div>
+</div>
+</div>
+</section></section><section id="critical-values-and-significance" class="level2" data-number="3"><h2 data-number="3" class="anchored" data-anchor-id="critical-values-and-significance">
+<span class="header-section-number">3</span> Critical values and significance</h2>
+<p>In order to test the significance of a given <span class="math inline">\(t\)</span>-statistic, we need to assess the probability of obtaining our <span class="math inline">\(t\)</span>-statistic (or one at least as extreme) against a <span class="math inline">\(t\)</span>-distribution with degrees of freedom <span class="math inline">\(n-1\)</span>.</p>
+<p>We can do this in <code>R</code> using the <code><a href="https://rdrr.io/r/stats/TDist.html">pt()</a></code> function with <code>pt(x, df)</code>.<br>
+Remember that we have used the function <code>pnorm(x, mean, sd)</code> to compute the area to the left of <code>x</code> in a normal curve centred at <code>mean</code> and having standard deviation <code>sd</code>.<br>
+Similarly, <code>pt(x, df)</code> computes the area to the left of <code>x</code> in a <span class="math inline">\(t\)</span>-distribution curve with degrees of freedom <code>df</code>.</p>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Question</strong>. Looking at the plot above, for a <span class="math inline">\(t\)</span>-distribution with degrees of freedom of 5 (the blue line), what proportion of the curve is to the left of -2?</p>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">pt</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, df <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.05096974</code></pre>
+</div>
+</div>
+<p>From this, we can say that assuming the null hypothesis to be true, the probability of obtaining a <span class="math inline">\(t\)</span>-statistic with 5 degrees of freedom of <span class="math inline">\(\leq -2\)</span> is 0.051.</p>
+<p>We can also find the critical values of a <span class="math inline">\(t\)</span>-distribution using the function <code>qt(p, df)</code>. This will return the values of <span class="math inline">\(t\)</span> for which <span class="math inline">\(p\)</span> of the distribution lies to the left.</p>
+<p>This way, we can find the values of <span class="math inline">\(t\)</span> at which we will reject the null hypothesis (for a given <span class="math inline">\(\alpha\)</span> level).</p>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Question</strong>. At what value of <span class="math inline">\(t\)</span> does 5% of the <span class="math inline">\(t\)</span>-distribution with 5 degrees of freedom lie to the left?</p>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">qt</a></span><span class="op">(</span><span class="fl">.05</span>, df <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -2.015048</code></pre>
+</div>
+</div>
+<p>If we perform a one-tailed test of <span class="math inline">\(\mu_1 &lt; \mu_{0}\)</span> on a sample of 6 (so our degrees of freedom is 5), we will reject the null hypothesis (<span class="math inline">\(\mu_1 = \mu_{0}\)</span>) if our corresponding <span class="math inline">\(t\)</span>-statistic is <span class="math inline">\(\leq -2.015\)</span>.</p>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Question</strong>. At what value<strong>s</strong> of <span class="math inline">\(t\)</span> do 5% of the <span class="math inline">\(t\)</span>-distribution with 5 degrees of freedom lie in either tail?</p>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">qt</a></span><span class="op">(</span><span class="fl">.025</span>, df <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -2.570582</code></pre>
+</div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">qt</a></span><span class="op">(</span><span class="fl">.975</span>, df <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 2.570582</code></pre>
+</div>
+</div>
+<p>Remember that the t-distribution is symmetric and centred on 0!</p>
+<p>If we perform a <em>two</em>-tailed test of <span class="math inline">\(\mu_1 \neq \mu_{0}\)</span> on a sample of 6, we will reject the null hypothesis (<span class="math inline">\(\mu_1 = \mu_{0}\)</span>) if the <strong>absolute magnitude</strong> of our corresponding <span class="math inline">\(t\)</span>-statistic is <span class="math inline">\(\geq 2.571\)</span>.</p>
+</section><section id="recap-and-moving-forward-body-temperature-data" class="level2" data-number="4"><h2 data-number="4" class="anchored" data-anchor-id="recap-and-moving-forward-body-temperature-data">
+<span class="header-section-number">4</span> Recap and moving forward: Body Temperature data</h2>
+<p>We will now recap the Body Temperature example, putting everything together. Recall the goal is to answer this question:</p>
+<blockquote class="blockquote">
+<p>Has the average body temperature for healthy humans changed from the long-thought 37 °C?</p>
+</blockquote>
+<p>Again, we will be using the data<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> comprising measurements on body temperature and pulse rate for a sample of <span class="math inline">\(n = 50\)</span> healthy subjects. The data are stored at the following address: <a href="https://uoepsy.github.io/data/BodyTemp.csv" class="uri">https://uoepsy.github.io/data/BodyTemp.csv</a></p>
+<p>For a one-sample t-test we are evaluating if the average body temperature is significantly different from the population mean of 37°C. It would be extremely time-consuming, costly (and near impossible) to take everyone’s body temperature. Instead, we might take a simple random sample of healthy humans and use the mean body temperature of this sample to estimate the true population mean.</p>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Simple random sampling (SRS)</strong></p>
+<p>Simple random sampling is a type of sampling technique. Sampling techniques are used by companies, researchers and individuals for a variety of reasons. Sampling strategies are useful when conducting surveys and answering questions about populations. There are many different methods researchers can use to obtain individuals to be in a sample. These are known as sampling methods.</p>
+<p>Simple random sampling is, unsurprisingly, the simplest form of probability sampling: every member in the population has an equal chance of being selected in the sample. Individuals are usually selected by a random number generator or some other mean of random sampling.</p>
+<p>The biggest benefit of SRS is it removes bias, as everyone has an equal chance of being selected. Furthermore, the sample is representative of the population.</p>
+</div>
+</div>
+</div>
+<p>First, we need to write the null and alternative hypotheses.</p>
+<p><span class="math display">\[H_0 : \mu = 37 °C\]</span> <span class="math display">\[H_1 : \mu \neq 37 °C\]</span></p>
+<p>Next, we read the data into R and calculate the average body temperature (sample statistic) of the sample group.</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
+<span><span class="va">temp_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_csv</a></span><span class="op">(</span><span class="st">'https://uoepsy.github.io/data/BodyTemp.csv'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">temp_data</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 50  2</code></pre>
+</div>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">temp_data</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 2
+  BodyTemp Pulse
+     &lt;dbl&gt; &lt;dbl&gt;
+1     36.4    69
+2     37.4    77
+3     37.2    75
+4     37.1    84
+5     36.7    71
+6     37.2    76</code></pre>
+</div>
+</div>
+<p>We have measurements of the body temperature (in Celsius) and pulse rate for a sample of 50 healthy individuals.</p>
+<p>The average body temperature in the sample is:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">xbar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">temp_data</span><span class="op">$</span><span class="va">BodyTemp</span><span class="op">)</span></span>
+<span><span class="va">xbar</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 36.81111</code></pre>
+</div>
+</div>
+<p>Do we know the population standard deviation (<span class="math inline">\(\sigma\)</span>)? That is, do we know the standard deviation of body temperate of <em>all</em> healthy individuals?</p>
+<p>No, so we estimate it with the sample standard deviation (<span class="math inline">\(s\)</span>).</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">temp_data</span><span class="op">$</span><span class="va">BodyTemp</span><span class="op">)</span></span>
+<span><span class="va">s</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.4251776</code></pre>
+</div>
+</div>
+<p>We also know that:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">temp_data</span><span class="op">)</span></span>
+<span><span class="va">n</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 50</code></pre>
+</div>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">mu0</span> <span class="op">&lt;-</span> <span class="fl">37</span></span>
+<span><span class="va">mu0</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 37</code></pre>
+</div>
+</div>
+<p>Now, we have all the data to perform the t-test. Insert our values into the t-statistic formula, defined to be:</p>
+<p><span class="math display">\[
+t  = \ \frac{\bar{x} - \mu_0}{s/\sqrt{n}}
+\]</span></p>
+<p>And to calculate, we can use R as a calculator:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">t_obs</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">xbar</span> <span class="op">-</span> <span class="va">mu0</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">s</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">t_obs</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -3.141384</code></pre>
+</div>
+</div>
+<div class="callout callout-style-simple callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Warning!
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Note that you should only round your numbers at the very end of calculations!</p>
+</div>
+</div>
+<p>Going back to the start, we can use our skills with <code><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise()</a></code> to calculate all the terms we need for our <span class="math inline">\(t\)</span>-statistic:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">terms</span> <span class="op">&lt;-</span> <span class="va">temp_data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span></span>
+<span>    xbar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">BodyTemp</span><span class="op">)</span>,</span>
+<span>    s <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">BodyTemp</span><span class="op">)</span>,</span>
+<span>    mu0 <span class="op">=</span> <span class="fl">37</span>,</span>
+<span>    n <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="va">terms</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 4
+   xbar     s   mu0     n
+  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+1  36.8 0.425    37    50</code></pre>
+</div>
+</div>
+<p>And then we can plug in these numbers to our equation.</p>
+<section id="critical-t-value" class="level3" data-number="4.1"><h3 data-number="4.1" class="anchored" data-anchor-id="critical-t-value">
+<span class="header-section-number">4.1</span> Critical t-value</h3>
+<p>Using the <code><a href="https://rdrr.io/r/stats/TDist.html">qt()</a></code> function, calculate the critical value for <span class="math inline">\(\alpha\)</span> = 0.05. This is the smallest <em>absolute</em> value of <span class="math inline">\(t\)</span> at which you will reject the null hypothesis.</p>
+<ul>
+<li>You’ll need to work out the degrees of freedom<br>
+</li>
+<li>You’ll also need to think about whether we are performing a two-tailed test or a one-tailed test. If a two-tailed test, then remember that the <span class="math inline">\(\alpha\)</span> is split between the two tails (and so we would reject anything in the most extreme 2.5%)</li>
+</ul>
+<p>The degrees of freedom are <span class="math inline">\(n-1 = 50-1 = 49\)</span></p>
+<p>We’re performing a two-tailed test as we do not know if the mean body temperature will be below or above the stipulated 37°C. So we will reject a <span class="math inline">\(t\)</span>-statistic which falls in the upper or lower 2.5% of the distribution.</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">qt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.025</span>, <span class="fl">0.975</span><span class="op">)</span>, df <span class="op">=</span> <span class="fl">49</span><span class="op">)</span> <span class="co"># 2.5% in the lower and upper tails. </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -2.009575  2.009575</code></pre>
+</div>
+</div>
+<p>We will reject a <span class="math inline">\(t\)</span>-statistic which is less than -2.009575 or greater than 2.009575.</p>
+</section><section id="p-value" class="level3" data-number="4.2"><h3 data-number="4.2" class="anchored" data-anchor-id="p-value">
+<span class="header-section-number">4.2</span> P-value</h3>
+<p>We have our observed <span class="math inline">\(t\)</span>-statistic of -3.14. We know that this is more extreme than the critical value of -2.009575.</p>
+<p>What is the probability of obtaining a <span class="math inline">\(t\)</span>-statistic at least as extreme as -3.14, assuming the null hypothesis to be true? In other words, what is the p-value?</p>
+<p>Because our alternative hypothesis is two-tailed, we will reject the null hypothesis for extreme <span class="math inline">\(t\)</span>-statistics <em>in either direction</em>. So we are calculating the probability of observing a value at least as extreme in either direction, and must multiply the one tail by 2.</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">pt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">t_obs</span><span class="op">)</span>, df <span class="op">=</span> <span class="fl">50</span><span class="op">-</span><span class="fl">1</span>, lower.tail <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.002850509</code></pre>
+</div>
+</div>
+<p>And so, the probability of observing a value as extreme as -3.14 is 0.003 (i.e.&nbsp;very low!). Therefore, we have enough evidence to reject the null hypothesis and conclude that the mean body temperature of healthy adults is significantly lower than the long-held value of 37°C.</p>
+</section><section id="calculating-a-one-sample-t-test-with-one-function" class="level3" data-number="4.3"><h3 data-number="4.3" class="anchored" data-anchor-id="calculating-a-one-sample-t-test-with-one-function">
+<span class="header-section-number">4.3</span> Calculating a one-sample t-test with one function</h3>
+<p>Now that we’ve gone through all that, you’ll be happy to know that we can do all of what we just did above (and more!) using just one simple function in <code>R</code>, called <code><a href="https://rdrr.io/r/stats/t.test.html">t.test()</a></code>.</p>
+<p>The <code><a href="https://rdrr.io/r/stats/t.test.html">t.test()</a></code> function takes several arguments, but for the current purposes, we are interested in <code>t.test(x, mu, alternative, conf.level)</code>.</p>
+<ul>
+<li>
+<code>x</code> is the data<br>
+</li>
+<li>
+<code>mu</code> is the hypothesized value of the mean in <span class="math inline">\(H_0\)</span><br>
+</li>
+<li>
+<code>alternative</code> is either <code>"two.sided"</code> (default), <code>"less"</code>, or <code>"greater"</code>, and specifies the direction of the alternative hypothesis.</li>
+<li>
+<code>conf.level</code> confidence level of the interval. By default, this is 0.95 but you can change it to be for example 0.90 or 0.99.</li>
+</ul>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/t.test.html">t.test</a></span><span class="op">(</span><span class="va">temp_data</span><span class="op">$</span><span class="va">BodyTemp</span>, mu <span class="op">=</span> <span class="fl">37</span>, alternative <span class="op">=</span> <span class="st">"two.sided"</span><span class="op">)</span></span>
+<span><span class="va">result</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    One Sample t-test
+
+data:  temp_data$BodyTemp
+t = -3.1414, df = 49, p-value = 0.002851
+alternative hypothesis: true mean is not equal to 37
+95 percent confidence interval:
+ 36.69028 36.93195
+sample estimates:
+mean of x 
+ 36.81111 </code></pre>
+</div>
+</div>
+<p>As we can see, the output of the t.test gives us our t-value (-3.14), our degrees of freedom (df = 49), our p-value (0.002851). It also provides us with 95% CIs of the population mean and the mean of our sample body temp (36.81). It looks like everything matches up with our calculations above!</p>
+</section></section><section id="assumptions" class="level2" data-number="5"><h2 data-number="5" class="anchored" data-anchor-id="assumptions">
+<span class="header-section-number">5</span> Assumptions</h2>
+<p>One last important thing to note is that when we perform a one sample mean tests, we assume a few basic things:</p>
+<ol type="1">
+<li>The data are continuous;</li>
+<li>The data are independent;</li>
+<li>The data are normally distributed <strong>OR</strong> the sample size is large enough (rule-of-thumb <span class="math inline">\(n \geq 30 30\)</span>) and the data are not strongly skewed;</li>
+</ol>
+<p>If any of these assumptions are not met, the results of the test are unreliable.</p>
+<p>To check the assumptions: 1) The dependent variable should be measured at the interval or ratio level 2) Data is independent (i.e., not correlated/related), which means that there is no relationship between the observations. This is more of a study design issue than something you can test for, but it is an important assumption of the one-sample t-test. 3) Can be checked visually with plots:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">temp_data</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">BodyTemp</span><span class="op">)</span><span class="op">)</span><span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html">geom_histogram</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title<span class="op">=</span><span class="st">"Histogram"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure"><p><img src="rd2_06_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">temp_data</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">BodyTemp</span><span class="op">)</span><span class="op">)</span><span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html">geom_density</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title<span class="op">=</span><span class="st">"Density plot"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure"><p><img src="rd2_06_files/figure-html/unnamed-chunk-15-2.png" class="img-fluid figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can also use a plot called a <strong>QQplot (Quantile-Quantile plot)</strong>, which orders the data and plots it against the equivalent quantile of the normal distribution:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">temp_data</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>sample <span class="op">=</span> <span class="va">BodyTemp</span><span class="op">)</span><span class="op">)</span><span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_qq.html">geom_qq</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_qq.html">geom_qq_line</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title<span class="op">=</span><span class="st">"QQ-plot"</span>, </span>
+<span>       subtitle<span class="op">=</span><span class="st">"The closer the data fit to the line the more normally distributed they are."</span>,</span>
+<span>       x <span class="op">=</span> <span class="st">"Theoretical quantiles"</span>,</span>
+<span>       y <span class="op">=</span> <span class="st">"Sample quantiles"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure"><p><img src="rd2_06_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can also conduct a formal hypothesis test for normality, such as the <strong>Shapiro-Wilk</strong> test.</p>
+<p>The null hypothesis of the Shapiro-Wilk test is that the sample came from a population that is normally distributed.<br>
+The alternative hypothesis is that the sample came from a population that is <em>not</em> normally distributed.</p>
+<p>The test returns a test statistic <span class="math inline">\(W\)</span>, and a p-value <span class="math inline">\(p\)</span>. The <span class="math inline">\(W\)</span> test statistic is slightly complex to compute by hand, so we will use R to compute it for us. The test statistic <span class="math inline">\(W\)</span> measures how much the sample data depart from normality (the null hypothesis).</p>
+<p>The p-value corresponds to the probability of observing data of this shape of distribution, assuming the data are drawn from a normally distributed population (i.e., assuming the null hypothesis to be true).</p>
+<p>In R:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/shapiro.test.html">shapiro.test</a></span><span class="op">(</span><span class="va">temp_data</span><span class="op">$</span><span class="va">BodyTemp</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Shapiro-Wilk normality test
+
+data:  temp_data$BodyTemp
+W = 0.97322, p-value = 0.3115</code></pre>
+</div>
+</div>
+<p>The p-value here is 0.31, which is greater than <span class="math inline">\(\alpha = 0.05\)</span>. We therefore fail to reject the null hypothesis of the Shapiro-Wilk test that the sample came from a population that is normally distributed.</p>
+<p>So our assumption for the one sample mean test holds!</p>
+</section><section id="worked-example" class="level2" data-number="6"><h2 data-number="6" class="anchored" data-anchor-id="worked-example">
+<span class="header-section-number">6</span> Worked example</h2>
+<section id="pets-weights" class="level3" data-number="6.1"><h3 data-number="6.1" class="anchored" data-anchor-id="pets-weights">
+<span class="header-section-number">6.1</span> Pets’ weights</h3>
+<p>Data for a sample of 2000 licensed pets from the city of Seattle, USA, can be found at the following url: <a href="https://uoepsy.github.io/data/seattlepets.csv">https://uoepsy.github.io/data/seattlepets.csv</a>.<br>
+It contains information on the license numbers, issue date and zip-code, as well as data on the species, breeds and weights (in kg) of each pet.<br>
+We are interested in whether the average weight of a Seattle dog is greater than 20kg.</p>
+<p><strong>Definition of null and alternative hypotheses</strong></p>
+<p>Let <span class="math inline">\(\mu\)</span> denote the mean weight (in kg) of <em>all</em> dogs in Seattle. We wish to test:</p>
+<p><span class="math display">\[H_0: \mu = 20\]</span> <span class="math display">\[H_1: \mu &gt; 20\]</span></p>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Question</strong></p>
+<ul>
+<li>Read the data into R.</li>
+<li>Use <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> to have a look at your data.</li>
+<li>Which variables are you going to need for our analysis?<br>
+</li>
+<li>Does anything jump out as relevant?</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">pets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_csv</a></span><span class="op">(</span><span class="st">"https://uoepsy.github.io/data/seattlepets.csv"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">pets</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> license_issue_date license_number     animals_name         species         
+ Length:2000        Length:2000        Length:2000        Length:2000       
+ Class :character   Class :character   Class :character   Class :character  
+ Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+                                                                            
+                                                                            
+                                                                            
+                                                                            
+ primary_breed      secondary_breed      zip_code           weight_kg       
+ Length:2000        Length:2000        Length:2000        Min.   :  0.3941  
+ Class :character   Class :character   Class :character   1st Qu.:  4.6970  
+ Mode  :character   Mode  :character   Mode  :character   Median : 16.3954  
+                                                          Mean   : 15.2411  
+                                                          3rd Qu.: 22.4816  
+                                                          Max.   :103.4838  
+                                                          NA's   :15        </code></pre>
+</div>
+</div>
+<p>We’re going to need the <code>weight_kg</code> variable. Notice that there are some missing values (you can see that there are 15 NA’s). We will need to decide what to do with them.</p>
+<p>Also, there are some cats in our data as well as the dogs which we are interested in. There are even a couple of goats! We will want to get rid of them..</p>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Question</strong>. Create a new dataset and call it dogs, which only has the dogs in it.</p>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dogs</span> <span class="op">&lt;-</span> <span class="va">pets</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">species</span> <span class="op">==</span> <span class="st">"Dog"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Question</strong>. Remove the rows having a missing weight.</p>
+</div>
+</div>
+</div>
+<p>There are two <strong>completely equivalent options</strong>. Pick only one of these two options to remove the missing entries, as both will achieve the same goal.</p>
+<p><strong>Option 1:</strong></p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dogs</span> <span class="op">&lt;-</span> <span class="va">dogs</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/drop_na.html">drop_na</a></span><span class="op">(</span><span class="va">weight_kg</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>Option 2:</strong></p>
+<p>Look at the help documentation for <code>is.na</code> (search in the bottom right window of RStudio, or type <code><a href="https://rdrr.io/r/base/NA.html">?is.na</a></code>)</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dogs</span> <span class="op">&lt;-</span> <span class="va">dogs</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">weight_kg</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>It takes the <code>dogs</code> dataset, and it filters so that it will keep any rows where <code>!is.na(weight_kg)</code> is TRUE.</p>
+<p>The <code>is.na(weight_kg)</code> will be TRUE wherever <code>weight_kg</code> is an NA and FALSE otherwise.</p>
+<p>The <code>!</code> before it flips the TRUEs and FALSEs, so that we have TRUE wherever <code>weight_kg</code> is a value other than <code>NA</code>, and FALSE if it <em>is</em> <code>NA</code>.</p>
+<p>You can read it as “keep all rows where there isn’t an NA in the weight_kg variable”.</p>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Question</strong>. Using <code><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise()</a></code>, calculate <span class="math inline">\(\bar{x}\)</span>, <span class="math inline">\(s\)</span> and <span class="math inline">\(n\)</span>.</p>
+<p>What is <span class="math inline">\(\mu_{0}\)</span>, and what are our degrees of freedom (<span class="math inline">\(df\)</span>)?</p>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dogstats</span> <span class="op">&lt;-</span> <span class="va">dogs</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span></span>
+<span>    xbar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">weight_kg</span><span class="op">)</span>,</span>
+<span>    s <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">weight_kg</span><span class="op">)</span>,</span>
+<span>    n <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="va">dogstats</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 3
+   xbar     s     n
+  &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+1  20.4  6.23  1333</code></pre>
+</div>
+</div>
+<p><span class="math inline">\(\mu_{0}\)</span> is 20kg, and our degrees of freedom is <span class="math inline">\(n-1\)</span>, which is <span class="math inline">\(1333-1 = 1332\)</span>.</p>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Question</strong>. Calculate the standardised statistic <span class="math inline">\(t\)</span>, using <code>$</code> to access the numbers you just calculated above.</p>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">t_obs</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">dogstats</span><span class="op">$</span><span class="va">xbar</span> <span class="op">-</span> <span class="fl">20</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">dogstats</span><span class="op">$</span><span class="va">s</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="va">dogstats</span><span class="op">$</span><span class="va">n</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">t_obs</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 2.202048</code></pre>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Question.</strong> Calculate the p-value using <code><a href="https://rdrr.io/r/stats/TDist.html">pt()</a></code>.</p>
+<ul>
+<li>Our degrees of freedom are <span class="math inline">\(n-1\)</span><br>
+</li>
+<li>Remember that the total area under a probability curve is equal to 1. <code><a href="https://rdrr.io/r/stats/TDist.html">pt()</a></code> gives us the area to the <em>left</em>, but we want the area in the smaller tail (if <span class="math inline">\(\bar{x}\)</span> is greater than <span class="math inline">\(\mu_{0}\)</span>, we want the area to the <em>right</em> of <span class="math inline">\(t_{obs}\)</span>.</li>
+<li>Is our hypothesis one- or two-sided? If it is two-sided, what do we need to do to get our p-value?<br>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<p>Our sample statistic (<span class="math inline">\(\bar{x}\)</span> = 20.38kg) is greater than the hypothesised mean (<span class="math inline">\(\mu_{0}\)</span> = 20kg), so we want the area to the <em>right</em>.</p>
+<p><em><strong>Reminder:</strong> For a probability distribution, the area under the curve to the right of x is 1 minus the area to the left. This is equivalent to saying that the probability of observing a value greater than x is 1 minus the probability of observing a value less than x.</em></p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">p_righttail</span> <span class="op">=</span> <span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">pt</a></span><span class="op">(</span><span class="va">t_obs</span>, df <span class="op">=</span> <span class="fl">1332</span><span class="op">)</span></span>
+<span><span class="va">p_righttail</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.01391638</code></pre>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Question</strong>. Finally, use the <code><a href="https://rdrr.io/r/stats/t.test.html">t.test()</a></code> function.<br>
+Check that the results match the ones you just calculated.</p>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/t.test.html">t.test</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dogs</span><span class="op">$</span><span class="va">weight_kg</span>, mu <span class="op">=</span> <span class="fl">20</span>, alternative <span class="op">=</span> <span class="st">"greater"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    One Sample t-test
+
+data:  dogs$weight_kg
+t = 2.202, df = 1332, p-value = 0.01392
+alternative hypothesis: true mean is greater than 20
+95 percent confidence interval:
+ 20.09496      Inf
+sample estimates:
+mean of x 
+ 20.37604 </code></pre>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Question</strong>. Compute the effect size</p>
+<ul>
+<li>by hand;</li>
+<li>and by using the <code><a href="https://easystats.github.io/effectsize/reference/cohens_d.html">cohens_d()</a></code> function from the <code>effectsize</code> package that was shown in the lectures.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">D</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">dogstats</span><span class="op">$</span><span class="va">xbar</span> <span class="op">-</span> <span class="fl">20</span><span class="op">)</span> <span class="op">/</span> <span class="va">dogstats</span><span class="op">$</span><span class="va">s</span></span>
+<span><span class="va">D</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.06031312</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://easystats.github.io/effectsize/">effectsize</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://easystats.github.io/effectsize/reference/cohens_d.html">cohens_d</a></span><span class="op">(</span><span class="va">dogs</span><span class="op">$</span><span class="va">weight_kg</span>, mu <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Cohen's d |       95% CI
+------------------------
+0.06      | [0.01, 0.11]
+
+- Deviation from a difference of 20.</code></pre>
+</div>
+</div>
+<p>As you can see, we have a Cohen’D of 0.06, which indicates a small/negligible effect size.</p>
+</section><section id="cat-weights" class="level3" data-number="6.2"><h3 data-number="6.2" class="anchored" data-anchor-id="cat-weights">
+<span class="header-section-number">6.2</span> Cat weights!</h3>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Question</strong>. <em><strong>Without looking</strong> at the data</em> (and without googling either), do you think that the average weight of a pet cat is more than/less than/equal to 4.5kg?</p>
+<p>Write out your null and alternative hypotheses, and conduct the appropriate test. If the result is significant, don’t forget to compute the effect size.</p>
+</div>
+</div>
+</div>
+<p>My own hypotheses are the following. Perhaps yours are different if your belief is that they weigh less than 4.5kg.</p>
+<p><span class="math display">\[H_0 : \mu = 4.5\]</span> <span class="math display">\[H_1 : \mu &gt; 4.5\]</span></p>
+<p>The data:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cats</span> <span class="op">&lt;-</span> <span class="va">pets</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">species</span> <span class="op">==</span> <span class="st">"Cat"</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">weight_kg</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Shapiro-Wilk normality test:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/shapiro.test.html">shapiro.test</a></span><span class="op">(</span><span class="va">cats</span><span class="op">$</span><span class="va">weight_kg</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Shapiro-Wilk normality test
+
+data:  cats$weight_kg
+W = 0.99825, p-value = 0.7611</code></pre>
+</div>
+</div>
+<p>QQ-plot:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/qqnorm.html">qqnorm</a></span><span class="op">(</span><span class="va">cats</span><span class="op">$</span><span class="va">weight_kg</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure"><p><img src="rd2_06_files/figure-html/unnamed-chunk-30-1.png" class="img-fluid figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Perform the t-test:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/t.test.html">t.test</a></span><span class="op">(</span><span class="va">cats</span><span class="op">$</span><span class="va">weight_kg</span>, mu<span class="op">=</span><span class="fl">4.5</span>, alternative<span class="op">=</span><span class="st">"greater"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    One Sample t-test
+
+data:  cats$weight_kg
+t = -1.2444, df = 649, p-value = 0.8931
+alternative hypothesis: true mean is greater than 4.5
+95 percent confidence interval:
+ 4.463972      Inf
+sample estimates:
+mean of x 
+ 4.484496 </code></pre>
+</div>
+</div>
+</section></section><section id="glossary" class="level2" data-number="7"><h2 data-number="7" class="anchored" data-anchor-id="glossary">
+<span class="header-section-number">7</span> Glossary</h2>
+<ul>
+<li>
+<em>Population.</em> The entire collection of units of interest.</li>
+<li>
+<em>Sample.</em> A subset of the entire population.</li>
+<li>
+<em>Degrees of freedom.</em> number of independent observations in a set of data, (<span class="math inline">\(n-1\)</span>)</li>
+<li>
+<em>Simple random sample (SRS).</em> Every member of a population has an equal chance of being selected to be in the sample.</li>
+<li>
+<em>Assumptions</em> Requirements of the data in order to ensure that our test is appropriate. Violation of assumptions changes the conclusion of the research and interpretation of the results.</li>
+<li>
+<em>Shapiro-Wilks</em> Tests whether sample is drawn from a population which is normally distributed.<br>
+</li>
+<li>
+<em>QQplot/Quantile-Quantile plot</em> Displays the theoretical quantiles of a normal distribution against the sample quantiles. If the data points fall on the diagonal line, the sample is normally distributed.</li>
+</ul>
+
+
+</section><div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+<ol>
+<li id="fn1"><p>https://www.statisticshowto.com/probability-and-statistics/hypothesis-testing/degrees-of-freedom/<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Shoemaker, A. L. (1996). <em>What’s Normal: Temperature, Gender and Heartrate. Journal of Statistics Education, 4</em>(2), 4.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol></section></div></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  let localAlternateSentinel = 'default';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+<footer class="footer"><div class="nav-footer">
+    <div class="nav-footer-left">© Copyright 2019-2023 <a href="https://www.ed.ac.uk/">The University of Edinburgh</a>. Site licensed under the <a href="https://www.gnu.org/licenses/agpl-3.0.en.html">GNU AGPLv3</a> license.</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+</body></html>

@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.2.313">
+<meta name="generator" content="quarto-1.3.361">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>DAPR1 - Hypothesis testing: p-values</title>
 <style>
@@ -14,9 +14,10 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
   width: 0.8em;
-  margin: 0 0.8em 0.2em -1.6em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
@@ -43,43 +44,13 @@ pre.numberSource code > span > a:first-child::before
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
     padding: 0 4px; width: 4em;
-    color: #aaaaaa;
   }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
 div.sourceCode
   {   }
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -117,7 +88,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
     "search-detached-cancel-button-title": "Cancel",
-    "search-submit-button-title": "Submit"
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
   }
 }</script><script>
 function toggle_visibility(id1, id2) {
@@ -132,7 +104,7 @@ if(f.classList.contains('fa-chevron-circle-right')) {
     f.classList.remove('fa-chevron-circle-down')
 }
 }
-</script><script src="https://kit.fontawesome.com/120b08a6f5.js" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script><link rel="stylesheet" href="assets/styles.css">
+</script><script src="https://kit.fontawesome.com/120b08a6f5.js" crossorigin="anonymous"></script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script><link rel="stylesheet" href="assets/styles.css">
 </head>
 <body class="nav-fixed">
 
@@ -143,81 +115,82 @@ if(f.classList.contains('fa-chevron-circle-right')) {
     <span class="navbar-title">DAPR1</span>
     </a>
   </div>
+            <div id="quarto-search" class="" title="Search"></div>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
   <span class="navbar-toggler-icon"></span>
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
 <li class="nav-item dropdown ">
-    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-semester-1" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-semester-1" role="button" data-bs-toggle="dropdown" aria-expanded="false" rel="" target="">
  <span class="menu-text">Semester 1</span>
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-semester-1">
 <li>
-    <a class="dropdown-item" href="./1_01_design_and_data.html">
+    <a class="dropdown-item" href="./1_01_design_and_data.html" rel="" target="">
  <span class="dropdown-text">S1-W1: Research design &amp; data</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./1_02_categorical_data.html">
+    <a class="dropdown-item" href="./1_02_categorical_data.html" rel="" target="">
  <span class="dropdown-text">S1-W2: Categorical data</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./1_03_numeric_data.html">
+    <a class="dropdown-item" href="./1_03_numeric_data.html" rel="" target="">
  <span class="dropdown-text">S1-W3: Numeric data</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./1_04_relationships.html">
+    <a class="dropdown-item" href="./1_04_relationships.html" rel="" target="">
  <span class="dropdown-text">S1-W4: Relationships</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./1_05_formative_report_a.html">
+    <a class="dropdown-item" href="./1_05_formative_report_a.html" rel="" target="">
  <span class="dropdown-text">S1-W5: Formative Report A</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./1_07_prob_theory.html">
+    <a class="dropdown-item" href="./1_07_prob_theory.html" rel="" target="">
  <span class="dropdown-text">S1-W7: Probability Theory</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./1_08_prob_rules.html">
+    <a class="dropdown-item" href="./1_08_prob_rules.html" rel="" target="">
  <span class="dropdown-text">S1-W8: Probability Rules</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./1_09_discrete_dist.html">
+    <a class="dropdown-item" href="./1_09_discrete_dist.html" rel="" target="">
  <span class="dropdown-text">S1-W9: Discrete Random Variables</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./1_10_cont_dist.html">
+    <a class="dropdown-item" href="./1_10_cont_dist.html" rel="" target="">
  <span class="dropdown-text">S1-W10: Continuous Random Variables</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./1_11_sampling.html">
+    <a class="dropdown-item" href="./1_11_sampling.html" rel="" target="">
  <span class="dropdown-text">S1-W11: Sampling</span></a>
   </li>  
     </ul>
 </li>
   <li class="nav-item dropdown ">
-    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-semester-2" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-semester-2" role="button" data-bs-toggle="dropdown" aria-expanded="false" rel="" target="">
  <span class="menu-text">Semester 2</span>
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-semester-2">
 <li>
-    <a class="dropdown-item" href="./2_01_confint.html">
+    <a class="dropdown-item" href="./2_01_confint.html" rel="" target="">
  <span class="dropdown-text">S2-W1: Confidence intervals</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./2_02_ht_pvalues.html">
+    <a class="dropdown-item" href="./2_02_ht_pvalues.html" rel="" target="">
  <span class="dropdown-text">S2-W2: HT (p-values)</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./2_03_ht_critvalues.html">
+    <a class="dropdown-item" href="./2_03_ht_critvalues.html" rel="" target="">
  <span class="dropdown-text">S2-W3: HT (critical values)</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./2_04_htci.html">
+    <a class="dropdown-item" href="./2_04_htci.html" rel="" target="">
  <span class="dropdown-text">S2-W4: Connecting HT and CIs</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./2_05_hterrorspower.html">
+    <a class="dropdown-item" href="./2_05_hterrorspower.html" rel="" target="">
  <span class="dropdown-text">S2-W5: Errors, Power, Effect size, Assumptions</span></a>
   </li>  
     </ul>
@@ -225,97 +198,96 @@ if(f.classList.contains('fa-chevron-circle-right')) {
 </ul>
 <ul class="navbar-nav navbar-nav-scroll ms-auto">
 <li class="nav-item dropdown ">
-    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-readings---sem.-1" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-readings---sem.-1" role="button" data-bs-toggle="dropdown" aria-expanded="false" rel="" target="">
  <span class="menu-text">Readings - Sem. 1</span>
     </a>
     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-readings---sem.-1">
 <li>
-    <a class="dropdown-item" href="./rd1_01.html">
+    <a class="dropdown-item" href="./rd1_01.html" rel="" target="">
  <span class="dropdown-text">S1-W1: Getting started with R and RStudio</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./rd1_02.html">
+    <a class="dropdown-item" href="./rd1_02.html" rel="" target="">
  <span class="dropdown-text">S1-W2: Categorical data</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./rd1_03.html">
+    <a class="dropdown-item" href="./rd1_03.html" rel="" target="">
  <span class="dropdown-text">S1-W3: Numeric data</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./rd1_04.html">
+    <a class="dropdown-item" href="./rd1_04.html" rel="" target="">
  <span class="dropdown-text">S1-W4: Relationships</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./rd1_05.html">
+    <a class="dropdown-item" href="./rd1_05.html" rel="" target="">
  <span class="dropdown-text">S1-W5: Functions</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./rd1_07.html">
+    <a class="dropdown-item" href="./rd1_07.html" rel="" target="">
  <span class="dropdown-text">S1-W7: Probability 1</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./rd1_08.html">
+    <a class="dropdown-item" href="./rd1_08.html" rel="" target="">
  <span class="dropdown-text">S1-W8: Probability 2</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./rd1_09.html">
+    <a class="dropdown-item" href="./rd1_09.html" rel="" target="">
  <span class="dropdown-text">S1-W9: Discrete random variables</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./rd1_10.html">
+    <a class="dropdown-item" href="./rd1_10.html" rel="" target="">
  <span class="dropdown-text">S1-W10: Continuous random variables</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./rd1_11.html">
+    <a class="dropdown-item" href="./rd1_11.html" rel="" target="">
  <span class="dropdown-text">S1-W11: Sampling</span></a>
   </li>  
     </ul>
 </li>
   <li class="nav-item dropdown ">
-    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-readings---sem.-2" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-readings---sem.-2" role="button" data-bs-toggle="dropdown" aria-expanded="false" rel="" target="">
  <span class="menu-text">Readings - Sem. 2</span>
     </a>
     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-readings---sem.-2">
 <li>
-    <a class="dropdown-item" href="./rd2_01.html">
+    <a class="dropdown-item" href="./rd2_01.html" rel="" target="">
  <span class="dropdown-text">S2-W1: Confidence intervals</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./rd2_02.html">
+    <a class="dropdown-item" href="./rd2_02.html" rel="" target="">
  <span class="dropdown-text">S2-W2: HT (p-values)</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./rd2_03.html">
+    <a class="dropdown-item" href="./rd2_03.html" rel="" target="">
  <span class="dropdown-text">S2-W3: HT (critical values)</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./rd2_04.html">
+    <a class="dropdown-item" href="./rd2_04.html" rel="" target="">
  <span class="dropdown-text">S2-W4: Connecting HT and CIs</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./rd2_05.html">
+    <a class="dropdown-item" href="./rd2_05.html" rel="" target="">
  <span class="dropdown-text">S2-W5: Errors, Power, Effect size, Assumptions</span></a>
   </li>  
     </ul>
 </li>
   <li class="nav-item">
-    <a class="nav-link" href="./index.html">
+    <a class="nav-link" href="./index.html" rel="" target="">
  <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./about.html">
+    <a class="nav-link" href="./about.html" rel="" target="">
  <span class="menu-text">About</span></a>
   </li>  
 </ul>
-<div class="quarto-toggle-container">
-                  <a href="" class="quarto-color-scheme-toggle nav-link" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
-                  <a href="" class="quarto-reader-toggle nav-link" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+<div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
   <div class="quarto-reader-toggle-btn">
   <i class="bi"></i>
   </div>
 </a>
-              </div>
-              <div id="quarto-search" class="" title="Search"></div>
+</div>
           </div> <!-- /navcollapse -->
       </div> <!-- /container-fluid -->
     </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
@@ -326,24 +298,24 @@ if(f.classList.contains('fa-chevron-circle-right')) {
    
   <ul>
 <li>
-<a href="#hypothesis-testing" id="toc-hypothesis-testing" class="nav-link active" data-scroll-target="#hypothesis-testing"><span class="toc-section-number">1</span>  Hypothesis testing</a>
+<a href="#hypothesis-testing" id="toc-hypothesis-testing" class="nav-link active" data-scroll-target="#hypothesis-testing"><span class="header-section-number">1</span> Hypothesis testing</a>
   <ul class="collapse">
-<li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction"><span class="toc-section-number">1.1</span>  Introduction</a></li>
-  <li><a href="#testable-hypotheses" id="toc-testable-hypotheses" class="nav-link" data-scroll-target="#testable-hypotheses"><span class="toc-section-number">1.2</span>  Testable hypotheses</a></li>
-  <li><a href="#the-five-parts-of-a-test-of-significance" id="toc-the-five-parts-of-a-test-of-significance" class="nav-link" data-scroll-target="#the-five-parts-of-a-test-of-significance"><span class="toc-section-number">1.3</span>  The five parts of a test of significance</a></li>
+<li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction"><span class="header-section-number">1.1</span> Introduction</a></li>
+  <li><a href="#testable-hypotheses" id="toc-testable-hypotheses" class="nav-link" data-scroll-target="#testable-hypotheses"><span class="header-section-number">1.2</span> Testable hypotheses</a></li>
+  <li><a href="#the-five-parts-of-a-test-of-significance" id="toc-the-five-parts-of-a-test-of-significance" class="nav-link" data-scroll-target="#the-five-parts-of-a-test-of-significance"><span class="header-section-number">1.3</span> The five parts of a test of significance</a></li>
   </ul>
 </li>
   <li>
-<a href="#example" id="toc-example" class="nav-link" data-scroll-target="#example"><span class="toc-section-number">2</span>  Example</a>
+<a href="#example" id="toc-example" class="nav-link" data-scroll-target="#example"><span class="header-section-number">2</span> Example</a>
   <ul class="collapse">
-<li><a href="#imaginary-case" id="toc-imaginary-case" class="nav-link" data-scroll-target="#imaginary-case"><span class="toc-section-number">2.1</span>  Imaginary case</a></li>
-  <li><a href="#real-life-one-sample-only" id="toc-real-life-one-sample-only" class="nav-link" data-scroll-target="#real-life-one-sample-only"><span class="toc-section-number">2.2</span>  Real life: One sample only</a></li>
-  <li><a href="#t-distribution" id="toc-t-distribution" class="nav-link" data-scroll-target="#t-distribution"><span class="toc-section-number">2.3</span>  t-distribution</a></li>
-  <li><a href="#test-your-knowledge" id="toc-test-your-knowledge" class="nav-link" data-scroll-target="#test-your-knowledge"><span class="toc-section-number">2.4</span>  Test your knowledge</a></li>
+<li><a href="#imaginary-case" id="toc-imaginary-case" class="nav-link" data-scroll-target="#imaginary-case"><span class="header-section-number">2.1</span> Imaginary case</a></li>
+  <li><a href="#real-life-one-sample-only" id="toc-real-life-one-sample-only" class="nav-link" data-scroll-target="#real-life-one-sample-only"><span class="header-section-number">2.2</span> Real life: One sample only</a></li>
+  <li><a href="#t-distribution" id="toc-t-distribution" class="nav-link" data-scroll-target="#t-distribution"><span class="header-section-number">2.3</span> t-distribution</a></li>
+  <li><a href="#test-your-knowledge" id="toc-test-your-knowledge" class="nav-link" data-scroll-target="#test-your-knowledge"><span class="header-section-number">2.4</span> Test your knowledge</a></li>
   </ul>
 </li>
-  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="toc-section-number">3</span>  Summary</a></li>
-  <li><a href="#worked-example" id="toc-worked-example" class="nav-link" data-scroll-target="#worked-example"><span class="toc-section-number">4</span>  Worked example</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">3</span> Summary</a></li>
+  <li><a href="#worked-example" id="toc-worked-example" class="nav-link" data-scroll-target="#worked-example"><span class="header-section-number">4</span> Worked example</a></li>
   </ul></nav>
     </div>
 <!-- main -->
@@ -450,13 +422,25 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
 <div class="cell-output-display">
 
 <div id="osncjrvket" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>html {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+<style>#osncjrvket table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-:where(#osncjrvket) .gt_table {
+#osncjrvket thead, #osncjrvket tbody, #osncjrvket tfoot, #osncjrvket tr, #osncjrvket td, #osncjrvket th {
+  border-style: none;
+}
+
+#osncjrvket p {
+  margin: 0;
+  padding: 0;
+}
+
+#osncjrvket .gt_table {
   display: table;
   border-collapse: collapse;
+  line-height: normal;
   margin-left: auto;
   margin-right: auto;
   color: #333333;
@@ -479,24 +463,12 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   border-left-color: #D3D3D3;
 }
 
-:where(#osncjrvket) .gt_heading {
-  background-color: #FFFFFF;
-  text-align: center;
-  border-bottom-color: #FFFFFF;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-:where(#osncjrvket) .gt_caption {
+#osncjrvket .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-:where(#osncjrvket) .gt_title {
+#osncjrvket .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -508,25 +480,37 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   border-bottom-width: 0;
 }
 
-:where(#osncjrvket) .gt_subtitle {
+#osncjrvket .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
-  padding-top: 0;
-  padding-bottom: 6px;
+  padding-top: 3px;
+  padding-bottom: 5px;
   padding-left: 5px;
   padding-right: 5px;
   border-top-color: #FFFFFF;
   border-top-width: 0;
 }
 
-:where(#osncjrvket) .gt_bottom_border {
+#osncjrvket .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#osncjrvket .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-:where(#osncjrvket) .gt_col_headings {
+#osncjrvket .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -541,7 +525,7 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   border-right-color: #D3D3D3;
 }
 
-:where(#osncjrvket) .gt_col_heading {
+#osncjrvket .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -561,7 +545,7 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   overflow-x: hidden;
 }
 
-:where(#osncjrvket) .gt_column_spanner_outer {
+#osncjrvket .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -573,15 +557,15 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   padding-right: 4px;
 }
 
-:where(#osncjrvket) .gt_column_spanner_outer:first-child {
+#osncjrvket .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-:where(#osncjrvket) .gt_column_spanner_outer:last-child {
+#osncjrvket .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-:where(#osncjrvket) .gt_column_spanner {
+#osncjrvket .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -593,7 +577,11 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   width: 100%;
 }
 
-:where(#osncjrvket) .gt_group_heading {
+#osncjrvket .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#osncjrvket .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -619,7 +607,7 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   text-align: left;
 }
 
-:where(#osncjrvket) .gt_empty_group_heading {
+#osncjrvket .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -634,15 +622,15 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   vertical-align: middle;
 }
 
-:where(#osncjrvket) .gt_from_md > :first-child {
+#osncjrvket .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-:where(#osncjrvket) .gt_from_md > :last-child {
+#osncjrvket .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-:where(#osncjrvket) .gt_row {
+#osncjrvket .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -661,7 +649,7 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   overflow-x: hidden;
 }
 
-:where(#osncjrvket) .gt_stub {
+#osncjrvket .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -674,7 +662,7 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   padding-right: 5px;
 }
 
-:where(#osncjrvket) .gt_stub_row_group {
+#osncjrvket .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -688,11 +676,15 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   vertical-align: top;
 }
 
-:where(#osncjrvket) .gt_row_group_first td {
+#osncjrvket .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-:where(#osncjrvket) .gt_summary_row {
+#osncjrvket .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#osncjrvket .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -702,16 +694,16 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   padding-right: 5px;
 }
 
-:where(#osncjrvket) .gt_first_summary_row {
+#osncjrvket .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-:where(#osncjrvket) .gt_first_summary_row.thick {
+#osncjrvket .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-:where(#osncjrvket) .gt_last_summary_row {
+#osncjrvket .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -721,7 +713,7 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   border-bottom-color: #D3D3D3;
 }
 
-:where(#osncjrvket) .gt_grand_summary_row {
+#osncjrvket .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -731,7 +723,7 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   padding-right: 5px;
 }
 
-:where(#osncjrvket) .gt_first_grand_summary_row {
+#osncjrvket .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -741,11 +733,21 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   border-top-color: #D3D3D3;
 }
 
-:where(#osncjrvket) .gt_striped {
+#osncjrvket .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#osncjrvket .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-:where(#osncjrvket) .gt_table_body {
+#osncjrvket .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -754,7 +756,7 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   border-bottom-color: #D3D3D3;
 }
 
-:where(#osncjrvket) .gt_footnotes {
+#osncjrvket .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -768,30 +770,8 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   border-right-color: #D3D3D3;
 }
 
-:where(#osncjrvket) .gt_footnote {
+#osncjrvket .gt_footnote {
   margin: 0px;
-  font-size: 90%;
-  padding-left: 4px;
-  padding-right: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-:where(#osncjrvket) .gt_sourcenotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-:where(#osncjrvket) .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -799,69 +779,90 @@ where <span class="math inline">\(\sigma\)</span> is the standard deviation of I
   padding-right: 5px;
 }
 
-:where(#osncjrvket) .gt_left {
+#osncjrvket .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#osncjrvket .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#osncjrvket .gt_left {
   text-align: left;
 }
 
-:where(#osncjrvket) .gt_center {
+#osncjrvket .gt_center {
   text-align: center;
 }
 
-:where(#osncjrvket) .gt_right {
+#osncjrvket .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-:where(#osncjrvket) .gt_font_normal {
+#osncjrvket .gt_font_normal {
   font-weight: normal;
 }
 
-:where(#osncjrvket) .gt_font_bold {
+#osncjrvket .gt_font_bold {
   font-weight: bold;
 }
 
-:where(#osncjrvket) .gt_font_italic {
+#osncjrvket .gt_font_italic {
   font-style: italic;
 }
 
-:where(#osncjrvket) .gt_super {
+#osncjrvket .gt_super {
   font-size: 65%;
 }
 
-:where(#osncjrvket) .gt_footnote_marks {
-  font-style: italic;
-  font-weight: normal;
+#osncjrvket .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
+  position: initial;
 }
 
-:where(#osncjrvket) .gt_asterisk {
+#osncjrvket .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-:where(#osncjrvket) .gt_indent_1 {
+#osncjrvket .gt_indent_1 {
   text-indent: 5px;
 }
 
-:where(#osncjrvket) .gt_indent_2 {
+#osncjrvket .gt_indent_2 {
   text-indent: 10px;
 }
 
-:where(#osncjrvket) .gt_indent_3 {
+#osncjrvket .gt_indent_3 {
   text-indent: 15px;
 }
 
-:where(#osncjrvket) .gt_indent_4 {
+#osncjrvket .gt_indent_4 {
   text-indent: 20px;
 }
 
-:where(#osncjrvket) .gt_indent_5 {
+#osncjrvket .gt_indent_5 {
   text-indent: 25px;
 }
 </style>
-<table class="gt_table">
-<thead class="gt_col_headings"><tr>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead><tr class="gt_col_headings">
 <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="sample_id">sample_id</th>
       <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="sample">sample</th>
       <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="xbar">xbar</th>
@@ -1057,12 +1058,12 @@ t = \frac{\bar x - \mu_0}{s / \sqrt n}
 t = \frac{9 - 10}{3} = -0.33
 \]</span></p>
 <p>We know that the t-statistic follows a <span class="math inline">\(t(n-1)\)</span> distribution. So, in our case a <span class="math inline">\(t(1)\)</span> distribution.</p>
-<div class="callout-note callout callout-style-simple callout-captioned">
+<div class="callout callout-style-simple callout-note callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<div class="callout-caption-container flex-fill">
+<div class="callout-title-container flex-fill">
 Visualise the t-statistics
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
@@ -1106,12 +1107,12 @@ Visualise the t-statistics
 </section><section id="test-your-knowledge" class="level3" data-number="2.4"><h3 data-number="2.4" class="anchored" data-anchor-id="test-your-knowledge">
 <span class="header-section-number">2.4</span> Test your knowledge</h3>
 <p>What about if the sample you collected was (172, 194)? Could this come from a population having mean = 10?</p>
-<div class="callout-note callout callout-style-simple callout-captioned">
+<div class="callout callout-style-simple callout-note callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<div class="callout-caption-container flex-fill">
+<div class="callout-title-container flex-fill">
 Answer
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
@@ -1169,12 +1170,12 @@ Answer
 <span class="header-section-number">4</span> Worked example</h2>
 <p>A 2011 study by Courchesne et al.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> examined brain tissue of seven autistic male children between the ages of 2 and 16. The mean number of neurons in the prefrontal cortex in non-autistic male children of the same age is about 1.15 billion. The prefrontal cortex is the part of the brain most disrupted in autism, as it deals with language and social communication.</p>
 <p>In the exercises you will perform a test of significance to assess whether this sample provides evidence that autistic male children have more neurons (on average) in the prefrontal cortex than non-autistic children.</p>
-<div class="callout-note callout callout-style-simple callout-captioned">
+<div class="callout callout-style-simple callout-note callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<div class="callout-caption-container flex-fill">
+<div class="callout-title-container flex-fill">
 Data codebook
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
@@ -1188,13 +1189,25 @@ Data codebook
 <div class="cell-output-display">
 
 <div id="nvyzesyyic" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>html {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+<style>#nvyzesyyic table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-:where(#nvyzesyyic) .gt_table {
+#nvyzesyyic thead, #nvyzesyyic tbody, #nvyzesyyic tfoot, #nvyzesyyic tr, #nvyzesyyic td, #nvyzesyyic th {
+  border-style: none;
+}
+
+#nvyzesyyic p {
+  margin: 0;
+  padding: 0;
+}
+
+#nvyzesyyic .gt_table {
   display: table;
   border-collapse: collapse;
+  line-height: normal;
   margin-left: auto;
   margin-right: auto;
   color: #333333;
@@ -1217,24 +1230,12 @@ Data codebook
   border-left-color: #D3D3D3;
 }
 
-:where(#nvyzesyyic) .gt_heading {
-  background-color: #FFFFFF;
-  text-align: center;
-  border-bottom-color: #FFFFFF;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-:where(#nvyzesyyic) .gt_caption {
+#nvyzesyyic .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-:where(#nvyzesyyic) .gt_title {
+#nvyzesyyic .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -1246,25 +1247,37 @@ Data codebook
   border-bottom-width: 0;
 }
 
-:where(#nvyzesyyic) .gt_subtitle {
+#nvyzesyyic .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
-  padding-top: 0;
-  padding-bottom: 6px;
+  padding-top: 3px;
+  padding-bottom: 5px;
   padding-left: 5px;
   padding-right: 5px;
   border-top-color: #FFFFFF;
   border-top-width: 0;
 }
 
-:where(#nvyzesyyic) .gt_bottom_border {
+#nvyzesyyic .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#nvyzesyyic .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-:where(#nvyzesyyic) .gt_col_headings {
+#nvyzesyyic .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1279,7 +1292,7 @@ Data codebook
   border-right-color: #D3D3D3;
 }
 
-:where(#nvyzesyyic) .gt_col_heading {
+#nvyzesyyic .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1299,7 +1312,7 @@ Data codebook
   overflow-x: hidden;
 }
 
-:where(#nvyzesyyic) .gt_column_spanner_outer {
+#nvyzesyyic .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1311,15 +1324,15 @@ Data codebook
   padding-right: 4px;
 }
 
-:where(#nvyzesyyic) .gt_column_spanner_outer:first-child {
+#nvyzesyyic .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-:where(#nvyzesyyic) .gt_column_spanner_outer:last-child {
+#nvyzesyyic .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-:where(#nvyzesyyic) .gt_column_spanner {
+#nvyzesyyic .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1331,7 +1344,11 @@ Data codebook
   width: 100%;
 }
 
-:where(#nvyzesyyic) .gt_group_heading {
+#nvyzesyyic .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#nvyzesyyic .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1357,7 +1374,7 @@ Data codebook
   text-align: left;
 }
 
-:where(#nvyzesyyic) .gt_empty_group_heading {
+#nvyzesyyic .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1372,15 +1389,15 @@ Data codebook
   vertical-align: middle;
 }
 
-:where(#nvyzesyyic) .gt_from_md > :first-child {
+#nvyzesyyic .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-:where(#nvyzesyyic) .gt_from_md > :last-child {
+#nvyzesyyic .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-:where(#nvyzesyyic) .gt_row {
+#nvyzesyyic .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1399,7 +1416,7 @@ Data codebook
   overflow-x: hidden;
 }
 
-:where(#nvyzesyyic) .gt_stub {
+#nvyzesyyic .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1412,7 +1429,7 @@ Data codebook
   padding-right: 5px;
 }
 
-:where(#nvyzesyyic) .gt_stub_row_group {
+#nvyzesyyic .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1426,11 +1443,15 @@ Data codebook
   vertical-align: top;
 }
 
-:where(#nvyzesyyic) .gt_row_group_first td {
+#nvyzesyyic .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-:where(#nvyzesyyic) .gt_summary_row {
+#nvyzesyyic .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#nvyzesyyic .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1440,16 +1461,16 @@ Data codebook
   padding-right: 5px;
 }
 
-:where(#nvyzesyyic) .gt_first_summary_row {
+#nvyzesyyic .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-:where(#nvyzesyyic) .gt_first_summary_row.thick {
+#nvyzesyyic .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-:where(#nvyzesyyic) .gt_last_summary_row {
+#nvyzesyyic .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1459,7 +1480,7 @@ Data codebook
   border-bottom-color: #D3D3D3;
 }
 
-:where(#nvyzesyyic) .gt_grand_summary_row {
+#nvyzesyyic .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1469,7 +1490,7 @@ Data codebook
   padding-right: 5px;
 }
 
-:where(#nvyzesyyic) .gt_first_grand_summary_row {
+#nvyzesyyic .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1479,11 +1500,21 @@ Data codebook
   border-top-color: #D3D3D3;
 }
 
-:where(#nvyzesyyic) .gt_striped {
+#nvyzesyyic .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#nvyzesyyic .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-:where(#nvyzesyyic) .gt_table_body {
+#nvyzesyyic .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1492,7 +1523,7 @@ Data codebook
   border-bottom-color: #D3D3D3;
 }
 
-:where(#nvyzesyyic) .gt_footnotes {
+#nvyzesyyic .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1506,30 +1537,8 @@ Data codebook
   border-right-color: #D3D3D3;
 }
 
-:where(#nvyzesyyic) .gt_footnote {
+#nvyzesyyic .gt_footnote {
   margin: 0px;
-  font-size: 90%;
-  padding-left: 4px;
-  padding-right: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-:where(#nvyzesyyic) .gt_sourcenotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-:where(#nvyzesyyic) .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1537,69 +1546,90 @@ Data codebook
   padding-right: 5px;
 }
 
-:where(#nvyzesyyic) .gt_left {
+#nvyzesyyic .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#nvyzesyyic .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nvyzesyyic .gt_left {
   text-align: left;
 }
 
-:where(#nvyzesyyic) .gt_center {
+#nvyzesyyic .gt_center {
   text-align: center;
 }
 
-:where(#nvyzesyyic) .gt_right {
+#nvyzesyyic .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-:where(#nvyzesyyic) .gt_font_normal {
+#nvyzesyyic .gt_font_normal {
   font-weight: normal;
 }
 
-:where(#nvyzesyyic) .gt_font_bold {
+#nvyzesyyic .gt_font_bold {
   font-weight: bold;
 }
 
-:where(#nvyzesyyic) .gt_font_italic {
+#nvyzesyyic .gt_font_italic {
   font-style: italic;
 }
 
-:where(#nvyzesyyic) .gt_super {
+#nvyzesyyic .gt_super {
   font-size: 65%;
 }
 
-:where(#nvyzesyyic) .gt_footnote_marks {
-  font-style: italic;
-  font-weight: normal;
+#nvyzesyyic .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
+  position: initial;
 }
 
-:where(#nvyzesyyic) .gt_asterisk {
+#nvyzesyyic .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-:where(#nvyzesyyic) .gt_indent_1 {
+#nvyzesyyic .gt_indent_1 {
   text-indent: 5px;
 }
 
-:where(#nvyzesyyic) .gt_indent_2 {
+#nvyzesyyic .gt_indent_2 {
   text-indent: 10px;
 }
 
-:where(#nvyzesyyic) .gt_indent_3 {
+#nvyzesyyic .gt_indent_3 {
   text-indent: 15px;
 }
 
-:where(#nvyzesyyic) .gt_indent_4 {
+#nvyzesyyic .gt_indent_4 {
   text-indent: 20px;
 }
 
-:where(#nvyzesyyic) .gt_indent_5 {
+#nvyzesyyic .gt_indent_5 {
   text-indent: 25px;
 }
 </style>
-<table class="gt_table">
-<thead class="gt_col_headings"><tr>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead><tr class="gt_col_headings">
 <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Case">Case</th>
       <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Age">Age</th>
       <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="PFC_NC">PFC_NC</th>
@@ -1655,7 +1685,7 @@ Data codebook
 </div>
 </div>
 <p><br></p>
-<div class="callout-note callout callout-style-simple">
+<div class="callout callout-style-simple callout-note">
 <div class="callout-body d-flex">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
@@ -1682,7 +1712,7 @@ Data codebook
 7     7    16   2.09</code></pre>
 </div>
 </div>
-<div class="callout-note callout callout-style-simple">
+<div class="callout callout-style-simple callout-note">
 <div class="callout-body d-flex">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
@@ -1709,7 +1739,7 @@ Data codebook
 </div>
 </div>
 <p>In the sample of seven autistic children, the mean age was 6.14 years, with a SD of 4.88 years, and the mean number of neurons in the prefrontal cortex was 1.94 billion with a standard deviation of 0.40 billion.</p>
-<div class="callout-note callout callout-style-simple">
+<div class="callout callout-style-simple callout-note">
 <div class="callout-body d-flex">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
@@ -1725,7 +1755,7 @@ Data codebook
 <p>The answer is then:</p>
 <p><span class="math display">\[H_0 : \mu = 1.15\]</span> <span class="math display">\[H_1 : \mu &gt; 1.15\]</span></p>
 <p>where <span class="math inline">\(\mu\)</span> is the mean number of neurons (in billions) in the prefrontal cortex for all autistic male children.</p>
-<div class="callout-note callout callout-style-simple">
+<div class="callout callout-style-simple callout-note">
 <div class="callout-body d-flex">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
@@ -1777,7 +1807,7 @@ t = \frac{\bar x - \mu_0}{\frac{s}{\sqrt{n}}}
 </div>
 </div>
 <p>The sample mean neuron count, 1.94 billion, is 5.21 standard errors larger than the hypothesised value.</p>
-<div class="callout-note callout callout-style-simple">
+<div class="callout callout-style-simple callout-note">
 <div class="callout-body d-flex">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
@@ -1788,7 +1818,7 @@ t = \frac{\bar x - \mu_0}{\frac{s}{\sqrt{n}}}
 </div>
 </div>
 <p>When <span class="math inline">\(H_0: \mu = 1.15\)</span> is true, the t values will follow a <span class="math inline">\(t(6)\)</span> distribution.</p>
-<div class="callout-note callout callout-style-simple">
+<div class="callout callout-style-simple callout-note">
 <div class="callout-body d-flex">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
@@ -1814,7 +1844,7 @@ t = \frac{\bar x - \mu_0}{\frac{s}{\sqrt{n}}}
 <pre><code>[1] 0.0009948463</code></pre>
 </div>
 </div>
-<div class="callout-note callout callout-style-simple">
+<div class="callout callout-style-simple callout-note">
 <div class="callout-body d-flex">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
@@ -1825,7 +1855,7 @@ t = \frac{\bar x - \mu_0}{\frac{s}{\sqrt{n}}}
 </div>
 </div>
 <p>The p-value is smaller than <span class="math inline">\(\alpha = 0.05\)</span>, so we reject <span class="math inline">\(H_0\)</span>.</p>
-<div class="callout-note callout callout-style-simple">
+<div class="callout callout-style-simple callout-note">
 <div class="callout-body d-flex">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
@@ -1984,9 +2014,23 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     icon: icon
   };
   anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
   const clipboard = new window.ClipboardJS('.code-copy-button', {
-    target: function(trigger) {
-      return trigger.previousElementSibling;
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
     }
   });
   clipboard.on('success', function(e) {
@@ -2051,6 +2095,92 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       return note.innerHTML;
     });
   }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
   const findCites = (el) => {
     const parentEl = el.parentElement;
     if (parentEl) {
@@ -2102,7 +2232,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </nav>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
-    <div class="nav-footer-left">© Copyright 2019-2022 <a href="https://www.ed.ac.uk/">The University of Edinburgh</a>. Site licensed under the <a href="https://www.gnu.org/licenses/agpl-3.0.en.html">GNU AGPLv3</a> license.</div>   
+    <div class="nav-footer-left">© Copyright 2019-2023 <a href="https://www.ed.ac.uk/">The University of Edinburgh</a>. Site licensed under the <a href="https://www.gnu.org/licenses/agpl-3.0.en.html">GNU AGPLv3</a> license.</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
   </div>
 </footer>
 
