@@ -1,0 +1,127 @@
+---
+title: "Body temperature"
+author: "DAPR1 staff"
+output: bookdown::pdf_document2
+toc: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+
+Note: this is not a report, but a live programming lecture transcript!
+
+
+# Body temperature data
+
+We will be using data comprising measurements on body temperature and pulse rate for a random sample of $n = 50$ healthy subjects. The data are stored at the following address: https://uoepsy.github.io/data/BodyTemp.csv
+
+We are interested in estimating what is the average body temperature for healthy individuals. Next week, we will investigate if this is significantly different from the commonly though value of 37°C. 
+
+It would be extremely time-consuming and costly to take everyone's body temperature. Instead, the data were collected for a simple random sample of healthy humans and we will use the average body temperature of this sample to estimate the true population mean.
+
+
+## Simple random sampling (SRS)
+
+Simple random sampling is a type of sampling technique. Sampling techniques are used by companies, researchers and individuals for a variety of reasons. Sampling strategies are useful when conducting surveys and answering questions about populations. There are many different methods researchers can use to obtain individuals to be in a sample. These are known as sampling methods.
+
+Simple random sampling is, unsurprisingly, the simplest form of probability sampling: every member in the population has an equal chance of being selected in the sample. Individuals are usually selected by a random number generator or some other mean of random sampling.
+
+The biggest benefit of SRS is it removes bias, as everyone has an equal chance of being selected. Furthermore, the sample is representative of the population.
+
+
+## Questions of interest
+
+We are going to investigate the average body temperature for all healthy humans. 
+
+- This week: What is the average body temperature for healthy humans? 
+- Next week: Has the average body temperature for healthy humans changed from the long-thought 37 °C?
+
+
+```{r include = FALSE}
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+
+temp_data <- read_csv('https://uoepsy.github.io/data/BodyTemp.csv')
+
+temp_data %>%
+    select(BodyTemp)
+
+temp_data <- temp_data %>%
+    select(BodyTemp)
+
+dim(temp_data)
+head(temp_data)
+glimpse(temp_data)
+summary(temp_data)
+
+plt.h <- ggplot(temp_data, aes(x=BodyTemp)) +
+    geom_histogram(color = 'white') +
+    labs(x="Body temperature (°C)") +
+    theme_classic()
+
+plt.d <- ggplot(temp_data, aes(x=BodyTemp)) +
+    geom_density() +
+    labs(x="Body temperature (°C)")
+
+plt.b <- ggplot(temp_data, aes(x=BodyTemp)) +
+    geom_boxplot() +
+    labs(x="Body temperature (°C)") +
+    theme_classic()
+
+plt.h / plt.b
+
+# Option 1: no descriptives table
+xbar <- mean(temp_data$BodyTemp)
+s <- sd(temp_data$BodyTemp)
+n <- nrow(temp_data)
+se <- s / sqrt(n)
+tstar <- qt(c(0.025, 0.975), df = n - 1)
+xbar + tstar * se
+
+# Option 2: descriptives table
+stats <- temp_data %>%
+    summarise(
+        n = n(),
+        M = mean(BodyTemp),
+        SD = sd(BodyTemp),
+        Min = min(BodyTemp),
+        Max = max(BodyTemp)
+        )
+tstar <- qt(c(0.025, 0.975), df = stats$n - 1)
+stats$M + tstar * (stats$SD / sqrt(stats$n))
+
+kbl(stats, booktabs = TRUE, digits = 2,
+    caption = "Descriptive statistics for Body Temperature (°C)")
+
+se <- stats$SD / sqrt(stats$n)
+tstar <- qt(c(0.025, 0.975), df = n - 1)
+stats$M + tstar * se
+```
+
+
+# Introduction
+
+The data available at <https://uoepsy.github.io/data/BodyTemp.csv> comprise measurements of the body temperature (`BodyTemp`, in Celsius) and pulse rate (`Pulse`) for a sample of 50 healthy individuals. We are interested in estimating the mean body temperature for all healthy humans and testing whether this is different from the commonly thought value of 37 °C. As such, for the purpose of this investigation we will only focus on the variable `BodyTemp`.
+
+
+# Analysis
+
+Figure \@ref(fig:temp-distr) shows that the body temperatures of the sample of 50 healthy individuals follow roughly a bell-shaped distribution, with most values between 36.5 and 37.5 °C and fewer in the tails of the distribution. No values were lower than 35.75 or larger than 38.22. The average body temperature in the sample was 36.81 °C, see Table \@ref(tab:temp-stats), with a SE of 0.06 and 95% CI [36.69, 36.93]. Hence, we are 95% confident that the average body temperature for a healthy individual is between 36.69 °C and 36.93 °C.
+
+```{r temp-distr, echo = FALSE, fig.height = 4, fig.width = 5, fig.cap = "Distribution of body temperatures (°C)"}
+plt.h / plt.b
+```
+
+```{r temp-stats, echo = FALSE}
+kbl(stats, booktabs = TRUE, digits = 2,
+    caption = "Descriptive statistics of body temperatures (°C)")
+```
+
+More next week...
+
+# Discussion
+
+To be added in the coming weeks...

@@ -1,0 +1,759 @@
+---
+title: "<b>T-Test: One-Sample</b>"
+subtitle: "<small>Data Analysis for Psychology in R 1<br>Semester 2, Week 6</small>"
+author: "<b>Dr Emma Waterston</b>"
+institute: "Department of Psychology<br/>The University of Edinburgh"
+date: ""
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: 
+      - un-xaringan-themer.css
+    nature:
+      ratio: '16:9'
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+
+options(htmltools.dir.version = FALSE)
+options(digits = 4, scipen = 2)
+options(knitr.table.format = "html")
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE, message = FALSE,
+  cache = FALSE,
+  dev = "png",
+  fig.align = 'center',
+  fig.height = 5, fig.width = 6,
+  out.width = "80%",
+  dpi = 300
+)
+```
+
+```{r xaringan-panelset, echo=FALSE}
+xaringanExtra::use_panelset()
+```
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#0F4C81", # DAPR1
+  # base_color = "#BF1932", # DAPR2
+  # base_color = "#88B04B", # DAPR3 
+  # base_color = "#FCBB06", # USMR
+  # base_color = "#a41ae4", # MSMR
+  header_color = "#000000",
+  header_font_google = google_font("Source Sans Pro"),
+  header_font_weight = 400,
+  text_font_google = google_font("Source Sans Pro", "400", "400i", "600", "600i"),
+  code_font_google = google_font("Source Code Pro"),
+  outfile = "un-xaringan-themer.css"
+)
+```
+
+
+```{r preamble, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+library(moderndive)
+
+theme_set(
+    theme_classic(base_size = 15) +
+    theme(plot.title = element_text(hjust = 0.5))
+)
+```
+
+# Learning Objectives
+- Understand when to use a one sample $t$-test
+- Understand the null hypothesis for a one sample $t$-test
+- Understand how to calculate the test statistic
+- Know how to conduct the test in `R`
+
+---
+
+# Topics for Today
+- Introduce the three types of $t$-test
+- One-sample $t$-test example
+- Inferential tests for the one-sample $t$-test
+- Assumptions and effect size
+
+---
+
+
+# T-Test: Purpose
+- $t$-tests (generally) concern testing the difference between two means.
+  - Another way to state this is that the scores of two groups being tested are from the sample underlying population distribution.
+  
+- One-sample $t$-tests compare the mean in a sample to a known mean.
+
+- Independent $t$-tests compare the means of two independent samples.
+
+- Paired sample $t$-tests compare the mean from a single sample at two points in time (repeated measurements)
+
+- We will look in more detail at these tests over the next three weeks.
+  - But let's start by thinking a little bit about the logic $t$-tests.
+  - For the next few slides, have a bit of paper and a pen handy.
+
+---
+# Are these means different?
+
+.pull-left[
+```{r, echo=FALSE, out.width = '100%'}
+ggplot(NULL, aes(x=125:200)) +
+  geom_vline(xintercept = 150) +
+  geom_vline(xintercept = 170, col="red") +
+  xlim(125, 200) +
+  xlab("\n Height")
+```
+
+]
+
+.pull-right[
+
+- Write down whether you think these means (two lines) are different. Write either:
+  - Yes
+  - No
+  - It depends
+
+]
+
+---
+
+# What about these?
+
+.pull-left[
+```{r, echo=FALSE, out.width = '100%'}
+ggplot(NULL, aes(x=125:200)) +
+  geom_vline(xintercept = 140) +
+  geom_vline(xintercept = 190, col="red") +
+  xlim(125, 200) +
+  xlab("\n Height")
+```
+]
+
+.pull-right[
+
+- Write down whether you think these means (two lines) are different. Write either:
+  - Yes
+  - No
+  - It depends
+
+]
+
+---
+
+# Differences in means
+- OK, now please write down:
+
+1. Why you wrote the answers you did? 
+2. If you wrote, "It depends", why can we not tell whether they are different or not?
+3. What else might we want to know in order to know whether not the group means could be thought of as coming from the same distribution?
+
+---
+
+# All the information
+
+```{r, echo=FALSE, fig.height=3.2}
+ggplot(tibble(x = c(125:200)), aes(x=x)) +
+  stat_function(fun=dnorm,
+                geom = "line",
+                args = list(mean=150, sd=10)) +
+  stat_function(fun = dnorm,
+                geom = "line",
+                col = "red",
+                args = list(mean=170, sd=10)) +
+  geom_vline(xintercept = 150) +
+  geom_vline(xintercept = 170, col="red") +
+  xlab("\n Height") +
+  ylab("") +
+  ggtitle("Comparing means")
+
+```
+
+
+???
+Comments are not added to the slides here as it gives away the answer to the previous questions. The points to emphasize in recording is that we need to know something about the distribution of scores, as well as the average, to know where the means of the two groups look different.
+
+Link this back to the idea of them being drawn from a single population. Without knowing the spread, it is hard to comment on the average. In this plot the distributions overlap a lot.
+
+---
+
+# All the information
+
+```{r, echo=FALSE, fig.height=3.2}
+ggplot(tibble(x = c(125:200)), aes(x=x)) +
+  stat_function(fun=dnorm,
+                geom = "line",
+                args = list(mean=150, sd=2)) +
+  stat_function(fun = dnorm,
+                geom = "line",
+                col = "red",
+                args = list(mean=170, sd=2)) +
+  geom_vline(xintercept = 150) +
+  geom_vline(xintercept = 170, col="red") +
+  xlab("\n Height") +
+  ylab("") +
+  ggtitle("Comparing means")
+
+```
+
+???
+In this plot, there overlap very little.
+
+---
+
+class: center, middle
+
+# **Questions?**
+
+---
+
+# t-statistic
+- Recall when talking about hypothesis testing:
+  - We calculate a test statistic that represents our question.
+  - We compare our sample value to the sampling distribution under the null
+
+- Here the test statistic is a $t$-statistic.
+
+---
+
+# t-statistic
+
+$$t = \frac{\bar x - \mu_0}{SE_{\bar x}} \qquad \text{where} \qquad {SE_{\bar x}} = \frac{s}{\sqrt n}$$
+
+- The numerator = a difference in means
+- The denominator = a estimate of variability
+  - where
+    - $s$ = sample estimated standard deviation of $x$
+    - $n$ = sample size
+- $t$ = a standardized difference in means
+
+---
+
+# Data Requirements: One-sample t-test
+- A continuous variable
+  - Remember we are calculating means
+  
+- A known mean that we wish to compare our sample to
+
+- A sample of data from which we calculate the sample mean
+
+
+---
+
+# Example
+- Suppose I want to know whether the retirement age of Professors at my University is the same as the national average.
+
+- The national average age of retirement for Prof's is 65.
+
+- So I look at the age of the last 40 Prof's that have retired at Edinburgh and compare against this value.
+
+---
+
+# Data
+
+```{r, echo=FALSE}
+set.seed(7284)
+dat <- tibble(
+  ID = c(paste("Prof", 1:40, sep ="")),
+  Age = round(rnorm(40,mean = 67, sd = 10),0)
+)
+dat
+
+```
+
+
+---
+
+# Hypotheses
+- When we are testing whether the population mean $(\mu)$ is equal to a hypothesized value $(\mu_0)$.
+
+$$
+H_0: \mu = \mu_0
+$$
+
+- Note this is identical to saying:
+
+$$
+H_0: \mu - \mu_0 = 0
+$$
+---
+
+# Alternative Hypotheses
+- Two-tailed:
+
+$$
+\begin{aligned}
+H_0: \mu = \mu_0 
+\qquad \text{vs} \qquad 
+H_1:\mu \neq \mu_0
+\end{aligned}
+$$
+
+- One-tailed:
+
+$$
+\begin{matrix}
+H_0: \mu = \mu_0 \\
+H_1: \mu < \mu_0 \\
+H_1: \mu > \mu_0
+\end{matrix}
+$$
+
+---
+
+# Hypotheses
+- Let's assume a priori we have no idea of the ages the Prof's retired.
+
+- So I specify a two-tailed hypothesis with $\alpha$ = .05.
+
+- So I am simply asking, does my mean differ from the known mean.
+
+---
+
+# Calculation
+
+$$t = \frac{\bar x - \mu_0}{SE_{\bar x}} \qquad \text{where} \qquad {SE_{\bar x}} = \frac{s}{\sqrt n}$$
+
+- Steps to calculate $t$:
+  - Calculate the sample mean $(\bar{x})$.
+  - Calculate the standard error of the mean $(\frac{s}{\sqrt{n}})$.
+    - Calculate the sample standard deviation $(s)$.
+    - Check I know my sample size $(n)$.
+  - Use all this to calculate $t$.
+
+---
+
+# Calculation
+
+$$t = \frac{\bar x - \mu_0}{SE_{\bar x}} \qquad \text{where} \qquad {SE_{\bar x}} = \frac{s}{\sqrt n}$$
+
+
+```{r, echo = TRUE}
+dat %>%
+  summarise(
+    mu0 = 65,
+    xbar = mean(Age),
+    s = sd(Age),
+    n = n()
+  ) %>%
+  mutate(
+    se = s/sqrt(n)
+  )  %>%
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
+```
+
+---
+
+# Calculation
+
+```{r, echo=FALSE}
+dat %>%
+  summarise(
+    mu0 = 65,
+    xbar = mean(Age),
+    s = sd(Age),
+    n = n()
+  ) %>%
+  mutate(
+    se = s/sqrt(n)
+  )  %>%
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
+```
+
+
+$$
+t = \frac{\bar{x} - \mu_0}{\frac{s}{\sqrt{n}}} = \frac{66.30-65.00}{\frac{10.01}{\sqrt{40.00}}} = \frac{1.30}{1.58} = 0.82
+$$
+
+- So in our example $t=0.82$
+
+---
+class: center, middle
+
+# **Questions?**
+
+---
+
+# Is our test significant?
+- The sampling distribution for $t$-statistics is a $t$-distribution.
+
+- The $t$-distribution is a continuous probability distribution very similar to the normal distribution.
+  - Key parameter = degrees of freedom (df)
+	- df are a function of $n$.
+	- As $n$ increases (and thus as df increases), the $t$-distribution approaches a normal distribution.
+
+- For a one sample $t$-test, we compare our test statistic to a $t$-distribution with n-1 df.
+
+---
+
+# Is our test significant?
+- So we have all the pieces we need:
+  - Degrees of freedom = $n$-1 = 40-1 = 39
+  - We have our $t$-statistic (0.82)
+  - Hypothesis to test (two-tailed)
+  - $\alpha$ level (.05).
+  
+- So now all we need is the critical value from the associated $t$-distribution in order to make our decision.
+
+---
+
+# Is our test significant?
+
+.pull-left[
+```{r, echo=FALSE, out.width = '100%'}
+ggplot(tibble(x = c(-6,6)), aes(x=x)) +
+  stat_function(fun=dt,
+                geom = "line",
+                args = list(df=39)) +
+  stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(2.02, 6),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=39)) +
+    stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(-2.02, -6),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=39)) +
+  geom_vline(xintercept = 0.821, col="red") +
+  xlab("\n t") +
+  ylab("") +
+  ggtitle("t-distribution (df=39); t-statistic (0.82; red line)")
+```
+]
+
+.pull-right[
+```{r, echo=TRUE}
+tibble(
+  LowerCrit = round(qt(0.025, 39),2),
+  UpperCrit = round(qt(0.975, 39),2),
+)
+```
+]
+
+---
+
+# Is our test significant?
+- So our critical value is 2.02
+  - Our $t$-statistic (0.82) is closer to 0 than this.
+  - So we **fail to reject the null hypothesis**.
+  
+- $t(39)= 0.82, p > .05$, two-tailed.
+
+
+---
+
+# Exact p-values
+
+.pull-left[
+```{r, echo=FALSE, out.width = '100%'}
+ggplot(tibble(x = c(-6,6)), aes(x=x)) +
+  stat_function(fun=dt,
+                geom = "line",
+                args = list(df=39)) +
+  stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(0.821, 6),
+                alpha=.25,
+                fill = "red",
+                args = list(df=39)) +
+    stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(-0.821, -6),
+                alpha=.25,
+                fill = "red",
+                args = list(df=39)) +
+  geom_vline(xintercept = 0.821, col="red") +
+  xlab("\n t") +
+  ylab("") +
+  ggtitle("t-distribution (df=39); t-statistic (0.82; red line)")
+```
+]
+
+.pull-right[
+```{r, echo=FALSE}
+tibble(
+  Exactp = round(2*(1-pt(0.821, 39)),2)
+)
+```
+]
+
+---
+# In R: Types of Hypothesis
+
+- `alternative = ` refers to the direction of our alternative hypothesis $(H_1)$
+  - $\mu < \mu_0$: `alternative="less"`
+    - Our Edinburgh Prof's have a lower retirement age than the national average
+  - $\mu > \mu_0$: `alternative="greater"`
+    - Our Edinburgh Prof's have a higher retirement age than the national average
+  - $\mu \neq \mu_0$: `alternative="two-sided"`
+    - Our Edinburgh Prof's have a different retirement age than the national average
+
+```{r, echo = TRUE, eval = FALSE}
+t.test(dat$Age, mu=65, alternative="______")
+```
+
+---
+
+# Our test: In R
+
+```{r, echo = TRUE}
+t.test(dat$Age, mu=65, alternative="two.sided")
+```
+
+---
+
+# Write up
+A one-sample $t$-test was conducted to determine there was a statistically significant $(\alpha = .05)$ mean difference between the average retirement age of Professors and the age at retirement of a sample of 40 Edinburgh Professors. Although the sample had a higher average age of retirement (Mean=`r mean(dat$Age)`, SD=`r round(sd(dat$Age),2)`) than the population (Mean = 65), this difference was not statistically significant $(t(39) = 0.82, p > .05, two-tailed)$. 
+
+---
+class: center, middle
+
+# **Questions?**
+
+---
+# Assumption checks summary 
+
+```{r tbl7, echo = FALSE}
+tbl7 <- tibble::tribble(
+~` `, ~`Description`, ~`One-Sample  t-test`, ~`Independent Sample t-test`, ~`Paired Sample t-test`,
+"Normality","Continuous variable (and difference) is normally distributed.","Yes (Population)","Yes (Both groups/ Difference)","Yes (Both groups/ Difference)",
+"Tests:","Descriptive Statistics; Shapiro-Wilks Test; QQ-plot"," "," "," ",
+"Independence","Observations are sampled independently.","Yes","Yes (within and across groups)","Yes (within groups)",
+"Tests:","None. Design issue."," "," "," ",
+"Homogeneity of variance","Population level standard deviation is the same in both groups.","NA","Yes","NA",
+"Tests:","F-test"," "," "," ",
+"Matched Pairs in data","For paired sample, each observation must have matched pair.","NA","NA","Yes",
+"Tests:","None. Data structure issue."," "," "," "
+)
+
+
+kable(tbl7) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, font_size = 18)
+```
+
+---
+
+# Assumptions
+- As noted above, we have some requirements of the data, and we have model assumptions for the test to be valid:
+  - DV is continuous
+  - Independence - the data are independent
+  - Normality - The data are normally distributed **OR** the sample size is sufficiently large (rule of thumb $n$ = 30)
+  
+If any of these assumptions are not met, the results of the test are unreliable
+
+---
+
+# Assumptions: How to check/test
+- DV is continuous
+  - The dependent variable should be measured at the interval or ratio level
+- Independence
+  - More of a study design issue, and cannot directly test
+- Normality
+  - Can be checked visually with plots, as well as with descriptive statistics, and a Shapiro-Wilks Test 
+
+---
+#  Assumption checks: Normality 
+- Descriptive statistics:
+  - Skew:
+	  - Below are some rough guidelines on how to interpret skew.
+	  - No strict cuts for skew - these are loose guidelines.
+
+```{r echo=FALSE}
+library(kableExtra)
+
+tribble(~"Verbal label", ~"Magnitude of skew in absolute value",
+       "Generally not problematic", "| Skew | < 1",
+       "Slight concern", " 1 > | Skew | < 2",
+       "Investigate impact", "| Skew | > 2") %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+---
+# Skew
+
+```{r, echo = TRUE}
+library(psych)
+dat %>%
+  summarise(
+    skew = round(skew(Age),2)
+  )
+```
+
+- Skew is low (< 1), so we would conclude that it is not problematic. 
+
+---
+# Histograms
+
+.pull-left[
+```{r, eval=FALSE, echo = TRUE, out.width = '100%'}
+ggplot(dat, aes(x=Age)) +
+  geom_histogram() + 
+  labs(title = "Histogram")
+```
+]
+
+.pull-right[
+```{r, echo=FALSE, out.width = '100%'}
+ggplot(dat, aes(x=Age)) +
+  geom_histogram() + 
+  labs(title = "Histogram")
+```
+]
+
+- Our histogram looks "lumpy", but we have relatively low $n$ for looking at these plots.
+
+---
+# Density
+
+.pull-left[
+```{r, eval=FALSE, echo = TRUE, out.width = '100%'}
+ggplot(dat, aes(x=Age)) +
+  geom_density() + 
+  labs(title = "Density Plot")
+```
+]
+
+.pull-right[
+```{r, echo=FALSE, out.width = '100%'}
+ggplot(dat, aes(x=Age)) +
+  geom_density() + 
+  labs(title = "Density Plot")
+```
+]
+
+- Our density plot looks relatively normal.
+---
+#  Assumption checks: Normality 
+- QQ-plots (Quantile-Quantile plot):
+	- Plots the sorted quantiles of one data set (distribution) against sorted quantiles of data set (distribution).
+	- Quantile = the percent of points falling below a given value.
+	- For a normality check, we can compare our own data to data drawn from a normal distribution
+
+
+---
+# QQ-plots 
+
+.pull-left[
+```{r, eval=FALSE, echo = TRUE, out.width = '100%'}
+ggplot(dat, aes(sample = Age)) +
+  geom_qq() +
+  geom_qq_line() + 
+      labs(title="QQ-plot", 
+       subtitle="The closer the data fit to the line /nthe more normally \ndistributed they are",
+       x = "Theoretical quantiles",
+       y = "Sample quantiles")
+```
+]
+
+.pull-right[
+```{r, echo=FALSE, out.width = '80%'}
+dat %>%
+  ggplot(., aes(sample = Age)) +
+  geom_qq() +
+  geom_qq_line() + 
+    labs(title="QQ-plot", 
+       subtitle="The closer the data fit to the line the more normally \ndistributed they are",
+       x = "Theoretical quantiles",
+       y = "Sample quantiles")
+
+```
+
+]
+
+- This looks a little concerning. 
+- We have some deviation in the lower left corner.
+- This is showing we have more lower values for age than would be expected.
+
+---
+#  Assumption checks: Normality 
+- Shapiro-Wilks test:
+	- Checks properties of the observed data against properties we would expected from normally distributed data.
+	- Statistical test of normality.
+	- $H_0$: data =  the sample came from a population that is normally distributed.
+	- $p$-value $< \alpha$ = reject the null, data are not normal.
+		- Sensitive to $n$ as all $p$-values will be.
+		- In very large $n$, normality should also be checked with QQ-plots alongside statistical test.
+
+
+---
+#  Shapiro-Wilks in R
+```{r, echo = TRUE}
+shapiro.test(dat$Age)
+```
+
+- Fail to reject the null, $p$ = .08, which is > .05
+
+- Taken collectively, it looks like our assumption of normality is met.
+
+---
+# Effect Size: Cohen's D
+- Cohen's-D is the standardized difference in means.
+  - Having a standardized metric is useful for comparisons across studies.
+  - It is also useful for thinking about power calculations
+
+- The basic form of $D$ is the same across the different $t$-tests:
+
+$$D = \frac{Differece}{Variation}$$
+
+---
+# Interpreting Cohen's D
+- Below are some rough guidelines on how to interpret the size of the effect.
+
+- These are not exact labels, but a loose guidance based on empirical research.
+
+- Perhaps the most common "cut-offs" for $D$-scores:
+
+| Verbal label         | Magnitude of $D$ in absolute value |
+|:--------------------:|:-----------------:|
+| Small (or weak)      | $\leq 0.20$       |
+| Medium (or moderate) | $\approx 0.50$    |
+| Large (or strong)    | $\geq 0.80$       |
+
+---
+#  Cohen's D: One-sample t-test
+
+- One-sample $t$-test:
+$$
+D = \frac{\bar x - \mu_0}{s}
+$$
+
+- $\mu_0$ = hypothesised mean
+-	$\bar{x}$ = sample mean
+-	$s$ = sample standard deviation
+
+---
+# Cohen's D in R
+
+```{r, warning=FALSE, echo = TRUE}
+library(effectsize)
+cohens_d(dat$Age, mu=65, alternative="two.sided")
+```
+
+---
+# Write up: Assumptions
+The DV of our study, Age, was measured on a continuous scale, and data were independent (based on study design). The assumption of normality was visually assessed (via histograms, density plots, and a QQplot) as well as statistically via a Shapiro-Wilks test. Whilst the QQplot did show some deviation from the diagonal line, the Shapiro-Wilks test suggested that the sample came from a population that was normally distributed $(W = 0.95, p = .08)$. This was inline with the histogram and density plot, which suggested that Age was normally distributed (and where skew < 1). The size of the effect was found to be small $D$ = 0.13 [-0.18, 0.44]. 
+
+---
+# Summary
+- Today we have covered:
+  - Basic structure of the one-sample $t$-test
+  - Calculations
+  - Interpretation
+  - Assumption checks
+  - Effect size measures (Cohen's $D$)
+    
