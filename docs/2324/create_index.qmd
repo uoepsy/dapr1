@@ -1,0 +1,203 @@
+---
+title: "Untitled"
+format: html
+---
+
+DON'T KNIT
+just run the code chunk.
+this will create a file called index2.html in the same directory as this .qmd file
+open that .html to check that all looks okay
+rename it as index.html so that it is the one used on the website (in doing so, replace the old one)
+
+
+```{r}
+library(tidyverse)
+library(kableExtra)
+options(knitr.kable.NA = '')
+course = "dapr1"
+year = "2324"
+archives = c("2223","2122","2021")
+
+cmaterials <- read.csv("course_materials.csv")
+cmaterials <- cmaterials %>% transmute(
+  weeknr,
+  Week = ifelse(nchar(week)==0,NA,week),
+  Slides = case_when(
+    !is.na(lec) & nchar(leclink)>0 ~ paste0('<a href="',leclink,'">',lec,'</a>'),
+    !is.na(lec) ~ paste0('<span style="opacity:.6">',lec,'</span>'),
+    TRUE ~ ""
+  ),
+  Workbook = case_when(
+    !is.na(lab) & nchar(lablink)>0 ~ paste0('<a href="',lablink,'">',lab,'</a>'),
+    !is.na(lab) ~ paste0('<span style="opacity:.6">',lab,'</span>'),
+    TRUE ~ ""
+  )
+)
+cmaterials <- cmaterials %>% 
+  fill(Week, .direction="down") %>% 
+  group_by(Week) %>% 
+  summarise(
+    weeknr = first(weeknr),
+    Slides = paste0(Slides,collapse="<br>"),
+    Workbook = paste0(Workbook,collapse="<br>")
+  ) %>% arrange(weeknr) %>% select(-weeknr)
+
+
+
+coursefullname = list(dapr1 = "Data Analysis for Psychology in R 1",
+                      dapr2 = "Data Analysis for Psychology in R 2",
+                      dapr3 = "Data Analysis for Psychology in R 3",
+                      usmr = "Univariate Statistics & Methodology using R",
+                      msmr = "Multivariate Statistics & Methodology using R",
+                      ap = "Applied Psychometrics")
+
+coursecolours = list(dapr1 = "#0F4C81",dapr2="#BF1932",dapr3="#88B04B",usmr="#FCBB06",msmr="#a41ae4",ap="#670E36")
+
+course_descriptions = list(
+  dapr1 = '',
+  dapr2 = 'Data Analysis for Psychology in R 2 (DAPR2) is a course taken by 2nd year students in Psychology. The course introduces methods for analysing both observational and experimental psychological studies, with a particular focus on linear models. The course is taught across the full academic year – spanning two semesters – split into four teaching blocks. The first block will introduce students to linear models, where they will learn to build and interpret linear models for continuous outcomes with single and multiple predictors. The second block extends from multiple linear regression to include interactions, as well as introducing assumptions and diagnostics checks, and bootstrapping. The third block sees a shift from correlational to experimental designs, where students will be introduced to multiple regression with categorical predictors, and will learn how to conduct multiple comparisons, apply different types of corrections, and run model comparisons. The fourth and final block focuses on more niche and advanced topics within the realm of linear regression. Students will be introduced to generalized linear models for binary outcomes before focusing on wider issues within the psychological literature, such as replication, power, pre-registration, and open science.',
+  dapr3 = 'Data Analysis for Psychology in R 3 (DAPR3) is a course undertaken by 3rd year students in Psychology. It introduces statistical tools that are invaluable for analysing many types of psychological study, and prepares students for their dissertations. Following closely from DAPR2, the first block extends the linear model to analyses of "hierarchical data", in which observations are clustered in higher-level groups (e.g. trials within participants, or students within schools). DAPR3 provides students with a strong foundation in multilevel modelling, in which it is possible to capture variation in the outcome that is associated with characteristics at these different levels.
+The second block of DAPR3 introduces methods allowing us to analyse processes that are more complex than a simple "x predicts y". Following an introduction to path analysis and mediation ("x predicts z predicts y"), we move to studying data reduction techniques that allow us to summarise multiple correlated variables into either weighted composites or underlying latent factors.',
+  usmr = 'Univariate Statistics and Methodology in R (USMR) is a semester long crash-course aimed at providing Masters students in psychology with a competence in standard statistical methodologies and data analysis using R. Typically the analyses taught in this course are relevant for when there is just one source of variation - i.e. when we are interested in a single outcome measured across a set of independent observations.<br>The first half of the course covers the fundamentals of statistical inference using a simulation-based approach, and introduces students to working with R & RStudio. The latter half of the course focuses on the general linear model, emphasising the fact that many statistical methods are simply special cases of this approach. This course introduces students to statistical modelling and empowers them with tools to analyse richer data and answer a broader set of research questions.',
+  msmr = 'Multivariate Statistics and Methodology using R (MSMR) is a semester long course providing an advanced level overview of statistical analysis techniques and methodology issues relevant to psychological research. The course builds on the concepts and skills developed in Univariate Statistics and Methodology using R.',
+  ap='The course is a survey of topics related to psychological measurement as used in various real-world settings, psychometric theory and models, test construction, and the interpretation of results and test manuals. The course emphasizes the practical side of these topics, allowing those who complete the course to both construct some psychological assessment scales, present and interpret their key psychometric properties, and evaluate these properties when provided for other scales.'
+)
+
+
+courseicons = list(dapr1 = '<span class="iconify" data-icon="carbon:chart-candlestick" data-inline="false" data-width="60px" data-height="60px"></span>',
+                   dapr2 = '<span class="iconify" data-icon="carbon:qq-plot" data-inline="false" data-width="60px" data-height="60px"></span>',
+                   dapr3 = '<span class="iconify" data-icon="vaadin:cluster" data-inline="false" data-width="60px" data-height="60px"></span>',
+                   usmr = '<span class="iconify" data-icon="mdi:chart-bell-curve-cumulative" data-inline="false" data-width="60px" data-height="60px"></span>',
+                   msmr = '<span class="fas fa-project-diagram fa-2x" data-inline="false" data-width="60px" data-height="60px"></span>',
+                   ap = '<span class="fas fa-brain" data-inline="false" data-width="60px" data-height="60px"></span>')
+
+
+
+#######
+# INPUTS
+#######
+
+input_headernav = paste0('
+<!DOCTYPE HTML>
+  <html>
+  	<head>
+		  <title>',course,'</title>
+		  <meta charset="utf-8" />
+		  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		  <link rel="stylesheet" href="https://uoepsy.github.io/assets/css/main.css" />
+		  <noscript><link rel="stylesheet" href="https://uoepsy.github.io/assets/css/noscript.css"  /></noscript>
+		  <script src="https://code.iconify.design/1/1.0.6/iconify.min.js"></script>
+	  </head>
+    <body class="is-preload">
+    <!-- Wrapper -->
+    <div id="wrapper">
+    <!-- Header -->
+  		<header id="header">
+		  <div class="inner">
+          <!-- Logo -->
+				  <div class="logo">
+				  <a href="https://uoepsy.github.io/"><span class="title">Home</span></a> / 
+          <a href="https://uoepsy.github.io/',
+course,'/',year,'"><span class="title">',toupper(course),' (',paste0("20",substr(year,1,2),"/",substr(year,3,4)),')</span></a>
+          </div>
+    
+          <!-- Nav -->
+          <nav>
+            <ul>
+        	    <li><a href="#menu">Menu</a></li>
+	          </ul>
+          </nav>
+      </div>
+      </header>'
+)
+
+input_navbar = paste0('
+<!-- Menu -->
+<nav id="menu">
+  <h2>Menu</h2>
+  <ul>
+    <li><a href="https://uoepsy.github.io/">Home</a></li>
+	  <li><a href="https://uoepsy.github.io/dapr1">DAPR1</a></li>
+		<li><a href="https://uoepsy.github.io/dapr2">DAPR2</a></li>
+		<li><a href="https://uoepsy.github.io/dapr3">DAPR3</a></li>
+		<li><a href="https://uoepsy.github.io/usmr">USMR</a></li>
+		<li><a href="https://uoepsy.github.io/msmr">MSMR</a></li>
+    <li><a href="https://uoepsy.github.io/ap">Applied Psychometrics</a></li>
+		<li><a href="https://uoepsy.github.io/prs">Practical Research Skills</a></li>
+	</ul>
+</nav>'
+)
+
+input_bannerdesc = paste0('
+<div id="main">
+  <div class="inner">
+    <div style="color:',coursecolours[[course]],';">
+		  <center>
+		    ',courseicons[[course]],'
+        <h1>',coursefullname[[course]],'<br>',paste0("20",substr(year,1,2),"/",substr(year,3,4)),'</h1>
+      </center>
+    </div>
+
+    <h2>Course description</h2>
+      <p>',course_descriptions[[course]],'</p>'
+)
+
+
+
+
+buttonarchive = function(c,ay){
+  paste0('<button class="button" onclick="window.location.href=\'https://uoepsy.github.io/', c,'/',ay,'/index.html\'">',paste0("20",substr(ay,1,2),"/",substr(ay,3,4)),' Archive</button>')
+}
+
+input_archive = paste0('
+  <h2 style="margin-top:20px">Archives</h2>',
+  paste0(unlist(lapply(archives, function(x) buttonarchive(course,x))),collapse="  ")
+)
+
+input_footerstuff = paste0('
+  </div>
+</div>
+<!-- Footer -->
+  <footer id="footer">
+	  <div class="inner">
+		<section>
+		  <h2>Follow</h2>
+			<ul class="icons">
+			  <li><a href="https://twitter.com/UoE_Psychology" class="icon brands style2 fa-twitter"><span class="label">Twitter</span></a></li>
+				<li><a href="https://www.facebook.com/edinburghunipsychology" class="icon brands style2 fa-facebook-f"><span class="label">Facebook</span></a></li>
+				<li><a href="https://github.com/uoepsy" class="icon brands style2 fa-github"><span class="label">GitHub</span></a></li>
+				<li><a href="mailto:PPLS.psych.stats@ed.ac.uk?subject=Mail from website" class="icon solid style2 fa-envelope"><span class="label">Email</span></a></li>
+			</ul>
+		</section>
+		<ul class="copyright">
+		  <li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+		</ul>
+	  </div>
+  </footer>
+</div>
+
+<!-- Scripts -->
+<script src="https://uoepsy.github.io/assets/js/jquery.min.js"></script>
+<script src="https://uoepsy.github.io/assets/js/browser.min.js"></script>
+<script src="https://uoepsy.github.io/assets/js/breakpoints.min.js"></script>
+<script src="https://uoepsy.github.io/assets/js/util.js"></script>
+<script src="https://uoepsy.github.io/assets/js/main.js"></script>
+</body>
+</html>
+')
+
+
+sink("index2.html")
+cat(input_headernav)
+cat(input_navbar)
+cat(input_bannerdesc)
+cmaterials %>%
+  kable(format="html", escape=FALSE) %>% cat()
+cat(input_archive)
+cat(input_footerstuff)
+sink()
+
+
+
+
+```
