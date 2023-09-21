@@ -16,83 +16,13 @@ library(tidyverse)
 
 ## Formative report A
 
-<!-- In the first five weeks of the course your group should produce a PDF report using Rmarkdown, to be submitted at the end of week 5. You will receive formative feedback on your submission in week 6.   -->
-<!-- The submitted report should be a PDF file of 4 pages at most. In week 5, you can add an Appendix in which you will collate all the R code in a chunk with the setting `results = 'hide'`, which does not count towards the page limit.   -->
-<!-- The report should not include any reference to R code or functions, but be written for a generic reader who is only assumed to have a basic statistical understanding without any R knowledge. You should also avoid any R code output or printout in the PDF file. -->
 
-<!-- :::{.callout-tip collapse="true"} -->
-<!-- ### Hiding R code or ouput -->
-
-<!-- :::{.panel-tabset} -->
-<!-- #### Hiding R code -->
-
-<!-- To not show the code of an R code chunk, and only show the output, write: -->
-
-<!-- ```` -->
-<!-- ```{{r, echo=FALSE}} -->
-<!-- # code goes here -->
-<!-- ``` -->
-<!-- ```` -->
-
-<!-- #### Hiding R output -->
-
-<!-- To show the code of an R code chunk, but hide the output, write: -->
-
-<!-- ```` -->
-<!-- ```{{r, results='hide'}} -->
-<!-- # code goes here -->
-<!-- ``` -->
-<!-- ```` -->
-
-<!-- #### Hiding R code and output -->
-
-<!-- To hide both code and output of an R code chunk, write: -->
-
-<!-- ```` -->
-<!-- ```{{r, include=FALSE}} -->
-<!-- # code goes here -->
-<!-- ``` -->
-<!-- ```` -->
-<!-- ::: -->
-<!-- ::: -->
-
-
-<!-- ### Data -->
-
-<!-- :::{.callout-important} -->
-<!-- For formative report A, please only focus on the variables `Movie` to `Year`, ignoring anything beyond that.  -->
-<!-- In other words, do not analyse the variables `IQ1` to `PrivateTransport` in the next five weeks of the course, we will use those later in the course. -->
-<!-- ::: -->
-
-<!-- **Hollywood Movies**. At the link <https://uoepsy.github.io/data/hollywood_movies_subset.csv> you will find data on Hollywood movies released between 2012 and 2018 from the top 5 lead studios and top 10 genres. The following variables were recorded: -->
-
-<!-- - `Movie`: Title of the movie  -->
-<!-- - `LeadStudio`: Primary U.S. distributor of the movie  -->
-<!-- - `RottenTomatoes`: Rotten Tomatoes rating (critics)  -->
-<!-- - `AudienceScore`: Audience rating (via Rotten Tomatoes)  -->
-<!-- - `Genre`: One of Action Adventure, Black Comedy, Comedy, Concert, Documentary, Drama, Horror, Musical, Romantic Comedy, Thriller, or Western  -->
-<!-- - `TheatersOpenWeek`: Number of screens for opening weekend  -->
-<!-- - `OpeningWeekend`: Opening weekend gross (in millions)  -->
-<!-- - `BOAvgOpenWeekend`: Average box office income per theater, opening weekend  -->
-<!-- - `Budget`: Production budget (in millions)  -->
-<!-- - `DomesticGross`: Gross income for domestic (U.S.) viewers (in millions)  -->
-<!-- - `WorldGross`: Gross income for all viewers (in millions)  -->
-<!-- - `ForeignGross`: Gross income for foreign viewers (in millions)  -->
-<!-- - `Profitability`: WorldGross as a percentage of Budget  -->
-<!-- - `OpenProfit`: Percentage of budget recovered on opening weekend  -->
-<!-- - `Year`: Year the movie was released -->
-<!-- - (Ignore for now) `IQ1`-`IQ50`: IQ score of each of 50 audience raters -->
-<!-- - (Ignore for now) `Snacks`: How many of the 50 audience raters brought snacks -->
-<!-- - (Ignore for now) `PrivateTransport`: How many of the 50 audience raters reached the cinema via private transportation -->
-
-
+::: {.callout-important}
 Instructions and data were released in [week 1](1_01_design_and_data.html).
+:::
 
 
 ### Tasks
-
-<!-- For formative report A, you will be asked to perform the following tasks, each related to a week of teaching in this course.   -->
-<!-- __This week you will only focus on task A2.__ In the next section you will find some guided sub-steps you may want to consider to complete task A2. -->
 
 For formative report A, you will be asked to perform the following tasks, each related to a week of teaching in this course.  
 This week's task is highlighted in bold below. Please only focus on completing that task this week. In the next section, you will also find guided sub-steps you may want to consider to complete this week's task.
@@ -146,6 +76,13 @@ toy_data %>%
 ```{r}
 toy_data %>%
     select(id:course)
+```
+
+Alternatively, you can specify the names of all columns manually:
+
+```{r}
+toy_data %>%
+    select(id, age, course)
 ```
 
 However, if you check the data in `toy_data`, those didn't change. The result of the above computation was only printed to the screen but not stored. 
@@ -336,9 +273,20 @@ tribble(
 These data were collected by the owner of a bistro in the US, who was interested in understanding the tipping patterns of their customers. The data are adapted from @lock2020.
 
 ```{r}
-library(tidyverse)  # we use read_csv and glimpse from tidyverse
+library(tidyverse)
+```
+
+:::{.column-margin}
+We load the `tidyverse` package as we will use the functions `read_csv` and `glimpse` from this package.
+:::
+
+```{r}
 tips <- read_csv("https://uoepsy.github.io/data/RestaurantTips.csv")
 ```
+
+:::{.column-margin}
+`read_csv` is the function to read CSV (comma separated values) files. Once we have read the file, it is stored into an object called tips using the arrow (`<-`).
+:::
 
 ```{r}
 head(tips)
@@ -356,33 +304,47 @@ glimpse(tips)
 `glimpse` is part of the tidyverse package and is used to check the type of each variable.
 :::
 
-We can use better labels for the categorical variables:
+We can use better and more descriptive labels for the categorical variables:
 
 ```{r}
 tips$Day <- factor(tips$Day, 
                    levels = c("m", "t", "w", "th", "f"),
                    labels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"))
-
-tips$Credit <- factor(tips$Credit, 
-                      levels = c("n", "y"),
-                      labels = c("No", "Yes"))
-
-tips$Server <- factor(tips$Server)
-
-glimpse(tips)
 ```
 
 :::{.column-margin}
-The categorical variable `course` in `toy_data` with levels "A" and "B" can have the values relabelled to "Year1" and "Year2" via:
-
-```
-toy_data$course <- factor(
-  toy_data$course, 
-  levels = c("A", "B"), 
-  labels = c("Year1", "Year2")
-)
-```
+`tips$Day`, i.e. the column `Day` within the data `tips`, is converted to a factor in R (the appropriate storage mode for categorical variables). Furthermore, it replaces the level "m" with the new label "Monday", "t" with the new label "Tuesday", and so on.
 :::
+
+```{r}
+tips$Credit <- factor(tips$Credit, 
+                      levels = c("n", "y"),
+                      labels = c("No", "Yes"))
+```
+
+We don't have better labels for Server (current values A , B, or C), so we will just convert it to a factor by keeping the current levels:
+
+```{r}
+tips$Server <- factor(tips$Server)
+```
+
+Check the relabelled columns:
+
+```{r}
+glimpse(tips)
+```
+
+<!-- :::{.column-margin} -->
+<!-- The categorical variable `course` in `toy_data` with levels "A" and "B" can have the values relabelled to "Year1" and "Year2" via: -->
+
+<!-- ``` -->
+<!-- toy_data$course <- factor( -->
+<!--   toy_data$course,  -->
+<!--   levels = c("A", "B"),  -->
+<!--   labels = c("Year1", "Year2") -->
+<!-- ) -->
+<!-- ``` -->
+<!-- ::: -->
 
 Last week, we also saw that if someone tipped more than 100% of the bill size, it was likely a data input error and we decided to replace that value with NA (not available):
 
@@ -531,7 +493,7 @@ kbl(tbl_server) %>% kable_styling(full_width = FALSE)
 <!-- End test -->
 
 :::{.callout-note collapse="true"}
-#### Arranging by descending frequency
+#### How do I arrange by descending frequency order?
 
 Add `arrange(desc(column_of_freq))`. For example:
 
@@ -545,12 +507,18 @@ tbl_day <- tips %>%
 tbl_day
 ```
 
+If you just did `arrange(n)`, it would be in ascending order.
+
 :::
 
 :::{.callout-note collapse="true"}
-#### Rename the frequency and percent columns
+#### How do I rename the frequency and percent columns?
 
-Add `arrange(desc(column_of_freq))`. For example:
+You can specify a different name for the column of counts by using `name = "new name"`. If you don't specify it, the default is `n`.
+
+You can specify any valid name for the percentages inside of mutate.
+
+For example:
 
 ```{r}
 tbl_day <- tips %>%
@@ -564,10 +532,12 @@ tbl_day
 
 :::
 
-From the univariate distribution (or marginal distribution) of each categorical variable we see that the most common payment method was not a credit card, and the most common day of the week to dine at that restaurant was Wednesday. Finally, most parties were waited on by server B. 
+From the univariate distribution (or marginal distribution) of each categorical variable we see that the most common payment method was not a credit card, and the most common day of the week to dine at that restaurant was Wednesday, followed by Thursday and Friday. Finally, most parties were waited on by server B. 
 
 ::: {.column-margin}
-The most common value is the __mode__.
+The __mode__ of a variable is the value that appears most often.
+
+The term comes from the French expression "à la mode", i.e. in fashion. If you think about it, something is considered to be in fashion if it's worn very often.
 :::
 
 ## Student Glossary
