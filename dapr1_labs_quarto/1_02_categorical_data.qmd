@@ -66,24 +66,46 @@ toy_data <- tibble(
 toy_data
 ```
 
-To select the first two columns, you can either say the range `from`:`to` using numbers or the names of the columns:
+To select columns to keep you can either (1) specify the range `from`:`to`, if the columns are sequential, or (2) list the columns one by one.
+
+::: {.panel-tabset}
+##### Range `from`:`to`
+
+If the columns you want to keep are sequential, you can just specify the first and last by using numbers:
 
 ```{r}
 toy_data %>%
     select(1:3)
 ```
 
+or using their names:
+
 ```{r}
 toy_data %>%
     select(id:course)
 ```
 
-Alternatively, you can specify the names of all columns manually:
+Either option keeps columns `id` up to `course`.
+
+##### Listing all columns
+
+If the columns you want to keep are not in sequential order, you have to list all of the columns you want to keep. This can be tedious if you have many. 
+
+You can do so using numbers:
+
+```{r}
+toy_data %>%
+    select(1, 2, 3)
+```
+
+Or column names:
 
 ```{r}
 toy_data %>%
     select(id, age, course)
 ```
+
+:::
 
 However, if you check the data in `toy_data`, those didn't change. The result of the above computation was only printed to the screen but not stored. 
 
@@ -103,7 +125,6 @@ toy_data
 ```
 
 By doing the above, we have overwritten the data stored in `toy_data` with the selected columns.
-
 :::
 
 - Overwrite the data to only include the first 15 variables (i.e. columns).^[Hint: the `select()` function from `tidyverse`]
@@ -125,7 +146,8 @@ Hint: similar to above, change the column to `LeadStudio`.
 ]
 
 - Would it make sense to create a plot of the frequency distribution of movie names?^[
-Hint: what would be the height of each bar? Would adding such a plot to a report bring any insights and be useful to a decision maker?
+Hint: what would be the height of each bar? Would adding such a plot to a report bring any insights and be useful to a decision maker?<br><br>
+In the data, `Movie`, which stores the movie title, is what is known is statistics as the "identifier" or "ID". This uniquely identifies each unit in the study. If your study involved several participants, your ID would be the unique participant identifier. It doesn't make sense to plot the frequency distribution of an identifier variable as it will have vertical bars all of height equal 1.
 ]
 
 ::: {.callout-tip}
@@ -151,6 +173,7 @@ The goal of data analysis is to to go from a multitude of values to insights tha
         )
     ```
     
+    __Advanced__: `count(course)` is equivalent to `group_by(course) %>% summarise(n = n())`. See the box below for more details.
 
 :::{.callout-note collapse="true"}
 #### Alternative
@@ -175,8 +198,19 @@ toy_data %>%
     )
 ```
 
-An alternative to the above involves using the `group_by()`, `summarise()`, and `n()` functions from `tidyverse`. 
-The `n()` function counts the number of values, and we use it inside `summarise()` because we are summarising the data with a number. Before `summarise`, we use `group_by(course)` to tell R to do the computation for each unique `course` entry, i.e. for each group of rows defined by `course`.
+An alternative to the above involves using the `group_by()`, `summarise()`, and `n()` functions from `tidyverse`. The following code creates a table of absolute frequencies (or counts):
+
+```{r}
+toy_data %>%
+    group_by(course) %>%
+    summarise(
+        Freq = n()
+    )
+```
+
+In the code above, we take `toy_data` and perform a grouped computation for each separate `course` (because of `group_by`). The computation says to summarise the data by creating a new column named `Freq` which stores the counts of the values in each group (`n()`).
+
+The following code mutates the frequency table and adds a new column storing the percentages, which is given the name `Perc`:
 
 ```{r}
 toy_data %>%
@@ -189,6 +223,8 @@ toy_data %>%
     )
 ```
 
+The function `round(<values>, 2)` tells R to round the percentages to 2 decimal places.
+
 :::
 
 - Describe the distribution of lead studios. You may want to include both the frequency and the percentage frequency.^[
@@ -196,10 +232,11 @@ Hint: similar to above, but replacing `Genre` with `LeadStudio`
 ]
 
 - What is the most common genre and the most common lead studio?^[
-Hint: What is the mode of `Genre` and `LeadStudio`? In other words, which category in each of those frequency distributions has the highest frequency?  
-Tip: You may want to order the frequency tables in descending order. The function `arrange(desc(<column_of_freq>))` may help.
+Hint: What is the mode of `Genre` and `LeadStudio`? In other words, which category in each of those frequency distributions has the highest frequency?<br><br>
+Tip: You may want to order the barplots and/or frequency tables in descending order. For barplots, the function `fct_infreq()` may help. For tables, the function `arrange(desc(<column_of_freq>))` may help.
 ]
 
+- Format your frequency tables properly using the `kbl()` function from the `kableExtra` package.^[Hint: See the worked example below.]
 
 
 <!-- Solution -->
@@ -433,6 +470,42 @@ plt3 <- ggplot(tips, aes(x = Server)) +
 plt1 | plt2 | plt3
 ```
 
+
+:::{.callout-note collapse="true"}
+### Sorting the barplot
+
+If wanted, you can sort the bars in order of frequency by using the `fct_infreq()` function. 
+
+In the last plot, plt3, this involves changing the first row from `ggplot(tips, aes(x = Server))` to `ggplot(tips, aes(x = fct_infreq(Server)))`.
+
+In these plot I have preferred not to do so, as changing the order of levels may confuse the reader when the factors have easily understood ordering: credit (No/Yes), day (Mon,Tue,Wed,Thu,Fri), server (A,B,C)
+
+```{r}
+#| fig-height: 5
+#| fig-width: 12
+
+library(patchwork)
+
+plt1 <- ggplot(tips, aes(x = fct_infreq(Credit))) +
+    geom_bar() +
+    labs(x = "Paird by credit card?", y = "Count") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+plt2 <- ggplot(tips, aes(x = fct_infreq(Day))) +
+    geom_bar() +
+    labs(x = "Day of week", y = "Count") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+plt3 <- ggplot(tips, aes(x = fct_infreq(Server))) +
+    geom_bar() +
+    labs(x = "Server", y = "Count") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+plt1 | plt2 | plt3
+```
+:::
+
+
 A frequency table can be obtained using:
 
 ```{r}
@@ -495,7 +568,7 @@ kbl(tbl_server) %>% kable_styling(full_width = FALSE)
 :::{.callout-note collapse="true"}
 #### How do I arrange by descending frequency order?
 
-Add `arrange(desc(column_of_freq))`. For example:
+Add `arrange(desc(<column_of_freq>))`. For example:
 
 ```{r}
 tbl_day <- tips %>%
@@ -538,6 +611,40 @@ From the univariate distribution (or marginal distribution) of each categorical 
 The __mode__ of a variable is the value that appears most often.
 
 The term comes from the French expression "à la mode", i.e. in fashion. If you think about it, something is considered to be in fashion if it's worn very often.
+:::
+
+
+::: {.callout-tip collapse="true"}
+### Referencing tables
+
+To reference a table in text you first give the code chunk a unique label, e.g. `tableLabel`, and a caption to the table, e.g. "My table caption is this"
+
+````
+```{{r tableLabel}}
+tbl_credit %>%
+    kbl(digits = 2, booktabs = TRUE, caption = "My table caption is this")
+```
+````
+
+This creates
+
+```{r tableLabel, echo=FALSE}
+#| label: tbl-label
+#| tbl-cap: "My table caption is this"
+tbl_credit %>%
+    kbl(digits = 2, caption = "My table caption is this") %>%
+    kable_styling(full_width = FALSE)
+```
+
+Then you reference it in text using `\@ref(tab:tableLabel)`. For example:
+
+> `Table \@ref(tab:tableLabel) displays etc.`
+
+Which renders as:
+
+@tbl-label displays etc.
+
+
 :::
 
 ## Student Glossary
