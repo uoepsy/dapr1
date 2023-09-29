@@ -257,7 +257,7 @@ $$
 
 + $\bar{x}$ = estimate of mean of variable $x$
 + $x_i$ = individual values of $x$
-+ $N$ = sample size
++ $n$ = sample size
 
 ]
 
@@ -265,7 +265,7 @@ $$
 # Hand calculation
 
 $$
-\bar{x} = \frac{\sum_{i=1}^{N}{x_i}}{N}
+\bar{x} = \frac{\sum_{i=1}^{n}{x_i}}{N}
 $$
 
 + Our data:
@@ -275,7 +275,7 @@ $$x=[10,40,30,25,15,6]$$
 
 + Worked calculation
 
-$$\frac{\sum_{i=1}^{N}(10+40+30+25+15+6)}{6} = \frac{126}{6} = 21$$
+$$\frac{\sum_{i=1}^{n}(10+40+30+25+15+6)}{6} = \frac{126}{6} = 21$$
 
 ---
 #  Arithmetic Mean: Test score 
@@ -339,7 +339,7 @@ dev
 ---
 # Variation around the mean
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 dev +
   geom_hline(yintercept = mean(ex1$Score1), size = 1, col = "steelblue4") +
   geom_segment(x = x, y = ex1$Score1, xend = x, yend = mean_vec, linetype = "dashed")
@@ -354,7 +354,7 @@ dev +
 + This is called the **sum of deviations.**
 
 $$
-SumDev = \sum_{i=1}^{N}{(x_i - \bar{x})}
+SumDev = \sum_{i=1}^{n}{(x_i - \bar{x})}
 $$
 
 + $x_i$ = individual observations
@@ -411,12 +411,12 @@ ex1 %>%
 + This is called the ***variance*** .
 
 $$
-\sigma^2 = \frac{\sum_{i=1}^{N}{(x_i - \bar{x})}^2}{N}
+s^2 = \frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}
 $$
 
 + Variance is the average squared deviation from the mean.
 
-+ $\sigma^2$ = variance (Greek letter lower case sigma)
++ $s^2$ = sample variance 
 
 
 ---
@@ -444,7 +444,7 @@ ex1 %>%
   summarise(
     Variable = "Statistics Test Score",
     "Sum Deviation" = round(sum(Score1 - mean(Score1)),2),
-    Variance = round((sum((Score1 - mean(Score1))^2))/length(Score1),2) #<<
+    Variance = round((sum((Score1 - mean(Score1))^2))/(length(Score1)-1),2) #<<
   )
 ```
 
@@ -453,7 +453,7 @@ ex1 %>%
   summarise(
     Variable = "Statistics Test Score",
     "Sum Deviation" = round(sum(Score1 - mean(Score1)),2),
-    Variance = round((sum((Score1 - mean(Score1))^2))/length(Score1),2)
+    Variance = round((sum((Score1 - mean(Score1))^2))/(length(Score1)-1),2)
   ) %>%
   kable(.)
 ```
@@ -472,7 +472,7 @@ ex1 %>%
   + Taking the square root undoes (or fixes) the squaring of deviations that we did to get variance.
 
 $$
-\sigma = \sqrt{\frac{\sum_{i=1}^{N}{(x_i - \bar{x})}^2}{N}}
+s = \sqrt{\frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}}
 $$
 
 ---
@@ -482,8 +482,8 @@ $$
 ex1 %>%
   summarise(
     Variable = "Statistics Test Score",
-    Variance = round((sum((Score1 - mean(Score1))^2))/length(Score1),2),
-    SD = round(sqrt((sum((Score1 - mean(Score1))^2))/length(Score1)),2) #<<
+    Variance = round(sum((Score1 - mean(Score1))^2)/(length(Score1)-1),2),
+    SD = round(sqrt(sum((Score1 - mean(Score1))^2)/(length(Score1)-1)),2)
   ) 
 ```
 
@@ -504,18 +504,18 @@ ex1 %>%
 
 
 ---
-# An important difference with `var` and `sd`
+# Population vs. Sample statistics
 
 .pull-left[
 
 **Population Variance**
 $$
-\sigma^2 = \frac{\sum_{i=1}^{N}{(x_i - \bar{x})}^2}{N}
+\sigma^2 = \frac{\sum_{i=1}^{N}{(x_i - \mu)}^2}{N}
 $$
 
 **Population SD**
 $$
-\sigma = \sqrt{\frac{\sum_{i=1}^{N}{(x_i - \bar{x})}^2}{N}}
+\sigma = \sqrt{\frac{\sum_{i=1}^{N}{(x_i - \mu)}^2}{N}}
 $$
 
 
@@ -526,13 +526,13 @@ $$
 
 **Sample Variance**
 $$
-s^2 = \frac{\sum_{i=1}^{N}{(x_i - \bar{x})}^2}{N-1}
+s^2 = \frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}
 $$
 
 
 **Sample SD**
 $$
-s = \sqrt{\frac{\sum_{i=1}^{N}{(x_i - \bar{x})}^2}{N-1}}
+s = \sqrt{\frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}}
 $$
 
 
@@ -541,7 +541,9 @@ $$
 --
 
 + NOTE: R defaults to sample values. 
-
++ $\mu$ = population mean; $\bar{x}$ = sample mean
++ $\sigma$ = population standard deviation; s = sample standard deviation
++ N = population size; n = sample size
 
 ???
 Make the point that we will come back to this in more detail, but for now it is just important to note that the R defaults to sample.
@@ -680,7 +682,4 @@ df %>%
 + This week:
   + Complete your lab
   + Come to office hours
-  + Weekly quiz - first assessed quiz on content of weeks 1 and 2
-      + Open Monday 09:00
-      + Closes Sunday 17:00
-      + Feedback available next week on Monday at 09:00
+  + No quiz this week (week 3). Assessed quiz on categorical data next week (week 4)
