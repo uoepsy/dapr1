@@ -24,11 +24,20 @@ Instructions and data were released in [week 1](1_01_design_and_data.html).
 ::: {.callout-important}
 **Next week: Submission of Formative report A**  
 
-Your group must submit one PDF file for formative report A by 12 noon on Friday 20 October 2023 (next week).
+Your group must submit one PDF file for formative report A by 12 noon on Friday the 20th of October 2023 (next week).
 
-To submit go to the course Learn page, click "Assessment", then click "Formative Report A (PDF file only)".
+To submit go to the course Learn page, click "Assessment", then click "Submit Formative Report A (PDF file only)".
 
 __No extensions.__ As mentioned in the Assessment Information page, no extensions are possible for group-based reports.
+:::
+
+
+::: {.callout-tip}
+**Tip: On the `kbl()` and `kable()` functions**
+
+The two functions are equivalent.
+
+However, if you provide a list of tables, we recommend using the `kable()` function as it allows you to also provide a caption without errors when knitting.
 :::
 
 
@@ -64,30 +73,32 @@ To download the file from the server, go to the RStudio Files pane, tick the box
 
 - Choose two variables and create a plot displaying their relationship.[^s1w4-rel2]
 
-[^s1w4-rel2]: Hint: Some possibilities are, among many others,
+[^s1w4-rel2]: Hint: Some possibilities are, among many others:
     
     * Categorical-Categorical: `geom_mosaic()` from `ggmosaic` package, or `geom_bar()`  
-    * Categorical-Numeric: `geom_histogram()` and `facet_wrap()` or colour, `geom_density()` and `facet_wrap()`, or `geom_boxplot()`  
+    * Categorical-Numeric: `geom_histogram()`, `geom_density()`, or `geom_boxplot()`  
     * Numeric-Numeric: `geom_point()`
 
-- Summarise the relationship with either a frequency table or a summary statistics, depending on the type of the variables.[^s1w4-cov-na]
+- Summarise the relationship with either a frequency table or descriptive statistics, depending on the type of the variables.[^s1w4-cov-na]
 
 [^s1w4-cov-na]: Hint: 
 
     Depending on the type of the variables some of these functions may be useful: `count()`, `table()`, `n()`, `mean()`, `sd()`, `cov()`  
 
-    If the result is NA, what could have caused that?  
+    __Stop and think.__ If the result is NA, what could have caused that?  
     
     * For some functions, this is solved by adding the argument `na.rm = TRUE`.
     
     * For `cov()` you need the argument `use = "pairwise.complete.obs"`. This is because the covariance between a pair of variables $X, Y$ cannot be computed if one or both the values in a product is NA. The argument above tells R to only use pairs with complete observations, i.e. no missing values.
 
 
-- Choose a third variable and visualise how the relationship above varies across the third variable.
+- Choose a third variable of categorical type, and visualise how the relationship above varies across this third variable.[^s1w4-third]
 
-    + If you have chosen a categorical-numeric relationship, choose a categorical variable for the third variable  
-    + If you have chosen a numeric-numeric relationship, choose a categorical variable for the third variable  
-    + If you have chosen a categorical-categorical relationship, choose a numeric variable for the third variable and invert the order of one categorical variable with the numeric one. This is because you cannot facet a plot by a continuous variable in `facet_wrap` (or `facet_grid`).
+[^s1w4-third]: Hint: the function `facet_wrap()` may be useful with a categorical variable.
+
+<!-- + If you have chosen a categorical-numeric relationship, choose a categorical variable for the third variable   -->
+<!-- + If you have chosen a numeric-numeric relationship, choose a categorical variable for the third variable   -->
+<!-- + If you have chosen a categorical-categorical relationship, choose a numeric variable for the third variable and invert the order of one categorical variable with the numeric one. This is because you cannot facet a plot by a continuous variable in `facet_wrap` (or `facet_grid`). -->
 
 - Summarise with a table how the relationship above varies across the third variable.^[
 Hint: you may want to use functions such as `count`, `table`, `summarise`, `n`, `mean`, `sd`, `cov`, `group_by`
@@ -244,7 +255,8 @@ We can numerically summarise this relationship with the covariance between the t
 cov(tips$Bill, tips$Tip)
 ```
 
-There are missing values, so the covariance cannot be computed. To fix this, we use the option `use = "pairwise.complete.obs"` to tell R to only keep the complete pairs to compute the covariance, i.e. ignoring pairs where at least one number is NA:
+There are missing values, so the covariance cannot be computed if one or both of the values $X, Y$ is missing.  
+To fix this, we use the option `use = "pairwise.complete.obs"` to tell R to only keep the complete pairs to compute the covariance, i.e. ignoring pairs where at least one number is NA:
 
 ```{r}
 round(cov(tips$Bill, tips$Tip, use = "pairwise.complete.obs"), digits = 2)
@@ -259,6 +271,19 @@ ggplot(tips, aes(x = Bill, y = Tip)) +
          y = "Tip size (in US dollars)") +
     facet_wrap(~Credit)
 ```
+
+::: {.column-margin}
+Instead of `facet_wrap()` you can use the `facet_grid()` function. 
+This allows you to facet the rows by a variable, and the columns by another variable, or both:  
+
+- `facet_grid(rows ~ .)`  
+- `facet_grid(. ~ cols)`  
+- `facet_grid(rows ~ cols)`
+
+Try replacing the last line of code with:
+
+`facet_grid(Server ~ Credit)`
+:::
 
 We can improve the labelling by using `labeller = "label_both"`, which displays not only the group value as label, but both the variable and value:
 
@@ -278,8 +303,9 @@ Similarly, you can compute grouped covariances via:
 library(kableExtra)
 tips %>%
     group_by(Credit) %>%
-    summarise(COV = cov(Bill, Tip, use = "pairwise.complete.obs")) %>% 
-    kbl(digits = 2, booktabs = TRUE)
+    summarise(Cov = cov(Bill, Tip, use = "pairwise.complete.obs")) %>% 
+    kable(digits = 2, booktabs = TRUE,
+        caption = "Relationship between bill and tip size by credit card usage")
 ```
 
 ```{r echo=FALSE}
@@ -288,8 +314,8 @@ tips %>%
 library(kableExtra)
 tips %>%
     group_by(Credit) %>%
-    summarise(COV = cov(Bill, Tip, use = "pairwise.complete.obs")) %>% 
-    kbl(digits = 2) %>%
+    summarise(Cov = cov(Bill, Tip, use = "pairwise.complete.obs")) %>% 
+    kable(digits = 2) %>%
     kable_styling()
 ```
 
@@ -302,11 +328,16 @@ The relationship between bill and tip size is stronger for those who paid by cre
 :::
 
 
+## Helpful references on relationships between variables
+
+In the following, Cat = Categorical and Num = Numerical.
+
+::: {.callout-tip collapse="true"}
 ### Relationships between two variables
 
 ::: {.panel-tabset}
 
-#### Categorical-Categorical
+#### Cat-Cat
 
 Visualise with a mosaic plot:
 
@@ -322,19 +353,19 @@ Summarise with a contingency table:
 tips %>%
     select(Credit, Server) %>%
     table() %>%
-    kbl(booktabs = TRUE)
+    kable(booktabs = TRUE)
 ```
 
 ```{r echo=FALSE}
 tips %>%
     select(Credit, Server) %>%
     table() %>%
-    kbl() %>%
+    kable() %>%
     kable_styling(full_width = FALSE)
 ```
 
 
-#### Numerical-Categorical
+#### Num-Cat
 
 Boxplot
 
@@ -351,6 +382,13 @@ ggplot(tips, aes(x = Tip)) +
     facet_wrap(~Credit)
 ```
 
+or coloured density plot
+
+```{r}
+ggplot(tips, aes(x = Tip, colour = Credit)) +
+    geom_density()
+```
+
 Summarise via a grouped table of descriptive statistics:
 
 ```{r eval=F}
@@ -358,8 +396,10 @@ tips %>%
     group_by(Credit) %>%
     summarise(N = n(),
               M = mean(Tip),
-              SD = sd(Tip)) %>%
-    kbl(digits = 2, booktabs = TRUE)
+              SD = sd(Tip),
+              Med = median(Tip),
+              IQR = IQR(Tip)) %>%
+    kable(digits = 2, booktabs = TRUE)
 ```
 
 ```{r echo=FALSE}
@@ -368,13 +408,15 @@ tips %>%
     drop_na(Tip) %>%    # to drop rows with NA in the Tip column
     summarise(N = n(),
               M = mean(Tip),
-              SD = sd(Tip)) %>%
-    kbl(digits = 2) %>%
+              SD = sd(Tip),
+              Med = median(Tip),
+              IQR = IQR(Tip)) %>%
+    kable(digits = 2) %>%
     kable_styling(full_width = FALSE)
 ```
 
 
-#### Numerical-Numerical
+#### Num-Num
 
 Visualise with a scatterplot:
 
@@ -393,13 +435,65 @@ cov(tips$Bill, tips$Tip, use = "pairwise.complete.obs") %>%
 There's no need to put just one number into a table, write it up in a sentence.
 
 :::
+:::
 
 
+::: {.callout-tip collapse="true"}
 ### Relationships between three variables
 
 ::: {.panel-tabset}
+#### Cat-Cat-Cat
 
-#### Categorical-Numerical-Categorical
+Visalise with a faceted mosaic plot:
+
+```{r}
+ggplot(tips)+
+    geom_mosaic(aes(x = product(Credit, Server), fill=Credit)) +
+    facet_wrap(~Day, scales = "free") # scales = "free" shows the x-axis on each plot
+```
+
+Summarise with grouped frequency tables:
+
+```{r}
+mon <- tips %>%
+    filter(Day == "Monday") %>%
+    select(Credit, Server) %>%
+    table()
+
+tue <- tips %>%
+    filter(Day == "Tuesday") %>%
+    select(Credit, Server) %>%
+    table()
+
+wed <- tips %>%
+    filter(Day == "Wednesday") %>%
+    select(Credit, Server) %>%
+    table()
+
+
+thu <- tips %>%
+    filter(Day == "Thursday") %>%
+    select(Credit, Server) %>%
+    table()
+
+fri <- tips %>%
+    filter(Day == "Friday") %>%
+    select(Credit, Server) %>%
+    table()
+```
+
+```{r eval = FALSE}
+kable(list(mon, tue, wed, thu, fri), booktabs = TRUE,
+      caption = "Frequency tables of Credit by Server for each day of the week (Mon to Fri)")
+```
+
+```{r echo = FALSE}
+kable(list(mon, tue, wed, thu, fri),
+      caption = "Frequency tables of Credit by Server for each day of the week (Mon to Fri)") %>%
+    kable_styling()
+```
+
+#### Cat-Num-Cat
 
 Visualise using a faceted boxplot:
 
@@ -421,23 +515,23 @@ Summarise with a table of descriptive statistics grouped by the categorical vari
 
 ```{r eval=F}
 tips %>%
-    group_by(Day, Credit) %>%
+    group_by(Credit, Day) %>%
     summarise(M = mean(Tip, na.rm=TRUE),
               SD = sd(Tip, na.rm=TRUE)) %>%
-    kbl(digits = 2, booktabs = TRUE)
+    kable(digits = 2, booktabs = TRUE)
 ```
 
 ```{r echo=FALSE}
 tips %>%
-    group_by(Day, Credit) %>%
+    group_by(Credit, Day) %>%
     summarise(M = mean(Tip, na.rm=TRUE),
               SD = sd(Tip, na.rm=TRUE)) %>%
-    kbl(digits = 2) %>%
+    kable(digits = 2) %>%
     kable_styling(full_width = FALSE)
 ```
 
 
-#### Numerical-Numerical-Categorical
+#### Num-Num-Cat
 
 Scatterplot
 
@@ -453,21 +547,22 @@ Summarise via a grouped table of descriptive statistics:
 tips %>%
     group_by(Day) %>%
     summarise(
-        COV = cov(Bill, Tip, use = "pairwise.complete.obs")
+        Cov = cov(Bill, Tip, use = "pairwise.complete.obs")
     ) %>%
-    kbl(digits = 2, booktabs = TRUE)
+    kable(digits = 2, booktabs = TRUE)
 ```
 
 ```{r echo=FALSE}
 tips %>%
     group_by(Day) %>%
     summarise(
-        COV = cov(Bill, Tip, use = "pairwise.complete.obs")
+        Cov = cov(Bill, Tip, use = "pairwise.complete.obs")
     ) %>%
-    kbl(digits = 2) %>%
+    kable(digits = 2) %>%
     kable_styling(full_width = FALSE)
 ```
 
+:::
 :::
 
 
@@ -483,6 +578,7 @@ To conclude the lab, add the new functions to the glossary of R functions that y
 | `geom_point` | ? |
 | `geom_mosaic` | ? |
 | `facet_wrap` | ? |
+| `facet_grid` | ? |
 | `group_by` | ? |
 | `summarise` | ? |
 | `cor` | ? |
