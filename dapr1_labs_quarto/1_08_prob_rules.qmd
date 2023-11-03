@@ -29,80 +29,57 @@ library(ggmosaic)
 m_plot <- ggplot(movies2) +
     geom_mosaic(aes(x = product(Rating), fill = Rating, conds = product(Genre)))
 m_plot
+
+
+##
+movies2$weight = ifelse(movies2$Genre == "Comedy", 3, 1)
+movies3 <- slice_sample(movies2, n = 1000, replace = TRUE, weight_by = weight)
+
+library(ggmosaic)
+library(patchwork)
+(ggplot(movies3) +
+    geom_mosaic(aes(x = product(Rating), fill = Rating, conds = product(Genre))) ) /
+(ggplot(movies3) +
+    geom_mosaic(aes(x = product(Rating, Genre), fill = Rating)))
 ```
 
 
-::: {.callout-note collapse="true"}
-### Instructions Recap - Formative Report B
+## Formative Report B
 
-- In this block of the course (weeks 7-11), you should produce a PDF report using Rmarkdown for which you will receive formative feedback in week 12. 
-
-- The report should not include any reference to R code or functions, but be written or a generic reader who is only assumed to have a basic statistical understanding without any R knowledge. You should also avoid any R code output or printout in the PDF file.
-
-- You will be required to submit a PDF file by 12 noon on Friday the 2nd of December 2022 via Learn. One person needs to submit on behalf of your group.
-
-- The report should be at most 6 pages long. At the end of the report, you are allowed two appendices which both don't count towards the page limit. 
-
-    + Appendix A will contain any tables or figures which you cannot fit in the page limit (no text allowed)
-    + Appendix B will contain the code to reproduce the report results (just like Formative Report A).
-
-- No extensions allowed. As this is group-based work, no extensions are possible.
+::: {.callout-important}
+Instructions and data were released in [week 7](1_07_prob_theory.html).
 :::
 
 
-::: {.callout-note collapse="true"} 
-### Formative report B - Data
-
-**Hollywood Movies**. At the link <https://uoepsy.github.io/data/hollywood_movies_subset.csv> you will find data on Hollywood movies released between 2012 and 2018 from the top 5 lead studios and top 10 genres. The following variables were recorded:
-
-- `Movie`: Title of the movie 
-- `LeadStudio`: Primary U.S. distributor of the movie 
-- `RottenTomatoes`: Rotten Tomatoes rating (critics) 
-- `AudienceScore`: Audience rating (via Rotten Tomatoes) 
-- `Genre`: One of Action Adventure, Black Comedy, Comedy, Concert, Documentary, Drama, Horror, Musical, Romantic Comedy, Thriller, or Western 
-- `TheatersOpenWeek`: Number of screens for opening weekend 
-- `OpeningWeekend`: Opening weekend gross (in millions) 
-- `BOAvgOpenWeekend`: Average box office income per theater, opening weekend 
-- `Budget`: Production budget (in millions) 
-- `DomesticGross`: Gross income for domestic (U.S.) viewers (in millions) 
-- `WorldGross`: Gross income for all viewers (in millions) 
-- `ForeignGross`: Gross income for foreign viewers (in millions) 
-- `Profitability`: WorldGross as a percentage of Budget 
-- `OpenProfit`: Percentage of budget recovered on opening weekend 
-- `Year`: Year the movie was released
-- `IQ1`-`IQ50`: IQ score of each of 50 audience raters (every movie had different raters)
-- `Snacks`: How many of the 50 audience raters brought snacks
-- `PrivateTransport`: How many of the 50 audience raters reached the cinema via private transportation
-
-:::
-
-## Tasks
+### Tasks
 
 For formative report B, you will be asked to perform the following tasks, each related to a week of teaching in this course.  
+This week's task is highlighted in bold below. Please only focus on completing that task this week. In the next section, you will also find the guided sub-steps that you need to consider to complete this week's task.
 
-__This week you will only focus on task B2.__ 
+> B1) Create a new categorical variable, Rating, taking the value 'Good' if the audience score is > 50, and 'Bad' otherwise. Inspect and describe the joint probability distribution of movie genre and rating.  
+> **B2) Investigate if a movie receiving a good rating is independent of the genre.**  
+> B3) Computing and plotting probabilities with a binomial distribution.  
+> B4) Computing and plotting probabilities with a normal distribution.  
+> B5) Plot standard error of the mean, and finish the report write-up (i.e., knit to PDF, and submit the PDF for formative feedback).  
 
 
-B1) Create and summarise categorical variables, before calculating probabilities. 
 
-:::{.callout-note}
-### This week's task
-B2) Investigate if events are independent, and compute probabilities.  
-:::
+### B2 sub-tasks
 
-B3) Computing and plotting probabilities with a binomial distribution.  
-B4) Computing and plotting probabilities with a normal distribution.  
-B5) Plot standard error of the mean, and finish the report write-up (i.e., knit to PDF, and submit the PDF for formative feedback).  
+__This week you will only focus on task B2.__ Below there are sub-steps you need to consider to complete task B2.
 
-## B2 sub-tasks
-
-::: {.callout-tip}
-### Tip
+:::{.column-margin}
+:::{.callout-tip}
+#### Tip
 
 To see the hints, hover your cursor on the superscript numbers.
 :::
+:::
 
-In this section you will find some guided sub-steps you may want to consider to complete task B2.
+::: {.callout-important}
+In the report write-up do not include the intermediate working to compute the probabilities required, it's sufficient to define the probability and give the final result.
+:::
+
 
 ```{r, results='hide', echo = FALSE, message = FALSE}
 # sort the frequency table
@@ -136,11 +113,11 @@ starwars2 <- starwars2 %>%
     mutate(size = factor(size))
 ```
 
-- Reopen last week's Rmd file, as you will continue last week's work (i.e., the top 3 most frequent movie genres that were rated as 'good' and 'bad'), and build on it.[^share-file]
+- Reopen last week's Rmd file, as you will continue working on last week's data about the top 3 most frequent movie genres, and their ratings.[^share-file]
 
-[^share-file]: Hint: Ask last week's driver for the Rmd file, they should share it with the group via email or Teams. To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
+[^share-file]: Hint: Ask last week's driver for the Rmd file, they should share it with the group via the group discussion space or email. To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
 
-- What’s the probability of a movie being rated as Good?[^p-good]
+- What’s the probability of a movie being rated as Good, i.e. $P(Good)$?[^p-good]
 
 [^p-good]: Hint: For the starwars example data, if we were to ask what is the probability of a species being short, i.e. P(short), we would calculate the following: 
 
@@ -150,10 +127,11 @@ starwars2 <- starwars2 %>%
 
     ```{r}
     swars_rel_freq_sum
-    # P(short) = 0.51282051 ≈ 0.51
     ```
+    
+    We can say: the probability of a Starwars character being short was P(short) = 0.51.
 
-- Given that a viewer watched a Drama movie, what's the probability of them giving a good rating?[^p-genre-good]
+- Given that a viewer watched a Drama movie, what's the probability of them giving a good rating, i.e. $P(Good \mid Drama)$?[^p-genre-good]
 
 [^p-genre-good]: Hint: For the starwars example data, if we were to ask what is the probability of being short for the Human species, i.e. P(short | human), we could calculate the following:
 
@@ -164,72 +142,30 @@ starwars2 <- starwars2 %>%
     # P(short | human) = P(short ∩ human) / P(human) = 
     # (0.38461538 / 0.79487179) = 0.483871 ≈ 0.48 
     ```
-
-- Given that a viewer watched an Action movie, what's the probability of them giving a good rating?
-
-- Given that a viewer watched a Comedy movie, what's the probability of them giving a good rating?
-
-- Given that a viewer gave a bad rating, what’s the probability of them having watched a non-drama movie? [^p-bad]
-
-[^p-bad]: Hint: For the starwars example data, if we were to ask what is the probability of a character being not a human given they are short, we could calculate the following:
-
-    ```{r}
-    swars_rel_freq_sum
-    # P((~human) | short) = 
-    # (P(droid ∩ short) + P(ewok ∩ short) + P(wookiee ∩ short)) / P(short) =
-    # (0.10256410 + 0.02564103 + 0.00000000) / 0.51282051 = 0.25
-    ```
-
-
-::: {.callout-note collapse="true"}
-### Advanced material
-
-Consider three mutually exclusive events $A_1, A_2, A_3$ and another event $B$.  
-
-We have that:
-
-$$
-\begin{aligned}
-P\big((\sim A_3) | B\big) 
-&= P\big( (A_1 \cup A_2) | B \big) \\
-&= \frac{P\big((A_1 \cup A_2) \cap B\big)}{P(B)} \\
-&= \frac{P\big((A_1 \cap B) \cup (A_2 \cap B)\big)}{P(B)} \\
-&= \frac{P(A_1 \cap B) + P(A_2 \cap B)}{P(B)}
-\end{aligned}
-$$
-
-Suppose $A_1 = Action$, $A_2 = Comedy$, $A_3 = Drama$, and $B = Bad$.
-
-$$
-\begin{aligned}
-P\big((\sim Drama) \mid Bad\big) 
-&= P\big( (Action \cup Comedy) \mid Bad \big) \\
-&= \frac{P\big((Action \cup Comedy) \cap Bad\big)}{P(Bad)} \\
-&= \frac{P\big((Action \cap Bad) \cup (Comedy \cap Bad)\big)}{P(Bad)} \\
-&= \frac{P(Action \cap Bad) + P(Comedy \cap Bad)}{P(Bad)}
-\end{aligned}
-$$
-
-:::
-
-
-- What’s the probability of a rater watching a Drama movie **or** rating a movie as Bad?[^p-dr-bad]
-
-[^p-dr-bad]: Hint: If we were to ask what is the probability of a species being Droid or being tall, i.e. P(Droid ∪ tall), we would compute the probability as:
     
-    P(Droid ∪ tall) = P(Droid) + P(tall) - P(Droid ∩ tall)
-    
-    ```{r}
-    swars_rel_freq_sum
-    # P(Droid) = 0.12820513
-    # P(tall) = 0.48717949
-    # P(Droid ∩ tall) = 0.02564103
-    
-    # P(Droid ∪ tall) = P(Droid) + P(tall) - P(Droid ∩ tall) = 
-    # 0.12820513 + 0.48717949 - 0.02564103 = 0.5897436 ≈ 0.59
-    ```
+    We can say: given that a viewer watched a drama movie, the probability that they rated it as good was 0.48.
 
-- Do you think that a movie receiving a Good rating is independent of Genre?[^genre-indep]
+- Given that a viewer watched an Action movie, what's the probability of them giving a good rating, i.e. $P(Good \mid Action)$?
+
+- Given that a viewer watched a Comedy movie, what's the probability of them giving a good rating, i.e. $P(Good \mid Comedy)$?
+
+<!-- - What’s the probability of a rater watching a Drama movie **or** rating a movie as Bad?[^p-dr-bad] -->
+
+<!-- [^p-dr-bad]: Hint: If we were to ask what is the probability of a species being Droid or being tall, i.e. P(Droid ∪ tall), we would compute the probability as: -->
+
+<!--     P(Droid ∪ tall) = P(Droid) + P(tall) - P(Droid ∩ tall) -->
+
+<!--     ```{r} -->
+<!--     swars_rel_freq_sum -->
+<!--     # P(Droid) = 0.12820513 -->
+<!--     # P(tall) = 0.48717949 -->
+<!--     # P(Droid ∩ tall) = 0.02564103 -->
+
+<!--     # P(Droid ∪ tall) = P(Droid) + P(tall) - P(Droid ∩ tall) =  -->
+<!--     # 0.12820513 + 0.48717949 - 0.02564103 = 0.5897436 ≈ 0.59 -->
+<!--     ``` -->
+
+- Do you think that a movie receiving a Good rating is independent of the Genre?[^genre-indep]
 
 [^genre-indep]: Hint: Recall that we say that two events $A$ and $B$ are independent if knowing that one occurred doesn’t change the probability of the other occurring, i.e. $P(A | B) = P(A)$. 
 
@@ -242,6 +178,53 @@ $$
     #P(short | human) ≈ 0.48
     #P(short | wookiee) ≈ 0
     ```
+
+
+- Now let's move on from independence. Given that a viewer gave a bad rating, what’s the probability of them having watched a non-drama movie? [^p-bad]
+
+[^p-bad]: Hint: For the Starwars example data, if we were to ask what is the probability of a character being not a human given they are short, we could calculate the following:
+
+    ```{r}
+    swars_rel_freq_sum
+    # P((~human) | short) =
+    # (P(droid ∩ short) + P(ewok ∩ short) + P(wookiee ∩ short)) / P(short) =
+    # (0.10256410 + 0.02564103 + 0.00000000) / 0.51282051 = 0.25
+    ```
+    
+    Given that a Starwars character is short, the probability that they are a non-human is 0.25.
+
+
+::: {.callout-note collapse="true"}
+### Advanced material
+
+Consider three mutually exclusive events $A_1, A_2, A_3$ and another event $B$.
+
+We have that:
+
+$$
+\begin{aligned}
+P\big((\sim A_3) | B\big)
+&= P\big( (A_1 \cup A_2) | B \big) \\
+&= \frac{P\big((A_1 \cup A_2) \cap B\big)}{P(B)} \\
+&= \frac{P\big((A_1 \cap B) \cup (A_2 \cap B)\big)}{P(B)} \\
+&= \frac{P(A_1 \cap B) + P(A_2 \cap B)}{P(B)}
+\end{aligned}
+$$
+
+Suppose $A_1 = Action$, $A_2 = Comedy$, $A_3 = Drama$, and $B = Bad$.
+
+$$
+\begin{aligned}
+P\big((\sim Drama) \mid Bad\big)
+&= P\big( (Action \cup Comedy) \mid Bad \big) \\
+&= \frac{P\big((Action \cup Comedy) \cap Bad\big)}{P(Bad)} \\
+&= \frac{P\big((Action \cap Bad) \cup (Comedy \cap Bad)\big)}{P(Bad)} \\
+&= \frac{P(Action \cap Bad) + P(Comedy \cap Bad)}{P(Bad)}
+\end{aligned}
+$$
+
+:::
+
 
 - Based on your analysis above, which movie Genre do you think lead studios should invest in for their next movie?[^genre-invest]
 
@@ -268,9 +251,9 @@ $$
 
 - In the analysis section of your report, write up a summary of what you have reported above, using proper rounding to 2 decimal places and avoiding any reference to R code or functions. In particular, focus on whether events were independent, and which genre of movie lead studios should consider investing in based on audience ratings.[^proper-notation] 
 
-[^proper-notation]: Hint: You may want to consider using proper notation in your write-up (as you have seen in lectures). To do so, you can use `$ name $`. For example, if I wanted to specify the general addition rule, in the main Rmd file (i.e., not a code chunk) I could write `$p(A \cup B) = p(A) + p(B) - p(A \cap B)$`. This would render in my main file as:
+[^proper-notation]: Hint: You may want to consider using proper notation in your write-up (as you have seen in lectures). To do so, you can use `$ name $`. For example, if I wanted to specify the general addition rule, in the main Rmd file (i.e., not a code chunk) I could write `$P(A \cup B) = P(A) + P(B) - P(A \cap B)$`. This would render in my main file as:
 
-    $p(A \cup B) = p(A) + p(B) - p(A \cap B)$
+    $P(A \cup B) = P(A) + P(B) - P(A \cap B)$
     
     To get the $\cup$ symbol, use the command `$A \cup B$`.
     
@@ -346,7 +329,7 @@ $P(Above) ≈ 0.64$
 #P(above | server A) = 0.6666667
 ```
 
-$P(Above | Server A) ≈ 0.67$
+$P(Above \mid Server A) ≈ 0.67$
 
 - Given that the server is B, what's the probability of receiving an above average tip?
 
@@ -355,7 +338,7 @@ $P(Above | Server A) ≈ 0.67$
 #P(above | server B) = 0.6153846
 ```
 
-$P(Above | Server B) ≈ 0.62$
+$P(Above \mid Server B) ≈ 0.62$
 
 - Given that the server is C, what's the probability of receiving an above average tip?
 
@@ -364,7 +347,11 @@ $P(Above | Server B) ≈ 0.62$
 #P(above | server C) = 0.625
 ```
 
-$P(Above | Server C) ≈ 0.63$
+$P(Above \mid Server C) ≈ 0.63$
+
+- Is tipping above average independent of the server?
+
+No, the events seem to be dependent, but very weakly. The conditional probabilities of tipping above average for each server are different from P(above), even though to a small degree. In particular, the probability of tipping above average after service from Server A is higher.
 
 - Given that a server received a tip below average, what's the probability of them being Server A or B?
 
@@ -377,27 +364,23 @@ $P(Above | Server C) ≈ 0.63$
 
 $P((Server A \cup Server B) \mid Below) ≈ 0.79$
 
-- What’s the probability of the customer being served by server A **or** tipping below 15%?
-
-```{r}
-# P(server A) = 0.38216561
-# P(below) = 0.36305732
-# P(server A ∩ below) = 0.12738854
-
-# P(server A) + P(below) - P(server A ∩ below) = 
-# (0.38216561 + 0.36305732) - 0.12738854 =
-# 0.6178344 ≈ 0.62
-```
-
-$P(Server A \cup Below) ≈ 0.62$
-
-- Is tipping above average independent of the server?
-
-No, the events seem to be dependent, but very weakly. The conditional probabilities of tipping above average for each server are different from P(above), even though to a small degree. In particular, the probability of tipping above average after service from Server A is higher.
-
 - Based on your analysis above, which server do you think offers the best customer service based on their tips?
 
 Server A appears to offer the best service to their customers, based solely on their personal tips - they had a much higher probability of receiving an above average tip (67%) than a below average tip (33%).
+
+<!-- - What’s the probability of the customer being served by server A **or** tipping below 15%? -->
+
+<!-- ```{r} -->
+<!-- # P(server A) = 0.38216561 -->
+<!-- # P(below) = 0.36305732 -->
+<!-- # P(server A ∩ below) = 0.12738854 -->
+
+<!-- # P(server A) + P(below) - P(server A ∩ below) =  -->
+<!-- # (0.38216561 + 0.36305732) - 0.12738854 = -->
+<!-- # 0.6178344 ≈ 0.62 -->
+<!-- ``` -->
+
+<!-- $P(Server A \cup Below) ≈ 0.62$ -->
 
 - To visualise our findings, we could use a conditional mosaic plot:
 
