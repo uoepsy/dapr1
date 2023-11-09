@@ -1,7 +1,7 @@
 ---
 title: "<b>Week 9: Discrete Probability Distributions </b>"
 subtitle: "Data Analysis for Psychology in R 1<br><br> "
-author: "ALEX DOUMAS & TOM BOOTH"
+author: "DapR1 Team"
 institute: "Department of Psychology<br>The University of Edinburgh"
 date: ""
 output:
@@ -9,6 +9,7 @@ output:
     lib_dir: libs
     css: xaringan-themer.css
     nature:
+      ratio: '16:9'
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
@@ -40,403 +41,692 @@ library(tidyverse)
 library(kableExtra)
 library(patchwork)
 library(moderndive)
-knitr::opts_chunk$set(fig.asp=.9)
+library(forcats)
+knitr::opts_chunk$set(dev = 'svg')
+```
+
+
+```{r, echo = F}
+redText <- function(x) {
+  if (knitr::is_latex_output()) {
+    sprintf("\\textcolor{%s}{%s}", '#BF1932', x)
+  } else if (knitr::is_html_output()) {
+    sprintf("<span style='color: %s;'>%s</span>", '#BF1932',
+      x)
+  } else x
+}
 ```
 
 # Weeks Learning Objectives
 1. Understand concept of a random variable.
+
 2. Understand the process of assigning probabilities to all outcomes.
-3. Understand the difference between a probability mass function (PMF) and a cummulative probability function (CDF).
-4. Apply the understanding of discrete probability distributions to the example of the binomial distribution.
+
+3. Apply the understanding of discrete probability distributions to the example of the binomial distribution.
+
+4. Understand the difference between a probability mass function (PMF) and a cumulative probability function (CDF).
 
 ---
-## Today
-- What are random variables? 
-- Assigning probabilities to outcomes 
-- What is a probability distribution? 
-- What are probability mass functions and cummulative probability functions? 
-- The Bernoulli trial and the binomial distribution. 
+## Probability as it relates to Psychology...
+
+
++ Recall our definition of a **random experiment:** 
+    + It could (theoretically) be infinitely repeated
+    
+    + The outcome is uncertain
+
++ When we conduct a random experiment, we are sampling simple events from a *sample space* to get an outcome.
+
++ We can't be 100% certain which outcome will occur each time the experiment is repeated 
+
++ An outcome's probability provides us with information that can be used to make decisions about data when we're faced with randomness
+
 
 ---
-## Statistical experiments
-- In statistics, the term "experiment" is used to describe any process whose outcome is not known in advance.
+## Probability as it relates to Psychology...
 
---
+.pull-left[
++ *Sample Space:* all student eye colours
 
-- The statistical experiment has three features. 
-  1. There is more than one possible outcome (otherwise outcome not unknown).
-  2. All possible outcomes are specified in advance. 
-  3. Each outcome occurs with some probability, *p*
++ *Simple Event:* the eye colour of an individual student
 
----
-## Random experiments and random variables
-- Recall: 
-  - We have previously discussed the idea of a sample space, *S*.
-    - The space contains all possible simple events. 
++ *Random Experiment:* Randomly selecting a student and checking their eye colour
+]
 
---
+.pull-right[
 
-  - A *random experiment* is the process of sampling simple events from a sample space, thus producing an outcome. 
-  
---
+**DapR Student Eye Colours**
+```{r, echo = F, fig.height=4.5}
+dat <- read.csv('https://uoepsy.github.io/data/surveydata_allcourse.csv')
 
-  - A *random variable* is the function that assigns values to each of the outcomes of the random experiment. 
+dat <- dat[dat$eyecolour!='other',]
+dat <- dat[!is.na(dat$eyecolour),]
+
+eyeDat <- tibble(EyeColour=dat$eyecolour,
+                 x = c(rep(1:17, each = 22)),
+                 y = rep(1:22, 17))
+
+ggplot(eyeDat, aes(x, y, colour = EyeColour)) + geom_point(size = 5) +
+  scale_colour_manual(values=c('#A64B17','#549299', '#583B2D', '#59725D', '#8C8C8C','#716F3F')) +
+  labs(colour='Eye Colour') +
+  theme(axis.text = element_blank(), axis.title = element_blank(),
+        axis.ticks = element_blank(), panel.background = element_blank(),
+        legend.text = element_text(size = 12), 
+        legend.title = element_text(size = 14, face = 'bold'))
+
+```
+
+]
+
 
 ---
 ## Random variables
-- A random variable can be discrete or continuous. 
+
+.pull-left[
+
++ A **random variable** is a set of values that quantify the outcome of the random experiment. 
+  
+  + Allows you to map the outcomes of a random experiment to numbers.
+  
+  + Usually denoted with a capital letter
+  
+]
 
 --
 
-- A *discrete random variable* can assume only a finite number of different values
-  - e.g., tossing a coin (heads or tails); picking a card from a deck (the 52 cards). 
+.pull-right[
+
+**Random Experiment:** Checking eye colour
+
+**Random Variable:**
+
+$$X = \begin{cases}1\ if\ amber \\2\ if\ blue\\3\ if\ brown\\4\ if\ green\\5\ if\ grey\\6\ if\ hazel \end{cases}$$
+]
 
 --
 
-- A *continuous random variable* is arbitrarily precise, and thus can take all infinite the values in some range. 
-  - e.g., measuring heights with an infinitely precise ruler. 
+- A **discrete random variable** can assume only a finite number of different values
+  
+  - e.g., outcome of a coin toss; number of children in a family
+
+--
+
+- A **continuous random variable** is arbitrarily precise, and thus can take all infinite the values in some range. 
+  
+  - e.g., height, age, distance
+  
+--
+  
+> **Test your understanding:** What kind of variable is eye colour?
 
 ---
 ## Probability distributions
 - A probability distribution maps the values of a random variable to the probability of it occurring.
 
---
+.center[
+```{r, echo = F, warning = F, fig.height = 4}
 
-- We have noted that for:
-  - For discrete distributions it maps a particular probability to a specific value of outcome.
-  - For continuous distributions it maps a particular probability to areas under the curve (we'll get to that next week).
+ggplot(eyeDat, aes(x=fct_infreq(EyeColour), y = after_stat(count)/sum(after_stat(count)), fill = EyeColour)) + geom_bar() +
+  labs(x='Eye Colour', y = '') + 
+  scale_fill_manual(values=c('#A64B17','#549299', '#583B2D', '#59725D', '#8C8C8C','#716F3F')) +
+  theme(legend.position = 'none', 
+        axis.text = element_text(size = 14),
+        axis.title = element_text(size = 16, face = 'bold'))
+```
+]
+
   
---
-
-- The mapping occurs via a **probability mass (or density) function**
-  - probability mass function (PMF) for discrete random variables. 
-  - probability density function (PDF) for continuous random variables.
 
 ---
-## Probability functions
-- A probability distribution maps the values of a random variable to the probability of it occurring.
-$$in \: other \: words$$
-- A probability distribution maps the values of the random variable based on the probability function:
+## Probability Mass Function
+
++ For **discrete distributions** it maps probability to each outcome value via a **probability mass function**.
+
++ A probability mass function gives the probability that a discrete random variable exactly equals a specific value:
 
 $$f(x) = P(X=x)$$
-- That is, *f(x)* tells us the probability of the random experiment resulting in *x*.
+
++ In the case of our eye colour example:
+
+$$f(x) = P(X = hazel)$$
 
 ---
-## Probability functions
+## Probability Mass Function
+
 $$f(x) = P(X=x)$$
+.pull-left[
 
-- Some observations (remember probability rules from last week).
 
-  - If you have a random experiment with N possible outcomes, then:
++ Some observations (remember probability rules from last week):
+
+  + If you have a random experiment with N possible outcomes, then:
   $$\sum_{i=1}^{N}(f(x_{i}))=1$$
-    -i.e., the sum of the probabilities of all possible outcomes is 1.
-
----
-## Probability functions
-$$f(x) = P(X=x)$$
-
-- Some observations (remember probability rules from last week).
-
-  - For any subset A of the sample space:
+  
+  + For any subset A of the sample space:
   $$P(A)=\sum_{i \in A}(f(x_{i}))$$
-    - i.e., the probability of subset A is the sum of the probabilities of all the simple events x within A.
 
----
-## Discrete random variables: An example
-- **Simple Experiment:** Rolling two 6-sided dice at once.
+]
 
 --
 
-- **Discrete random variable:** Sum of the values of the two upward facing sides.
+.pull-right[
+
+$$P(hazel)=\sum_{i \in hazel}(f(h_i))$$
+```{r, echo = F, fig.height = 4}
+ggplot(eyeDat, aes(x, y, colour = EyeColour)) + geom_point(size = 5) +
+  scale_colour_manual(values=c('#D8D9D7','#D8D9D7', '#D8D9D7', '#D8D9D7', '#D8D9D7','#716F3F')) +
+  labs(colour='Eye Colour') +
+  theme(axis.text = element_blank(), axis.title = element_blank(),
+        axis.ticks = element_blank(), panel.background = element_blank(),
+        legend.position = 'none')
+```
+$$P(hazel) = P(h_1) + P(h_2)...+ P(h_{43}) = \frac{43}{374}$$
+        
+]
+
+
+???
+
+i.e., the probability of subset A is the sum of the probabilities of all the simple events x within A.
+
+
+---
+
+## Discrete random variables: An example
++ **Simple Experiment:** Rolling 2 6-sided dice
+
+> **Test your understanding:** What might we use for our random variable?
+
+--
+
++ **Discrete random variable:** The sum of the two upward facing sides
 
 --
 
 - **Assumptions:**
-  1. Dice are fair (probability of any face is 1/6). 
-  2. The outcome of each die is *independent* of the outcome of the other. 
+  1. Dice are fair
+  2. The outcome of each dice is *independent* of the outcome of the other. 
 
 ---
 ## Discrete random variables: An example
-- **Sample space**, *S*:
-```{r, echo=FALSE}
-df <- data.frame(
-    "die" = c(1:6),
-    "1" = c(1+1:6),
-    "2" = c(2+(1:6)),
-    "3" = c(3+(1:6)),
-    "4" = c(4+(1:6)),
-    "5" = c(5+(1:6)),
-    "6" = c(6+(1:6)),
-    row.names = c(1:6)
-)
-kable(df)
+
+.pull-left[
+
+**Sample space**, $S$:
+
+```{r, echo=FALSE, out.width='85%'}
+knitr::include_graphics('figures/DiceSampleSpace.png')
 ```
+]
+
+--
+
+.pull-right[
++ We can represent $S$ as a frequency distribution.
+
++ **Frequency distribution:** Mapping the values of the random variable with how often they occur
+
+
+```{r, echo=FALSE}
+table_data <- as.data.frame(outer(1:6, 1:6, '+') %>%
+                              table)
+
+colnames(table_data) <- c('Outcome', 'Frequency')
+
+kable(t(table_data)) %>%
+  column_spec(column = 1, bold = T)
+```
+]
+
+---
+count: false
+
+## Discrete random variables: An example
+
+.pull-left[
+
+**Sample space**, $S$:
+
+```{r, echo=FALSE, out.width='85%'}
+knitr::include_graphics('figures/DiceSampleSpace.png')
+```
+]
+
+.pull-right[
++ We can represent $S$ as a frequency distribution.
+
++ **Frequency distribution:** Mapping the values of the random variable with how often they occur
+
+
+```{r, echo=FALSE}
+table_data <- as.data.frame(outer(1:6, 1:6, '+') %>%
+                              table)
+
+colnames(table_data) <- c('Outcome', 'Frequency')
+
+kable(t(table_data)) %>%
+  column_spec(column = 1, bold = T)
+```
+
+
++ Probabilities are just frequency over total possible outcomes:
+$$P(x) = \frac{ways\:x\:can\:happen}{total\:possible\:outcomes}$$
+
+> **Test Your Understanding:** What is the probability of the dice summing to `7`?
+
+]
 
 ---
 ## Discrete random variables: An example
-- We can represent S as a frequency distribution.
+
+.pull-left[
++ First, we need to **sum the frequencies** to the get total number of possible outcomes:
+
+```{r, echo=T}
+sum(table_data$Frequency)
+```
+
+]
+
 
 --
 
-- **Frequency distribution:** Mapping the values of the random variable with how often they occur (like a summary table from week 2).
+.pull-right[
+
+
++ Next, we **divide the frequency of each outcome by the total frequency**:
+
+$$P(X=2) = \frac{1}{36} = .03 \\P(X=3) = \frac{2}{36} = .06 \\\vdots \\P(X=12) = \frac{1}{36} = .03$$
+]
 
 --
 
-```{r, echo=FALSE}
-table_data <- tibble(
-  Events = c(2:12),
-  Frequency = c(1,2,3,4,5,6,5,4,3,2,1),
-)
-kable(t(table_data))
++ This gives us a **discrete probability distribution:**
+ 
+```{r, echo=F}
+table_data$Probability <-  round(table_data$Frequency/36, 2)
+table_data$Frequency <- as.factor(table_data$Frequency)
+
+kable(t(table_data)) %>%
+  column_spec(column = 1, bold = T)
 ```
 
----
-## Discrete random variables: An example
-- Easy to calculate probabilites from frequences. 
-  - Sum all frequencies to get number of possible outcomes.
-```{r, echo=TRUE}
-sum(1,2,3,4,5,6,5,4,3,2,1)
-```
-  -Probabilities are just frequency over total possible outcomes.
-  
-```{r, echo=FALSE}
-table_data$Probability = round(table_data$Frequency/36, 2)
-kable(t(table_data))
-```
-
---
-
- - And that's now a **probability distribution**
 
 ---
 ## Probability mass function
-- A plot of the probabilities assigned to each event in the sample space: 
+- You can plot a discrete probability distribution using a bar plot: 
 
-```{r, echo=FALSE}
+.center[
+
+```{r, echo = F}
+kable(t(table_data)) %>%
+  column_spec(column = 1, bold = T)
+```
+
+```{r, echo=FALSE, fig.height=3.75, fig.width = 7}
 table_data %>%
-  ggplot(., aes(x=Events, y=Probability)) + 
-  geom_bar(stat='identity', color = 'white', fill='steelblue4')
+  ggplot(., aes(x=Outcome, y=Probability)) + 
+  geom_bar(stat='identity', color = 'white', fill='steelblue4') +
+  theme(axis.text=element_text(size = 14),
+        axis.title=element_text(size = 16, face = 'bold'))
 ```
+]
 
 ---
-## Binomial
-- So far in class we have talked a lot about examples that are formally called **Bernoulli experiments/process**
+class: center, middle
+
+# Questions?
+
+---
+## Binomial Distributions
++ A common type of discrete probability distribution is the **binomial distribution**
+
++ Properties:
+  + There are only two possible outcomes, one reflecting `success` and one reflecting `failure`
+  + The number of observations (*n*) is fixed
+  + Each observation is independent of each other
+  + The probability of success (*p*) is the same for each observation.
 
 --
 
-- Properties:
-  - There are two outcomes (success and failure)
-  - We have a probability of success (*p*)
-  - We are interested in the number of successes (*k*) given a fixed number of trials (*n*)
-    - Think how heads in a sequence of coin tosses.
-    - Or ESP from lab.
++ We are interested in the number of successes (*k*) given a fixed number of trials (*n*)
+
+--
+
+> **Test your understanding:** Identify `success` and $n$ in the following examples:
+
+>   + The number of tails in a sequence of 5 coin tosses
+
+--
+
+>   + The incidence of a disease in a sample of 100 participants
+
 
 ---
-## Binomial PMF
+## Binomial Probability Mass Function
 $$
-f(k,n,p) = Pr(X = k) = \binom{n}{k}p^{k}q^{n-k}
+P(X = k) = \binom{n}{k}p^{k}q^{n-k}
 $$
 
-- $k$ = number of success
+- $k$ = number of `successes`
 - $n$ = total trials, 
-- $p$ = probability success
-- $q$ = $1-p$ or probability of failure
-- $\binom{n}{k}$ = $n$ choose $k$, or the number of ways to select $k$ unordered items from a set of $n$ items (also called a combination; we'll go over how to calculate that later in the lecture).
+- $p$ = probability of `success`
+- $q$ = $1-p$ or probability of `failure`
+- $\binom{n}{k}$ = $n$ choose $k$, or the number of ways to select $k$ `successes` from $n$ observations (aka a *combination*).
 
 ---
-## An example
-- Experiment:
-  - Guess the hand a coin is in.
-  - 5 trials (n=5)
-  - $p(correct) = 0.5$
-  - Thus $q = 1 - 0.5 = 0.5$
-- We could get 0-5 of these trials correct.
-  - So we have 6 possible values of our outcome to calculate the probability for.
-  - (see worked example at the end of this lecture for details.)
-
----
-## Binomial probability distribution
-
-```{r, echo=FALSE}
-x  <- 0:5
-df <- data.frame(x = x, y = dbinom(x, 5, 0.5))
-
-pmf <- ggplot(df, aes(x = as_factor(x), y = y)) + 
-  geom_bar(stat = "identity", fill = "lightblue") + 
-  xlab("Outcomes") + 
-  ylab("Density") 
-
-pmf
-```
-
----
-## Cumulative probability
-- Another way we can think about representing probability of outcomes is cumulatively.
-- Cumulative probability distributions provide a way to easily see the total probability of all values before or after a given point.
-
----
-## Cumulative probability
-
-```{r, echo=FALSE}
-df2 <- data.frame(x = x, y = pbinom(x, 5, 0.5))
-
-cdf <- ggplot(df2, aes(x = x, y = y)) + 
-  geom_step(stat = "identity") + 
-  xlab("Outcomes") + 
-  ylab("Density")
-
-cdf
-
-```
-
-- The cumulative probability function in the case of binomial simply sums the probabilities of the individual outcomes.
-
----
-## Comparing PMF & CDF
-
-```{r, echo=FALSE}
-pmf | cdf
-```
-
----
-## Binomial Worked Example
-- Experiment:
-  - Guess the hand a coin is in.
-  - 5 trials (n=5)
-  - $p(correct) = 0.5$
-  - Thus $q = 1 - 0.5 = 0.5$
-
----
-## Possible outcomes
-- We have 5 trials.
-- So our possible outcomes are:
+## Binomial PMF - Worked Example
 
 $$
-X = [0,1,2,3,4,5]
+P(X = 3) = \binom{n}{k}p^{k}q^{n-k}
 $$
 
----
-## Calculation for X = 3
++ **Example:**
+  + Random Experiment - Participants were asked to guess which hand a coin is in 5 times.
+  + We want to calculate the probability of the participant selecting the correct hand 3 times of the 5
+  
++ This looks overwhelming, but let's break it down into it's separate parts.
 
-$$
-Pr(X = 3) = \binom{n}{k}p^{k}q^{n-k}
-$$
-
----
-## Step 1
-$$
-\binom{5}{3}
-$$
-
-- Is read as 5 choose 3.
-- It is the number of possible ways we could get 3 successes
-  - That is, we might get trials 1, 2, and 3 correct. 
-  - Or trials 2, 3, and 5 etc.
-- We work out this total number using factorials
-
----
-## Step 1: Factorials
-
-$$
-\binom{n}{k} = \frac{n!}{k!(n-k)!}
-$$
-
-- Where $n!$ for $n=5$ is
-
-$$n! = 5*4*3*2*1 = 120$$
-
----
-## Step 1: Our calculation
-$$
-\binom{5}{3} = \frac{5!}{3!(5-3)!} = \frac{5!}{3!2!} = \frac{120}{6*2} = 10
-$$
-
-- There are 10 ways to get three trials correct.
-
----
-## Step 1: Brute Force
-
-|    | T1 | T2 | T3 | T4 | T5 |
-|----|----|----|----|----|----|
-| 1  | Y  | Y  | Y  | N  | N  |
-| 2  | Y  | Y  | N  | Y  | N  |
-| 3  | Y  | Y  | N  | N  | Y  |
-| 4  | Y  | N  | Y  | Y  | N  |
-| 5  | Y  | N  | Y  | N  | Y  |
-| 6  | Y  | N  | N  | Y  | Y  |
-| 7  | N  | Y  | Y  | Y  | N  |
-| 8  | N  | Y  | Y  | N  | Y  |
-| 9  | N  | Y  | N  | Y  | Y  |
-| 10 | N  | N  | Y  | Y  | Y  |
-
----
-## Step 1
-
-$$
-Pr(X = 3) = 10*p^{k}q^{n-k}
-$$
-
-- Insert the 10.
-
----
-## Step 2
-
-$$
-p^{k}q^{n-k}
-$$
-
-- We need to add in our probabilities of success, trial number and number of successes.
-
-
-$$
-p^{k}q^{n-k} = 0.5^3(1-0.5)^{5-3} = 0.5^30.5^2
-$$
-
-- Calculate the powers
+> Step 1 - Identify $n$, $p$, $q$, and $k$ and plug them into the equation
 
 --
 
-Calculate $.5^3 = .5 * .5 * .5 = 0.125$
-
-And the second $0.5^2 = 0.5*0.5 = 0.25$
-
----
-## Step 2
-
-$$
-p^{k}q^{n-k} = 0.5^3 0.5^2 = 0.125*0.25 = 0.03125 
-$$
-
-- Insert the values and complete.
+> + $n$ = 5
+> + $p$ = 0.5
+> + $q$ = 0.5
+> + $k$ = 3
 
 ---
-## Finish it off
+## Binomial PMF - Worked Example
 
 $$
-Pr(X = 3) = 10*0.03125 = 0.3125
+P(X = 3) = \binom{5}{3}\times0.5^{3}\times0.5^{5-3}
 $$
+.pull-left[
 
-- So the probability of three successes in this experiment is 0.3125. 
-- You can follow these steps for all the other possible outcome values, and confirm the values in the plot from lecture.
+> Step 2 - $\binom{5}{3}$
+
++ Reflects the number of ways we could get 3 `successes` from 5 trials
+
++ This could happen in multiple ways...
+]
+
+--
+.pull-right[
+
+| Trial 1 | Trial 2 | Trial 3 | Trial 4 | Trial 5 |
+|---------|---------|---------|---------|---------|
+| `r redText('Y')`  | `r redText('Y')`  | `r redText('Y')`  | N  | N  |
+| `r redText('Y')`  | `r redText('Y')`  | N  | `r redText('Y')`  | N  |
+| `r redText('Y')`  | `r redText('Y')` | N  | N  | `r redText('Y')` |
+| `r redText('Y')`  | N  | `r redText('Y')`  | `r redText('Y')`  | N  |
+| `r redText('Y')`  | N  | `r redText('Y')`  | N  | `r redText('Y')`  |
+| `r redText('Y')`  | N  | N  | `r redText('Y')`  | `r redText('Y')`  |
+| N  | `r redText('Y')`  | `r redText('Y')`  | `r redText('Y')`  | N  |
+| N  | `r redText('Y')`  | `r redText('Y')`  | N  | `r redText('Y')`  |
+| N  | `r redText('Y')`  | N  | `r redText('Y')`  | `r redText('Y')`  |
+| N  | N  | `r redText('Y')`  | `r redText('Y')`  | `r redText('Y')`  |
+
+]
+
+---
+## Binomial PMF - Worked Example
+
+$$
+P(X = 3) = \binom{5}{3}\times0.5^{3}\times0.5^{5-3}
+$$
+.pull-left[
+
+> Step 2 - $\binom{5}{3}$
+
++ Reflects the number of ways we could get 3 `successes` from 5 trials
+
++ This could happen in multiple ways...
+
++ We could calculate this by hand, but it's much easier to use the formula for $\binom{n}{k}$:
+
+  + $$\binom{n}{k} = \frac{n!}{k!(n-k)!}$$
+
+
+]
+
+.pull-right[
+
+| Trial 1 | Trial 2 | Trial 3 | Trial 4 | Trial 5 |
+|---------|---------|---------|---------|---------|
+| `r redText('Y')`  | `r redText('Y')`  | `r redText('Y')`  | N  | N  |
+| `r redText('Y')`  | `r redText('Y')`  | N  | `r redText('Y')`  | N  |
+| `r redText('Y')`  | `r redText('Y')` | N  | N  | `r redText('Y')` |
+| `r redText('Y')`  | N  | `r redText('Y')`  | `r redText('Y')`  | N  |
+| `r redText('Y')`  | N  | `r redText('Y')`  | N  | `r redText('Y')`  |
+| `r redText('Y')`  | N  | N  | `r redText('Y')`  | `r redText('Y')`  |
+| N  | `r redText('Y')`  | `r redText('Y')`  | `r redText('Y')`  | N  |
+| N  | `r redText('Y')`  | `r redText('Y')`  | N  | `r redText('Y')`  |
+| N  | `r redText('Y')`  | N  | `r redText('Y')`  | `r redText('Y')`  |
+| N  | N  | `r redText('Y')`  | `r redText('Y')`  | `r redText('Y')`  |
+
+]
+
+---
+
+## Binomial PMF - Worked Example Step 2
+
+$$\binom{5}{3} = \frac{5!}{3!(5-3)!}$$
+
+$$5! = 5*4*3*2*1 = 120$$
+
+--
+
+
+$$\binom{5}{3}=\frac{5!}{3!(5-3)!} = \frac{5!}{3!2!} = \frac{120}{6\times 2} = 10$$
+
+-- 
+
++ There are 10 ways to get 3 `successes` from 5 trials
+
+---
+## Binomial PMF - Worked Example Steps 3 & 4
+
+$$
+P(X = 3) = 10 \times 0.5^{3} \times 0.5^{5-3}
+$$
+--
+
+> Step 3 - $p^{k}$
+
++ $0.5^3 = 0.125$
+
+--
+
+> Step 4 - $q^{n-k}$
+
++ $0.5^{5-3} = 0.5^2 = 0.25$
+
+
+---
+## Binomial PMF - Worked Example Step 5
+
+> Step 5 - Put it all together
+
+$$
+P(X = 3) = 10 \times 0.125 \times 0.25 = 0.3125
+$$
+--
+
++ Congratulations! We've worked out the probability of one possible outcome ( $X=3$ ) of our random experiment!
+
+--
+... but we still have 5 more.
+
+| $k$ | $P(X=k)$ |
+|-----|----------|
+|  0  |     ?    |
+|  1  |     ?    |
+|  2  |     ?    |
+|  3  |   .3125  |
+|  4  |     ?    |
+|  5  |     ?    |
+
+
+---
+## Binomial PMF in R
+
++ Luckily, you can use the `dbinom` function in R to calculate these things for you:
+
+```{r, eval = F}
+dbinom(x, size, prob)
+```
+
++ Where:
+  + `x` = $k$
+  + `size` = $n$
+  + `prob` = $p$
+  
+--
+
+```{r}
+dbinom(3, 5, 0.5)
+```
+
+--
+
+```{r}
+dbinom(0:5, 5, 0.5)
+```
+
+---
+class: center, middle
+
+# Questions?
+
+---
+## Visualising binomial probability distribution
+
+.pull-left[
++ We can pass these values to `ggplot` to produce a bar plot that shows the binomial probability distribution for this random experiment:
+
+```{r, echo = F}
+k <- 0:5
+df <- data.frame(k=k, Pk=dbinom(k, 5, .5))
+
+df %>%
+  kable(digits = 2)
+```
+]
+
+.pull-right[
+```{r, echo=FALSE, fig.height=5}
+
+(pmf <- ggplot(df, aes(x = as_factor(k), y = Pk)) + 
+  geom_bar(stat = "identity", fill = "lightblue") + 
+  labs(x = "Successes (Out of 5 Trials)", y = 'Probability')) +
+  theme(axis.text = element_text(size = 14),
+        axis.title = element_text(size = 16, face = 'bold'))
+```
+]
+
+---
+## Cumulative probability
+
+.pull-left[
++ We've been looking at the **probability mass function** to investigate the total probability of a discrete outcome.
+
++ The **Cumulative distribution function** allows us to see the total probability of all values before or after a given point.
+
++ With a binomial distribution, the cumulative probability function simply sums the probabilities of the individual outcomes.
+
++ In R, we can use `pbinom` to get cumulutive probabilities:
+
+```{r}
+round(pbinom(0:5, 5, 0.5), 2)
+```
+
+
+]
+
+
+.pull-right[
+```{r, echo=FALSE, fig.height=4, fig.width = 7}
+df$cuPK <- pbinom(k, 5, 0.5)
+
+(cdf <- ggplot(df, aes(x = k, y = cuPK)) + 
+  geom_step(stat = "identity") + 
+  labs(x = 'Successes (Out of 5 Trials)', y = 'Probability') +
+  theme(axis.text = element_text(size = 14),
+        axis.title = element_text(size = 16, face = 'bold')))
+
+```
+]
+
+
+---
+## Interpreting CDF
+
+.pull-left[
++ **A** reflects the probability of selecting the correct hand 0, 1, or 2 out of five trials
+
+  + In this example, 50%
+  
++ **B** reflects the individual probability of selecting the correct hand 3 out of 5 trials
+
+  + The difference between the probability of selecting the correct hand 0, 1, 2, or 3 trials and the probability of selecting the correct hand 0, 1, or 2 trials
+  
+  + $`r round(df$cuPK[4], 2)`-`r round(df$cuPK[3], 2)` = `r df$cuPK[4]-df$cuPK[3]`$
+]
+
+.pull-right[
+```{r, echo=FALSE, fig.height=4}
+cdf + 
+  annotate(geom = 'segment', x=0, xend = 2, y = df$cuPK[3], yend = df$cuPK[3], color = '#BF1932', linetype = 'dashed') +
+  annotate(geom = 'text', label = 'A',  x=1, y = .53, color = '#BF1932', size = 6) +
+  annotate(geom = 'segment', x=2.75, xend = 2.75, y = df$cuPK[3], yend = df$cuPK[4], color = '#BF1932') +
+  annotate(geom = 'segment', x=2.65, xend = 2.85, y = df$cuPK[4], yend = df$cuPK[4], color = '#BF1932') +
+  annotate(geom = 'text', label = 'B', x=2.6, y = .68, color = '#BF1932', size = 6)
+```
+]
+
+
+---
+class: center, middle
+
+# Questions?
 
 ---
 # Summary of today
-- Random variables and random experiments.
-- Assigning probabilities to outcomes and defining a probability distribution. 
-- Probability mass functions vs. cummulative probability functions. 
-- The Bernoulli trial and the binomial distribution for assigning probabilities to sets of outcomes.
+- Random variables and random experiments
+
+- Assigning probabilities to outcomes and defining a probability distribution 
+
+- Probability mass functions vs. cumulative distribution functions
+
+- The binomial distribution for assigning probabilities to sets of outcomes
 
 ---
 # Next tasks
-+ Next week, we will cover continuous probability distributions. 
++ Tomorrow, I'll present a live R session focused on computing and plotting discrete probability distributions
+
++ Next week, we will talk about continuous probability distributions
 
 + This week:
+
+  + Attend the live R session
+  
   + Complete your lab
+  
+  + Check the [reading list](https://eu01.alma.exlibrisgroup.com/leganto/readinglist/lists/43349908530002466) for recommended reading
+  
   + Come to office hours
-  + Come to Q&A session
-  + Weekly quiz - on week 8 (lect 7) content
-      + Open Monday 09:00
+    + Monica's office hours are TODAY (Monday) from 2:30 - 3:30 in 7 George Sq, room UG44
+  
+  + Weekly quiz
+      + Opens Monday 09:00
       + Closes Sunday 17:00
+
+
+
+  
+  
+  
 
 
 
