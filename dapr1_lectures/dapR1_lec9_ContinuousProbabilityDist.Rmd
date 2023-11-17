@@ -1,7 +1,7 @@
 ---
 title: "<b>Week 10: Continuous Probability Distributions </b>"
 subtitle: "Data Analysis for Psychology in R 1<br><br> "
-author: "ALEX DOUMAS & TOM BOOTH"
+author: "DapR1 Team"
 institute: "Department of Psychology<br>The University of Edinburgh"
 date: ""
 output:
@@ -9,6 +9,7 @@ output:
     lib_dir: libs
     css: xaringan-themer.css
     nature:
+      ratio: '16:9'
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
@@ -16,6 +17,7 @@ output:
 
 ```{r setup, include=FALSE}
 options(htmltools.dir.version = FALSE)
+baseColor <- "#0F4C81"
 ```
 
 ```{r xaringan-themer, include = FALSE}
@@ -39,125 +41,360 @@ library(tidyverse)
 library(kableExtra)
 library(patchwork)
 library(moderndive)
-knitr::opts_chunk$set(fig.asp=.9)
+knitr::opts_chunk$set(dev = 'svg')
 ```
 
 # Week's Learning Objectives
-1.  Understand the key difference between discrete and continuous probability distributions.
-2. Review the difference between a PDF and CDF.
-3. Apply understanding of continuous probability distributions to the example of a normal distribution.
-4. Using a range from a continuous probability distribution. 
-5. Introduce other continuous probability distributions. 
-
----
-## Today
-- Discrete and continuous probability distributions. 
-- Properties of the normal distribution. 
-- Using ranges from the normal distribution to calculate probability estimates. 
-- The standard normal distribution. 
-- The standard normal distribution and the t distribution. 
+1. Understand the key difference between discrete and continuous probability distributions.
+2. Apply understanding of continuous probability distributions to the example of a normal distribution.
+3. Understand how to use a range from a continuous probability distribution. 
+4. Introduce other continuous probability distributions. 
 
 ---
 ## Discrete vs. continuous
-- Recall that a discrete probability ditribution describes a random variable that produces a discrete set of outcomes. 
+- Recall that a _discrete probability distribution_ describes a random variable that produces a discrete set of outcomes. 
 
 --
 
-- By contrast, a continuous probability distribution describes a random variable that produces a continuous set of outcomes. 
+- By contrast, a _continuous probability distribution_ describes a random variable that produces a continuous set of outcomes 
+
+  - Temperature
+  - Height
+  - Reaction Time
+
+- If you have arbitrary precision of measurement, you have a continuous random variable.
 
 --
 
 - As a result, while a discrete probability distribution is jagged, a continuous probability distribution is smooth. 
+.pull-left[
+```{r, echo = F, fig.height = 2.5, fig.width = 4.75}
+set.seed(820)
+disDat <- tibble(x = as.factor(0:5), Probability = dbinom(0:5, 5, 0.5))
+conDat <- tibble(x = as.factor(1:100), Probability = rnorm(100, m=35, sd=7))
+
+ggplot(disDat, aes(x, Probability)) + geom_bar(stat = 'identity', fill = baseColor) +
+  labs(x = 'Discrete Random Variable')
+```
+]
+
+.pull-right[
+```{r, echo = F, fig.height = 2.5, fig.width = 4.75}
+cPlot <- ggplot(conDat, aes(Probability)) + geom_density() +
+  labs(x = 'Continuous Random Variable') + 
+  scale_x_continuous(breaks = seq(10, 60, by=10), limits=c(10, 60)) +
+  geom_hline(yintercept = 0)
+
+cPlot
+```
+]
+
+---
+## Discrete vs. continuous
+
+- Continuous probability distributions differ from discrete in two other important ways. 
 
 --
+    
+    - $P(X=x)=0$
 
-- What are some examples of contiuous random variables? 
-  - Height, RTs, temperature, distance that a ball can be thrown... 
-  - If you have arbitrary precision of measurement, you have a continuous random variable. 
+.center[
+```{r, echo = F, fig.height=4, fig.width=6}
+
+cPlot + geom_vline(xintercept = 42.28529, colour = 'red')
+
+```
+]
+
+---
+count: false
+
+## Discrete vs. continuous
+
+- Continuous probability distributions differ from discrete in two other important ways. 
+    - $P(X=x)=0$
+
+.center[
+```{r, echo = F, message = F, fig.height=4, fig.width=6}
+
+cPlot + geom_vline(xintercept = 42.28529, colour = 'red') + 
+  coord_cartesian(xlim = c(40, 45)) + 
+  scale_x_continuous(breaks=seq(40, 45, by = 1))
+
+```
+]
+
+
+---
+count: false
+
+## Discrete vs. continuous
+
+- Continuous probability distributions differ from discrete in two other important ways. 
+    - $P(X=x)=0$
+
+.center[
+```{r, echo = F, message = F, fig.height=4, fig.width=6}
+
+cPlot + geom_vline(xintercept = 42.28529, colour = 'red') + 
+  coord_cartesian(xlim = c(41.8, 42.8)) + 
+  scale_x_continuous(breaks=seq(41.8, 42.8, by = .2))
+
+```
+]
+
+---
+count: false
+
+## Discrete vs. continuous
+
+- Continuous probability distributions differ from discrete in two other important ways. 
+    - $P(X=x)=0$
+
+.center[
+```{r, echo = F, message = F, fig.height=4, fig.width=6}
+
+cPlot + geom_vline(xintercept = 42.28529, colour = 'red') + 
+  coord_cartesian(xlim = c(42.27, 42.3)) + 
+  scale_x_continuous(breaks=seq(42.27, 42.3, by = .005))
+
+```
+]
+
+---
+count: false
+
+## Discrete vs. continuous
+
+- Continuous probability distributions differ from discrete in two other important ways. 
+    - $P(X=x)=0$
+
+.center[
+```{r, echo = F, message = F, fig.height=4, fig.width=6}
+
+cPlot + geom_vline(xintercept = 42.28529, colour = 'red') + 
+  coord_cartesian(xlim = c(42.28, 42.29)) + 
+  scale_x_continuous(breaks=seq(42.28, 42.29, by = .002))
+
+```
+]
+
+---
+
+count: false
+
+## Discrete vs. continuous
+
+- Continuous probability distributions differ from discrete in two other important ways. 
+    - $P(X=x)=0$
+
+  - Continuous probability distributions are described using the **probability density function (PDF)**, rather than the **probability mass function**.
 
 --
 
 - Now, let's take a look at perhaps the most widely used continuous probability distribution... 
 
 ---
-## Normal distribution
-- This term normal distribution has come up a lot.
---
+class: center, middle
 
-- A normal distribution is a continuous distribution.
---
+## Questions?
+
+---
+## Normal distribution
+
+.pull-left[
+- A **normal distribution** (AKA the Gaussian distribution) is a continuous distribution.
+
 
 - It is uni-modal (one peak) and symmetrical.
 
---
+]
 
-- Also referred to as the Gaussian distribution.
+.pull-right[
+```{r, echo = F, fig.height = 3, fig.width = 5}
+ggplot(data.frame(x = c(-4, 4)), aes(x = x)) +
+        stat_function(fun = dnorm) + geom_hline(yintercept = 0)
+```
+]
 
 ---
 ## Normal: PDF
 
 $$
-f(x|\mu, \sigma) = \frac{1}{\sigma\sqrt{2\pi}}e^{-\frac{(x - \mu)^2}{2\sigma^2}}
+f(x;\mu, \sigma) = \frac{1}{\sigma\sqrt{2\pi}}e^{-\frac{(x - \mu)^2}{2\sigma^2}}
 $$
 
-- A little bit scary!
+- A bit scary!
+
 - But the basic points are:
+  
   - It is a function of data *x*
   - And *two* parameters $\mu$ and $\sigma$ (mean and SD)
 
----
-## Normal family
+--
+
 - There is not one single normal distribution.
-- We have a family of different distributions defined by the mean, $\mu$, and standard deviation, $\sigma$. 
+- We have a family of different distributions that are defined by their mean, $\mu$, and standard deviation, $\sigma$. 
+
 
 ---
-## Different normals
+## The Standard Normal Distribution
 
-```{r, echo=FALSE}
-ggplot(data.frame(x = c(-4, 6)), aes(x = x)) +
-  stat_function(fun=dnorm,
-                    geom = "line") +
+- The **standard normal distribution** is a normal distribution where $\mu=0$ and $\sigma=1$
+
+.center[
+```{r, echo = F, fig.width=7, fig.height=4}
+normDist <- ggplot(data.frame(x = c(-6, 6)), aes(x = x)) +
+  stat_function(fun=dnorm, geom = "line", linewidth = 1.5) + 
+  theme(axis.text = element_text(size = 12), 
+        axis.title = element_text(size = 14, face = 'bold'))
+
+normDist + geom_vline(xintercept = 0, linetype = 'dashed', colour = 'red')
+```
+]
+
+---
+## Different Normal Distributions - Adjusting $\mu$
+
+- Adjusting $\mu$ changes where the curve is centered on the $x$-axis
+
+.center[
+```{r, echo=FALSE, fig.width=7, fig.height=4}
+normDist +
   stat_function(fun = dnorm,
                 geom = "line",
                 col = "red",
-                args = list(mean=2)) +
-  xlab("\n Test Statistic") +
-  ylab("Probability Density\n") +
-  ggtitle("Different Means (black = 0; red = 2)")
+                args = list(mean=2),
+                linewidth = 1.5) +
+  stat_function(fun = dnorm,
+                geom = "line",
+                col = baseColor,
+                args = list(mean=-2),
+                linewidth = 1.5) +
+  annotate(geom='text', label=paste0('mu == -2'), parse = T, 
+           x=-4.75, y=0.38, size = 6, colour = baseColor, hjust = 0) +
+  annotate(geom='text', label=paste0('mu == 0'), parse = T, 
+           x=-4.75, y=0.35, size = 6, hjust = 0) +
+  annotate(geom='text', label=paste0('mu == 2'), parse = T, 
+           x=-4.75, y=0.32, size = 6, colour = 'red', hjust = 0)
 ```
+]
 
 ---
-## Different normals
+## Different Normal Distributions - Adjusting $\sigma$
 
-```{r, echo=FALSE}
-ggplot(data.frame(x = c(-6, 6)), aes(x = x)) +
-  stat_function(fun=dnorm,
-                    geom = "line") +
+- Adjusting $\sigma$ changes the shape of the curve
+
+.center[
+```{r, echo=FALSE, fig.width=7, fig.height=4}
+normDist +
   stat_function(fun = dnorm,
                 geom = "line",
                 col = "red",
-                args = list(sd=3)) +
-  xlab("\n Test Statistic") +
-  ylab("Probability Density\n") +
-  ggtitle("Different SD (black = 1; red = 3)")
+                args = list(sd=1.5),
+                linewidth = 1.5) +
+  stat_function(fun = dnorm,
+                geom = "line",
+                col = baseColor,
+                args = list(sd=0.5),
+                linewidth = 1.5) +
+  annotate(geom='text', label=paste0('sigma == 0.5'), parse = T, 
+           x=-3, y=0.71, size = 6, colour = baseColor, hjust = 0) +
+  annotate(geom='text', label=paste0('sigma == 1'), parse = T, 
+           x=-3, y=0.65, size = 6,  hjust = 0) +
+  annotate(geom='text', label=paste0('sigma == 1.5'), parse = T, 
+           x=-3, y=0.59, size = 6, colour = 'red',  hjust = 0)
 ```
+]
 
 ---
-## Properties of normal
-- Nice properties of any normal distribution: 
-  - $\approx\frac{1}{2}$ of area falls under $\frac{2}{3}$ of a SD on either side of mean
-  - $\approx\frac{2}{3}$ of area falls under 1  SD on either side of mean.
-  - $\approx$ 95% of area falls under 2  SD on either side of mean.
-- **Exactly** 95% falls under +/- 1.96 SD
-  - $\approx 99.75%$ of area falls under 3 SD on either side of mean.
+## Properties of Normal Distributions
+
+.pull-left[
+- Properties of any normal distribution: 
+  - $\approx$ 68% of area falls under 1 SD on either side of mean.
+]
+
+.pull-right[
+```{r, echo = F, fig.height=4, fig.width=7}
+
+normDist + xlab("# of standard deviations from the mean") +
+  geom_area(stat = "function", fun = dnorm, fill = baseColor, xlim = c(-1, 1)) +
+  scale_x_continuous(breaks = seq(-4, 4, 1), limits = c(-4, 4)) + 
+  theme(axis.text = element_text(size=12), axis.title = element_text(size=14, face='bold')) +
+  geom_vline(xintercept = -1, colour = baseColor, linewidth = 1.5) +
+  geom_vline(xintercept = 1, colour = baseColor, linewidth = 1.5) +
+  annotate('text', label = '~68%', x = 0, y = 0.12, colour = 'white', size = 8)
+
+```
+]
+
+---
+count: false
+
+## Properties of Normal Distributions
+
+.pull-left[
+- Properties of any normal distribution: 
+  - $\approx$ 68% of area falls under 1 SD on either side of mean.
+  - $\approx$ 95% of area falls under 2 SD on either side of mean.
+      - _Exactly_ 95% falls under +/- **1.96 SD**
+]
+
+.pull-right[
+```{r, echo = F, fig.height=4, fig.width=7}
+
+normDist + xlab("# of standard deviations from the mean") +
+  geom_area(stat = "function", fun = dnorm, fill = baseColor, xlim = c(-2, 2)) +
+  scale_x_continuous(breaks = seq(-4, 4, 1), limits = c(-4, 4)) + 
+  theme(axis.text = element_text(size=12), axis.title = element_text(size=14, face='bold')) +
+  geom_vline(xintercept = -2, colour = baseColor, linewidth = 1.5) +
+  geom_vline(xintercept = 2, colour = baseColor, linewidth = 1.5) +
+  annotate('text', label = '~95%', x = 0, y = 0.12, colour = 'white', size = 8)
+
+```
+]
+
+---
+count: false
+
+## Properties of Normal Distributions
+
+.pull-left[
+- Properties of any normal distribution:
+  - $\approx$ 68% of area falls under 1 SD on either side of mean.
+  - $\approx$ 95% of area falls under 2 SD on either side of mean.
+      - _Exactly_ 95% falls under +/- **1.96 SD**
+  - $\approx$ 99.75% of area falls under 3 SD on either side of mean.
+]
+
+.pull-right[
+```{r, echo = F, fig.height=4, fig.width=7}
+
+normDist + xlab("# of standard deviations from the mean") +
+  geom_area(stat = "function", fun = dnorm, fill = baseColor, xlim = c(-3, 3)) +
+  scale_x_continuous(breaks = seq(-4, 4, 1), limits = c(-4, 4)) + 
+  theme(axis.text = element_text(size=12), axis.title = element_text(size=14, face='bold')) +
+  geom_vline(xintercept = -3, colour = baseColor, linewidth = 1.5) +
+  geom_vline(xintercept = 3, colour = baseColor, linewidth = 1.5) +
+  annotate('text', label = '~99.75%', x = 0, y = 0.12, colour = 'white', size = 8)
+
+```
+]
+
+---
+class: center, middle
+
+## Questions?
+
 
 ---
 ## Using the PDF of the normal distribution
-- Let's use the normal disribution to illustrate how continuous probability distributions work. 
+- Let's use the normal distribution to illustrate how continuous probability distributions work. 
 
 --
 
-- With a discrete random variable it makes sense to ask: 'what's the probability associated with a specific value of the random variable'.
+- With a discrete random variable it makes sense to ask: 'what's the probability associated with a specific value of the random variable?'.
   - e.g., what the probability of getting heads on a fair coin? 
 
 --
@@ -167,21 +404,39 @@ ggplot(data.frame(x = c(-6, 6)), aes(x = x)) +
 
 ---
 ## Using the PDF of the normal distribution
+```{r, echo = F}
+heightMean <- 168
+heightSD <- 7.5
+lowBound <- 175
+hiBound <- 180
+```
+
 .pull-left[
-- Let's assume that in some school, height is normally distributed, the mean height is 150 cm and the sd is 20 cm. 
-- We can ask what is the probability of sampling someone between 160cm and 170cm? 
-  - This question translates to: $p(160 \leq x \leq 170) = ?$
-  - Let's unpack asking this question... 
+- Let's imagine that in some course, student height is normally distributed. 
+
+  + $\mu = `r heightMean`$ cm 
+  + $\sigma = `r heightSD`$ cm
+    
+- We can ask what is the probability of sampling someone between `r lowBound` and `r hiBound` cm? 
+
+  + This question translates to: $p(`r lowBound` \leq x \leq `r hiBound`) = ?$
+  + Let's unpack this... 
 ]
 
 .pull-right[
-```{r, echo=FALSE}
-ggplot(data.frame(x = c(75, 225)), aes(x = x)) + 
+```{r, echo=FALSE, fig.height=5}
+set.seed(206)
+dat <- tibble(height=rnorm(200, mean = heightMean, sd = heightSD))
+
+hPlot <- ggplot(dat, aes(height)) + 
   stat_function(fun = dnorm,
                 geom = "line",
-                args = list(mean = 150, sd=20)) +
-  xlab("\n Height") +
-  ylab("Probability Density \n")
+                args = list(mean = heightMean, sd=heightSD)) +
+  labs(x="Height", y = "Probability Density") +
+  scale_x_continuous(limits = c(135, 200)) +
+  geom_hline(yintercept = 0)
+
+hPlot
 ```
 ]
 
@@ -189,19 +444,16 @@ ggplot(data.frame(x = c(75, 225)), aes(x = x)) +
 ## Using the PDF of the normal distribution
 .pull-left[
 
-- We are asking: $p(160 \leq x \leq 170) = ?$
-  - Let's draw these boundries on our plot... 
+$$p(`r lowBound` \leq x \leq `r hiBound`) = ?$$
+
++ Let's draw these boundaries on our plot...
+   
 
 ]
 
 .pull-right[
-```{r, echo=FALSE}
-ggplot(data.frame(x = c(75, 225)), aes(x = x)) + 
-  stat_function(fun = dnorm,
-                geom = "line",
-                args = list(mean = 150, sd=20)) +
-  xlab("\n Height") +
-  ylab("Probability Density \n")
+```{r, echo=FALSE, fig.height=5}
+hPlot
 ```
 ]
 
@@ -209,21 +461,20 @@ ggplot(data.frame(x = c(75, 225)), aes(x = x)) +
 ## Using the PDF of the normal distribution
 .pull-left[
 
-- $p(160 \leq x \leq 170) = ?$
-  - What is the value of the area under the curve between these two lines?
+$$p(`r lowBound` \leq x \leq `r hiBound`) = ?$$
+
++ Let's draw these boundaries on our plot...
+
++ What is the value of the area under the curve between these two lines?
+   
 
 ]
 
 .pull-right[
-```{r, echo=FALSE}
-ggplot(data.frame(x = c(75, 225)), aes(x = x)) + 
-  stat_function(fun = dnorm,
-                geom = "line",
-                args = list(mean = 150, sd=20)) +
-  xlab("\n Height") +
-  ylab("Probability Density \n") + 
-  geom_vline(xintercept = 160, color = "blue") + 
-  geom_vline(xintercept = 170, color = "blue")
+```{r, echo=FALSE, fig.height=5}
+hPlot + 
+  geom_vline(xintercept = lowBound, colour = baseColor) +
+  geom_vline(xintercept = hiBound, colour = baseColor)
 ```
 ]
 
@@ -235,22 +486,19 @@ ggplot(data.frame(x = c(75, 225)), aes(x = x)) +
   
   $$\int_{a}^{b} f(a) \,dx$$
   
-  - (Don't worry, you do not need to know the details of integrals, but you may encounter the equation above.) 
-  - This equation can be read as: The integral of values falling between vertical lines a and b on the function a of variable x 
+  + Don't worry, you don't need to know the details of integrals, but you may encounter the equation above.
+  
+  - This equation can be read as: The integral of values falling between vertical lines $a$ and $b$ on the function $a$ of variable $x$ 
+  
   - We can calculate this value using the probability density function... 
 
 ]
 
 .pull-right[
-```{r, echo=FALSE}
-ggplot(data.frame(x = c(75, 225)), aes(x = x)) + 
-  stat_function(fun = dnorm,
-                geom = "line",
-                args = list(mean = 150, sd=20)) +
-  xlab("\n Height") +
-  ylab("Probability Density \n") + 
-  geom_vline(xintercept = 160, color = "blue") + 
-  geom_vline(xintercept = 170, color = "blue")
+```{r, echo=FALSE, fig.height=5}
+hPlot + 
+  geom_vline(xintercept = lowBound, colour = baseColor) +
+  geom_vline(xintercept = hiBound, colour = baseColor)
 ```
 ]
 
@@ -258,228 +506,336 @@ ggplot(data.frame(x = c(75, 225)), aes(x = x)) +
 ## Using the PDF of the normal distribution
 .pull-left[
 
-- *pnorm(x, mean=m, sd=n)* 
-  - *x* is an vector; *mean* and *sd* give the parameters of the function
-  - returns the area under the normal distribution (with a mean of m and a sd of n) below x. 
+- `pnorm(x, mean, sd)` 
+  + *x* is the upper threshold; the function will output the probability of all values less than this.
+  
+  + *mean* and *sd* give the parameters of the function
+  
+  + Returns the area under the normal distribution below x. 
+  
+  + Remember, the normal curve changes based on the values of $\mu$ and $\sigma$, so it makes sense that this PDF requires these parameters.
+]
+
+.pull-right[
+```{r, echo=FALSE, fig.height=5}
+hPlot + 
+  geom_vline(xintercept = lowBound, colour = baseColor) +
+  geom_vline(xintercept = hiBound, colour = baseColor)
+```
+]
+
+---
+## Using the PDF of the normal distribution
+.pull-left[
+
+- `pnorm(x, mean, sd)` 
+  + *x* is the upper threshold; the function will output the probability of all values less than this.
+  
+  + *mean* and *sd* give the parameters of the function
+  
+  + Returns the area under the normal distribution below x. 
+  
+  + Remember, the normal curve changes based on the values of $\mu$ and $\sigma$, so it makes sense that this PDF requires these parameters.
 
 ```{r, eval=TRUE}
-pnorm(170, mean=150, sd=20)
+pnorm(180, mean=168, sd=7.5)
 ```
 
-- Now you know the propotion under the curve below 170, so how do we find the area between 160 and 170? 
-- If you subtract from that value the proporiton under the curve below 160, you're left with the proportion under the curve between 160 and 170... 
+> **Test Your Understanding:** How do you interpret this output?
+
+]
+
+
+.pull-right[
+```{r, echo=FALSE, fig.height=5}
+hPlot + 
+  geom_vline(xintercept = hiBound, colour = baseColor) +
+  geom_area(stat = "function", fun = dnorm, 
+            fill = baseColor, xlim = c(135, hiBound), 
+            args = list(mean = heightMean, sd = heightSD),
+            alpha = 0.7) +
+  annotate('text', label = paste0('~', round(pnorm(hiBound, mean=heightMean, sd=heightSD),4)*100, '%'),
+           x = heightMean, y = 0.02, colour = 'white', size = 8)
+
+```
+]
+
+---
+## Using the PDF of the normal distribution
+
+
+.pull-left[
+- We can also calculate the area under the curve below `r lowBound`:
+
+```{r, eval=TRUE}
+pnorm(175, mean=168, sd=7.5) 
+```
+]
+
+.pull-right[
+```{r, echo=FALSE, fig.height=5}
+hPlot + 
+  geom_vline(xintercept = lowBound, colour = baseColor) +
+  geom_area(stat = "function", fun = dnorm, 
+            fill = baseColor, xlim = c(135, lowBound), 
+            args = list(mean = heightMean, sd = heightSD),
+            alpha = 0.7) +
+  annotate('text', label = paste0('~', round(pnorm(lowBound, mean=heightMean, sd=heightSD),4)*100, '%'),
+           x = heightMean-1, y = 0.02, colour = 'white', size = 8)
+```
+]
+
+--
+
+> **Test Your Understanding:** Now you know that 94.52% of student heights fall below 180 cm, and 82.47% of student heights fall below 175 cm. How do you calculate the probability of selecting a student whose height falls between 175-180 cm?
+
+
+---
+## Using the PDF of the normal distribution
+
+.pull-left[
++ $$P(175 \leq x \leq 180) = P(X<180) - P(X<175)$$
+
+```{r, eval=TRUE}
+p180 <- pnorm(180, mean=168, sd=7.5)
+p175 <-  pnorm(175, mean=168, sd=7.5) 
+
+p180-p175
+```
+
++ So, the probability of randomly selecting a student with a height between `r lowBound` and `r hiBound` is `r round(pnorm(hiBound, mean=heightMean, sd=heightSD) - pnorm(lowBound, mean=heightMean, sd=heightSD), 2)` 
 
 ]
 
 .pull-right[
-```{r, echo=FALSE}
-ggplot(data.frame(x = c(75, 225)), aes(x = x)) + 
-  stat_function(fun = dnorm,
-                geom = "line",
-                args = list(mean = 150, sd=20)) +
-  stat_function(fun = dnorm,
-                geom = "area",
-                xlim = c(75, 170),
-                color = "steelblue",
-                alpha = .2,
-                args = list(mean = 150, sd=20)) +
-  xlab("\n Height") +
-  ylab("Probability Density \n") + 
-  geom_vline(xintercept = 170, color = "blue")
+```{r, echo=FALSE, fig.height=5}
+hPlot + 
+  geom_vline(xintercept = lowBound, colour = baseColor) +
+  geom_vline(xintercept = hiBound, colour = baseColor) +
+  geom_area(stat = "function", fun = dnorm, 
+            fill = baseColor, xlim = c(135, lowBound), 
+            args = list(mean = heightMean, sd = heightSD),
+            alpha = 0.5) + 
+  geom_area(stat = "function", fun = dnorm, 
+            fill = baseColor, xlim = c(135, hiBound), 
+            args = list(mean = heightMean, sd = heightSD),
+            alpha = 0.5)
 ```
 ]
-
 ---
 ## Using the PDF of the normal distribution
-.pull-left[
 
-```{r, eval=TRUE}
-pnorm(170, mean=150, sd=20) - pnorm(160, mean=150, sd=20) 
+```{r, echo = F}
+hiSD <- 185
+loSD <- 151
 ```
 
-- So we know there is a probability of .15 that someone sampled from this university will have a height between 160 and 170. 
-
-]
-
-.pull-right[
-```{r, echo=FALSE}
-ggplot(data.frame(x = c(75, 225)), aes(x = x)) + 
-  stat_function(fun = dnorm,
-                geom = "line",
-                args = list(mean = 150, sd=20)) +
-  stat_function(fun = dnorm,
-                geom = "area",
-                xlim = c(75, 170),
-                color = "steelblue",
-                alpha = .2,
-                args = list(mean = 150, sd=20)) +
-    stat_function(fun = dnorm,
-                geom = "area",
-                xlim = c(75, 160),
-                color = "steelblue",
-                alpha = .6,
-                args = list(mean = 150, sd=20)) +
-  xlab("\n Height") +
-  ylab("Probability Density \n") + 
-  geom_vline(xintercept = 170, color = "blue") + 
-  geom_vline(xintercept = 160, color = "blue")
-```
-]
-
----
-## Using the PDF of the normal distribution
 .pull-left[
-
 - We can also ask about the probability of a sampled element having a value from one of 2+ ranges. 
-- For example: What is the probability that a person will have a height below 100 or greater than 200? $p(x \leq 100 \:or\: x \geq 200)$
+
+- What is the probability that a person will have a height below `r loSD` or greater than `r hiSD`? $p(x \leq `r loSD` \:or\: x \geq `r hiSD`)$
+
 ```{r, eval=TRUE}
-pnorm(100, mean=150, sd=20)
+pnorm(151, mean=168, sd=7.5)
 ```
+
 ```{r, eval=TRUE}
-1 - pnorm(200, mean=150, sd=20)
+1 - pnorm(185, mean=168, sd=7.5)
 ```
-- (Why are we subtracting a value from 1 here?) 
-- $p(x \leq 100 \:or\: x \geq 200) = p(x \leq 100) + p(x \geq 200) = .006 + .006 = .012$
+
++ **Test your understanding:** Why are we subtracting a value from 1 here?
+
 ]
 
 .pull-right[
-```{r, echo=FALSE}
-ggplot(data.frame(x = c(75, 225)), aes(x = x)) + 
-  stat_function(fun = dnorm,
-                geom = "line",
-                args = list(mean = 150, sd=20)) +
-  stat_function(fun = dnorm,
-                geom = "area",
-                xlim = c(75, 100),
-                color = "steelblue",
-                alpha = .2,
-                args = list(mean = 150, sd=20)) +
-    stat_function(fun = dnorm,
-                geom = "area",
-                xlim = c(200, 225),
-                color = "steelblue",
-                alpha = .2,
-                args = list(mean = 150, sd=20)) +
-  xlab("\n Height") +
-  ylab("Probability Density \n") + 
-  geom_vline(xintercept = 100, color = "blue") + 
-  geom_vline(xintercept = 200, color = "blue")
+```{r, echo=FALSE, fig.height = 5}
+hPlot + 
+  geom_vline(xintercept = loSD, colour = baseColor) +
+  geom_vline(xintercept = hiSD, colour = baseColor) +
+  geom_area(stat = "function", fun = dnorm, 
+            fill = baseColor, xlim = c(135, loSD), 
+            args = list(mean = heightMean, sd = heightSD),
+            alpha = 0.7) + 
+  geom_area(stat = "function", fun = dnorm, 
+            fill = baseColor, xlim = c(hiSD, 200), 
+            args = list(mean = heightMean, sd = heightSD),
+            alpha = 0.7)
+
 ```
 ]
 
 ---
 ## Using the PDF of the normal distribution
-- As a final point, what if I wanted to know where the 5% of the most extreme values (i.e., smallest and largest) in this distribution fall? 
-  - First, this distribution is symmetric, which means that there are the same number of extreme values at the bottom and top end. 
-  - Second, as the distribution is symmetric the most extreme 5% will be the 2.5% at the bottom of the disribution and the 2.5% at the top. 
-  - So, what I want to know is: What is the height below which there are only 2.5% of students, and what is the height above which there are only 2.5% of students? 
+
+.pull-left[
+- $p(x \leq `r loSD` \cup x \geq `r hiSD`) = p(x \leq `r loSD`) + p(x \geq `r hiSD`)$ 
+
+- $`r round(pnorm(loSD, mean=heightMean, sd=heightSD), 2)` + `r round(1-pnorm(hiSD, mean=heightMean, sd=heightSD), 2)` = `r round(pnorm(loSD, mean=heightMean, sd=heightSD)+(1-pnorm(hiSD, mean=heightMean, sd=heightSD)), 2)`$
+]
+
+
+.pull-right[
+```{r, echo=FALSE, fig.height = 5}
+hPlot + 
+  geom_vline(xintercept = loSD, colour = baseColor) +
+  geom_vline(xintercept = hiSD, colour = baseColor) +
+  geom_area(stat = "function", fun = dnorm, 
+            fill = baseColor, xlim = c(135, loSD), 
+            args = list(mean = heightMean, sd = heightSD),
+            alpha = 0.7) + 
+  geom_area(stat = "function", fun = dnorm, 
+            fill = baseColor, xlim = c(hiSD, 200), 
+            args = list(mean = heightMean, sd = heightSD),
+            alpha = 0.7)
+
+```
+]
+
+---
+## Using the PDF of the normal distribution
+- What if I wanted to know where the 5% of the most extreme values (i.e., smallest and largest) in this distribution fall? 
+
+--
+  
+   - The normal distribution is symmetric, which means that there are the same number of extreme values at the bottom and top end. 
+
+--
+
+   - This means the most extreme 5% will be the 2.5% at the bottom of the distribution and the 2.5% at the top. 
+
+--
+
+   - So our question is: what is the height below which there are only 2.5% of students, and what is the height above which there are only 2.5% of students? 
 
 ---
 ## Using the PDF of the normal distribution
 .pull-left[
 
-- To find the the value of a probability distribution at which the pdf is x, I use *qnorm(x, mean=m, sd=n)*
-- So, to get the value below which 2.5% of values occur (for a normal with a mean of 150 and a sd of 20): 
+- To get these values, you can use `qnorm(x, mean, sd)`
+
+- For a normally distributed range of heights with a mean of `r heightMean` cm and a sd of `r heightSD` cm: 
+
+- The height below which 2.5% of students fall: 
 ```{r, eval=TRUE}
-qnorm(.025, mean=150, sd=20)
-```
-- To to get the value above which 2.5% of values occur (for a normal with a mean of 150 and a sd of 20): 
-```{r, eval=TRUE}
-qnorm(.975, mean=150, sd=20)
+qnorm(.025, mean=168, sd=7.5)
 ```
 
+- The height above which 2.5% of students fall: 
+```{r, eval=TRUE}
+qnorm(.975, mean=168, sd=7.5)
+```
 ]
 
 .pull-right[
-```{r, echo=FALSE}
-ggplot(data.frame(x = c(75, 225)), aes(x = x)) + 
-  stat_function(fun = dnorm,
-                geom = "line",
-                args = list(mean = 150, sd=20)) +
-  stat_function(fun = dnorm,
-                geom = "area",
-                xlim = c(75, 110.8007),
-                color = "steelblue",
-                alpha = .2,
-                args = list(mean = 150, sd=20)) +
-    stat_function(fun = dnorm,
-                geom = "area",
-                xlim = c(189.1993, 225),
-                color = "steelblue",
-                alpha = .2,
-                args = list(mean = 150, sd=20)) +
-  xlab("\n Height") +
-  ylab("Probability Density \n")
+```{r, echo=FALSE, message=F, fig.height=5}
+hPlot + 
+  geom_vline(xintercept = qnorm(.025, mean=heightMean, sd=heightSD), colour = baseColor) +
+  geom_vline(xintercept = qnorm(.975, mean=heightMean, sd=heightSD), colour = baseColor) +
+  scale_x_continuous(breaks = seq(130, 200, 10)) + 
+  geom_area(stat = "function", fun = dnorm, 
+            fill = baseColor, xlim = c(135, qnorm(.025, mean=heightMean, sd=heightSD)), 
+            args = list(mean = heightMean, sd = heightSD),
+            alpha = 0.7) + 
+  geom_area(stat = "function", fun = dnorm, 
+            fill = baseColor, xlim = c(qnorm(.975, mean=heightMean, sd=heightSD), 200), 
+            args = list(mean = heightMean, sd = heightSD),
+            alpha = 0.7)
+  
 ```
 ]
 
 ---
-## Remember z-scores
+## Take this knowledge forward
 
++ These examples might seem a bit bizarre (when will you ever need to calculate extreme heights?), but this will be incredibly relevant when you discuss:
+
+  + 1- and 2-tailed distributions
+  + $p$ -values
+  + Distributions of test statistics
+    
++ You may find it helpful to come back and review these slides when you get to these topics later in the course. 
+
+---
+class: center, middle
+
+## Questions?
+
+---
+## Remember $z$-scores
+
+.pull-left[
+.center[
 $$
 Z = \frac{x - \mu}{\sigma}
 $$
-
-- It is quite typical to present a normal distribution in terms of z-scores.
-- z-scores standardize values of x.
-  - The numerator: converts x to deviations from the mean.
+]
+- It is quite typical to present a normal distribution in terms of ** $z$-scores**.
+- $z$-scores standardize values of $x$.
+  - The numerator: converts $x$ to deviations from the mean.
   - The denominator: scales these values based on the observed spread in the data (SD)
-- The result is the standard normal distribution... 
-
----
-## Standard normal
-- The distribution of z-scores is called the standard normal distribution.
-- It has:
-  - Mean = 0 (why?)
-  - SD = 1 (why?)
-
----
-## An (important) aside: probability and liklihood
-- In normal english, probability and liklihood mean the same thing. 
-- However, in statistics they (very confusingly) mean similar, but not identical things. 
-- In statistics, if you have a conditional event $A|B$, then $p(A|B) = L(B|A)$
-- Often times we will use probability to refer to possible results (i.e., what is the probability of this kind of world giving us these results-*see above); we will use liklihood to refer to the probability of the world being some way given that we observed some results (e.g., as we do when we have results and want to use that to make an inference about the world). 
-- NOTE: This point isn't that important right now, but it will come up again when we talk about hypothesis testing. 
-
----
-## Standard normal vs. t distribution
-.pull-left[
-
-- The t distribution (it'll come up next semester) is like z scores but replace $\sigma$ with *sd*.
-  - As a result, the tails a bit higher to account for extra variablility (or uncertainty from using estimate rather than actual value). 
-
+- The result is the **standard normal distribution**, also known as the $z$-distribution
 ]
 
 .pull-right[
-```{r, echo=FALSE}
-ggplot(data.frame(x = c(-6, 6)), aes(x = x)) + 
-  stat_function(fun = dnorm,
-                geom = "line",
-                color = "blue",
-                args = list(mean = 0, sd=1)) +
+```{r, echo = F, fig.height=5}
+normDist +
+  scale_x_continuous(limits = c(-4, 4)) +
+  labs(x = 'z-score', y = '')
+```
+]
+
+
+---
+## Standard normal vs. $t$ distribution
+.pull-left[
+
+- There are other continuous probability distributions you'll be working with next semester, such as the  $t$-distribution 
+- The $t$ distribution is a bit like the $z$-distribution, but the shape differs slightly. 
+  - When calculating $t$, we replace $\sigma$ with $sd$.
+  - As a result, the tails of the $t$-distribution are slightly higher to account for extra variability, or uncertainty from using an estimate ( $sd$ ) rather than the actual population value ( $\sigma$ )
+]
+
+.pull-right[
+```{r, echo=FALSE, fig.height=5}
+normDist + 
+  scale_x_continuous(limits = c(-4, 4)) +
     stat_function(fun = dt,
                 geom = "line",
                 color = "red",
-                args = list(df=5)) + 
-    ggtitle("Standard normal vs. t distribution (with df = 5)")
+                args = list(df=5),
+                linewidth = 1.5) + 
+  annotate('text', label = 'Standard Normal Distribution', hjust = 0, x=-4, y = .35, size = 4.5) +
+  annotate('text', label = 't-Distribution', hjust = 0, x=-4, y = .32, colour = 'red', size = 4.5) +
+  labs(x = 'Statistic', y = '')
+
 ```
 ]
 
 ---
-# Summary of today
-- Continuous probability distributions. 
-- The normal distribution. 
-- Using the normal distribution to make estimates about the probability of events. 
-- The normal distribution and the t-distribution. 
+## Summary of today
+- Continuous probability distributions 
+- The normal distribution
+- Using the normal distribution to make estimates about the probability of events
+- The normal distribution and the $t$-distribution
 
 ---
-# Next tasks
-+ Next week, we will cover sampling. 
+## Next Tasks
+
++ Tomorrow, I'll present a live R session focused on continuous probability distributions
+
++ Next week, we will talk about samples and populations
 
 + This week:
+
+  + Attend the live R session
+  
   + Complete your lab
+  
+  + Check the [reading list](https://eu01.alma.exlibrisgroup.com/leganto/readinglist/lists/43349908530002466) for recommended reading
+  
   + Come to office hours
-  + Come to Q&A session
-  + Weekly quiz - on week 9 (lect 8) content
-      + Open Monday 09:00
+    + Monica's office hours are today (Monday) from 2:30 - 3:30 in 7 George Sq, room UG44
+  
+  + Weekly quiz
+      + Opens Monday 09:00
       + Closes Sunday 17:00
