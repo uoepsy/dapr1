@@ -386,12 +386,115 @@ Context
 </li>
 </ul>
 <ul>
-<li><p>Consider the <code>IQ1</code>-<code>IQ50</code> variables, are they discrete or continuous?<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p></li>
-<li><p>Currently the data are in wide format, but we want a single column of IQ scores. This is so that we can give that column to <code>ggplot</code> to plot the IQ scores of all raters across all movies. Pivot the data so that it is in long format.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p></li>
+<li>Consider the <code>IQ1</code>-<code>IQ50</code> variables, are they discrete or continuous?<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>
+</li>
 </ul>
+<div class="callout callout-style-simple callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+README: Wide vs long data
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Currently the IQ data are in wide format, i.e.&nbsp;each movie has multiple columns providing the IQ scores of the 50 audience raters. However, later on we will want to plot the IQ scores of all raters across all movies. To do so, <code>ggplot</code> wants a single column of IQ scores into <code><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes()</a></code>.</p>
+<p>Consider this fictitious dataset in <strong>wide form</strong>:</p>
+<div class="cell">
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="op">(</span></span>
+<span>    movie <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">'x1'</span>, <span class="st">'x2'</span>, <span class="st">'x3'</span><span class="op">)</span>,</span>
+<span>    IQ1   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">91</span>, <span class="fl">92</span>, <span class="fl">93</span><span class="op">)</span>,</span>
+<span>    IQ2   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">101</span>, <span class="fl">102</span>, <span class="fl">103</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">df</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 3
+  movie   IQ1   IQ2
+  &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 x1       91   101
+2 x2       92   102
+3 x3       93   103</code></pre>
+</div>
+</div>
+<p>To go from two columns of IQ scores to a single one, we can get the data in <strong>long form</strong> as follows:</p>
+<div class="cell">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">df_long</span> <span class="op">&lt;-</span> <span class="va">df</span> <span class="op">%&gt;%</span></span>
+<span>    <span class="fu">pivot_longer</span><span class="op">(</span><span class="va">IQ1</span><span class="op">:</span><span class="va">IQ2</span>, names_to <span class="op">=</span> <span class="st">"IQ_ID"</span>, values_to <span class="op">=</span> <span class="st">"IQ_Scores"</span><span class="op">)</span></span>
+<span><span class="va">df_long</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 3
+  movie IQ_ID IQ_Scores
+  &lt;chr&gt; &lt;chr&gt;     &lt;dbl&gt;
+1 x1    IQ1          91
+2 x1    IQ2         101
+3 x2    IQ1          92
+4 x2    IQ2         102
+5 x3    IQ1          93
+6 x3    IQ2         103</code></pre>
+</div>
+</div>
+<p>The function <code>pivot_longer</code> takes the range of columns you want to compress (<code>IQ1</code> to <code>IQ2</code> in this case), and the names of 2 new columns to create:</p>
 <ul>
-<li><p>As each movie was rated by a different pool of 50 audience raters, discuss how this new column of IQ scores can be considered an independent sample of IQ scores.</p></li>
-<li><p>Plot the sample distribution of the IQ scores variable either using a histogram or density plot.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></p></li>
+<li>
+<code>names_to</code>: where the <strong>names</strong> of the columns to compress will go into - in this case, “IQ_ID”</li>
+<li>
+<code>values_to</code>: where the <strong>values</strong> of the columns to compress will go into - in this case, “IQ_Scores”</li>
+</ul>
+<p>You can also go from long data back to wide data. To do so, use the <code>pivot_wider</code> function:</p>
+<div class="cell">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">df_long</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 3
+  movie IQ_ID IQ_Scores
+  &lt;chr&gt; &lt;chr&gt;     &lt;dbl&gt;
+1 x1    IQ1          91
+2 x1    IQ2         101
+3 x2    IQ1          92
+4 x2    IQ2         102
+5 x3    IQ1          93
+6 x3    IQ2         103</code></pre>
+</div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">df_long</span> <span class="op">%&gt;%</span> </span>
+<span>    <span class="fu">pivot_wider</span><span class="op">(</span>names_from <span class="op">=</span> <span class="st">"IQ_ID"</span>, values_from <span class="op">=</span> <span class="st">"IQ_Scores"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 3
+  movie   IQ1   IQ2
+  &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 x1       91   101
+2 x2       92   102
+3 x3       93   103</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<ul>
+<li>Using the <code><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html">pivot_longer()</a></code> function, pivot the data so that it is in long format. Ensure the column names go into a new column called “IQ_ID”, and the values go into a column called “IQ_Scores”.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>
+</li>
+</ul>
+<div class="callout callout-style-simple callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+README: Independence
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>As each movie was rated by a different pool of 50 audience raters, the variable <code>IQ_Scores</code> can be considered an independent sample of IQ scores.</p>
+<p>This is because a single audience rater didn’t appear in more than one movie. Even if the column <code>IQ_ID</code> says “IQ1” for multiple movies, the rater with id “IQ1” for movie “American Reunion”, say, won’t be the same rater with id “IQ1” for movie “Battleship”.</p>
+</div>
+</div>
+</div>
+<ul>
+<li>Plot the sample distribution of the <code>IQ_Scores</code> variable either using a histogram or density plot.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>
+</li>
 </ul>
 <ul>
 <li>What kind of distribution does your plot follow? Estimate the parameters of your distribution from the sample data.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>
@@ -416,12 +519,12 @@ Context
 <li>The value of IQ that 25% of movie watchers have scores equal to or less than</li>
 <li>The value of IQ that 50% of movie watchers have scores equal to or less than</li>
 <li>The value of IQ that 75% of movie watchers have scores equal to or less than</li>
-<li>The interval comprising 95% of the people’s IQ scores in the sample</li>
+<li>The interval comprising the middle 95% of the people’s IQ scores in the sample</li>
 </ul>
 </li>
 </ul>
 <ul>
-<li><p>How do the normal quartiles computed above compare to those obtained from the <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> function?</p></li>
+<li><p>How do the normal quartiles computed above compare to those obtained from the <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> function? If they are similar, this will provide further evidence that the normal distribution is a good model for IQ scores.</p></li>
 <li><p>Based on the probabilities you have reported above, do you think that the new movie theatre should simplify the questions for their trivia night, make them harder, or make no changes? Justify your answer.</p></li>
 <li><p>In the analysis section of your report, write up a summary of what you have reported above, using proper rounding to 2 decimal places and avoiding any reference to R code or functions.</p></li>
 </ul></section><section id="worked-example" class="level2 page-columns page-full" data-number="3"><h2 data-number="3" class="anchored" data-anchor-id="worked-example">
@@ -481,7 +584,7 @@ Context
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="va">tips2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_csv</a></span><span class="op">(</span><span class="st">"https://uoepsy.github.io/data/RestaurantTips2.csv"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">tips2</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -504,7 +607,7 @@ Context
 <li>We could transform the <code>tips2</code> dataset from wide to long format using the following command:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tips2_long</span> <span class="op">&lt;-</span> <span class="va">tips2</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tips2_long</span> <span class="op">&lt;-</span> <span class="va">tips2</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html">pivot_longer</a></span><span class="op">(</span><span class="va">IQ1</span><span class="op">:</span><span class="va">IQ2</span>, names_to <span class="op">=</span> <span class="st">"ID"</span>, values_to <span class="op">=</span> <span class="st">"IQ_Scores"</span><span class="op">)</span></span>
 <span><span class="va">tips2_long</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -529,7 +632,7 @@ Context
 <p><strong>pivot_longer()</strong></p>
 <p>Pivot longer takes “wide” data and transforms them to “long” form. An example is given below:</p>
 <div class="cell">
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">toy_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span></span>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">toy_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span></span>
 <span>    a <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span>,</span>
 <span>    x1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">11</span>, <span class="fl">12</span>, <span class="fl">13</span><span class="op">)</span>,</span>
 <span>    x2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">21</span>, <span class="fl">22</span>, <span class="fl">23</span><span class="op">)</span></span>
@@ -545,7 +648,7 @@ Context
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">long_toy_data</span> <span class="op">&lt;-</span> <span class="va">toy_data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">long_toy_data</span> <span class="op">&lt;-</span> <span class="va">toy_data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html">pivot_longer</a></span><span class="op">(</span><span class="va">x1</span><span class="op">:</span><span class="va">x2</span>, names_to <span class="op">=</span> <span class="st">"x"</span>, values_to <span class="op">=</span> <span class="st">"score"</span><span class="op">)</span></span>
 <span><span class="va">long_toy_data</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -565,7 +668,7 @@ Context
 </ul>
 <p>Let’s plot both the histogram and density plot for instructional purposes only, in a report you would only report one of the two as they show similar information. We plot both now for instructional purposes and, in particular, we ask you to focus on the differences in the y axes.</p>
 <div class="cell">
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com">patchwork</a></span><span class="op">)</span></span>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com">patchwork</a></span><span class="op">)</span></span>
 <span><span class="va">plt_hist</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">tips2_long</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">IQ_Scores</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html">geom_histogram</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="st">'white'</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"IQ scores"</span><span class="op">)</span></span>
@@ -576,13 +679,13 @@ Context
 <span></span>
 <span><span class="va">plt_hist</span> <span class="op">|</span> <span class="va">plt_dens</span> </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="1_10_cont_dist_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+<p><img src="1_10_cont_dist_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>As you will notice, the plot on the left panel shows counts on the y axis, i.e.&nbsp;the absolute frequency of each bin interval. The plot on the right panel, instead, shows the density on the y axis. If we wanted to plot on top of the histogram a normal curve, we would need to change the y axis of the histogram to be a comparable measure, i.e.&nbsp;also a density rather than a count.</p>
 <p>You can do so by adding <code>y = after_stat(density)</code> in the aes() specification, and you can now see that both y axes agree:</p>
 <div class="cell">
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">plt_hist</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">tips2_long</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">IQ_Scores</span>, y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes_eval.html">after_stat</a></span><span class="op">(</span><span class="va">density</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">plt_hist</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">tips2_long</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">IQ_Scores</span>, y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes_eval.html">after_stat</a></span><span class="op">(</span><span class="va">density</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html">geom_histogram</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="st">'white'</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"IQ scores"</span><span class="op">)</span></span>
 <span></span>
@@ -592,11 +695,11 @@ Context
 <span></span>
 <span><span class="va">plt_hist</span> <span class="op">|</span> <span class="va">plt_dens</span> </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="1_10_cont_dist_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+<p><img src="1_10_cont_dist_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <div class="callout callout-style-simple callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -605,7 +708,7 @@ Fitting a distribution
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>Fitting a normal distribution to data involves estimating the parameters of the distribution from the data. In other words, we want to find values for <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span> from the variable <code>IQ_Scores</code> in the our data, and we denote the estimated parameters with <span class="math inline">\(\hat{\mu}\)</span> and <span class="math inline">\(\hat{\sigma}\)</span>. You create those symbols, you can type in the Rmd file <code>$\hat{\mu}$</code> and <code>$\hat{\sigma}$</code>.</p>
 </div>
@@ -623,13 +726,13 @@ Fitting a distribution
 </li>
 </ul>
 <div class="cell">
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># The mean of the sample of IQ scores</span></span>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># The mean of the sample of IQ scores</span></span>
 <span><span class="va">tips_mu_hat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">tips2_long</span><span class="op">$</span><span class="va">IQ_Scores</span><span class="op">)</span> </span>
 <span><span class="va">tips_mu_hat</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 99.33333</code></pre>
 </div>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># The standard deviation of the sample of IQ scores</span></span>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># The standard deviation of the sample of IQ scores</span></span>
 <span><span class="va">tips_sigma_hat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">tips2_long</span><span class="op">$</span><span class="va">IQ_Scores</span><span class="op">)</span></span>
 <span><span class="va">tips_sigma_hat</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -646,7 +749,7 @@ Fitting a distribution
 Typically, the interval M <span class="math inline">\(\pm\)</span> 3 * SD includes roughly all of the distribution values (99.7%). However, in this case a few IQ scores escape the interval (as they are so widespread). As such, we extended the plotting interval to M <span class="math inline">\(\pm\)</span> 4 * SD.<br>
 Feel free to try with a grid of x values between M <span class="math inline">\(\pm\)</span> 3 * SD, and you will see that some scores exceed the plot range.</p>
 </div></div><div class="cell">
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">normal_distr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span></span>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">normal_distr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span></span>
 <span>    x_grid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="va">tips_mu_hat</span> <span class="op">-</span> <span class="fl">4</span> <span class="op">*</span> <span class="va">tips_sigma_hat</span>, </span>
 <span>                 <span class="va">tips_mu_hat</span> <span class="op">+</span> <span class="fl">4</span> <span class="op">*</span> <span class="va">tips_sigma_hat</span>, </span>
 <span>                 by <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>,</span>
@@ -655,7 +758,7 @@ Feel free to try with a grid of x values between M <span class="math inline">\(\
 </div>
 <p>We can plot the sample distribution and put the fitted normal distribution on top:</p>
 <div class="cell">
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">bistro_iq</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">bistro_iq</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html">geom_histogram</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">tips2_long</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">IQ_Scores</span>, y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes_eval.html">after_stat</a></span><span class="op">(</span><span class="va">density</span><span class="op">)</span><span class="op">)</span>, </span>
 <span>                   color <span class="op">=</span> <span class="st">'white'</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">normal_distr</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x_grid</span>, y <span class="op">=</span> <span class="va">y_grid</span><span class="op">)</span>,</span>
@@ -684,7 +787,7 @@ Feel free to try with a grid of x values between M <span class="math inline">\(\
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
 <p>To calculate the probability that a bistro customer has an IQ below 120, we can compute the following:</p>
 <div class="cell">
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">pnorm</a></span><span class="op">(</span><span class="fl">120</span>, <span class="va">tips_mu_hat</span>, <span class="va">tips_sigma_hat</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">pnorm</a></span><span class="op">(</span><span class="fl">120</span>, <span class="va">tips_mu_hat</span>, <span class="va">tips_sigma_hat</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.9059362</code></pre>
 </div>
@@ -693,7 +796,7 @@ Feel free to try with a grid of x values between M <span class="math inline">\(\
 <div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
 <p>To calculate the probability that a bistro customer has an IQ above 120, we can compute the following:</p>
 <div class="cell">
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># P(X &gt; 120)</span></span>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># P(X &gt; 120)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">pnorm</a></span><span class="op">(</span><span class="fl">120</span>, <span class="va">tips_mu_hat</span>, <span class="va">tips_sigma_hat</span>, lower.tail <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.09406377</code></pre>
@@ -701,7 +804,7 @@ Feel free to try with a grid of x values between M <span class="math inline">\(\
 </div>
 <p>or alternatively</p>
 <div class="cell">
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># 1 - P(X &lt; 120)</span></span>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># 1 - P(X &lt; 120)</span></span>
 <span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">pnorm</a></span><span class="op">(</span><span class="fl">120</span>, <span class="va">tips_mu_hat</span>, <span class="va">tips_sigma_hat</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.09406377</code></pre>
@@ -711,7 +814,7 @@ Feel free to try with a grid of x values between M <span class="math inline">\(\
 <div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
 <p>To calculate the probability that a bistro customer has an IQ above 100, we can compute the following:</p>
 <div class="cell">
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># P(X &gt; 100)</span></span>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># P(X &gt; 100)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">pnorm</a></span><span class="op">(</span><span class="fl">100</span>, <span class="va">tips_mu_hat</span>, <span class="va">tips_sigma_hat</span>, lower.tail <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.4830676</code></pre>
@@ -719,7 +822,7 @@ Feel free to try with a grid of x values between M <span class="math inline">\(\
 </div>
 <p>or alternatively</p>
 <div class="cell">
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># 1 - P(X &lt; 100)</span></span>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># 1 - P(X &lt; 100)</span></span>
 <span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">pnorm</a></span><span class="op">(</span><span class="fl">100</span>, <span class="va">tips_mu_hat</span>, <span class="va">tips_sigma_hat</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.4830676</code></pre>
@@ -730,7 +833,7 @@ Feel free to try with a grid of x values between M <span class="math inline">\(\
 <p>To calculate the probability that a bistro customer has an IQ between 100 and 130, we can compute the following:</p>
 <p>P(a &lt; X &lt; b) = P(X &lt; b) - P(X &lt; a) when a = 100 and b = 130 so that P(100 &lt; X &lt; 130) = P(X &lt; 130) - P(X &lt; 100)</p>
 <div class="cell">
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># P(100 &lt; X &lt; 130) = </span></span>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># P(100 &lt; X &lt; 130) = </span></span>
 <span><span class="co"># P(X &lt; 130) - P(X &lt; 100)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">pnorm</a></span><span class="op">(</span><span class="fl">130</span>, <span class="va">tips_mu_hat</span>, <span class="va">tips_sigma_hat</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">pnorm</a></span><span class="op">(</span><span class="fl">100</span>, <span class="va">tips_mu_hat</span>, <span class="va">tips_sigma_hat</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -756,7 +859,7 @@ Feel free to try with a grid of x values between M <span class="math inline">\(\
 <div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
 <p>To calculate the value of IQ that 25% of bistro customers have scores equal to or less than, we can compute the following:</p>
 <div class="cell">
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">qnorm</a></span><span class="op">(</span>p <span class="op">=</span> <span class="fl">0.25</span>, mean <span class="op">=</span> <span class="va">tips_mu_hat</span>, sd <span class="op">=</span> <span class="va">tips_sigma_hat</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">qnorm</a></span><span class="op">(</span>p <span class="op">=</span> <span class="fl">0.25</span>, mean <span class="op">=</span> <span class="va">tips_mu_hat</span>, sd <span class="op">=</span> <span class="va">tips_sigma_hat</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 88.74216</code></pre>
 </div>
@@ -765,7 +868,7 @@ Feel free to try with a grid of x values between M <span class="math inline">\(\
 <div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
 <p>To calculate the value of IQ that 50% of bistro customers have scores equal to or less than, we can compute the following:</p>
 <div class="cell">
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">qnorm</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="va">tips_mu_hat</span>, <span class="va">tips_sigma_hat</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">qnorm</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="va">tips_mu_hat</span>, <span class="va">tips_sigma_hat</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 99.33333</code></pre>
 </div>
@@ -774,7 +877,7 @@ Feel free to try with a grid of x values between M <span class="math inline">\(\
 <div id="tabset-2-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-3-tab">
 <p>To calculate the value of IQ that 75% of bistro customers have scores equal to or less than, we can compute the following:</p>
 <div class="cell">
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">qnorm</a></span><span class="op">(</span><span class="fl">0.75</span>, <span class="va">tips_mu_hat</span>, <span class="va">tips_sigma_hat</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">qnorm</a></span><span class="op">(</span><span class="fl">0.75</span>, <span class="va">tips_mu_hat</span>, <span class="va">tips_sigma_hat</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 109.9245</code></pre>
 </div>
@@ -786,7 +889,7 @@ Feel free to try with a grid of x values between M <span class="math inline">\(\
 <li>We can also comment on how these normal quartiles values compare to those from the <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> output:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">tips2_long</span><span class="op">$</span><span class="va">IQ_Scores</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">tips2_long</span><span class="op">$</span><span class="va">IQ_Scores</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
   57.00   90.25   98.00   99.33  109.75  154.00 </code></pre>
@@ -798,14 +901,14 @@ Feel free to try with a grid of x values between M <span class="math inline">\(\
 </ul>
 <p>If we want 0.95 probability in the middle, we need to split the leftover 0.05 probability equally between the two tails: 0.025 in the left, and 0.025 in the right. However, <code><a href="https://rdrr.io/r/stats/Normal.html">qnorm()</a></code> wants the probability to the left, so we will give 0.025 and 0.975 = 1 - 0.025 as values.</p>
 <div class="cell">
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">qnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.975</span><span class="op">)</span>, mean <span class="op">=</span> <span class="va">tips_mu_hat</span>, sd <span class="op">=</span> <span class="va">tips_sigma_hat</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">qnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.975</span><span class="op">)</span>, mean <span class="op">=</span> <span class="va">tips_mu_hat</span>, sd <span class="op">=</span> <span class="va">tips_sigma_hat</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1]  68.5570 130.1097</code></pre>
 </div>
 </div>
 <p>95% of the bistro customers had IQ scores between 69 and 130.</p>
 <div class="callout callout-style-simple callout-note callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -814,15 +917,15 @@ Alternatively
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>Alternatively, to specify that one probability is on the left tail and the other is on the upper tail, you have to run two separate statements:</p>
 <div class="cell">
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">qnorm</a></span><span class="op">(</span><span class="fl">0.025</span>, mean <span class="op">=</span> <span class="va">tips_mu_hat</span>, sd <span class="op">=</span> <span class="va">tips_sigma_hat</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">qnorm</a></span><span class="op">(</span><span class="fl">0.025</span>, mean <span class="op">=</span> <span class="va">tips_mu_hat</span>, sd <span class="op">=</span> <span class="va">tips_sigma_hat</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 68.557</code></pre>
 </div>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">qnorm</a></span><span class="op">(</span><span class="fl">0.025</span>, mean <span class="op">=</span> <span class="va">tips_mu_hat</span>, sd <span class="op">=</span> <span class="va">tips_sigma_hat</span>, lower.tail <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">qnorm</a></span><span class="op">(</span><span class="fl">0.025</span>, mean <span class="op">=</span> <span class="va">tips_mu_hat</span>, sd <span class="op">=</span> <span class="va">tips_sigma_hat</span>, lower.tail <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 130.1097</code></pre>
 </div>
@@ -897,7 +1000,8 @@ Lock, Robin H, Patti Frazer Lock, Kari Lock Morgan, Eric F Lock, and Dennis F Lo
 </div></section><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
 <ol>
 <li id="fn1"><p>Hint: Ask last week’s driver for the Rmd file, they should share it with the group via the group discussion space or email. To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More &gt; Export.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p>Hint: Technically, the values you see in the data are discrete, but in Psychology IQ is assumed to be continuous and it’s only discrete due to a limitation of our measuring ability. In other words, if we could measure that accurately, we could get an IQ of 126.4374325677…<br>
+<li id="fn2"><p>Hint: Technically, the values you see in the data are discrete. In Psychology, however, IQ is assumed to be a continuous variable and it’s only discrete due to a limitation of our measuring ability.<br>
+In other words, if we were able to measure it more accurately, there would be no reason why this couldn’t be continuous and we could imagine getting an IQ of 126.4374325677…<br>
 To summarise, IQ is an example of a variable that is considered as coming from a continuous scale, but it can only be measured with discrete precision.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn3">
 <p>Hint: When the data is wide, we can make it long using <code><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html">pivot_longer()</a></code>. When we make data longer, we’re essentially making lots of columns into 2 longer columns. Below, in the animation, the wide variable x, y and z go into a new longer column called <code>"name"</code> (specified by the argument <code>names_to = "name"</code>) that specifies which (x/y/z) it came from, and the values get put into the <code>"val"</code> column (specified by the argument <code>values_to = "val"</code>).</p>
@@ -916,7 +1020,18 @@ To summarise, IQ is an example of a variable that is considered as coming from a
 <p>To save space, if you wish to plot this next to another plot, recall that you can use the <code>patchwork</code> package to arrange plots either adjacent to one another (via <code>|</code>) or stacked (via <code>/</code>).<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p>
 </li>
 <li id="fn5"><p>Hint: A normal distribution has two parameters, the mean (<span class="math inline">\(\mu\)</span>) and the standard deviation (<span class="math inline">\(\sigma\)</span>).<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn6"><p>Hint: Here you will need to consider using <code><a href="https://rdrr.io/r/stats/Normal.html">dnorm()</a></code>, as you are interested in the <strong>norm</strong>al <strong>d</strong>istribution at values of x. First you will need to consider how many standard deviations above and below the mean to give when specifying your grid of x-axis values (hint: it’s between 1-5!). Next you will need to specify the grid for your y-axis - here use the <code><a href="https://rdrr.io/r/stats/Normal.html">dnorm()</a></code> function, specifying your x-axis grid, sample mean, and sample standard deviation.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6">
+<p>Hint: Here you will need to consider using <code><a href="https://rdrr.io/r/stats/Normal.html">dnorm()</a></code>, as you are interested in the <strong>norm</strong>al <strong>d</strong>istribution at values of x.</p>
+<p>First, you will need to create a tibble with two columns:</p>
+<ul>
+<li>The first column will contain a sequence of x-values (a grid) for which you want to compute the normal distribution curve at</li>
+<li>The second column will contain the y-values: the normal distribution at that sequence of x-values.</li>
+</ul>
+<p>This way, you will have the x-values and the heights (normal distribution) at those x-values.<br>
+When specifying your x-axis sequence, consider how many standard deviations above and below the mean to give. This can either be 2, 3, or 4. Alternative you can go from the minimum of your data to the maximum.<br>
+For the y-values, use the <code><a href="https://rdrr.io/r/stats/Normal.html">dnorm()</a></code> function with inputs being the x-axis grid, the sample mean, and sample standard deviation.<br>
+Plot this on top of the histogram/density using <code>geom_line(data = ?, aes(x = ?, y = ?))</code>. If you are using a histogram, make sure the y-axis are comparable: counts vs density isn’t appropriate!<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p>
+</li>
 <li id="fn7">
 <p>Hint: Here you are being asked to calculate:</p>
 <ul>
@@ -930,7 +1045,8 @@ To summarise, IQ is an example of a variable that is considered as coming from a
 <li id="fn8">
 <p>Hint:</p>
 <p>For the first three questions, you are being asked to calculate the quantile x such that P(X &lt;= x) is 0.25, 0.50, and 0.75 respectively. That is, you are asked to find the first, second, and third quartiles respectively.</p>
-<p>For the final question, you are looking for those values that comprise the middle 0.95 of the distribution, i.e.&nbsp;cutting an area of 0.025 to the left and 0.975 = 1 - 0.025 to the right. The 5% probability is split between the lower and upper tails of the distribution. In symbols, you are asked to calculate P(a &lt; X &lt; b) where a is the 2.5th percentile and b is the 97.5th percentile.<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p>
+<p>For the final question, you are looking for those values that comprise the middle 0.95 of the distribution, i.e.&nbsp;cutting an area of 0.05 outside.<br>
+The 0.05 probability needs to be equally divided between the left (0.025) and the right (0.025) tails. Also note that a probability of 0.025 to the right is equivalent to a probability of 0.975 to the left (= 1 - 0.025). In symbols, you are asked to calculate P(a &lt; X &lt; b) where a is the 2.5th percentile and b is the 97.5th percentile.<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p>
 </li>
 <li id="fn9"><p>Data adapted from <span class="citation" data-cites="lock2020">Lock et al. (<a href="#ref-lock2020" role="doc-biblioref">2020</a>)</span>.<a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol></section></div></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">

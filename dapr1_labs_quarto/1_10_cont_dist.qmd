@@ -137,10 +137,50 @@ In this lab, you will need to consider the variables `IQ1` to `IQ50` (i.e. the I
 
 [^share-file]: Hint: Ask last week's driver for the Rmd file, they should share it with the group via the group discussion space or email. To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
 
-- Consider the `IQ1`-`IQ50` variables, are they discrete or continuous?^[Hint: Technically, the values you see in the data are discrete, but in Psychology IQ is assumed to be continuous and it's only discrete due to a limitation of our measuring ability. In other words, if we could measure that accurately, we could get an IQ of 126.4374325677...  
+- Consider the `IQ1`-`IQ50` variables, are they discrete or continuous?^[Hint: Technically, the values you see in the data are discrete. In Psychology, however, IQ is assumed to be a continuous variable and it's only discrete due to a limitation of our measuring ability.  
+In other words, if we were able to measure it more accurately, there would be no reason why this couldn't be continuous and we could imagine getting an IQ of 126.4374325677...  
 To summarise, IQ is an example of a variable that is considered as coming from a continuous scale, but it can only be measured with discrete precision.]
 
-- Currently the data are in wide format, but we want a single column of IQ scores. This is so that we can give that column to `ggplot` to plot the IQ scores of all raters across all movies. Pivot the data so that it is in long format.[^func-pivot]
+::: {.callout-tip collapse="true"}
+#### README: Wide vs long data
+
+Currently the IQ data are in wide format, i.e. each movie has multiple columns providing the IQ scores of the 50 audience raters. However, later on we will want to plot the IQ scores of all raters across all movies. To do so, `ggplot` wants a single column of IQ scores into `aes()`.
+
+Consider this fictitious dataset in __wide form__:
+
+```{r}
+df <- tibble(
+    movie = c('x1', 'x2', 'x3'),
+    IQ1   = c(91, 92, 93),
+    IQ2   = c(101, 102, 103)
+)
+df
+```
+
+To go from two columns of IQ scores to a single one, we can get the data in __long form__ as follows:
+
+```{r}
+df_long <- df %>%
+    pivot_longer(IQ1:IQ2, names_to = "IQ_ID", values_to = "IQ_Scores")
+df_long
+```
+
+The function `pivot_longer` takes the range of columns you want to compress (`IQ1` to `IQ2` in this case), and the names of 2 new columns to create:
+
+- `names_to`: where the __names__ of the columns to compress will go into - in this case, "IQ_ID"
+- `values_to`: where the __values__ of the columns to compress will go into - in this case, "IQ_Scores"
+
+You can also go from long data back to wide data. To do so, use the `pivot_wider` function:
+
+```{r}
+df_long
+
+df_long %>% 
+    pivot_wider(names_from = "IQ_ID", values_from = "IQ_Scores")
+```
+:::
+
+- Using the `pivot_longer()` function, pivot the data so that it is in long format. Ensure the column names go into a new column called "IQ_ID", and the values go into a column called "IQ_Scores".[^func-pivot]
 
 [^func-pivot]: Hint: When the data is wide, we can make it long using `pivot_longer()`. When we make data longer, we’re essentially making lots of columns into 2 longer columns. Below, in the animation, the wide variable x, y and z go into a new longer column called `"name"` (specified by the argument `names_to = "name"`) that specifies which (x/y/z) it came from, and the values get put into the `"val"` column (specified by the argument `values_to = "val"`).
 
@@ -148,9 +188,15 @@ To summarise, IQ is an example of a variable that is considered as coming from a
     knitr::include_graphics("https://www.fromthebottomoftheheap.net/assets/img/posts/tidyr-longer-wider.gif")
     ```
 
-- As each movie was rated by a different pool of 50 audience raters, discuss how this new column of IQ scores can be considered an independent sample of IQ scores.
+::: {.callout-tip collapse="true"}
+#### README: Independence
 
-- Plot the sample distribution of the IQ scores variable either using a histogram or density plot.[^plot-freq]
+As each movie was rated by a different pool of 50 audience raters, the variable `IQ_Scores` can be considered an independent sample of IQ scores.
+
+This is because a single audience rater didn't appear in more than one movie. Even if the column `IQ_ID` says "IQ1" for multiple movies, the rater with id "IQ1" for movie "American Reunion", say, won't be the same rater with id "IQ1" for movie "Battleship".
+:::
+
+- Plot the sample distribution of the `IQ_Scores` variable either using a histogram or density plot.[^plot-freq]
 
 [^plot-freq]: Hint: Here you will need to specify `geom_histogram()` or `geom_density()`. 
 
@@ -162,7 +208,17 @@ To summarise, IQ is an example of a variable that is considered as coming from a
 
 - Plot the fitted normal distribution on top of the sample distribution. Is the normal distribution a good fit?[^plt-norm]
 
-[^plt-norm]: Hint: Here you will need to consider using `dnorm()`, as you are interested in the **norm**al **d**istribution at values of x. First you will need to consider how many standard deviations above and below the mean to give when specifying your grid of x-axis values (hint: it's between 1-5!). Next you will need to specify the grid for your y-axis - here use the `dnorm()` function, specifying your x-axis grid, sample mean, and sample standard deviation. 
+[^plt-norm]: Hint: Here you will need to consider using `dnorm()`, as you are interested in the **norm**al **d**istribution at values of x.  
+    
+    First, you will need to create a tibble with two columns:
+    
+    + The first column will contain a sequence of x-values (a grid) for which you want to compute the normal distribution curve at
+    + The second column will contain the y-values: the normal distribution at that sequence of x-values.
+        
+    This way, you will have the x-values and the heights (normal distribution) at those x-values.  
+    When specifying your x-axis sequence, consider how many standard deviations above and below the mean to give. This can either be 2, 3, or 4. Alternative you can go from the minimum of your data to the maximum.  
+    For the y-values, use the `dnorm()` function with inputs being the x-axis grid, the sample mean, and sample standard deviation.  
+    Plot this on top of the histogram/density using `geom_line(data = ?, aes(x = ?, y = ?))`. If you are using a histogram, make sure the y-axis are comparable: counts vs density isn't appropriate!
 
 - Calculate the following:[^probs-IQ]
     * The probability of a movie viewer having an IQ score <97.4, i.e. less than the Texas average.
@@ -179,17 +235,17 @@ To summarise, IQ is an example of a variable that is considered as coming from a
     * The value of IQ that 25% of movie watchers have scores equal to or less than
     * The value of IQ that 50% of movie watchers have scores equal to or less than
     * The value of IQ that 75% of movie watchers have scores equal to or less than
-    * The interval comprising 95% of the people's IQ scores in the sample
+    * The interval comprising the middle 95% of the people's IQ scores in the sample
 
 [^quant-IQ]: Hint: 
 
     For the first three questions, you are being asked to calculate the quantile x such that P(X <= x) is 0.25, 0.50, and 0.75 respectively. That is, you are asked to find the first, second, and third quartiles respectively. 
     
-    For the final question, you are looking for those values that comprise the middle 0.95 of the distribution, i.e. cutting an area of 0.025 to the left and 0.975 = 1 - 0.025 to the right. 
-    The 5% probability is split between the lower and upper tails of the distribution. 
+    For the final question, you are looking for those values that comprise the middle 0.95 of the distribution, i.e. cutting an area of 0.05 outside.  
+    The 0.05 probability needs to be equally divided between the left (0.025) and the right (0.025) tails. Also note that a probability of 0.025 to the right is equivalent to a probability of 0.975 to the left (= 1 - 0.025). 
     In symbols, you are asked to calculate P(a < X < b) where a is the 2.5th percentile and b is the 97.5th percentile. 
 
-- How do the normal quartiles computed above compare to those obtained from the `summary()` function?
+- How do the normal quartiles computed above compare to those obtained from the `summary()` function? If they are similar, this will provide further evidence that the normal distribution is a good model for IQ scores.
 
 - Based on the probabilities you have reported above, do you think that the new movie theatre should simplify the questions for their trivia night, make them harder, or make no changes? Justify your answer. 
 
