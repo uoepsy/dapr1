@@ -1,7 +1,7 @@
 ---
 title: "<b>Week 11: Samples, Statistics & Sampling Distributions </b>"
 subtitle: "Data Analysis for Psychology in R 1<br><br> "
-author: "TOM BOOTH & ALEX DOUMAS"
+author: "DapR1 Team"
 institute: "Department of Psychology<br>The University of Edinburgh"
 date: ""
 output:
@@ -9,6 +9,7 @@ output:
     lib_dir: libs
     css: xaringan-themer.css
     nature:
+      ratio: '16:9'
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
@@ -38,72 +39,199 @@ style_mono_accent(
 library(tidyverse)
 library(infer)
 library(kableExtra)
+knitr::opts_chunk$set(dev = 'svg')
+
+baseColor <- "#0F4C81"
 ```
 
-# Week's Learning Objectives
+## Week's Learning Objectives
 1. Understand the difference between a population parameter and a sample statistic.
 2. Understand the concept and construction of sampling distributions. 
 3. Understand the effect of sample size on the sampling distribution.
 4. Understand how to quantify the variability of a sample statistic and sampling distribution (standard error). 
 
 ---
-# Topics for today
-- Understand the concept principles sampling from populations.
-- Be familiar with the specific statistical terminology for sampling.
-- Understand the concept of a sampling distribution.
-
----
 ## Concepts to carry forward
-- Data can be of different types.
-- Dependent on type (continuous vs. categorical), we can visualise and describe the distribution of data differently.
-- When thinking about events ("things happening") we can assign probabilities to the event.
-- We can define a probability distribution that describes the probability of all possible events.
+
++ Data can be of different types.
+
+--
+
++ We can assign probabilities to outcomes of random experiments
+
+--
+
++ We can define a probability distribution that describes the probability of all possible events.
+
+--
+
++ Dependent on type (continuous vs. discrete), we can visualise and describe the distribution of data differently.
+
 
 ---
-## In Psych Stats
-- In psychology, we design a study, to calculate a value that carries some meaning.
-    - Reaction time of one group vs another.
-- Given it has meaning based on the study design, we want to know something about the number:
-    - Is it unusual or not?
-- This is the task for the next 4-5 weeks. 
+## Why are These Concepts Relevant to Psych Stats?
+
++ In psychology, we design a study, measure variables, and use these measurements to calculate a value that carries some meaning.
+    + E.g., the difference in reaction times between groups
+
+--
+
++ Given it has meaning based on the study design, we want to know something about the value:
+    + Is it unusual or not?
+    + This is the focus throughout the next semester. 
+
+--
+
++ **Today:**
+    + We will talk about populations, samples, and sampling.
+    + Basic concepts of sampling may seem simple and intuitive.
+    + These concepts will be very useful when we start talking about _statistical inference_, or how we make decisions about data.
 
 ---
-## Today
-- We will talk about populations, samples, and sampling.
-- Basic concepts of sampling may seem simple and intuitive.
-- These concepts will be very useful when we start talking about statistical inference.
-    - Statistical inference = how we make decisions about data.
+## Populations vs Samples
++ In statistics, we often refer to populations and samples
+    + **Population:** The entire group of people about whom you'd like to make inferences
+    + **Sample:** The subset of the population from whom you will collect data to make these inferences
+
+--
+
++ To get the most accurate measure of our variable, it would be ideal to collect data from the entire population; however, this is not feasible.
+
+--
+
++ In almost all cases, researchers need to collect data from samples and use these results to make inferences about the population
+  + The population value of the variable of interest is known as a **population parameter**
+  + The sample value of the variable of interest is known as a **sample statistic**, or **point-estimate**
 
 ---
-## A question
-- Suppose I wanted to know the proportion of UG students at the University of Edinburgh were born in Scotland?
-    - In stats talk, all UG at the UoE are our **population**.
-    - The proportion of students born in Scotland is the **population parameter** (the thing we are interested in).
-- What is the best way to find this out exactly?
-- What else might we do?
+## Populations vs Samples - Notation
+
+.pull-left[
++ It's important to know that although you may have seen these different types of notation used interchangeably in the past, they are actually slightly different when one is referring to a _population_ versus a _sample_:
+]
+
+
+.pull-right[
+
+|Population | Parameter         | Sample   |
+|-----------|-------------------|----------|
+| $\mu$     | Mean              | $\bar{x}$|
+| $\sigma$  | Standard Deviation| $s$      |
+| $N$       | Size              | $n$      |
+
+]
 
 ---
-## What is a sample? 
-- A sample is a portion of the population that you check.
-- Use the sample as an estimate of the real population
+## Populations vs Samples - Example
+
++ Suppose I wanted to know the proportion of UG students at the University of Edinburgh who are permanent Scottish residents.
+
+.center[
+```{r, echo = F, out.width='50%'}
+knitr::include_graphics('figures/PopulationMetric.png')
+```
+]
+
+> **Test your Understanding:** What is the population in this example?
+
+--
+
+> What is the variable of interest?
+
+--
+
+> What is the parameter?
 
 ---
-## Parameters and point-estimates
-- Key idea: 
-    - There is population parameter (proportion of Scottish born students at UoE) we are interested in. This is a *true* value of the world.
-    - We can draw a sample, and calculate this proportion (statistic) in the sample.
-      - In a single sample, this **point-estimate** is our best guess at the population parameter.
-    - We might use something like our class as a sample to estimate the true value in the University.
+## Populations vs Samples - Example
++ How can we collect this information? 
+
+--
+
+  + We could send out an email requesting all students to provide their permanent residence...but it's not likely that all students will respond. 
+
+--
+
+  + We could ask instructors to collect this data from students in their classes, but not every student will attend each class, and not every instructor will comply.
+
+--
+
+- Even with this relatively small, accessible population, it's unlikely we can collect information from every single member.
 
 ---
-## 2017/18 actual proportion
+## Populations vs Samples - Example
+
+- Instead, we have to use the data from students who _do_ respond to make inferences about the overall student population 
+
+.center[
+```{r, echo = F, out.width='65%'}
+knitr::include_graphics('figures/FullSample.png')
+```
+]
+
+
+> **Test your Understanding:** What is the sample?
+
+--
+
+> What is the statistic, or the point-estimate?
+
+---
+## Parameters, point-estimates, and sampling distributions
+
+.pull-left[
++ It is the population parameter (proportion of UoE students who are permanent Scottish residents) we are interested in. This is a *true* value of the world.
+
++ We can draw a sample, and calculate this proportion in the sample.
+  + The point-estimate from the sample is our best guess at the population parameter.
+
+]
+
+---
+## Parameters, point-estimates, and sampling distributions
+
+.pull-left[
++ It is the population parameter (proportion of UoE students who are permanent Scottish residents) we are interested in. This is a *true* value of the world.
+
++ We can draw a sample, and calculate this proportion in the sample.
+  + The point-estimate from the sample is our best guess at the population parameter.
+
++ If we draw multiple samples, we can produce a **sampling distribution**, which is a probability distribution of some statistic obtained from repeatedly sampling the population. 
+
+]
+
+.pull-right[
+.center[
+```{r, echo = F}
+knitr::include_graphics('figures/Samples.png')
+```
+]
+]
+
+---
+## 2021/22 actual proportion
+
+.pull-left[
++ Let's use real data from 21/22 to demonstrate this concept
+
+  + These data represent the entire student body from 21/22
+
++ Using these data, we can:
+
+  1) Simulate gathering multiple samples of UoE students
+  
+  2) Calculate the proportion of each sample born in Scotland
+  
+  3) Produce a frequency distribution of each sample's proportions.
+
+]
+
+.pull-right[
 
 ```{r, echo=FALSE, warning=FALSE, message = FALSE}
-#sim data
-set.seed(7284)
-Edinburgh <- tibble(
-    Scottish = factor(sample(c("No", "Yes"), 25951, replace = T, prob = c(0.54, 0.46)))
-) 
+#sim data - 8665/9
+Edinburgh <- tibble(Scottish = c(rep('Yes', 8665), rep('No', 28755-8665)))
+
 UoE_prop <- Edinburgh %>%
     group_by(Scottish) %>%
     summarise(n=n()) %>%
@@ -112,380 +240,377 @@ UoE_prop <- Edinburgh %>%
 kable(UoE_prop) %>%
   kable_styling(bootstrap_options = "striped", full_width = F)
 ```
-
-- Let's assume this is the true value now (it was in 17/18).
-- As we've just said, we can draw samples from the population and use it to estimate the population value.
-- A **sampling distribution** is a probability distribution of some statistic obtained from sampling the population. 
-- If we draw a bunch of samples from the population, each is an estimate of the real population value. 
-  - Let's simulate drawing a bunch of samples of students from the University and see what proportion of each sample is born in Scotland.
-  - We'll draw 10 samples of 10 students from the population.
-  - We then create a histogram showing how frequently our samples showed particular proportions of students born in Scotland...
-
----
-## Visualizing sampling distributions
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-B <- 10
-N <- 10
-sample_props <- tibble(
-    Prop = replicate(B, {
-  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
-  mean(as.numeric(x)-1)
-})
-)
-sample_props %>%
-    ggplot(., aes(x=Prop)) +
-    geom_histogram(breaks = c(seq(0,1,0.1)), colour='black', fill='gray') +
-    xlim(0,1) +
-    xlab("Proportion") +
-    ylab("Frequency") +
-    geom_vline(xintercept = 0.46, col = "red") +
-    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
-    ggtitle("Histogram of 10 samples of n=10 (1)")
-```
-
-
-
----
-## Visualizing sampling distributions
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-B <- 10
-N <- 10
-sample_props <- tibble(
-    Prop = replicate(B, {
-  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
-  mean(as.numeric(x)-1)
-})
-)
-sample_props %>%
-    ggplot(., aes(x=Prop)) +
-    geom_histogram(breaks = c(seq(0,1,0.1)), colour='black', fill='gray') +
-    xlim(0,1) +
-    xlab("Proportion") +
-    ylab("Frequency") +
-    geom_vline(xintercept = 0.46, col = "red") +
-    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
-    ggtitle("Histogram of 10 samples of n=10 (2)")
-```
-
----
-## Visualizing sampling distributions
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-B <- 10
-N <- 10
-sample_props <- tibble(
-    Prop = replicate(B, {
-  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
-  mean(as.numeric(x)-1)
-})
-)
-sample_props %>%
-    ggplot(., aes(x=Prop)) +
-    geom_histogram(breaks = c(seq(0,1,0.1)), colour='black', fill='gray') +
-    xlim(0,1) +
-    xlab("Proportion") +
-    ylab("Frequency") +
-    geom_vline(xintercept = 0.46, col = "red") +
-    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
-    ggtitle("Histogram of 10 samples of n=10 (3)")
-```
-
----
-## Sampling distributions (2)
-- We have just created three sampling distributions.
-- Each of these look different.
-- Each sampling distribution is characterising the **sampling variability** in our **estimate** of the **parameter** of interest (proportion of Scottish students at UoE).
-- What do we notice? 
-  - Do samples with values close to the population value tend to be more or less likely? 
-
----
-## More samples
-- So far we have taken 10 samples.
-- What if we took more?
-
----
-## More samples
-
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-B <- 1000
-N <- 10
-sample_props <- tibble(
-    Prop = replicate(B, {
-  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
-  mean(as.numeric(x)-1)
-})
-)
-sample_props %>%
-    ggplot(., aes(x=Prop)) +
-    geom_histogram(breaks = c(seq(0,1,0.1)), colour='black', fill='gray') +
-    xlim(0,1) +
-    xlab("Proportion") +
-    ylab("Frequency") +
-    geom_vline(xintercept = 0.46, col = "red") +
-    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
-    ggtitle("Histogram of 1000 samples of n=10 (1)")
-```
-
----
-## More samples
-
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-B <- 1000
-N <- 10
-sample_props <- tibble(
-    Prop = replicate(B, {
-  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
-  mean(as.numeric(x)-1)
-})
-)
-sample_props %>%
-    ggplot(., aes(x=Prop)) +
-    geom_histogram(breaks = c(seq(0,1,0.1)), colour='black', fill='gray') +
-    xlim(0,1) +
-    xlab("Proportion") +
-    ylab("Frequency") +
-    geom_vline(xintercept = 0.46, col = "red") +
-    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
-    ggtitle("Histogram of 1000 samples of n=10 (2)")
-```
-
----
-## More samples
-
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-B <- 1000
-N <- 10
-sample_props <- tibble(
-    Prop = replicate(B, {
-  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
-  mean(as.numeric(x)-1)
-})
-)
-sample_props %>%
-    ggplot(., aes(x=Prop)) +
-    geom_histogram(breaks = c(seq(0,1,0.1)), colour='black', fill='gray') +
-    xlim(0,1) +
-    xlab("Proportion") +
-    ylab("Frequency") +
-    geom_vline(xintercept = 0.46, col = "red") +
-    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
-    ggtitle("Histogram of 1000 samples of n=10 (3)")
-```
-
-- What do you notice about the plots on the last three slides?
-
----
-## Frequency = probability
-- At this point lets pause and remember some things from probability.
-- When we spoke about probability, we spoke about the relation to frequency.
-- If something did not happen very often, it has a lower probability.
-    - Now think about our sampling distributions of the proportion of Scottish students.
-
----
-## Frequency gives us probability
-.pull-left[
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-B <- 1000
-N <- 10
-sample_props <- tibble(
-    Prop = replicate(B, {
-  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
-  mean(as.numeric(x)-1)
-})
-)
-sample_props %>%
-    ggplot(., aes(x=Prop)) +
-    geom_histogram(breaks = c(seq(0,1,0.1)), colour='black', fill='gray') +
-    xlim(0,1) +
-    xlab("Proportion") +
-    ylab("Frequency") +
-    ggtitle("Histogram of 1000 samples of n=10")
-```
 ]
+
+
+
+---
+## Visualizing sampling distributions
+
+.pull-left[
++ Imagine we took a single sample of 10 students.
+
++ This demonstrates how a statistic from a single small sample may or may not capture the population parameter
+]
+
+
+.pull-right[.center[
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.height=4}
+set.seed(44)
+sampDat <- sample(Edinburgh$Scottish, 10)
+
+propDat <- tibble(Prop=as.numeric(table(sampDat) %>% prop.table)[2])
+
+propDat %>%
+  ggplot(., aes(x=Prop)) +
+  geom_histogram(breaks = seq(0, 1, 0.1), colour='gray', fill=baseColor) +
+  scale_x_continuous(breaks = seq(0,1, 0.1), limits = c(0,1)) + 
+  scale_y_continuous(limits = c(0, 4), breaks = seq(0, 4, 1)) + 
+  labs(x='Proportion', y='Frequency') +
+  geom_vline(xintercept = 0.30, col = "red", size = 1) + 
+  geom_vline(xintercept = .65, col = '#FCBB06', size = 1) +
+  theme(axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = 'bold'))
+
+```
+]]
+
+
+---
+## Visualizing sampling distributions
+
+.pull-left[
+
++ Imagine that we instead took 10 samples of 10 students each.
+
++ What happens to the difference between the mean sampling statistic and the population parameter?
+
+]
+
 
 .pull-right[
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-sample_props %>%
-    ggplot(., aes(x=Prop)) +
-    geom_histogram(breaks = c(seq(0,1,0.1)), aes(y=..density../10), colour='black', fill='gray') +
-    xlim(0,1) +
-    xlab("Proportion") +
-    ylab("Density") +
-    ggtitle("Histogram of 1000 samples of n=10")
+.center[
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.height=4}
+N <- 10
+B <- 10
+
+set.seed(820)
+
+sampProps <- tibble(
+    Sample1 = replicate(B, prop.table(table(sample(Edinburgh$Scottish, size = N, replace = TRUE)))[2]),
+    Sample2 = replicate(B, prop.table(table(sample(Edinburgh$Scottish, size = N, replace = TRUE)))[2]),
+    Sample3 = replicate(B, prop.table(table(sample(Edinburgh$Scottish, size = N, replace = TRUE)))[2])
+    )
+
+
+s10 <- sampProps %>%
+  ggplot(., aes(Sample1)) +
+  geom_histogram(breaks = seq(0, 1, 0.1), colour='gray', fill=baseColor) +
+  labs(x='Proportion Permanent Scottish Residents', y='Frequency') + 
+  scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, .10)) +
+  geom_vline(xintercept = 0.30, color = "red", size = 1) +
+  geom_vline(xintercept = mean(sampProps$Sample1), col = '#FCBB06', size = 1) +
+  theme(axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = 'bold'))
+
+s10
 ```
+]
 ]
 
 ---
-## Bigger samples
+## Visualizing sampling distributions
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-B <- 1000
-N <- 10
-sample_props <- tibble(
-    Prop = replicate(B, {
-  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
-  mean(as.numeric(x)-1)
-})
-)
-sample_props %>%
-    ggplot(., aes(x=Prop)) +
-    geom_histogram(breaks = c(seq(0,1,0.1)), colour='black', fill='gray') +
-    xlim(0,1) +
-    xlab("Proportion") +
-    ylab("Frequency") +
-    geom_vline(xintercept = 0.46, col = "red") +
-    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
-    ggtitle("Histogram of 1000 samples of n=10")
++ If we were to repeat this process 2 more times, we can create three sampling distributions, each of which look different.
+
+.center[
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.height=3.75, fig.width=12}
+
+sampPropsLong <- reshape2::melt(sampProps)
+
+meanDat <- data.frame(variable = c('Sample1', 'Sample2', 'Sample3'), Z = c(mean(sampProps$Sample1, na.rm = T), mean(sampProps$Sample2, na.rm = T), mean(sampProps$Sample3, na.rm = T)))
+
+(sampPropsLong %>%
+  ggplot(., aes(value)) +
+  geom_histogram(breaks = seq(0, 1, 0.1), colour='gray', fill=baseColor) +
+  labs(x='Proportion', y='Frequency') +
+  scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, .10)) +
+  geom_vline(xintercept = 0.30, color = "red", size = 1) +
+  facet_wrap(~variable) +
+  geom_vline(data = meanDat, aes(xintercept = Z), color = '#FCBB06', size = 1) +
+  theme(axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = 'bold')))
+
+```
+]
+
+--
+
++ Each sampling distribution is characterising the _sampling variability_ in our estimate of the parameter of interest
+
+--
+
++ **Do samples with values close to the population value tend to be more or less likely?**
+
+
+---
+## Taking more samples
+- So far we have taken 10 samples...what if we took more? 
+- Let's imagine we sampled 10 students 100 times. 
+
+--
+
+.pull-left[
+.center[**10 Samples of 10 Students**]
+```{r, echo = F, fig.height = 4.75}
+s10
 ```
 
-- So above is a frequency distribution for $n$=10.
-- Let's see what happens when we make $n$ bigger.
+]
+.pull-right[
+.center[**1000 Samples of 10 Students**]
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.height = 4.75}
+ B <- 1000
 
+set.seed(1022)
+samp1000 <- tibble(Sample1=replicate(B, prop.table(table(sample(Edinburgh$Scottish, size = N, replace = TRUE)))[2]))
+
+(s1000 <- samp1000 %>%
+  ggplot(., aes(Sample1)) +
+  geom_histogram(breaks = seq(0, 1, 0.1), colour='gray', fill=baseColor) +
+  labs(x='Proportion Permanent Scottish Residents', y='Frequency') + 
+  scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, .10)) +
+  geom_vline(xintercept = 0.30, color = "red", size = 1) +
+  geom_vline(xintercept = mean(samp1000$Sample1, na.rm = T), col = '#FCBB06', size = 1) +
+  theme(axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = 'bold')))
+ 
+sampProps <- tibble(
+    Sample1 = replicate(B, prop.table(table(sample(Edinburgh$Scottish, size = N, replace = TRUE)))[2]),
+    Sample2 = replicate(B, prop.table(table(sample(Edinburgh$Scottish, size = N, replace = TRUE)))[2]),
+    Sample3 = replicate(B, prop.table(table(sample(Edinburgh$Scottish, size = N, replace = TRUE)))[2])
+    )
+
+sampPropsLong <- reshape2::melt(sampProps)
+
+meanDat <- data.frame(variable = c('Sample1', 'Sample2', 'Sample3'), Z = c(mean(sampProps$Sample1, na.rm = T), mean(sampProps$Sample2, na.rm = T), mean(sampProps$Sample3, na.rm = T)))
+
+# y <- sampPropsLong %>%
+#   ggplot(., aes(value)) +
+#   geom_histogram(breaks = seq(0, 1, 0.1), colour='gray', fill=baseColor) +
+#   labs(x='Proportion', y='Frequency') + xlim(0, .75) +
+#   geom_vline(xintercept = 0.30, color = "red", size = 1) +
+#   facet_wrap(~variable) +
+#   geom_vline(data = meanDat, aes(xintercept = Z), color = '#FCBB06', size = 1)
+# 
+# y
+# 
+# s100 <- sampProps %>%
+#   ggplot(., aes(Sample1)) + 
+#   geom_histogram(breaks = seq(0, 1, 0.1), colour='gray', fill=baseColor) +
+#   labs(x='Proportion', y='Frequency') + xlim(0, .75) +
+#   geom_vline(xintercept = 0.30, color = "red", size = 1) +
+#   geom_vline(xintercept = mean(sampProps$Sample1), color = '#FCBB06', size = 1)
+  
+```
+]
+
+--
+
+- **What differences do you notice between these two sampling distributions?**
+    
 ---
 ## Bigger samples
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-B <- 1000
+- We've been taking samples of 10 students. Let's see what happens when we increase our sample size to $n = 50$, and then $n = 100$. 
+
+.center[
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.height=3.75, fig.width=7}
+
+N <- 50
+sampProps$Sample2 <- replicate(B, prop.table(table(sample(Edinburgh$Scottish, size = N, replace = TRUE)))[2])
+
 N <- 100
-sample_props <- tibble(
-    Prop = replicate(B, {
-  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
-  mean(as.numeric(x)-1)
-})
+sampProps$Sample3 <- replicate(B, prop.table(table(sample(Edinburgh$Scottish, size = N, replace = TRUE)))[2])
+
+sampPropsLong <- reshape2::melt(sampProps)
+
+meanDat <- data.frame(variable = c('Sample1', 'Sample2', 'Sample3'), Z = c(mean(sampProps$Sample1, na.rm = T), mean(sampProps$Sample2, na.rm = T), mean(sampProps$Sample3, na.rm = T)))
+
+group_names <- list(
+  'Sample1'="1000 Samples of 10",
+  'Sample2'="1000 Samples of 50",
+  'Sample3'="1000 Samples of 100"
 )
-sample_props %>%
-    ggplot(., aes(x=Prop)) +
-    geom_histogram(colour='black', fill='gray') +
-    xlim(0,1) +
-    xlab("Proportion") +
-    ylab("Frequency") +
-    geom_vline(xintercept = 0.46, col = "red") +
-    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
-    ggtitle("Histogram of 1000 samples of n=100")
+
+sample_labeller <- function(variable,value){
+  return(group_names[value])
+}
+
+
+z <- sampPropsLong %>%
+  ggplot(., aes(value)) +
+  geom_histogram(breaks = seq(0, 1, 0.1), colour='gray', fill=baseColor) +
+  labs(x='Proportion of Permanent Scottish Residents', y='Frequency') + xlim(0, .75) +
+  geom_vline(xintercept = 0.30, color = "red", size = 1) +
+  facet_wrap(~variable, labeller = sample_labeller) +
+  geom_vline(data = meanDat, aes(xintercept = Z), color = '#FCBB06', size = 1) +
+  theme(axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = 'bold'),
+        strip.text = element_text(face = 'bold'))
+
+z
 ```
+]
 
----
-## Bigger samples
+--
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-B <- 1000
-N <- 1000
-sample_props <- tibble(
-    Prop = replicate(B, {
-  x <- sample(Edinburgh$Scottish, size = N, replace = TRUE)
-  mean(as.numeric(x)-1)
-})
-)
-sample_props %>%
-    ggplot(., aes(x=Prop)) +
-    geom_histogram(colour='black', fill='gray') +
-    xlim(0,1) +
-    xlab("Proportion") +
-    ylab("Frequency") +
-    geom_vline(xintercept = 0.46, col = "red") +
-    geom_vline(xintercept = mean(sample_props$Prop), col = "blue") +
-    ggtitle("Histogram of 1000 samples of n=1000")
-```
-
-- What do you notice about the last three slides?
++ **What changes as we increase sample size?**
 
 ---
 ## Properties of sampling distributions
-- Remember: frequency distributions are characterising the variability in sample estimates.
-- Variability can be thought of as the spread in data/plots.
-- So as we increase $n$ we are getting less variable samples (harder to get an unrepresentative sample as your $n$ increases).
++ Sampling distributions are characterising the variability in sample estimates.
+    - Variability can be thought of as the spread in data/plots.
 
----
-## Properties of sampling distributions
-- Let's put this phenomenon in the language of probability: as $n$ increases, the probability of observing an estimate in a sample that is a long way from the population parameter (here 0.46) decreases (becomes less probable).
-- So when we have large samples, our estimates from those samples are likely to be closer to the population value.
-    - That's good! 
+--
+
++ So as we increase $n$, we get less variable samples (the distribution of sample statistics is more tightly clustered around the population parameter. 
+
+  + Harder to get an unrepresentative sample as your $n$ increases).
+
+--
+
++ Let's put this phenomenon in the language of probability: 
+
+  + As sample $n$ increases, the probability of observing a point-estimate that is a long way from the population parameter (here 0.30) decreases (becomes less probable).
+
+--
+
++ So when we have large samples, the point-estimates from those samples are likely to be closer to the population value.
 
 ---
 ## Standard error
-- We can formally calculate the "narrowness" of a sampling distribution. 
-    - This is essentially calculating the standard deviation (as we have done before) of the sampling distribution.
-    - Or at least approximating it!
-- In the context of sampling distributions, this is called the **standard error**
+- We can formally calculate the variability of a sampling distribution, or the **standard error**
+
+$$SE=\frac{\sigma}{\sqrt{n}}$$
+
+--
+
+- This is essentially calculating the standard deviation of the sampling distribution, with a key difference:
+      - The standard deviation describes the variability _within_ one sample
+      - The standard error describes variability _across_ multiple samples.
+      
+--
+
++ With continuous data, the standard error gives you a sense of how different $\bar{x}$ is likely to be from $\mu$
+
+--
+
++ In this example, we're working with binomial data (Scottish Residency = Yes or No), the standard error indicates how greatly a particular sample proportion is likely to differ from the proportion in the population. 
 
 ---
-## Mean & SE of sampling distribution
-- Mean of the sampling distribution is close to the population parameter.
-    - Even with a small number of samples.
+## Properties of sampling distributions
+
+.pull-left[
+- Mean of the sampling distribution is close to $\mu$, even with a small number of samples.
+
 - As the number of samples increases:
-  - The mean of the sampling distribution approaches the population mean.
-  - The sampling distribution approaches a normal distribution.
-    - Point-estimates pile up around the population value.
-- As the n per sample increases, the SE of the sampling distribution decreases (becomes narrower).
-    - With large n, all our point-estimates are closer to the population parameter.
 
----
-## Central Limit Theorem
-- What we have seen throughout this lecture is a demonstration of an important concept in statistics - namely, **central limit theorem**.  
-- The central limit theorem (roughly) states that when estimates of sample means are based on increasingly large samples ($n$), the sampling distribution of means becomes more normal (symmetric), and narrower (quantified by the standard error).
+  + The sampling distribution approaches a normal distribution.
+  + Sample $\bar{x}$s pile up around $\mu$
+    
+]
 
----
-## Central limit theorem
-- We have briefly noted CLT before. To refresh;
-- The Central Limit Theorem states that the sampling distribution of the sample means from any underlying distribution with a defined mean and variance, approaches a normal distribution as the sample size gets larger.
-- The resultant sampling distribution has:
-  - $\bar{x} = \mu$
-  - $\sigma_{\bar{x}}^{2} = \frac{\sigma^2}{N}$
-  - $\sigma_{\bar{x}} = \frac{\sigma}{\sqrt{N}}$
+.pull-right[
 
----
-## Uniform distribution
-- Continuous probability distribution.
-- There is an equal probability for all values within a given range.
-- Parameters:
-  - $a(min)$ and $b(max)$
-
-$$
-Mean = \frac{1}{2}(a+b)
-$$
-
-- And
-
-$$
-Variance = \frac{1}{12}(b-a)^2
-$$
-
----
-## Uniform distribution
-
-```{r, echo=FALSE}
-uni_pop <- ggplot(data.frame(x=c(0,5)), aes(x = x)) +
-  stat_function(fun=dunif,
-                geom = "line",
-                args = list(min=0, max=5)) +
-  ylim(0,.3) +
-  geom_segment(aes(x=0,y=0,xend=0,yend=0.2)) +
-  geom_segment(aes(x=5,y=0,xend=5,yend=0.2)) +
-  xlab("\n X") +
-  ylab("Probability \n")
-uni_pop
+```{r, echo = F, fig.width = 5, fig.height=2.5, message=F, warning=F}
+s10
 ```
 
+```{r, echo = F, fig.width = 5, fig.height=2.5, message=F, warning=F}
+s1000
+```
+]
+
+---
+count: false
+
+## Properties of sampling distributions
+
+.pull-left[
+- Mean of the sampling distribution is close to $\mu$, even with a small number of samples.
+
+- As the number of samples increases:
+
+  + The sampling distribution approaches a normal distribution.
+  + Sample $\bar{x}$s pile up around $\mu$
+    
+- As $n$ per sample increases, the SE of the sampling distribution decreases (becomes narrower).
+    - With large $n$, all our point-estimates are closer to the population parameter.
+]
+
+.pull-right[
+
+```{r, echo = F, fig.width=5, fig.height=4, message=F, warning=F}
+z
+```
+
+]
+
+---
+## Two Related Concepts
+
++ These properties illustrate two important concepts:
+
++ **The Law of Large Numbers:** As $n$ increases, $\bar{x}$ approaches $\mu$
+
+--
+
++ **Central Limit Theorem:** When estimates of $\bar{x}$ are based on increasingly large samples ( $n$ ), the sampling distribution of $\bar{x}$ becomes more normal (symmetric), and narrower (quantified by the standard error).
+
+--
+
++ These concepts hold regardless of the underlying shape of the distribution
+
++ To demonstrate this, let's explore some different distributions.
+    
 ---
 ## Uniform distribution
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+.pull-left[
+- Continuous probability distribution 
+
+- There is an equal probability for all values within a given range.
+]
+
+.pull-right[
+```{r, echo=FALSE, fig.width=5, fig.height=5, warning=F, message=F}
 unif <- tibble(
   x = runif(10000, 0, 5))
 
 uni_pop <- ggplot(unif, aes(x=x)) +
-  geom_histogram(color = "white") +
-  ggtitle("Population") +
+  geom_histogram(color = "white", fill = baseColor) +
     theme(axis.title.y=element_blank(),
         axis.text.y=element_blank(),
-        axis.ticks.y=element_blank())
+        axis.ticks.y=element_blank()) +
+  ggtitle("Population")
 
+uni_pop
+```
+]
+
+
+---
+## Uniform distribution
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 uni1 <- unif %>%
   rep_sample_n(size = 10, replace = TRUE, reps = 1000) %>%
   group_by(replicate) %>%
   summarise(x = mean(x)) %>%
   ggplot(., aes(x = x)) + 
   xlim(0,5) +
-  geom_histogram(color = "white") + 
+  geom_histogram(color = "white", fill = baseColor) + 
   labs(x = "\n Mean of X") +
   ggtitle("N = 10") +
       theme(axis.title.y=element_blank(),
@@ -498,7 +623,7 @@ uni2 <- unif %>%
   summarise(x = mean(x)) %>%
   ggplot(., aes(x = x)) + 
   xlim(0,5) +
-  geom_histogram(color = "white") + 
+  geom_histogram(color = "white", fill = baseColor) + 
   labs(x = "\n Mean of X") +
   ggtitle("N = 50") +
       theme(axis.title.y=element_blank(),
@@ -506,52 +631,45 @@ uni2 <- unif %>%
         axis.ticks.y=element_blank())
 
 uni3 <- unif %>%
-  rep_sample_n(size = 150, replace = TRUE, reps = 1000) %>%
+  rep_sample_n(size = 100, replace = TRUE, reps = 1000) %>%
   group_by(replicate) %>%
   summarise(x = mean(x)) %>%
   ggplot(., aes(x = x)) + 
   xlim(0,5) +
-  geom_histogram(color = "white") + 
+  geom_histogram(color = "white", fill = baseColor) + 
   labs(x = "\n Mean of X") +
-  ggtitle("N = 150") +
+  ggtitle("N = 100") +
       theme(axis.title.y=element_blank(),
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank())
 ```
 .pull-left[
-```{r, echo=FALSE, warning=FALSE, message=FALSE, out.width="60%"}
+.center[
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=5, fig.height=2.5}
 uni_pop
 uni2
 ```
-]
+]]
 
 .pull-right[
-```{r, echo=FALSE, warning=FALSE, message=FALSE, out.width="60%"}
+.center[
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=5, fig.height=2.5}
 uni1
 uni3
 ```
+]]
+
+---
+## $\chi$ -square distribution
+
+.pull-left[
++ Continuous probability distribution
+
++ Non-symmetric
 ]
 
----
-## Chi-square distribution
-- Continuous probability distribution
-- Non-symmetric
-- Parameters = degrees of freedom
-
-$$
-Mean = df
-$$
-
-- and
-
-$$
-Variance = 2*df
-$$
-
----
-## Chi-square distribution
-
-```{r, echo=FALSE}
+.pull-right[
+```{r, echo=FALSE, fig.height=5}
 ggplot(data.frame(x = c(0,20)), aes(x = x)) +
   stat_function(fun=dchisq,
                 geom = "line",
@@ -568,15 +686,17 @@ ggplot(data.frame(x = c(0,20)), aes(x = x)) +
   ylab("Probability \n") +
   ggtitle("Chi-square distributions with 3 (black), 5 (red) & 10 (blue) df")
 ```
+]
+
 
 ---
-## Chi-square distribution
+## $\chi$ -square distribution
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 chi <- tibble(
   x = rchisq(10000, 3))
 
 chi_pop <- ggplot(chi, aes(x=x)) +
-  geom_histogram(color = "white") +
+  geom_histogram(color = "white", fill = baseColor) +
   ggtitle("Population") +
       theme(axis.title.y=element_blank(),
         axis.text.y=element_blank(),
@@ -588,7 +708,7 @@ chi1 <- chi %>%
   summarise(x = mean(x)) %>%
   ggplot(., aes(x = x)) + 
   xlim(0,15) +
-  geom_histogram(color = "white") + 
+  geom_histogram(color = "white", fill = baseColor) + 
   labs(x = "\n Mean of X") +
   ggtitle("N = 10") +
       theme(axis.title.y=element_blank(),
@@ -601,7 +721,7 @@ chi2 <- chi %>%
   summarise(x = mean(x)) %>%
   ggplot(., aes(x = x)) + 
   xlim(0,15) +
-  geom_histogram(color = "white") + 
+  geom_histogram(color = "white", fill = baseColor) + 
   labs(x = "\n Mean of X") +
   ggtitle("N = 50") +
       theme(axis.title.y=element_blank(),
@@ -609,54 +729,45 @@ chi2 <- chi %>%
         axis.ticks.y=element_blank())
 
 chi3 <- chi %>%
-  rep_sample_n(size = 150, replace = TRUE, reps = 1000) %>%
+  rep_sample_n(size = 100, replace = TRUE, reps = 1000) %>%
   group_by(replicate) %>%
   summarise(x = mean(x)) %>%
   ggplot(., aes(x = x)) + 
   xlim(0,15) +
-  geom_histogram(color = "white") + 
+  geom_histogram(color = "white", fill = baseColor) + 
   labs(x = "\n Mean of X") +
-  ggtitle("N = 150") +
+  ggtitle("N = 100") +
       theme(axis.title.y=element_blank(),
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank())
 ```
 .pull-left[
-```{r, echo=FALSE, warning=FALSE, message=FALSE, out.width="60%"}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=5, fig.height=2.5}
 chi_pop
 uni2
 ```
 ]
 
 .pull-right[
-```{r, echo=FALSE, warning=FALSE, message=FALSE, out.width="60%"}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=5, fig.height=2.5}
 chi1
 chi3
 ```
 ]
 
 ---
-## t-distribution
-- Continuous probability distribution.
-- Symmetric and uni-modal (similar to the normal distribution).
-  - "Heavier tails" = greater chance of observing a value further from the mean
-- Parameters:
-  - $\nu = n-1$
-  
-$$
-Mean = 0, \nu>1
-$$
+## $t$ -distribution
 
-- and
+.pull-left[
++ Continuous probability distribution.
 
-$$
-Variance = \frac{\nu}{\nu - 2}, \nu > 2
-$$
++ Symmetric and uni-modal (similar to the normal distribution).
 
----
-## t-distribution
+  + "Heavier/fatter tails" = greater chance of observing a value further from the mean
+]
 
-```{r, echo=FALSE}
+.pull-right[
+```{r, echo=FALSE, fig.height=5}
 ggplot(data.frame(x=c(-3,3)), aes(x = x)) +
   stat_function(fun=dt,
                 geom = "line",
@@ -673,15 +784,16 @@ ggplot(data.frame(x=c(-3,3)), aes(x = x)) +
   ylab("Probability \n") +
   ggtitle("t-distributions with 1 (black), 5 (red) & 25 (blue) df")
 ```
+]
 
 ---
-## t-distribution
+## $t$ -distribution
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 t_df <- tibble(
   x = rt(10000, 5))
 
 t_pop <- ggplot(t_df, aes(x=x)) +
-  geom_histogram(color = "white") +
+  geom_histogram(color = "white", fill = baseColor) +
   ggtitle("Population") +
   xlim(-5,5) +
       theme(axis.title.y=element_blank(),
@@ -694,7 +806,7 @@ t1 <- t_df %>%
   summarise(x = mean(x)) %>%
   ggplot(., aes(x = x)) + 
   xlim(-5,5) +
-  geom_histogram(color = "white") + 
+  geom_histogram(color = "white", fill = baseColor) + 
   labs(x = "\n Mean of X") +
   ggtitle("N = 10") +
       theme(axis.title.y=element_blank(),
@@ -707,7 +819,7 @@ t2 <- t_df %>%
   summarise(x = mean(x)) %>%
   ggplot(., aes(x = x)) + 
   xlim(-5,5) +
-  geom_histogram(color = "white") + 
+  geom_histogram(color = "white", fill = baseColor) + 
   labs(x = "\n Mean of X") +
   ggtitle("N = 50") +
       theme(axis.title.y=element_blank(),
@@ -715,61 +827,54 @@ t2 <- t_df %>%
         axis.ticks.y=element_blank())
 
 t3 <- t_df %>%
-  rep_sample_n(size = 150, replace = TRUE, reps = 1000) %>%
+  rep_sample_n(size = 100, replace = TRUE, reps = 1000) %>%
   group_by(replicate) %>%
   summarise(x = mean(x)) %>%
   ggplot(., aes(x = x)) + 
   xlim(-5,5) +
-  geom_histogram(color = "white") + 
+  geom_histogram(color = "white", fill = baseColor) + 
   labs(x = "\n Mean of X") +
-  ggtitle("N = 150") +
+  ggtitle("N = 100") +
       theme(axis.title.y=element_blank(),
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank())
 ```
 
 .pull-left[
-```{r, echo=FALSE, warning=FALSE, message=FALSE, out.width="60%"}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=5, fig.height=2.5}
 t_pop
 t2
 ```
 ]
 
 .pull-right[
-```{r, echo=FALSE, warning=FALSE, message=FALSE, out.width="60%"}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=5, fig.height=2.5}
 t1
 t3
 ```
 ]
 
 ---
-## Sampling distributions
-- $\chi^2$ distribution, *t*-distribution and binomial distribution are all commonly used for statistical inference.
-- What the CLT demonstrations above show, is that we can often use the normal distribution as an approximation of the sampling distribution. 
+## Central Limit Theorem
 
----
-## Standard error 
-- One of the big points we have emphasized is sampling variability is characterized by the SD of the sampling distribution.
-- But how do we obtain this from a single sample?
-- We have already seen the answer thanks to CLT.
-- In the limit, the sampling distribution has:
-  - $\bar{x} = \mu$
-  - $\sigma_{\bar{x}}^{2} = \frac{\sigma^2}{N}$
-  - $\sigma_{\bar{x}} = \frac{\sigma}{\sqrt{N}}$ = standard error
++ These examples all demonstrate the Central Limit Theorem
++ When $n$ is large enough, $\bar{x}s$ approximate a normal distribution around $\mu$, regardless of the underlying population distribution
 
----
-## Key terminology
-- **Census**: process of asking every member of a population.
-- **Sampling**: process of selecting subsets of populations.
-- **Population**: the complete set of units of interest.
-- **Sample**: A subset of the population
+.center[
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=3, fig.height=2}
+uni_pop
+chi_pop
+t_pop
+```
+]
 
----
-## Key terminology
-- **Parameter**: value of of interest in the population.
-- **Point estimate**: our "best guess" at the parameter of interest from a sample.
-- **Sampling distribution**: the distribution of estimates of the population parameter.
-- **Standard error**: quantification of the variation in estimates.
+.center[
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=3, fig.height=2}
+uni2
+chi2
+t2
+```
+]
 
 ---
 ## Features of samples
@@ -778,26 +883,48 @@ t3
     - Representative?
     - Random?
 
----
-## Good samples
-- If a sample of $n$ is drawn at random, it will be unbiased and representative of $N$
+--
+
+- If a sample of $n$ is drawn at random, it is likely to be unbiased and representative of $N$
+
 - Our point estimates from such samples will be good guesses at the population parameter.
-    - Without the need for census.
 
 ---
-# Summary of today
+## Summary of today
 - Samples are used to estimate the population. 
 - Samples provide point estimates of population parameters. 
 - Properties of samples and sampling distributions.
 - Properties of good samples.
 
 ---
-# Next tasks
-+ Look back over any material from term.
+## Next tasks
+ 
 + This week:
   + Complete your lab
-  + Come to office hours
-  + Come to Q&A session
+  + Come to office hours (last chance of the semester!)
+      + Monica's are TODAY from 2:30 pm - 3:30 pm in 7 George Square, Room UG44
+      + Umberto's are by appointment
+      
++ Please complete the mid-course feedback form available at [this link](https://forms.office.com/e/bJc7P17Va1)
 
++ No Quiz this week
+  + Instead, your group must submit Formative Report B by **12 noon on Friday 1st December**
+ 
++ Next Week (Week 12):
+  + No lectures on Monday and Tuesday
+  + Labs will still take place
+  + In the labs: 
+      (a) check the feedback given to your formative report submission;
+      (b) study the example solutions that will be posted; 
+      (c) ask questions to the tutors if anything is unclear in there
+
+---
+## Mid-course feedback form
+
+.center[
+```{r, echo = F, out.width='45%'}
+knitr::include_graphics('figures/MicrosoftTeams-image.png')
+```
+]
 
 
