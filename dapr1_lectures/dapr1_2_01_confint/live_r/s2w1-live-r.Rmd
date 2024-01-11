@@ -54,13 +54,12 @@ temp_data <- temp_data %>%
 
 dim(temp_data)
 head(temp_data)
-glimpse(temp_data)
+glimpse(temp_data)  # str()
 summary(temp_data)
 
 plt.h <- ggplot(temp_data, aes(x=BodyTemp)) +
     geom_histogram(color = 'white') +
-    labs(x="Body temperature (°C)") +
-    theme_classic()
+    labs(x="Body temperature (°C)")
 
 plt.d <- ggplot(temp_data, aes(x=BodyTemp)) +
     geom_density() +
@@ -71,9 +70,9 @@ plt.b <- ggplot(temp_data, aes(x=BodyTemp)) +
     labs(x="Body temperature (°C)") +
     theme_classic()
 
-plt.h / plt.b
+plt.h | plt.b
 
-# Option 1: no descriptives table
+# Option 1: creating each variable
 xbar <- mean(temp_data$BodyTemp)
 s <- sd(temp_data$BodyTemp)
 n <- nrow(temp_data)
@@ -81,7 +80,7 @@ se <- s / sqrt(n)
 tstar <- qt(c(0.025, 0.975), df = n - 1)
 xbar + tstar * se
 
-# Option 2: descriptives table
+# Option 2: with a descriptives table
 stats <- temp_data %>%
     summarise(
         n = n(),
@@ -90,6 +89,7 @@ stats <- temp_data %>%
         Min = min(BodyTemp),
         Max = max(BodyTemp)
         )
+stats
 tstar <- qt(c(0.025, 0.975), df = stats$n - 1)
 stats$M + tstar * (stats$SD / sqrt(stats$n))
 
@@ -112,7 +112,7 @@ The data available at <https://uoepsy.github.io/data/BodyTemp.csv> comprise meas
 Figure \@ref(fig:temp-distr) shows that the body temperatures of the sample of 50 healthy individuals follow roughly a bell-shaped distribution, with most values between 36.5 and 37.5 °C and fewer in the tails of the distribution. No values were lower than 35.75 or larger than 38.22. The average body temperature in the sample was 36.81 °C, see Table \@ref(tab:temp-stats), with a SE of 0.06 and 95% CI [36.69, 36.93]. Hence, we are 95% confident that the average body temperature for a healthy individual is between 36.69 °C and 36.93 °C.
 
 ```{r temp-distr, echo = FALSE, fig.height = 4, fig.width = 5, fig.cap = "Distribution of body temperatures (°C)"}
-plt.h / plt.b
+plt.h | plt.b
 ```
 
 ```{r temp-stats, echo = FALSE}
