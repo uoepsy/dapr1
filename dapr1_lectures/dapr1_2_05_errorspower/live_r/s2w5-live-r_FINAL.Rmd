@@ -1,8 +1,11 @@
 ---
 title: "Body temperature investigation (Group 0.0)"
-author: "B000000, B000000 (put your the exam numbers here)"
+author: "B007007"
+date: "January 2024"
 output: bookdown::pdf_document2
 toc: false
+editor_options: 
+  chunk_output_type: console
 ---
 
 
@@ -12,49 +15,74 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
 
 ```{r include = FALSE}
-##### week 1 code
+# Week 1 code
 library(tidyverse)
 library(patchwork)
 library(kableExtra)
 
-temp_data <- read_csv("https://uoepsy.github.io/data/BodyTemp.csv")
+temp_data <- read_csv("https://uoepsy.github.io/data/BodyTemperatures.csv")
+
+head(temp_data)      # top six rows of the data
+glimpse(temp_data)   # or str()
+summary(temp_data)   # quick summary of the variables in the data
+dim(temp_data)       # number of rows and columns in the data
+
+temp_data %>%
+    drop_na()
+# drops all rows with NAs in any of the columns
+# even columns which we don't use
+
+temp_data %>%
+    drop_na(BodyTemp)
+# drops rows where there are NAs in the column of interest
+
+# there's no NA in BodyTemp variable, so data won't change in this example
+# if there were any NAs in the variable of interest (BodyTemp in this case), 
+# this would be the correct way to remove the rows where there are NAs only in 
+# the variable of interest
 
 temp_data <- temp_data %>%
-  select(BodyTemp)
+    drop_na(BodyTemp)
+
+# there's two variables in the data, but we are only analysing BodyTemp, so let's
+# subset the data and only select that column
+
+temp_data <- temp_data %>%
+    select(BodyTemp)
 
 dim(temp_data)
 head(temp_data)
-glimpse(temp_data)   # str()
+glimpse(temp_data)
 summary(temp_data)
 
 plt.h <- ggplot(temp_data, aes(x = BodyTemp)) +
-  geom_histogram(color = 'white') +
-  labs(x="Body temperature (°C)",
-       title = "(a) Histogram")
+    geom_histogram(color = 'white') +
+    labs(x="Body temperature (°C)",
+         title = "(a) Histogram")
 plt.h
 
 plt.d <- ggplot(temp_data, aes(x = BodyTemp)) +
-  geom_density() +
-  labs(x="Body temperature (°C)")
+    geom_density() +
+    labs(x="Body temperature (°C)")
 plt.d
 
 plt.b <- ggplot(temp_data, aes(x = BodyTemp)) +
-  geom_boxplot() +
-  labs(x="Body temperature (°C)",
-       title = "(b) Boxplot")
+    geom_boxplot() +
+    labs(x="Body temperature (°C)",
+         title = "(b) Boxplot")
 plt.b
 
 plt.h | plt.b
 
 # Option 1: with a descriptives table
 stats <- temp_data %>%
-  summarise(
-    n = n(),
-    M = mean(BodyTemp),
-    SD = sd(BodyTemp),
-    Min = min(BodyTemp),
-    Max = max(BodyTemp)
-  )
+    summarise(
+        n = n(),
+        M = mean(BodyTemp),
+        SD = sd(BodyTemp),
+        Min = min(BodyTemp),
+        Max = max(BodyTemp)
+    )
 stats
 
 tstar <- qt(c(0.025, 0.975), df = stats$n - 1)
@@ -137,11 +165,11 @@ D
 # 2a. Normality
 
 plt.qq <- ggplot(temp_data, aes(sample = BodyTemp)) +
-  geom_qq() +
-  geom_qq_line() + 
-  labs(x = "Theoretical quantiles",
-       y = "Sample quantiles",
-       title = "QQ-plot")
+    geom_qq() +
+    geom_qq_line() + 
+    labs(x = "Theoretical quantiles",
+         y = "Sample quantiles",
+         title = "QQ-plot")
 plt.qq
 
 shapiro.test(temp_data$BodyTemp)
@@ -155,7 +183,7 @@ nrow(temp_data)
 
 # Introduction
 
-The data available at https://uoepsy.github.io/data/BodyTemp.csv comprise measurements of the body temperature (`BodyTemp`, in Celsius) and pulse rate (`Pulse`) for a random sample of 50 healthy individuals. We are interested in estimating the mean body temperature for all healthy humans and testing whether this is different from the commonly thought value of 37 °C. As such, for the purpose of this investigation, we will only focus on the variable `BodyTemp`.
+The data available at https://uoepsy.github.io/data/BodyTemp.csv comprise measurements of the body temperature (`BodyTemp`, in Celsius) and pulse rate (`Pulse`) for a random sample of 50 healthy individuals. We are interested in estimating the mean body temperature for all healthy humans and testing whether this is different from the commonly thought value of 37 °C. As such, for the purpose of this investigation, we will only focus on the variable `BodyTemp`. While the variable `Pulse` includes 5 missing values, the corresponding rows do have values for the `BodyTemp` variable and as such are not excluded from the analysis.
 
 
 # Analysis
@@ -193,8 +221,11 @@ This report estimated the mean body temperature of all healthy humans and tested
 The sample data indicated that the population mean body temperature significantly differs from 37 °C and, specifically, that it may be lower than that value. The population mean value is somewhere between 36.69 °C and 36.93 °C, with 95% confidence. However, the departure from the hypothesised value was not found to be large enough to be of any practical importance for decision makers.
 
 
-# Appendix: R code
+
+# Appendix B: R code
 
 ```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+
 ```
+
 
