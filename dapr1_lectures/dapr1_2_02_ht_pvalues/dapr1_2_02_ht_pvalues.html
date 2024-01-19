@@ -64,7 +64,7 @@ class: inverse, center, middle
 ---
 # Setting
 
-- We cannot afford to collect data for the full population
+- We cannot afford to collect data for the full population due to time and/or budget constraints
 
 - Data collected for a random sample of size `\(n\)`
 
@@ -81,23 +81,27 @@ class: inverse, center, middle
 ---
 # Where are we going?
 
-- Are children with higher exposure to pesticides more likely to develop ADHD (attention-deficit/hyperactivity disorder)? 
+- Are children exposed to pesticides more likely to develop ADHD (attention-deficit/hyperactivity disorder) that those who aren't? 
+    
+    &lt;!-- + Is `\(p_{\text{exposed}} &gt; p_{\text{not exposed}}? \qquad\)` where `\(p\)` is the proportion of all children diagnosed with ADHD. (Population proportion = `\(p\)` = parameter. Sample proportion = `\(\hat p\)` = estimate). --&gt;
 
 --
 
-- Is the average age of ICU patients at this hospital greater than 50?
+- Do students who eat breakfast achieve more than students who do not eat breakfast?
+    
+    &lt;!-- + Is `\(\mu_{\text{breakfast}} &gt; \mu_{\text{no breakfast}}? \qquad\)` where `\(\mu\)` is the mean achievement score. --&gt;
 
 --
 
-- When getting voters to support a candidate in an election, is there a difference between a recorded phone call from the candidate or a flyer about the candidate sent through the mail?
+- Is the audience appreciation of shows appearing on Broadway lower than the audience appreciation of the touring version of the same show?
+    
+    &lt;!-- + Is `\(\mu_{\text{Broadway}} &lt; \mu_{\text{Touring}}? \qquad\)` where `\(\mu\)` is the mean audience appreciation score. --&gt;
 
-&lt;!-- -- --&gt;
+--
 
-&lt;!-- - Does this new allergy medication really reduce symptoms more than a placebo?  --&gt;
-
-&lt;!-- -- --&gt;
-
-&lt;!-- - If you want to remember something, should you take a nap or have some caffeine? --&gt;
+- If you want to remember something, should you take a nap or have some caffeine?
+    
+    &lt;!-- + Is `\(\mu_{\text{nap}} \neq \mu_{\text{coffee}}? \qquad\)` where `\(\mu\)` is the mean recall. --&gt;
 
 
 ---
@@ -109,35 +113,37 @@ class: inverse, center, middle
 
 - Testing a claim about a population parameter!
 
----
-# Where are we going?
-
-- Are children with higher exposure to pesticides more likely to develop ADHD (attention-deficit/hyperactivity disorder)? 
-
-    + `\(p_{\text{exposed}} &gt; p_{\text{not exposed}}?\)`  
-    where `\(p\)` is the proportion of all children diagnosed with ADHD. Remember, population proportion = `\(p\)`, sample proportion = estimate = `\(\hat p\)`.
---
-
-- Is the average age of ICU patients at this hospital greater than 50?
-
-    + `\(\mu &gt; 50? \qquad\)`  
-    where `\(\mu\)` is the the hospital's mean age of all ICU patients
-
---
-
-- When getting voters to support a candidate in an election, is there a difference between a recorded phone call from the candidate or a flyer about the candidate sent through the mail?
-
-    + `\(p_{\text{call}} \neq p_{\text{flyer}}?\)`  
-    where `\(p\)` is the proportion of votes for the candidate
-
---
-
-- And so on...
 
 ---
 # Where are we going?
 
-- Lots of research hypotheses involve testing a claim about a population parameter. 
+- Are children exposed to pesticides more likely to develop ADHD (attention-deficit/hyperactivity disorder) that those who aren't? 
+    
+    + Is `\(p_{\text{exposed}} &gt; p_{\text{not exposed}}? \qquad\)` where `\(p\)` is the proportion of all children diagnosed with ADHD. (Population proportion = `\(p\)` = parameter. Sample proportion = `\(\hat p\)` = estimate).
+
+--
+
+- Do students who eat breakfast achieve more than students who do not eat breakfast?
+    
+    + Is `\(\mu_{\text{breakfast}} &gt; \mu_{\text{no breakfast}}? \qquad\)` where `\(\mu\)` is the mean achievement score.
+
+--
+
+- Is the audience appreciation of shows appearing on Broadway lower than the audience appreciation of the touring version of the same show?
+    
+    + Is `\(\mu_{\text{Broadway}} &lt; \mu_{\text{Touring}}? \qquad\)` where `\(\mu\)` is the mean audience appreciation score.
+
+--
+
+- If you want to remember something, should you take a nap or have some caffeine?
+    
+    + Is `\(\mu_{\text{nap}} \neq \mu_{\text{coffee}}? \qquad\)` where `\(\mu\)` is the mean recall.
+
+
+---
+# Where are we going?
+
+- Many research hypotheses involve testing a claim about a population parameter. 
 
 --
 
@@ -167,7 +173,7 @@ class: inverse, center, middle
 
 --
 
-- We will use data comprising measurements on body temperature and pulse rate for a sample of `\(n = 50\)` healthy subjects. Data link: https://uoepsy.github.io/data/BodyTemp.csv
+- We will use data comprising measurements on body temperature and pulse rate for a sample of `\(n = 50\)` healthy subjects. Data link: https://uoepsy.github.io/data/BodyTemperatures.csv
 
 --
 
@@ -175,20 +181,24 @@ class: inverse, center, middle
 
 ```r
 library(tidyverse)
-tempsample &lt;- read_csv('https://uoepsy.github.io/data/BodyTemp.csv')
-head(tempsample)
+tempsample &lt;- read_csv('https://uoepsy.github.io/data/BodyTemperatures.csv')
+glimpse(tempsample)
 ```
 
 ```
-## # A tibble: 6 × 2
-##   BodyTemp Pulse
-##      &lt;dbl&gt; &lt;dbl&gt;
-## 1     36.4    69
-## 2     37.4    77
-## 3     37.2    75
-## 4     37.1    84
-## 5     36.7    71
-## 6     37.2    76
+## Rows: 50
+## Columns: 2
+## $ BodyTemp &lt;dbl&gt; 36.44, 37.44, 37.22, 37.11, 36.67, 37.17, 37.22, 36.56, 36.00…
+## $ Pulse    &lt;dbl&gt; 69, 77, 75, 84, 71, 76, 81, 77, 75, 81, NA, 78, 71, 80, 70, 7…
+```
+
+```r
+tempsample &lt;- tempsample %&gt;% drop_na(BodyTemp)
+dim(tempsample)
+```
+
+```
+## [1] 50  2
 ```
 
 ---
@@ -224,7 +234,7 @@ xbar
 ## [1] 36.81
 ```
 
-- The sample mean is `\(\bar x\)` = 36.81
+- The sample mean is `\(\bar x\)` = 36.81 °C
 
 ---
 class: inverse, center, middle
@@ -284,10 +294,10 @@ class: inverse, center, middle
 
 - The alternative hypothesis is the claim that we wish to find evidence for. It is typically the hypothesis that embodies the research question of interest.
 
-    + It involves the less than `\((&lt;)\)` or greater than `\((&gt;)\)` or not equal to `\((\neq)\)` symbols.
-    + If  `\(H_1\)` uses the symbol `\(&lt;\)`, the test is called left-tailed
-    + If `\(H_1\)` uses the symbol `\(&gt;\)`, the test is called right-tailed
-    + If `\(H_1\)` uses the symbol `\(\neq\)`, the test is called two-tailed
+    + It involves the less than `\((&lt;)\)` or greater than `\((&gt;)\)` or not equal to `\((\neq)\)` symbols
+    + If `\(H_1\)` uses the symbol `\(&lt;\)`, the test is called left-tailed or left-sided
+    + If `\(H_1\)` uses the symbol `\(&gt;\)`, the test is called right-tailed or right-sided
+    + If `\(H_1\)` uses the symbol `\(\neq\)`, the test is called two-tailed or two-sided
 
 
 ---
@@ -343,7 +353,7 @@ xbar
 
 --
 
-- `\(\overline x = 36.81\)`, which differs from 37
+- `\(\overline x = 36.81\)` °C, which differs from 37 °C
 
 --
 
@@ -351,7 +361,7 @@ xbar
 
 --
 
-- Or perhaps the population mean is truly = 37, and the difference between 36.81 and 37 is simply due to random sampling?
+- Or perhaps the population mean is truly = 37 °C, and the difference between 36.81 °C and 37 °C is simply due to random sampling?
 
 
 ---
@@ -368,7 +378,7 @@ xbar
 
 --
 
-- If the population mean was truly equal to 37, as the null hypothesis says, how would the sample means look?
+- If the population mean `\(\mu\)` was truly equal to 37, as the null hypothesis says, how would the sample means look?
 
 --
 
@@ -425,7 +435,7 @@ class: inverse, center, middle
 
 - For `\(H_0 : \mu = \mu_0\)` the t-statistic is:
 
-`$$t = \frac{\overline x - \mu_0}{\frac{s}{\sqrt n}}$$`
+`$$t = \frac{\overline x - \mu_0}{\frac{s}{\sqrt n}} = \frac{\text{difference between sample and hypothesised mean}}{\text{variation in sample means due to random sampling}}$$`
 
 --
 
@@ -465,9 +475,9 @@ Consider `\(H_0 : \mu = \mu_0\)`
 
 Roughly speaking:
 
-- We are very likely to see a t-score between -2 and 2 if in the population the mean is really 37
+- We are very likely to see a t-score between -2 and 2 if in the population the mean is really `\(\mu_0\)` (37 in the Body Temperature example)
 
-- It is very unlikely to see a t-score smaller than -2 or larger than 2 if in the population mean is really 37
+- We are very unlikely to see a t-score smaller than -2 or larger than 2 if in the population mean is really `\(\mu_0\)` (37 in the Body Temperature example)
 
 ]
 
@@ -561,7 +571,7 @@ Roughly speaking:
 ---
 # Body temperature example
 
-- We have that `\(\bar x = 36.81\)`. Let's compute the t-statistic, telling us how many SEs away from 37 the value 36.81 is.
+- We have that `\(\bar x = 36.81\)` °C. Let's compute the t-statistic, telling us how many SEs away from 37 °C the value 36.81 °C is.
 
 
 ```r
@@ -595,7 +605,19 @@ The value of the t-statistic from the observed sample is
 
 --
 
-- If you drop the sign, using the absolute value, `abs()` in R, you can write this as `\(P(T \leq -|t|) + P(T \geq +|t|)\)`. But the t-distribution is symmetric, so those two probabilities will be the same. You can also compute it as `\(2 \cdot P(T \geq |t|)\)`.
+- If you drop the negative sign by using the absolute value `\(|t| = |-3.141| = 3.141\)`, you can write this as `\(P(T \leq -|t|) + P(T \geq +|t|)\)`. 
+
+--
+
+- However, the t-distribution is symmetric, so those two probabilities will be the same. 
+
+--
+
+- You can also compute it as `\(2 \cdot P(T \geq |t|)\)`.
+
+--
+
+- In R, the absolute value function is `abs()`
 
 
 ---
@@ -645,7 +667,7 @@ pvalue
 
 - We computed the probability of obtaining a t-score at least as extreme as the observed one when `\(H_0\)` is true.
 
-- The p-value is: `\(p = 0.003\)`
+- The p-value is: `\(p = .003\)`
 
 
 
@@ -694,7 +716,7 @@ class: inverse, center, middle
 
 
 ---
-# Visually: `\(\alpha\)`
+# Visually: `\(\alpha = 0.05\)`
 
 &lt;img src="dapr1_2_02_ht_pvalues_files/figure-html/unnamed-chunk-13-1.png" width="100%" style="display: block; margin: auto;" /&gt;
 
@@ -734,7 +756,7 @@ The following table summarizes in words the strength of evidence that the sample
 
 
 ---
-# Report
+# Reporting
 
 - It is important to always report your conclusions in full, without hiding information to the reader.
 
@@ -743,6 +765,8 @@ The following table summarizes in words the strength of evidence that the sample
 - Report test as follows: t(`df`) = `tvalue`, p = `pvalue`, `one/two`-sided.
 
     + t(49) = -3.14, p = .003, two-sided
+
+- According to APA style, __don't__ include the zero before the decimal place for p-values.
 
 - Irrespectively of your `\(\alpha\)` level, if your p-value is `\(\geq\)` .001 it is good practice to report it __in full__ but using proper rounding.
 
