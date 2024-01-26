@@ -151,7 +151,7 @@ $$H_0: \mu = \mu_0 \qquad \text{vs} \qquad H_1:\mu \neq \mu_0$$
 + For testing a population mean, we use the __t-statistic__:
 $$t = \frac{\bar x - \mu_0}{SE} \qquad \text{where } \qquad SE = \frac{s}{\sqrt n}$$
 
-+ The t-statistic is the distance of the sample mean from the hypothesised parameter value, measured in units of the standard error.
++ The t-statistic is the difference between the sample and hypothesised mean, divided by the variation in sample means due to random sampling.
     
 + When you will perform a test on categorical variables you will see a different type of test statistic (the chi-squared statistic).
 
@@ -204,7 +204,7 @@ plt1 <- ggplot(tibble(x = xbar.sampl.dist)) +
                    binwidth = 0.25, boundary = 20.125,
                    color = 'gray50', fill = 'gray90') +
     stat_function(aes(x = x), fun = \(x) dnorm(x, avg.xbar, se.xbar),
-                  color = 'red', size = 1, linetype = 1) +
+                  color = 'black', size = 1, linetype = 1) +
     labs(x = 'Average', y = 'Density') +
     xlim(avg.xbar - 3 * se.xbar, avg.xbar + 3 * se.xbar)
 ```
@@ -246,9 +246,7 @@ $$H_0 : \mu = 20 \\ H_1 : \mu \neq 20$$
 
 - We can build a __test statistic__ to assess how much the sample data are consistent with the specified null hypothesis.
 
-- When testing a mean, the test statistic takes the form of a distance between the observed and hypothesised mean, measured in units of the SE
-
-    - The test statistic for testing a mean is the __t-statistic__ or __t-score__. In the example, $\mu_0 = 20$:
+- The test statistic for testing a mean is the __t-statistic__ or __t-score__. In the example above, $\mu_0 = 20$:
 $$t = \frac{\bar x - 20}{s / \sqrt  n}$$
 - We can compute the t-statistic for the observed sample. But is this a surprising value or not?
 
@@ -287,12 +285,12 @@ plt.t <- ggplot(tibble(t = tscores.sampl.dist)) +
     geom_histogram(aes(x = t, y = ..density..), 
                    boundary = 0.25/2, binwidth = 0.25,
                    color = 'gray50', fill = 'gray90') +
-    stat_function(aes(x = t), fun = dnorm, color = 'red', alpha = 0.75,
-                  size = 1, linetype = 1, n = 501) +
-    stat_function(aes(x = t), fun = \(x) dt(x, df = n-1), alpha = 0.75,
-                  color = 'blue', size = 1, n = 501, linetype = 2) +
+    stat_function(aes(x = t), fun = dnorm, color = 'black', alpha = 1,
+                  size = 1, linetype = 2, n = 501) +
+    stat_function(aes(x = t), fun = \(x) dt(x, df = n-1), alpha = 1,
+                  color = 'blue', size = 1, n = 501, linetype = 1) +
     labs(x = 't-statistic', y = 'Density',
-         caption = 'Red solid line: Standard Normal\nBlue dashed line: t(n-1)') +
+         caption = 'Black dashed line: Standard Normal\nBlue solid line: t(n-1)') +
     xlim(avg.t - 6 * se.t, avg.t + 6 * se.t)
 ```
 
@@ -393,7 +391,7 @@ tobs
 - As $H_1$ is two-sided, we compute the p-value as:
 
 ```{r echo=T}
-# Twice the area to the right of obs t
+# Twice the area to the right of observed t
 pvalue <- 2 * pt(abs(tobs), df = n-1, 
                  lower.tail = FALSE)
 pvalue
@@ -416,13 +414,13 @@ plt.pval = plt %>%
     mutate( y = y * ((x >= abs(tobs)) | (x <= -abs(tobs))) )
 
 ggplot(plt, aes(x, y)) +
-    geom_line(color = 'blue') +
+    geom_line(color = 'black') +
     geom_area(data = plt.pval, aes(x = x, y = y),
-              fill = 'darkgreen', alpha = 0.75) +
-    geom_vline(xintercept = tobs, color = 'darkgreen', size = 1, linetype = 2) +
+              fill = 'blue', alpha = 0.75) +
+    geom_vline(xintercept = tobs, color = 'blue', size = 1, linetype = 2) +
     annotate('text', tobs + 0.3, 0.03, 
              label = expression(t[obs]),
-             color = 'darkgreen', size = 7, adj = 0) +
+             color = 'blue', size = 7, adj = 0) +
     labs(x = 't-statistic', y = 'Density',
          title = paste('p =', signif(pvalue, 2)))
 ```
@@ -442,7 +440,7 @@ Last week we learned to assess significance by computing the p-value.
 
 - The p-value is `r signif(pvalue, 2)`, which is less than the chosen significance level, so we reject the null hypothesis.
 
-- In doing so, we compared the _green_ area, corresponding to the p-value, against the _red_ area, corresponding to the $\alpha = 0.05$ significance level.
+- In doing so, we compared the _blue_ area, corresponding to the p-value, against the _red_ area, corresponding to the $\alpha = 0.05$ significance level.
 
 - Recall that the $\alpha = 0.05$ probability is equally divided among the two tails in this case, because the alternative hypothesis is two-sided.
 
@@ -468,17 +466,17 @@ plt.pval = plt %>%
     )
 
 ggplot(plt) +
-    geom_line(aes(x, y), color = 'blue') +
+    geom_line(aes(x, y), color = 'black') +
     geom_area(data = plt.crit,
               aes(x = x, y = y), fill = 'red', alpha = 0.75) +
     geom_area(data = plt.pval,
-              aes(x = x, y = y), fill = 'darkgreen', alpha = 0.75) +
+              aes(x = x, y = y), fill = 'blue', alpha = 0.75) +
     annotate('text', x = tcrit[2], y = 0.2,
              label = expression(alpha == 0.05),
              color = 'red', adj = 0, size = 5) +
     annotate('text', x = tobs, y = 0.1,
              label = paste('p =', signif(pvalue, 2)),
-             color = 'darkgreen', adj = 0, size = 5) +
+             color = 'blue', adj = 0, size = 5) +
     labs(x = 't-statistic', y = 'Density')
 ```
 ]
@@ -489,7 +487,7 @@ ggplot(plt) +
 
 
 .pull-left[
-- Rather than comparing the area of $\alpha$ (0.05, in red) to the area of the p-value (0.018, in green), we can compare the corresponding t-statistics along the x-axis.
+- Rather than comparing the area of $\alpha$ (0.05, in red) to the area of the p-value (0.018, in blue), we can compare the corresponding t-statistics along the x-axis.
 
 - The p-value is computed using the observed t-statistic, `r tobs %>% round(2)`.
 
@@ -522,13 +520,13 @@ plt.pval = plt %>%
     )
 
 ggplot(plt) +
-    geom_line(aes(x, y), color = 'blue') +
+    geom_line(aes(x, y), color = 'black') +
     geom_vline(xintercept = tcrit, color = 'red', size = 1) + 
-    geom_vline(xintercept = tobs, color = 'darkgreen', size = 1, linetype = 2) +
+    geom_vline(xintercept = tobs, color = 'blue', size = 1, linetype = 2) +
     geom_area(data = plt.crit,
               aes(x = x, y = y), fill = 'red', alpha = 0.75) +
     geom_area(data = plt.pval,
-              aes(x = x, y = y), fill = 'darkgreen', alpha = 0.75) +
+              aes(x = x, y = y), fill = 'blue', alpha = 0.75) +
     annotate('label', x = c(-5, 5), y = c(0.3, 0.3), 
              label = c(
                  expression(frac(alpha, 2) == 0.025), 
@@ -539,7 +537,7 @@ ggplot(plt) +
              color = 'red', adj = c(0, 1), size = 5) +
     annotate('text', x = tobs + 0.2, y = - 0.01,
              label = paste('t =', round(tobs, 2)),
-             color = 'darkgreen', adj = 0, size = 5) +
+             color = 'blue', adj = 0, size = 5) +
     labs(x = 't-statistic', y = 'Density')
 ```
 
@@ -628,13 +626,13 @@ plt.pval = plt %>%
     )
 
 ggplot(plt) +
-    geom_line(aes(x, y), color = 'blue') +
+    geom_line(aes(x, y), color = 'black') +
     geom_vline(xintercept = tcrit, color = 'red', size = 1) + 
-    geom_vline(xintercept = tobs, color = 'darkgreen', size = 1, linetype = 2) +
+    geom_vline(xintercept = tobs, color = 'blue', size = 1, linetype = 2) +
     geom_area(data = plt.crit,
               aes(x = x, y = y), fill = 'red', alpha = 0.75) +
     geom_area(data = plt.pval,
-              aes(x = x, y = y), fill = 'darkgreen', alpha = 0.5) +
+              aes(x = x, y = y), fill = 'blue', alpha = 0.5) +
     annotate('label', x = c(-5, 5), y = c(0.3, 0.3), 
              label = c(
                  expression(frac(alpha, 2) == 0.025), 
@@ -645,7 +643,7 @@ ggplot(plt) +
              color = 'red', adj = c(1, 0), size = 5) +
     annotate('text', x = tobs + 0.2, y = -0.01,
              label = paste('t =', round(tobs, 2)),
-             color = 'darkgreen', adj = 0, size = 5) +
+             color = 'blue', adj = 0, size = 5) +
     labs(x = 't-statistic', y = 'Density')
 ```
 
@@ -755,7 +753,7 @@ Example:
 ```{r, out.width = '55%'}
 tcrit = qt(0.05, 3)
 
-mosaic::xqt(0.05, df = 3, 
+mosaic::xqt(0.05, df = 3, xlim = c(-7, 7), 
             return = 'plot') +
     scale_fill_manual(
         values = c('red', 'gray90')
@@ -788,17 +786,17 @@ mosaic::xqt(0.05, df = 3,
 ```{r, out.width = '100%'}
 tcrit = qt(0.05, 3)
 
-mosaic::xqt(0.05, df = 3, 
+mosaic::xqt(0.05, df = 3, xlim = c(-7, 7), 
             return = 'plot') +
     scale_fill_manual(
         values = c('red', 'gray90')
     ) +
     labs(x = 't-statistic', y = 'Density',
          title = expression(H[1] : mu < mu[0])) +
-    geom_vline(xintercept = c(-5.2, -1.8, 1.5), colour = 'darkgreen',
+    geom_vline(xintercept = c(-5.2, -1.8, 1.5), colour = 'blue',
                size = 1, linetype = 2) +
     annotate('label', x = c(-5.2, -1.8, 1.5), y = c(0.1, 0.1, 0.1), 
-             label = c('A', 'B', 'C'), size = 6, colour = 'darkgreen') +
+             label = c('A', 'B', 'C'), size = 6, colour = 'blue') +
     geom_vline(xintercept = tcrit, col = 'red', size = 1) +
     annotate('label', x = -5, y = 0.2, colour = 'red', size = 6,
              label = expression(alpha == 0.05)) +
@@ -817,7 +815,7 @@ mosaic::xqt(0.05, df = 3,
 ```{r, out.width = '55%'}
 tcrit = qt(0.95, 3)
 
-mosaic::xqt(0.95, df = 3,
+mosaic::xqt(0.95, df = 3, xlim = c(-7, 7), 
             return = 'plot') +
     scale_fill_manual(
         values = c('gray90', 'red')
@@ -850,17 +848,17 @@ mosaic::xqt(0.95, df = 3,
 ```{r, out.width = '100%'}
 tcrit = qt(0.95, 3)
 
-mosaic::xqt(0.95, df = 3,
+mosaic::xqt(0.95, df = 3, xlim = c(-7, 7), 
             return = 'plot') +
     scale_fill_manual(
         values = c('gray90', 'red')
     ) +
     labs(x = 't-statistic', y = 'Density',
          title = expression(H[1] : mu > mu[0])) +
-    geom_vline(xintercept = c(-1.5, 1.8, 5.2), colour = 'darkgreen',
+    geom_vline(xintercept = c(-1.5, 1.8, 5.2), colour = 'blue',
                size = 1, linetype = 2) +
     annotate('label', x = c(-1.5, 1.8, 5.2), y = c(0.1, 0.1, 0.1), 
-             label = c('A', 'B', 'C'), size = 6, colour = 'darkgreen') +
+             label = c('A', 'B', 'C'), size = 6, colour = 'blue') +
     geom_vline(xintercept = tcrit, col = 'red', size = 1) +
     annotate('label', x = 5, y = 0.2, colour = 'red', size = 6,
              label = expression(alpha == 0.05)) +
@@ -878,7 +876,7 @@ mosaic::xqt(0.95, df = 3,
 ```{r, out.width = '55%'}
 tcrit = qt(c(0.025, 0.975), 3)
 
-mosaic::xqt(c(0.025, 0.975), df = 3,
+mosaic::xqt(c(0.025, 0.975), df = 3, xlim = c(-7, 7), 
             return = 'plot') +
     scale_fill_manual(
         values = c('red', 'gray90', 'red')
@@ -915,17 +913,17 @@ mosaic::xqt(c(0.025, 0.975), df = 3,
 ```{r, out.width = '100%'}
 tcrit = qt(c(0.025, 0.975), 3)
 
-mosaic::xqt(c(0.025, 0.975), df = 3,
+mosaic::xqt(c(0.025, 0.975), df = 3, xlim = c(-7, 7), 
             return = 'plot') +
     scale_fill_manual(
         values = c('red', 'gray90', 'red')
     ) +
     labs(x = 't-statistic', y = 'Density',
          title = expression(H[1] : mu != mu[0])) +
-    geom_vline(xintercept = c(-5.3, -2, 1.3, 3.7), colour = 'darkgreen',
+    geom_vline(xintercept = c(-5.3, -2, 1.3, 3.7), colour = 'blue',
                size = 1, linetype = 2) +
     annotate('label', x = c(-5.3, -2, 1.3, 3.7), y = c(0.1, 0.1, 0.1, 0.1), 
-             label = c('A', 'B', 'C', 'D'), size = 6, colour = 'darkgreen') +
+             label = c('A', 'B', 'C', 'D'), size = 6, colour = 'blue') +
     geom_vline(xintercept = tcrit, col = 'red', size = 1) +
     annotate('label', x = -5, y = 0.2, colour = 'red', size = 6,
              label = expression(frac(alpha,2) == 0.025)) +
