@@ -22,7 +22,7 @@ editor_options:
 library(knitr)
 
 options(htmltools.dir.version = FALSE)
-options(digits = 4, scipen = 2)
+#options(digits = 4, scipen = 2)
 options(knitr.table.format = "html")
 
 knitr::opts_chunk$set(
@@ -281,10 +281,10 @@ threat %>%
   kable_styling(full_width = FALSE)
 ```
 
-- Calculate pooled standard deviation
+- Calculate pooled standard deviation:
 
 $$s_p = \sqrt\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2} = \sqrt{\frac{(11-1)*1.27^2 + (12-1)*1.51^2}{11+12-2}} = \sqrt{\frac{10*1.27^2 + 11*1.51^2}{11+12-2}} = \sqrt{\frac{41.21}{21}} = 1.401$$
-- Calculate the standard error.
+- Calculate the standard error:
 
 $$SE_{(\bar{x}_1 - \bar{x}_2)} = s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}} = 1.401 \sqrt{\frac{1}{11}+\frac{1}{12}} = 1.401 * 0.417 = 0.584$$
 
@@ -294,12 +294,14 @@ $$SE_{(\bar{x}_1 - \bar{x}_2)} = s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}} = 1.40
 - Steps in my calculations:
   - Calculate the sample mean in both groups - Threat $(\bar{x}_1 = 5.27)$, Control $(\bar{x}_2 = 9.58)$.
   - Calculate the pooled SD $(s_p = 1.401)$.
-  - Check I know my n - Threat $(n_1 = 11)$ and Control $(n_2 = 12)$ - $n = 23$.
-  - Calculate the standard error $(SE = 0.584)$.
+  - Check I know my $n$ - Threat $(n_1 = 11)$ and Control $(n_2 = 12)$ - $n = 23$.
+  - Calculate the standard error $(SE = 0.584)$.  
+   
 - Use all this to calculate $t$.
 
 $$t = \frac{(\bar{x}_1 - \bar{x}_2) - 0}{SE_{(\bar{x}_1 - \bar{x}_2)}} = \frac{5.27-9.58}{0.584} = -7.38$$
-- So in our example $t= -7.38$
+- So in our example $t= -7.38$  
+  
 - Note: When doing hand calculations there might be a small amount of rounding error when we compare to $t$ calculated in `R`.
 
 ---
@@ -352,8 +354,6 @@ tibble(
 	- Our $t$-statistic (-7.38) is larger than this
 	- So we reject the null hypothesis
 
-- $t(21)= -7.38, p <.05, one-tailed$.
-
 ---
 # Our Test: In R
 
@@ -368,7 +368,7 @@ res
 
 ---
 # Write up
-An independent sample $t$-test was used to determine whether the average maths score of the stereotype threat group $(n = `r calc[1,4]`)$ was significantly lower $(\alpha = .05)$ than the control group $(n = `r calc[2,4]`)$. There was a significant difference in test score between the control $(Mean=`r calc[2,2]`; SD=`r calc[2,3]`)$ and threat $(Mean=`r calc[1,2]`; SD=`r calc[1,3]`)$ groups, where the scores were significantly lower in the threat group ( $t$(`r res$parameter`)=`r round(res$statistic,2)`, $p< .05, one-tailed)$. Therefore, we can reject the null hypothesis. The direction of difference supports our directional hypothesis and indicates that the threat group performed more poorly than the control group.
+An independent sample $t$-test was used to determine whether the average maths score of the stereotype threat group $(n = `r calc[1,4]`)$ was significantly lower $(\alpha = .05)$ than the control group $(n = `r calc[2,4]`)$. There was a significant difference in test score between the control $(M = `r calc[2,2]`, SD=`r calc[2,3]`)$ and threat $(M = `r calc[1,2]`, SD=`r calc[1,3]`)$ groups, where the scores were significantly lower in the threat group $(t(`r res$parameter`)=`r round(res$statistic,2)`, p < .001, one-tailed)$. Therefore, we can reject the null hypothesis. The direction of difference supports our directional hypothesis and indicates that the threat group performed more poorly than the control group.
 
 
 ---
@@ -542,7 +542,7 @@ threat %>%
 shapiro.test()
 ```
 
-$W = 0.96, p = .70$
+$W = 0.96, p = .716$
 
 ]
 
@@ -554,7 +554,7 @@ thr <- threat %>%
 shapiro.test(thr$Score)
 ```
 
-$W = 0.94, p = .50$
+$W = 0.94, p = .518$
 
 ]
 ---
@@ -601,7 +601,7 @@ $$t = \frac{(\bar{x}_1 - \bar{x}_2) - \delta_0}{SE_{(\bar{x}_1 - \bar{x}_2)}}$$
 
 $$SE_{(\bar{x}_1 - \bar{x}_2)} = \sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}$$
 
-- And degrees of freedom (don't worry, not tested)
+- And degrees of freedom (don't worry, not tested):
 
 $$df = \frac{(\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2})^2}{\frac{(\frac{s_1^2}{n_1})^2}{n_1 -1} + \frac{(\frac{s_2^2}{n_2})^2}{n_2 -1}}$$
 
@@ -653,7 +653,7 @@ cohens_d(threat$Score ~ threat$Group,
 
 ---
 # Write up: Assumptions
-The DV of our study, Score, was measured on a continuous scale, and data were independent (participants belonged to one of two groups - Control or Threat). The assumption of normality was visually assessed (via histograms, density plots, and a QQplot) as well as statistically via a Shapiro-Wilks test. The QQplots did not show much deviation from the diagonal line in either group, and the Shapiro-Wilks test for both the Control $(W = 0.96, p = .70)$ and Threat $(W = 0.94, p = .50)$ conditions suggested that the samples came from a population that was normally distributed. This was inline with the histogram and density plots for each group, which suggested that Score was normally distributed (and where $skew < 1$). Based on the results of our $F$-test, there was no significant difference between the two population variances $(F(10,11) = 0.71, p = .60)$. The size of the effect was found to be large $(D = -3.08)$. 
+The DV of our study, Score, was measured on a continuous scale, and data were independent (participants belonged to one of two groups - Control or Threat). The assumption of normality was visually assessed (via histograms, density plots, and a QQplot) as well as statistically via a Shapiro-Wilks test. The QQplots did not show much deviation from the diagonal line in either group, and the Shapiro-Wilks test for both the Control $(W = 0.96, p = .716)$ and Threat $(W = 0.94, p = .518)$ conditions suggested that the samples came from a population that was normally distributed. This was inline with the histogram and density plots for each group, which suggested that Score was normally distributed (and where $skew < 1$). Based on the results of our $F$-test, there was no significant difference between the two population variances $(F(10,11) = 0.71, p = .604)$. The size of the effect was found to be large $(D = -3.08)$. 
 
 ---
 # Summary
