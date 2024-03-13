@@ -195,23 +195,6 @@ chiDist
 
 ---
 
-# The basic $\chi^2$ formula
-
-.center.f2[
-$\chi^2 = \Sigma \frac{(O-E)^2}{E}$
-]
-
-
-+ $\Sigma$ = sum up
-
-+ $E$ = Expected Cases
-  + The values that you expect, given $H_0$ is true
-  
-+ $O$ = Observed Cases
-  + The values you actually have
-
----
-
 # Data Requirements & Assumptions of $\chi^2$ tests
 
 - Data Requirements  
@@ -295,16 +278,19 @@ knitr::include_graphics('figures/chiSqGoF_Obs.png')
 $\chi^2 = \sum\limits_{i=1}^k \frac{(O_i - E_i)^2}{E_i}$
 ]
 
-+ $\sum\limits_{i=1}^k$ : Sum all values from levels 1 through k
+- where: 
 
-+ $i$ : Current level
+  + $\Sigma$ = sum up
+    + $\sum\limits_{i=1}^k$ : Sum all values from levels 1 through k
+  + $E$ = Expected Cases
+      + The values that you expect, given $H_0$ is true
+  + $O$ = Observed Cases
+     + The values you actually have
+  + $i$ : Current level
 
 ---
 
-# Performing a $\chi^2$ Goodness of Fit test
-
-
-.pull-left[
+# Example
 
 + A new flower shop is trying to decide which days of the week they will be open 
 
@@ -312,43 +298,37 @@ $\chi^2 = \sum\limits_{i=1}^k \frac{(O_i - E_i)^2}{E_i}$
 
 + They count the total number of orders they take each day of the week over the course of a month
 
-]
 
+---
 
-.pull-right.center[
-<br>
-```{r, echo = F, results='asis'}
+# Data
+
+```{r, echo = FALSE}
 flowerDat <- tibble(Day=as.factor(c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')),
                     Orders = c(54, 39, 44, 47, 68, 72, 53))
 
-kable(flowerDat)
+flowerDat
 ```
-]
 
 ---
-count: false
 
-# Performing a $\chi^2$ Goodness of Fit test
-
+# Hypotheses
 
 .pull-left[
 
-+ A new flower shop is trying to decide which days of the week they will be open 
++ I elect to use an alpha $(\alpha)$ of .05
 
-+ They want to know whether order number is consistent across days of the week
-
-+ They count the total number of orders they take each day of the week over the course of a month
-
-+ $H_0$: Orders will be consistent throughout the week 
-  + $p_{Monday}=p_{Tuesday}=\cdots\ p_{Sunday}$
++ My hypotheses are: 
+  + $H_0$: Orders will be consistent throughout the week 
+      + $p_{Monday}=p_{Tuesday}=\cdots\ p_{Sunday}$
   
-+ $H_1$: Orders will differ across the week
-  + Some $p_{i}\not=p_{i0}$
+  + $H_1$: Orders will differ across the week
+      + Some $p_{i}\not=p_{i0}$
   
 ]
 
 
-.pull-right.center[
+.pull-right[
 <br>
 ```{r, echo = F, results='asis'}
 kable(flowerDat)
@@ -357,20 +337,26 @@ kable(flowerDat)
 
 ---
 
-# Performing a $\chi^2$ Goodness of Fit test
+# Visualisation
 
-**Compute the test statistic**
+```{r, echo = TRUE, eval=FALSE}
+ggplot(data = flowerDat, aes(Day, Orders, fill = Day)) +
+  geom_bar(stat = "identity")
+```
 
-.center.f3[
-$\chi^2 = \sum\limits_{i=1}^k \frac{(O_i-E_i)^2}{E_i}$
-]
 
-+ $E_i=n\cdot\ p_i$
-
-+ In this example, we expect each level to be approximately equal, so the expected proportion will be the same across levels
+```{r, fig.height=2.8}
+ggplot(data = flowerDat, aes(Day, Orders, fill = Day)) +
+  geom_bar(stat = "identity") + 
+  theme(axis.text=element_text(size=7))
+```
 
 ---
-count: false
+
+class: center, middle
+# **Questions?**
+
+---
 
 # Performing a $\chi^2$ Goodness of Fit test
 
@@ -383,11 +369,29 @@ $\chi^2 = \sum\limits_{i=1}^k \frac{(O_i-\color{#BF1932}{E_i})^2}{\color{#BF1932
 + $E_i=n\cdot\ p_i$
 
 + In this example, we expect each level to be approximately equal, so the expected proportion will be the same across levels
+
+```{r, echo = TRUE}
+n <- sum(flowerDat$Orders)
+p <- (1/length(levels(flowerDat$Day))) # i.e., 1/7
+
+E <- n * p
+round(E, digits = 2)
+```
+
   
 ```{r}
 exVal <- sum(flowerDat$Orders)*(1/length(levels(flowerDat$Day)))
+```
 
-round(exVal, 2)
+---
+
+# Visualisation
+
+```{r, fig.height=2.8}
+ggplot(data = flowerDat, aes(Day, Orders, fill = Day)) +
+  geom_bar(stat = "identity") +
+  geom_hline(yintercept = 53.86, colour = "#0F4C81", lwd = 1) + 
+  theme(axis.text=element_text(size=7))
 ```
 
 ---
@@ -477,25 +481,17 @@ kable(flowerDat, digits = 2) %>%
 **Find the test statistic on the distribution**
 
 .pull-left[
-+ $df=k-1$
-+ $k$ = number of levels within categorical variable
+$\chi^2 = `r round(sum(flowerDat$SqbyExp), 2)`$  
+
+$df=k-1$  
+
++ where $k$ = number of levels within categorical variable
+
++ so, in our example: 
+  + $k$ = number of days in the week
+  + $df ~=~ (7-1)~=~ 6$
 ]
 
----
-count: false
-
-# Performing a $\chi^2$ Goodness of Fit test
-
-**Find the test statistic on the distribution**
-
-.pull-left[
-+ $df=k-1$
-+ $k$ = number of levels within categorical variable
-
-```{r}
-length(levels(flowerDat$Day))-1
-```
-]
 
 .pull-right[
 
@@ -506,32 +502,7 @@ GOFplot <- ggplot(data.frame(x = c(0, 20)), aes(x = x)) +
   annotate(geom = 'text', x = 12, y = 0.1, label = 'df = 6', colour = "#0F4C81", size = 8) +
   theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14, face = 'bold'))
 
-GOFplot
-```
-]
-
----
-count: false
-
-# Performing a $\chi^2$ Goodness of Fit test
-
-**Find the test statistic on the distribution**
-
-.pull-left[
-+ $df=k-1$
-+ $k$ = number of levels within categorical variable
-
-```{r}
-length(levels(flowerDat$Day))-1
-```
-
-+ $\chi^2 =$ `r round(sum(flowerDat$SqbyExp), 2)`
-]
-
-.pull-right[
-
-```{r, echo = F, fig.height=4.5}
-GOFplot + geom_vline(xintercept = sum(flowerDat$SqbyExp), linetype = 'dashed', colour = "#0F4C81")
+GOFplot  + geom_vline(xintercept = sum(flowerDat$SqbyExp), linetype = 'dashed', colour = "#0F4C81")
 ```
 ]
 
@@ -565,10 +536,10 @@ GOFplot + geom_area(data = testDat, aes(x=vals,y=prob), fill = "#0F4C81") +
 .pull-left[
 + What proportion of the plot falls in the shaded area?
 
-```{r}
+```{r, echo = TRUE}
 pchisq(sum(flowerDat$SqbyExp), 
        df = 6, 
-       lower.tail = F)
+       lower.tail = FALSE)
 ```
 + The probability that we would have a $\chi^2$ value as extreme as `r round(sum(flowerDat$SqbyExp), 2)` if $H_0$ is true is only `r round(pchisq(sum(flowerDat$SqbyExp),df = 6,lower.tail = F), 3)`
 
@@ -586,6 +557,30 @@ GOFplot + geom_area(data = testDat, aes(x=vals,y=prob), fill = "#0F4C81") +
 ---
 # Performing a $\chi^2$ Goodness of Fit test in R
 
+.pull-left[
+
+```{r, echo = TRUE}
+#Option 1
+observed <- c(54, 39, 44, 47, 68, 72, 53)
+expected <- c(1/7,1/7,1/7,1/7,1/7,1/7,1/7)
+chisq.test(x = observed, p = expected)
+```
+
+- where:
+  + x: A numerical vector of observed frequencies
+  + p: A numerical vector of expected proportions
+
+] 
+
+.pull-right[
+
+```{r, echo = TRUE, eval = TRUE}
+#Option 2
+GOFtest <- chisq.test(flowerDat$Orders)
+GOFtest
+```
+
+]
 
 ---
 class: center, middle
@@ -599,19 +594,21 @@ class: center, middle
 
 + We can get this information by looking at the Pearson residuals (AKA, standardized residuals)
 
-+ $\frac{O_i-E_i}{\sqrt{E_i}}$
-
++ $\frac{O_i-E_i}{\sqrt{E_i}}$  
+  
 --
-```{r}
-(flowerDat$Orders[1]-flowerDat$Expected[1])/sqrt(flowerDat$Expected[1])
+  
+**In R**
+
+```{r echo = TRUE}
+GOFtest$residuals
 ```
 
-```{r, echo = F}
-GOFtest <- chisq.test(flowerDat$Orders)
-flowerDat$Residuals <- GOFtest$residuals
+**By Hand**
 
-kable(flowerDat[1,], digits = 2)
-```
++ In this case, you will calculate them separately for each level 
+  
++ *Example of number of flowers sold on a Monday:* $\frac{54-53.86}{\sqrt{53.86}} = 0.019$
 
 ---
 
@@ -632,6 +629,8 @@ kable(flowerDat[1,], digits = 2)
 .pull-right[
 <br>
 ```{r, echo = F}
+GOFtest <- chisq.test(flowerDat$Orders)
+flowerDat$Residuals <- GOFtest$residuals
 kable(flowerDat[,c('Day', 'Orders', 'Residuals')], digits = 2)
 ```
 ]
@@ -652,12 +651,19 @@ kable(flowerDat[,c('Day', 'Orders', 'Residuals')], digits = 2)
 
 ---
 
+# Write Up
+
+A $\chi^2$ Goodness of Fit test was conducted in order to determine whether the distribution of flowers ordered across each day of the week was equivalent. The goodness of fit test was significant $(\chi^2(df = 6, n= 7) = 16.62, p = .011)$, and thus the null hypothesis was rejected as the distribution of flower orders differed across the days of the week. 
+
+---
+
 class: inverse, center, middle
 
 # Part 3 
 ## $\chi^2$ Test of Independence
 
 ---
+
 # $\chi^2$ Test of Independence
 
 .pull-left[
@@ -668,9 +674,9 @@ class: inverse, center, middle
 
 + **Hypotheses:**
 
-  + $H_0:$ Variable A is not associated with variable B
+  + $H_0:$ Variables A and B are independent 
   
-  + $H_1:$  Variable A is associated with variable B
+  + $H_1:$ There is an association between Variable A and Variable B
 
 ]
 
@@ -688,9 +694,9 @@ count: false
 
 + **Hypotheses:**
 
-  + $H_0:$ Variable A is not associated with variable B
+  + $H_0:$ Variables A and B are independent 
   
-  + $H_1:$  Variable A is associated with variable B
+  + $H_1:$ There is an association between Variable A and Variable B
   
 ]
 
@@ -718,34 +724,35 @@ knitr::include_graphics('figures/chiSqToI_Obs.png')
 $\chi^2 = \sum\limits_{i=1}^r \sum\limits_{j=1}^c \frac{(O_{ij} - E_{ij})^2}{E_{ij}}$
 ]
 
-+ $i$ : current level within Variable A
-
-+ $r$ : total levels within A
-
-+ $j$ : levels within Variable B
-
-+ $c$ : total levels within B
+- where: 
+  + $\Sigma$ = sum up
+  + $E$ = Expected Cases
+  + $O$ = Observed Cases
+  + $i$ : current level within Variable A
+  + $j$ : levels within Variable B
+  + $r$ : total levels within Variable A
+  + $c$ : total levels within Variable B
 
 ---
 
-# Performing a $\chi^2$ Test of Independence
+# Example
 
-
-.pull-left[
 
 + The flower shop is trying to decide on their flower stock
 
 + They want to know whether the flower type that sells the best depends on the season
 
-+ $H_0$: Flower orders will be independent of season
++ **Hypotheses:**
+
+  + $H_0$: Flower orders will be independent of season
   
-+ $H_1$: Flower orders will be dependent on season
-
-]
+  + $H_1$: Flower orders will be dependent on season
 
 
-.pull-right.center[
-<br>
+---
+
+# Data
+
 ```{r, echo = F, results='asis'}
 
 seasonDat <- tibble(Season=as.factor(rep(c('Spring', 'Summer', 'Autumn', 'Winter'), times=c(603, 592, 551, 602))), 
@@ -756,9 +763,47 @@ seasonDat <- tibble(Season=as.factor(rep(c('Spring', 'Summer', 'Autumn', 'Winter
 seasonDat$Season <- factor(seasonDat$Season, levels = c('Spring', 'Summer', 'Autumn', 'Winter'))
 flowerCols <- c('Lilies', 'Roses', 'Tulips')
 ObsVals <- table(seasonDat$Season, seasonDat$Flowers)
-kable(ObsVals)
+#kable(ObsVals)
+
+
 ```
+
+.pull-left[
+
+First 6 rows:
+
+```{r, echo = FALSE}
+head(seasonDat)
+```
+
 ]
+
+.pull-right[
+
+Create a contingency table:
+```{r, echo = TRUE, eval = FALSE}
+#Option 1
+xtabs(~ Season + Flowers, data = seasonDat)
+
+#Option 2 
+table(seasonDat$Season, seasonDat$Flowers)
+```
+
+```{r echo = FALSE, eval = TRUE}
+ObsVals <- table(seasonDat$Season, seasonDat$Flowers)
+ObsVals
+```
+
+]
+---
+
+# Visualisation
+
+```{r, fig.height=2.8, echo = TRUE}
+library(ggmosaic)
+ggplot(data = seasonDat) +
+  geom_mosaic(aes(x = product(Flowers, Season), fill = Season))
+```
 
 ---
 
@@ -950,7 +995,9 @@ kable(divTab, digits = 2)
 ]
 
 .pull-right.center[ 
-** $\chi^2$**
+**Sum of Squared over Expected - $\chi^2$**
+
+0.08 + 0.26 + 0.02 ...+ 0.08 + 0.55 = 
 ```{r}
 sum(divTab[flowerCols])
 ```
@@ -963,34 +1010,16 @@ sum(divTab[flowerCols])
 **Find the test statistic on the distribution**
 
 .pull-left[
-+ $df=(r-1)(c-1)$
+$df=(r-1)(c-1)$
 
-+ $c$ = number of levels within Variable 1
+- where: 
+  + $c$ = number of levels within Variable 1
+  + $r$ = number of levels within Variable 2
 
-+ $r$ = number of levels within Variable 2
-]
-
----
-count: false
-
-# Performing a $\chi^2$ Test of Independence
-
-**Find the test statistic on the distribution**
-
-.pull-left[
-+ $df=(r-1)(c-1)$
-
-+ $c$ = number of levels within Variable 1
-
-+ $r$ = number of levels within Variable 2
-
-
-```{r}
-r <- length(levels(seasonDat$Season))
-c <- length(levels(seasonDat$Flowers))
-
-(r-1)*(c-1)
-```
+- so, in our example: 
+  + $c$ = number of levels within Season
+  + $r$ = number of levels within Flowers
+  + $df ~=~ (4-1)(3-1) ~=~ (3)(2) ~=~ 6$
 ]
 
 .pull-right[
@@ -1002,36 +1031,6 @@ TOIplot <- ggplot(data.frame(x = c(0, 30)), aes(x = x)) +
   annotate(geom = 'text', x = 12, y = 0.1, label = 'df = 6', colour = "#0F4C81", size = 8) +
   theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14, face = 'bold'))
 
-TOIplot
-```
-]
-
----
-count: false
-
-# Performing a $\chi^2$ Test of Independence
-
-**Find the test statistic on the distribution**
-
-.pull-left[
-+ $df=(r-1)(c-1)$
-
-+ $c$ = number of levels within Variable 1
-
-+ $r$ = number of levels within Variable 2
-
-
-```{r}
-r <- length(levels(seasonDat$Season))
-c <- length(levels(seasonDat$Flowers))
-
-(r-1)*(c-1)
-```
-]
-
-.pull-right[
-
-```{r, echo = F, fig.height=4.5}
 TOIplot + geom_vline(xintercept = sum(sum(divTab[flowerCols])), linetype = 'dashed', colour = "#0F4C81")
 ```
 ]
@@ -1066,13 +1065,13 @@ TOIplot + geom_area(data = testDat, aes(x=vals,y=prob), fill = "#0F4C81") +
 .pull-left[
 + What proportion of the plot falls in the shaded area?
 
-```{r}
-pchisq(sum(divTab[flowerCols]), 
+```{r, echo = TRUE}
+pchisq(2.397417, 
        df = 6, 
        lower.tail = F)
 ```
 
-+ The probability that we would have a $\chi^2$ value as extreme as `r round(sum(divTab[flowerCols]), 2)` if $H_0$ is true is `r round(pchisq(sum(divTab[flowerCols]),df = 6,lower.tail = F), 3)`.
++ The probability that we would have a $\chi^2$ value as extreme as `r round(sum(divTab[flowerCols]), 3)` if $H_0$ was true is `r round(pchisq(sum(divTab[flowerCols]),df = 6,lower.tail = F), 3)`.
 
 ]
 
@@ -1086,9 +1085,13 @@ TOIplot + geom_area(data = testDat, aes(x=vals,y=prob), fill = "#0F4C81") +
 ]
 
 ---
-class: center, middle
-# **Questions?**
 
+# Performing a $\chi^2$ Test of Independence in R
+
+```{r, echo = TRUE}
+TOItest <- chisq.test(seasonDat$Season, seasonDat$Flowers)
+TOItest
+```
 
 ---
 
@@ -1096,20 +1099,43 @@ class: center, middle
 
 + We can also compute standardized residuals for the Test of Independence
 
-+ In this case, you will calculate them separately by cell
 
 + $\frac{O_{ij}-E_{ij}}{\sqrt{E_{ij}}}$
 
 --
-```{r}
-(ObsVals['Spring', 'Lilies']-exVals[1, 'Lilies'])/sqrt(exVals[1, 'Lilies'])
+
+
+.pull-left[
+
+**In R**
+```{r, echo = TRUE, out.width="80%"}
+TOItest$residuals
 ```
 
-```{r, echo = F}
-TOItest <- chisq.test(seasonDat$Season, seasonDat$Flowers)
+]
 
-kable(TOItest$residuals, digits = 2)
-```
+.pull-right[
+
+**By Hand**
+
++ In this case, you will calculate them separately by cell
+
++ *Example of number of Lilies sold in Spring*
+    + $\frac{O_{ij}-E_{ij}}{\sqrt{E_{ij}}}$ = $\frac{186-182.08}{\sqrt{182.08}}$ = $0.291$
+
+]
+
+
+
+---
+
+# Write Up
+
+A $\chi^2$ test of independence was performed to examine whether the type of flower sold was independent of season. There was no significant association between these variables $(\chi^2(6) =  2.40, p = .880)$. Therefore, we failed to reject the null hypothesis.
+
+---
+class: center, middle
+# **Questions?**
 
 ---
 
@@ -1125,14 +1151,13 @@ kable(TOItest$residuals, digits = 2)
 
 ---
 
-# Phi coefficient
+# Phi Coefficient
 
 .center.f3[
 $\phi=\sqrt{\frac{\chi^2}{n}}$
 ]
 
 + where
-      - $\chi^2$ = $\chi^2$ value
       - $n$ = total number of observations
 
 + Should only be used when you have a 2x2 contingency table (2 categorical variables with 2 levels each)
@@ -1145,8 +1170,17 @@ $\phi=\sqrt{\frac{\chi^2}{n}}$
 | Medium effect        | 0.3                 |
 | Large effect         | 0.5                 |
 
----
 
+
+---
+# Phi Coefficient in R
+
+```{r, echo = TRUE, eval = FALSE}
+library(effectsize)
+phi(TOItest)
+```
+
+---
 # Cramer's V
 
 .center.f3[
@@ -1154,13 +1188,13 @@ $V=\sqrt{\frac{\chi^2}{n\cdot\ df^*}}$
 ]
 
 + where
-      - $\chi^2$ = $\chi^2$ value
       - $n$ = total number of observations
       - $df^*$ = $min(r-1, c-1)$
 
 + Can be used when you aren't working with a 2x2 contingency table
 
-+ Cramer's V is interpreted based on $df^*$:
++ Cramer's V is interpreted based on $df^*$, where Cramer's V must lie between 0 and 1 (0 = complete independence, 1 = complete dependence):
+
 | $df^*$ | small | medium | large |
 |--------|-------|--------|-------|
 |   1    |  .10  |  .30   |  .50  |
@@ -1169,6 +1203,31 @@ $V=\sqrt{\frac{\chi^2}{n\cdot\ df^*}}$
 |   4    |  .05  |  .15   |  .25  |
 |   5    |  .04  |  .13   |  .22  |
 
+---
+# Cramer's V
+
+.pull-left[
+
+**By hand**
+
+$V=\sqrt{\frac{\chi^2}{n\cdot\ df^*}}$ = $\sqrt{\frac{2.40}{2348\cdot\ 6}}$ = $0.013$
+
+]
+
+.pull-right[
+
+**In R**
+
+```{r}
+cont_table <- table(seasonDat$Season, seasonDat$Flowers)
+```
+
+```{r, echo = TRUE}
+library(effectsize)
+cramers_v(cont_table)
+```
+
+]
 ---
 
 # Summary
