@@ -1,0 +1,871 @@
+---
+title: "<b>Making decisions:<br>Errors, Power, and Effect Size</b>"
+subtitle: "S2W5 - Data Analysis for Psychology in R 1"
+author: "Umberto Noè"
+institute: "Department of Psychology<br/>The University of Edinburgh"
+date: "AY 2020-2021"
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    lib_dir: jk_libs/libs
+    css: 
+      - xaringan-themer.css
+      - jk_libs/tweaks.css
+    nature:
+      beforeInit: "jk_libs/macros.js"
+      ratio: '16:9'
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+editor_options:
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+options(digits=4,scipen=2)
+options(knitr.table.format="html")
+xaringanExtra::use_xaringan_extra(c("tile_view","animate_css","tachyons"))
+xaringanExtra::use_extra_styles(
+  mute_unhighlighted_code = FALSE
+)
+
+library(knitr)
+library(tidyverse)
+
+knitr::opts_chunk$set(
+  dev = "png", dpi = 300,
+  warning = FALSE,
+  message = FALSE,
+  # cache = TRUE,
+  fig.align = 'center',
+  fig.height = 5, fig.width = 6
+)
+
+theme_set(
+  theme_classic(base_size = 18) +
+    theme(plot.title = element_text(hjust = 0.5))
+)
+
+#source('R/myfuncs.R')
+```
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#0F4C81", # DAPR1
+  # base_color = "#BF1932", # DAPR2
+  # base_color = "#88B04B", # DAPR3 
+  # base_color = "#FCBB06", # USMR
+  # base_color = "#a41ae4", # MSMR
+  header_color = "#000000",
+  header_font_google = google_font("Source Sans Pro"),
+  header_font_weight = 400,
+  text_font_google = google_font("Source Sans Pro", "400", "400i", "600", "600i"),
+  code_font_google = google_font("Source Code Pro")
+)
+```
+
+
+
+
+
+```{r preamble, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(kableExtra)
+library(patchwork)
+
+set.seed(1)
+```
+
+
+
+# Learning objectives
+
+- Be able to interpret type I and type II errors in hypothesis tests.
+
+- Recognising the significance level as measuring the tolerable chance of committing a type I error.
+
+- Understand that statistical significance is not always the same as practical significance.
+
+- Recognise that larger sample sizes make it easier to achieve statistical significance if the alternative hypothesis is true.
+
+
+
+---
+class: inverse, center, middle
+
+# Part A
+## Type I and type II errors
+
+
+---
+
+# Where we're going to
+
+
+- Hypothesis testing lets us determine whether an observed effect is real or just due to random sampling variation.
+
+--
+
+- However, statistical significance sometimes may lead us to wrong conclusions!
+
+--
+
+- It is possible to make two kinds of wrong decisions:
+
+--
+
+  - rejecting a true null hypothesis 
+  
+--
+
+  - not rejecting a false null hypothesis
+
+--
+
+- This week we will discuss common pitfalls of hypothesis testing, and which are the factors that influence the chances of these errors occurring.
+
+
+
+
+---
+
+# Types of errors
+
+- Whether your decision is either to reject the null hypothesis or to not reject the null hypothesis, you might be making an error.
+
+--
+
+- The reasoning of hypothesis tests often is compared to that of a court trial. The possibilities in such a trial are given in the following diagram.
+
+```{r echo=FALSE, out.width = '70%'}
+knitr::include_graphics('figures/ht-errors-trial.png')
+```
+
+--
+
+- In our system of justice, convicting an innocent person is considered worse than letting a guilty person go.
+
+---
+
+# Types of errors
+
+- Similarly, there are two types of errors in hypothesis testing.
+
+  - You could convict an innocent (true) null hypothesis
+  
+  - You could fail to convict a guilty (false) null hypothesis
+
+--
+
+- Like convicting an innocent person, the error of rejecting a true null hypothesis is considered serious, and so a null hypothesis isn't rejected unless the evidence against it is convincing beyond a reasonable doubt.
+
+--
+
+```{r echo=FALSE, out.width = '70%'}
+knitr::include_graphics('figures/ht-errors-table.png')
+```
+
+
+---
+
+# Types of errors
+
+> Definition:
+
+> A **type I error** occurs when you reject a true null hypothesis
+
+> A **type II error** occurs when you don't reject a false null hypothesis
+
+
+---
+
+# Errors and probabilities
+
+```{r echo=FALSE, out.width = '55%'}
+df0 = tibble(x = seq(-7, 15, 0.01), 
+            y = dnorm(x, 0, 2))
+q = qnorm(c(0.025, 0.975), 0, 2)
+
+df1 = tibble(x = seq(-7, 15, 0.01), 
+            y = dnorm(x, 7, 2))
+
+df = bind_rows(
+  mutate(df0, type = 'H0'),
+  mutate(df1, type = 'H1')
+)
+
+ggplot() +
+  geom_line(data = df, aes(x, y), color = 'black', size = 0.5) +
+  
+  geom_area(data = df %>% filter(type == 'H0', x >= q[1] & x <= q[2]), aes(x, y), 
+            fill = 'lightgray') +
+  geom_area(data = df %>% filter(type == 'H0', x <= q[1]), aes(x, y), fill = 'red') +
+  geom_area(data = df %>% filter(type == 'H0', x >= q[2]), aes(x, y), fill = 'red') +
+  
+  geom_area(data = df %>% filter(type == 'H1', x >= q[2]), aes(x, y), 
+            fill = 'darkolivegreen3') +
+  geom_area(data = df %>% filter(type == 'H1', x < q[2]), aes(x, y), 
+            fill = 'lightblue') +
+  
+  geom_vline(xintercept = q, color = 'red', size = 1, linetype = 2) + 
+
+  labs(x = 'statistics', y = '') +
+  
+  facet_grid(type ~ .) +
+  theme_light()
+```
+
+
+---
+
+# What to consider when you reject $H_0$
+
+.pull-left[
+If you reject the null hypothesis, there are two possibilities to consider:
+
+- You are making the correct decision. The null hypothesis isn't true, and that's why the observed statistic was so far from the hypothesised value.
+
+- You are making a type I error: rejecting $H_0$ even though $H_0$ is actually true. It was just bad luck that resulted in the observed statistic being so far from the hypothesised value. In other words, a rare event occurred.
+]
+
+.pull-right[
+```{r echo=FALSE, out.width = '95%'}
+df = tibble(x = seq(-7, 7, 0.01), 
+            y = dnorm(x, 0, 2))
+q = qnorm(c(0.025, 0.975), 0, 2)
+
+ggplot() +
+  geom_line(data = df, aes(x, y), color = 'black', size = 2) +
+  geom_area(data = df %>% filter(x >= q[1] & x <= q[2]), aes(x, y), fill = 'lightgray') +
+  geom_area(data = df %>% filter(x <= q[1]), aes(x, y), fill = 'red') +
+  geom_area(data = df %>% filter(x >= q[2]), aes(x, y), fill = 'red') +
+  geom_vline(xintercept = 5.5, color = 'dodgerblue', size = 1) + 
+  labs(x = "statistics (when H0 true)", y = "")
+```
+]
+
+
+---
+
+# What to consider when you reject $H_0$
+
+```{r echo=FALSE, out.width = '55%'}
+df0 = tibble(x = seq(-7, 15, 0.01), 
+            y = dnorm(x, 0, 2))
+q = qnorm(c(0.025, 0.975), 0, 2)
+
+df1 = tibble(x = seq(-7, 15, 0.01), 
+            y = dnorm(x, 7, 2))
+
+df = bind_rows(
+  mutate(df0, type = 'H0'),
+  mutate(df1, type = 'H1')
+)
+
+ggplot() +
+  geom_line(data = df, aes(x, y), color = 'black', size = 1) +
+  geom_area(data = df %>% filter(type == 'H0', x >= q[1] & x <= q[2]), aes(x, y), fill = 'lightgray') +
+  geom_area(data = df %>% filter(type == 'H0', x <= q[1]), aes(x, y), fill = 'red') +
+  geom_area(data = df %>% filter(type == 'H0', x >= q[2]), aes(x, y), fill = 'red') +
+  geom_vline(xintercept = 5.5, color = 'dodgerblue', size = 1) + 
+  geom_vline(xintercept = q, color = 'red', size = 1, linetype = 2) +
+  labs(x = "statistics (when H0 true)", y = "") +
+  facet_grid(type ~ .) +
+  theme_light()
+```
+
+
+---
+
+# What to consider when you **don't** reject $H_0$
+
+.pull-left[
+If you **don't** reject the null hypothesis, there are also two possibilities to consider:
+
+- You are making the correct decision. The null hypothesis is true, and you got just about what you would expect to happen in a sample statistic.
+
+- You are making a type II error: not rejecting $H_0$ even though $H_0$ is actually false. It was just by chance that the observed statistic turned out to be close to the hypothesised value.
+]
+
+
+.pull-right[
+```{r echo=FALSE, out.width = '95%'}
+df = tibble(x = seq(-7, 7, 0.01), 
+            y = dnorm(x, 0, 2))
+q = qnorm(c(0.025, 0.975), 0, 2)
+
+ggplot() +
+  geom_line(data = df, aes(x, y), color = 'black', size = 2) +
+  geom_area(data = df %>% filter(x >= q[1] & x <= q[2]), aes(x, y), fill = 'lightgray') +
+  geom_area(data = df %>% filter(x <= q[1]), aes(x, y), fill = 'red') +
+  geom_area(data = df %>% filter(x >= q[2]), aes(x, y), fill = 'red') +
+  geom_vline(xintercept = 2.4, color = 'dodgerblue', size = 1) + 
+  labs(x = "statistics (when H0 true)", y = "")
+```
+]
+
+---
+
+# What to consider when you **don't** reject $H_0$
+
+```{r echo=FALSE, out.width = '55%'}
+df0 = tibble(x = seq(-7, 15, 0.01), 
+            y = dnorm(x, 0, 2))
+q = qnorm(c(0.025, 0.975), 0, 2)
+
+df1 = tibble(x = seq(-7, 15, 0.01), 
+            y = dnorm(x, 7, 2))
+
+df = bind_rows(
+  mutate(df0, type = 'H0'),
+  mutate(df1, type = 'H1')
+)
+
+ggplot() +
+  geom_line(data = df, aes(x, y), color = 'black', size = 1) +
+  geom_area(data = df %>% filter(type == 'H0', x >= q[1] & x <= q[2]), aes(x, y), fill = 'lightgray') +
+  geom_area(data = df %>% filter(type == 'H0', x <= q[1]), aes(x, y), fill = 'red') +
+  geom_area(data = df %>% filter(type == 'H0', x >= q[2]), aes(x, y), fill = 'red') +
+  geom_vline(xintercept = 2.4, color = 'dodgerblue', size = 1) + 
+  geom_vline(xintercept = q, color = 'red', size = 1, linetype = 2) +
+  labs(x = "statistics (when H0 true)", y = "") +
+  facet_grid(type ~ .) +
+  theme_light()
+```
+
+
+
+---
+
+# The probability of committing a type I error
+
+.pull-left[
+**Suppose the null hypothesis is true**
+
+What is the chance that you will reject it, making a type I error?
+
+The only way you can make a type I error is for your observed statistic to be a rare event.
+
+For example, if you are using a threshold of 0.05 for the significance level $\alpha$, you would make a type I error if your p-value is less than 0.05.
+
+When the null hypothesis is true, this happens only $\alpha = 5\%$ of the time.
+]
+
+.pull-right[
+```{r echo=FALSE, out.width = '95%'}
+df = tibble(x = seq(-7, 7, 0.01), 
+            y = dnorm(x, 0, 2))
+q = qnorm(c(0.025, 0.975), 0, 2)
+
+ggplot() +
+  geom_line(data = df, aes(x, y), color = 'black', size = 2) +
+  geom_area(data = df %>% filter(x >= q[1] & x <= q[2]), aes(x, y), fill = 'lightgray') +
+  geom_area(data = df %>% filter(x <= q[1]), aes(x, y), fill = 'red') +
+  geom_area(data = df %>% filter(x >= q[2]), aes(x, y), fill = 'red') +
+  labs(x = "statistics (when H0 true)", y = "")
+```
+]
+
+---
+
+# The probabilities
+
+**Probability of Type I error**
+
+> The significance level $\alpha$ represents the tolerable probability of committing a type I error
+
+> $$\alpha = P(\text{Reject } H_0 \mid H_0 \text{ is true}) = P(\text{Type I error})$$
+
+> If you are worried about committing a Type I error, then your best strategy is to have a low significance level.
+
+
+**Probability of Type II error**
+
+> The probability of committing a type II error is denoted 
+$$\beta = P(\text{Do not reject } H_0 \mid H_0 \text{ is false}) = P(\text{Type II error})$$
+
+> If the null hypothesis is false, setting a low significance level increases the probability of making a Type II error.
+
+
+---
+
+# Power
+
+The power of a test is the probability that the test correctly rejects a **false** null hypothesis.
+
+$$
+\begin{aligned}
+\text{Power} 
+&= P(\text{Reject }H_0 \mid H_0 \text{ is false}) \\
+&= 1 - P(\text{Do not reject }H_0 \mid H_0 \text{ is false}) \\
+&= 1 - \beta
+\end{aligned}
+$$
+
+<br>
+
+Recall, instead, that the probability of rejecting a **true** null hypothesis is the significance level:
+
+$$
+\alpha = P(\text{Reject }H_0 \mid H_0 \text{ is true})
+$$
+Do not confuse the two!
+
+
+---
+
+# Recap
+
+```{r echo=FALSE, out.width = '75%'}
+knitr::include_graphics('figures/ht-errors-table-2.png')
+```
+
+---
+
+# Visual illustration
+
+- Sample size $n = 30$
+
+```{r echo=FALSE, out.width='95%'}
+knitr::include_graphics('figures/ht-errors-type2-1.png')
+```
+
+
+---
+
+# Visual illustration
+
+- Sample size $n = 30$
+
+```{r echo=FALSE, out.width='95%'}
+knitr::include_graphics('figures/ht-errors-type2-2.png')
+```
+
+
+---
+
+# Visual illustration
+
+- Sample size $n = 30$
+
+```{r echo=FALSE, out.width='95%'}
+knitr::include_graphics('figures/ht-errors-type2-3.png')
+```
+
+
+---
+
+# Visual illustration
+
+- Sample size $n = 30$
+
+```{r echo=FALSE, out.width='95%'}
+knitr::include_graphics('figures/ht-errors-type2-4.png')
+```
+
+
+---
+
+# Visual illustration
+
+- Sample size $n = 30$
+
+```{r echo=FALSE, out.width='95%'}
+knitr::include_graphics('figures/ht-errors-type2-5.png')
+```
+
+
+---
+
+# Visual illustration
+
+- Sample size $n = 80$
+
+```{r echo=FALSE, out.width='95%'}
+knitr::include_graphics('figures/ht-errors-type2-6.png')
+```
+
+
+---
+
+# Visual illustration
+
+- Sample size $n = 30$
+
+```{r echo=FALSE, out.width='95%'}
+knitr::include_graphics('figures/ht-errors-type2-7.png')
+```
+
+
+---
+
+# Visual illustration
+
+- Sample size $n = 30$
+
+```{r echo=FALSE, out.width='95%'}
+knitr::include_graphics('figures/ht-errors-type2-8.png')
+```
+
+
+---
+
+# Factors affecting power
+
+- Power increases as the sample size increases, all else being held constant. 
+
+  This is because the distributions of the sample statistics become "narrower", and there will be less statistics on the left of the critical value.
+
+--
+
+- Power increases as the value of $\alpha$ increases, all else being held constant.
+
+--
+
+- Power increases when the true value of the parameter is farther from the hypothesised value in the null.
+  
+  When the true value of the parameter is farther from the hypothesised value in the null hypothesis, the statistics tend to be farther from the null parameter, so the p-value tends to be smaller.
+  
+--
+
+You cannot change the effect size, so you can increase power by either taking a larger sample size, or making $\alpha$ larger (the latter however is not good practice).
+
+
+---
+
+# Significance level and errors
+
+
+**IDEALLY**
+
+While we wish to avoid both types of errors ...
+
+--
+
+**IN REALITY**
+
+... in reality we have to accept some trade-off between them. 
+
+--
+
+- If we make it very hard to reject $H_0$, we could reduce the chance of making a Type I error, but then we would make Type II errors more often. 
+
+- On the other hand, making it easier to reject $H_0$ would reduce the chance of making a Type II error, but increase the chance of making a Type I error and we would end up rejecting too many $H_0$'s that were actually true. 
+
+- This balance is set by how easy or hard it is to reject $H_0$, which is exactly determined by the significance level!
+
+
+
+
+---
+class: inverse, center, middle
+
+# Part B
+## Example where a type II error is worse
+
+
+---
+
+# Parallel in medicine
+
+
+- Consider the following simple example in medical testing:
+
+  Null: Patient doesn't have a specific illness
+
+  Alternative: Patient has the illness
+
+--
+
+- a **Type I error** = a **False Positive**: 
+  
+  a test that indicates a patient has an illness when actually it is not present.
+
+--
+
+- a **Type II error** = a **False Negative**:
+  
+  a test that indicates the patient does not have an illness when in fact they do have it. That is, a test that fails to detect an actual illness.
+
+
+
+
+---
+
+# Power
+
+The power of a test is the probability that the test correctly rejects a false null hypothesis.
+
+$$
+\begin{aligned}
+\text{Power} 
+&= P(\text{Reject }H_0 \mid H_0 \text{ is false}) \\
+&= P(\text{Test positive} \mid \text{Patient truly has the illness})
+\end{aligned}
+$$
+
+Power = **Sensitivity**!
+
+
+--
+
+Sensitivity = Probability of correctly diagnosing a patient as having the disease when they truly have it.
+
+
+---
+
+# Testing for diabetes
+
+Recall this?
+
+> A standard test for diabetes is based on measuring glucose levels in blood after a patient has been told to fast for a certain amount of time. For healthy people the mean glucose level after fasting is found to be 5.31 mmol/L with a standard deviation of 0.58 mmol/L. For untreated diabetics the mean is 11.74 mmol/L, and the standard deviation is 3.50 mmol/L. The distribution of fasting glucose levels in both groups appears to be approximately normally distributed.
+
+> To carry out a clinical test based on fasting glucose levels, we need to set a cutoff point, $C$, so that if the patient’s glucose level after fasting is at least $C$ we say they have diabetes. If it is lower than the cutoff point, we can say they do not have diabetes. Suppose we use $C = 6.5$.
+
+
+---
+
+# Testing for diabetes
+
+```{r echo=FALSE, out.width='90%'}
+knitr::include_graphics('figures/bgl-intro-1.png')
+```
+
+
+---
+
+# Testing for diabetes
+
+```{r echo=FALSE, out.width='90%'}
+knitr::include_graphics('figures/bgl-intro-2.png')
+```
+
+
+---
+
+# Testing for diabetes
+
+```{r echo=FALSE, out.width='90%'}
+knitr::include_graphics('figures/bgl-1.png')
+```
+
+
+---
+
+# Testing for diabetes
+
+```{r echo=FALSE, out.width='90%'}
+knitr::include_graphics('figures/bgl-2.png')
+```
+
+
+
+---
+class: inverse, center, middle
+
+# Part C
+## Practical vs statistical significance
+
+
+---
+
+# Average body temperature
+
+> Is the average body temperature for healthy humans really equal to 37 °C?
+
+```{r, echo=FALSE}
+df <- read_csv('https://uoepsy.github.io/data/BodyTemp.csv')
+```
+
+Data contains measurements on body temperature (in °C) and pulse rate for a sample of $n=50$ healthy subjects. Download link: https://uoepsy.github.io/data/BodyTemp.csv
+
+.pull-left[
+```{r}
+head(df)
+dim(df)
+```
+]
+
+.pull-right[
+```{r}
+xbar_obs <- mean(df$BodyTemp)
+xbar_obs
+```
+
+So, in the collected data we have an observed sample mean
+$$
+\bar x = `r round(xbar_obs, 2)`
+$$
+]
+
+
+---
+
+# Average body temperature
+
+.pull-left[
+$$H_0: \mu = 37\ {}^\circ\mathrm{C} \\
+H_1: \mu \neq 37\ {}^\circ\mathrm{C}$$
+
+
+Null distribution (theory approach)
+$$
+\bar X \sim N(37, SE) \qquad SE = \frac{s}{\sqrt{n}}
+$$
+
+```{r}
+n <- 50
+mu_null <- 37
+se_null <- sd(df$BodyTemp) / sqrt(n)
+```
+]
+
+.pull-right[
+```{r out.width = '60%'}
+xgrid <- seq(mu_null - 4 * se_null,
+             mu_null + 4 * se_null,
+             by = 0.01)
+ygrid <- dnorm(xgrid, mean = mu_null, sd = se_null)
+
+tibble(x = xgrid, y = ygrid) %>%
+  ggplot(aes(x, y)) +
+  geom_line() +
+  geom_vline(xintercept = xbar_obs, color = 'darkolivegreen4') +
+  labs(x = 'Means (when H0 true)', y = '')
+```
+]
+
+---
+
+# Average body temperature
+
+
+The probability of obtaining a sample statistic as low or lower than the observed sample statistic (36.81) is:
+```{r}
+pnorm(xbar_obs, mean = mu_null, sd = se_null)
+```
+
+The p-value for a two-sided alternative, is that proportion multiplied by 2:
+```{r}
+pvalue <- 2 * pnorm(xbar_obs, mean = mu_null, sd = se_null)
+pvalue
+```
+
+
+---
+
+# Average body temperature
+
+- At a significance level of 5%, the very small p-value we have found, 0.002 < 0.05, gives very strong evidence against the null hypothesis that the average body temperature for healthy humans is 37 °C.
+
+--
+
+- However, it is worth noting the difference between **statistical significance** and practical significance. 
+
+--
+
+- Even if the sample results lead to convincingly rejecting the null hypothesis, assuming the average body temperature for healthy humans to be closer to 36.8 °C rather than 37 °C has a very minimal impact in practice. 
+
+--
+
+- More generally, with large sample sizes a small difference might turn out to be statistically significant. However, this does not mean that the difference will be of practical importance to decision-makers.
+
+
+---
+class: inverse, center, middle
+
+# Part D
+## More on what affects statistical significance
+
+
+---
+
+# Sample size
+
+.pull-left[
+- You should recall from the Sampling Distribution lecture, that as the sample size increases, the variability of the sampling distribution decreases.
+
+- This has a big impact on statistical significance:
+]
+
+.pull-right[
+```{r echo=FALSE, fig.height = 9, fig.width = 6, out.width = '65%'}
+x1 <- rnorm(10000, 37, sd(df$BodyTemp) / sqrt(5))
+x2 <- rnorm(10000, 37, sd(df$BodyTemp) / sqrt(10))
+x3 <- rnorm(10000, 37, sd(df$BodyTemp) / sqrt(50))
+
+my.plot <- function(x, n) {
+    XLIM <- c(36.3, 37.7)
+    TITLE <- sprintf('n = %d', n)
+    
+    hist(x, 30, border = 'white', yaxt = 'n', 
+         xlab = expr(bar(x)~'(when'~H[0]~'true)'),
+         ylab = '', main = TITLE, xlim = XLIM)
+    abline(v = xbar_obs, col = 'darkolivegreen4', lwd = 2)
+    text(xbar_obs, 600, label = round(xbar_obs, 2), col = 'darkolivegreen4', 
+         pos = 2)
+    
+}
+
+par(mfrow = c(3, 1), mar=c(3,3,3,1), cex = 1.2)
+my.plot(x1, 5)
+my.plot(x2, 10)
+my.plot(x3, 50)
+```
+]
+
+
+---
+
+# Sample size
+
+Effects of Sample Size
+
+- With a small sample size, it may be hard to find significant results, even when the alternative hypothesis is true.
+
+- With a large sample size, it is easier to find significant results when the alternative hypothesis is true, but we should be especially careful to distinguish between statistical significance and practical significance.
+
+---
+
+# Effect size
+
+Effect size = | 1 - 0 | = 1
+
+```{r echo=FALSE, out.width = '95%'}
+knitr::include_graphics('figures/effect-size-2.png')
+```
+
+
+---
+
+# Effect size
+
+Effect size = | 2 - 0 | = 2
+
+```{r echo=FALSE, out.width = '95%'}
+knitr::include_graphics('figures/effect-size-4.png')
+```
+
+
+---
+
+# Effect size
+
+Effect size = | 3 - 0 | = 3
+
+```{r echo=FALSE, out.width = '95%'}
+knitr::include_graphics('figures/effect-size-6.png')
+```
+
+
+
+---
+
+class: inverse, center, middle, animated, rotateInDownLeft
+
+# End
+
+
