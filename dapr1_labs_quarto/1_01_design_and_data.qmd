@@ -320,8 +320,8 @@ dim(movies)
 glimpse(movies)
 summary(movies)
 
-movies %>%
-    select(Movie, RottenTomatoes, Budget) %>%
+movies |>
+    select(Movie, RottenTomatoes, Budget) |>
     filter(is.na(RottenTomatoes) | is.na(Budget))
 ```
 
@@ -344,7 +344,7 @@ tribble(
     'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday',
     'Server', 'Code for specific waiter/waitress: A, B, or C',
     'PctTip', 'Tip as a percentage of the bill'
-) %>%
+) |>
     knitr::kable()
 ```
 
@@ -443,10 +443,10 @@ tips$Server <- factor(tips$Server)
 ::: {.callout-note collapse="true"}
 ### Alternative
 
-Using tidyverse, the function `mutate` is used to mutate a variable (column) in the data:
+You can change/update a variable (column) in the data using the function `mutate` from the tidyverse package. It works as follows:
 
 ```{r eval=FALSE}
-tips <- tips %>%
+tips <- tips |>
     mutate(
         Day = factor(Day,
                      levels = c("m", "t", "w", "th", "f"),
@@ -458,22 +458,23 @@ tips <- tips %>%
     )
 ```
 
-The functions `%>%` and `mutate` are part of the `tidyverse` package. The former, `%>%`, is called __pipe__.
-
-The pipe works by taking what's on the left and passing it to the operation on the right. For example, rounding to 2 decimal places the logarithm of the whole numbers from 1 to 10:
+The function `|>` is called __pipe__ and works by taking what's on the left and passing it to the operation on the right. For example, you can take the logarithm of the whole numbers from 1 to 10 and round them to 2 digits using this code: 
 
 ```{r}
 round(log(1:10), digits = 2)
 ```
 
-is equivalent to:
+or this equivalent code that uses the pipe `|>`:
 
 ```{r}
-1:10 %>%
-    log() %>%
+1:10 |>
+    log() |>
     round(digits = 2)
 ```
 
+You can loosely think of the pipe as "then". In fact, the pipe takes what's to its left, and then passes it on to what's on its right.
+
+__Curiosity:__ Sometimes you may also find an older version of the pipe, which is `%>%` and works in the same style. However, it requires the package tidyverse to be loaded before you can use the older pipe `%>%`.
 :::
 
 
@@ -506,7 +507,7 @@ tips[tips$PctTip > 100, ]
 Alternatively, using tidyverse, the function `filter` is used to only filter the rows that satisfy a condition:
 
 ```{r}
-tips %>% 
+tips |> 
     filter(PctTip > 100)
 ```
 :::
@@ -535,7 +536,7 @@ tips$PctTip[tips$PctTip > 100] <- NA
 Alternatively you can use tidyverse:
 
 ```{r, eval=FALSE}
-tips <- tips %>%
+tips <- tips |>
     mutate(
         PctTip = ifelse(PctTip > 100, NA, PctTip)
     )
