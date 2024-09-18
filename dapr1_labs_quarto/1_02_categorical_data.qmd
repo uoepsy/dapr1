@@ -74,14 +74,14 @@ To select columns to keep you can either (1) specify the range `from`:`to`, if t
 If the columns you want to keep are sequential, you can just specify the first and last by using numbers:
 
 ```{r}
-toy_data %>%
+toy_data |>
     select(1:3)
 ```
 
 or using their names:
 
 ```{r}
-toy_data %>%
+toy_data |>
     select(id:course)
 ```
 
@@ -94,14 +94,14 @@ If the columns you want to keep are not in sequential order, you have to list al
 You can do so using numbers:
 
 ```{r}
-toy_data %>%
+toy_data |>
     select(1, 2, 3)
 ```
 
 Or column names:
 
 ```{r}
-toy_data %>%
+toy_data |>
     select(id, age, course)
 ```
 
@@ -116,7 +116,7 @@ toy_data
 To store it, we need to assign the result:
 
 ```{r}
-toy_data <- toy_data %>%
+toy_data <- toy_data |>
     select(id:course)
 ```
 
@@ -166,14 +166,14 @@ The goal of data analysis is to to go from a multitude of values to insights tha
     Example:
     
     ```{r}
-    toy_data %>%
-        count(course) %>%
+    toy_data |>
+        count(course) |>
         mutate(
             perc = round(n / sum(n) * 100, 2)
         )
     ```
     
-    __Advanced__: `count(course)` is equivalent to `group_by(course) %>% summarise(n = n())`. See the box below for more details.
+    __Advanced__: `count(course)` is equivalent to `group_by(course) |> summarise(n = n())`. See the box below for more details.
 
 :::{.callout-note collapse="true"}
 #### Alternative
@@ -181,8 +181,8 @@ The goal of data analysis is to to go from a multitude of values to insights tha
 Consider this code:
 
 ```{r}
-toy_data %>%
-    count(course) %>%
+toy_data |>
+    count(course) |>
     mutate(
         perc = round(n / sum(n) * 100, 2)
     )
@@ -191,8 +191,8 @@ toy_data %>%
 You can change the names of the frequency from `n` to `Freq` and `perc` to `Perc` using:
 
 ```{r}
-toy_data %>%
-    count(course, name = "Freq") %>%
+toy_data |>
+    count(course, name = "Freq") |>
     mutate(
         Perc = round(Freq / sum(Freq) * 100, 2)
     )
@@ -201,8 +201,8 @@ toy_data %>%
 An alternative to the above involves using the `group_by()`, `summarise()`, and `n()` functions from `tidyverse`. The following code creates a table of absolute frequencies (or counts):
 
 ```{r}
-toy_data %>%
-    group_by(course) %>%
+toy_data |>
+    group_by(course) |>
     summarise(
         Freq = n()
     )
@@ -213,11 +213,11 @@ In the code above, we take `toy_data` and perform a grouped computation for each
 The following code mutates the frequency table and adds a new column storing the percentages, which is given the name `Perc`:
 
 ```{r}
-toy_data %>%
-    group_by(course) %>%
+toy_data |>
+    group_by(course) |>
     summarise(
         Freq = n()
-    ) %>%
+    ) |>
     mutate(
         Perc = round(Freq / sum(Freq) * 100, 2)
     )
@@ -255,7 +255,7 @@ summary(movies)
 # week 2
 library(patchwork)
 
-movies <- movies %>%
+movies <- movies |>
     select(1:15)
 
 freqGenre <- ggplot(movies, aes(x = Genre)) +
@@ -268,16 +268,16 @@ freqLeadStudio <- ggplot(movies, aes(x = LeadStudio)) +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 freqGenre | freqLeadStudio
 
-movies %>% 
-    count(Genre, name = 'Freq') %>% 
-    mutate(Perc = Freq / sum(Freq) * 100) %>% 
-    mutate(Perc = round(Perc, 2)) %>% 
+movies |> 
+    count(Genre, name = 'Freq') |> 
+    mutate(Perc = Freq / sum(Freq) * 100) |> 
+    mutate(Perc = round(Perc, 2)) |> 
     arrange(desc(Freq))
 
-movies %>% 
-    count(LeadStudio, name = 'Freq') %>% 
-    mutate(Perc = Freq / sum(Freq) * 100) %>% 
-    mutate(Perc = round(Perc, 2)) %>% 
+movies |> 
+    count(LeadStudio, name = 'Freq') |> 
+    mutate(Perc = Freq / sum(Freq) * 100) |> 
+    mutate(Perc = round(Perc, 2)) |> 
     arrange(desc(Freq))
 
 ```
@@ -302,8 +302,8 @@ tribble(
     'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday',
     'Server', 'Code for specific waiter/waitress: A, B, or C',
     'PctTip', 'Tip as a percentage of the bill'
-) %>%
-    kbl() %>%
+) |>
+    kbl() |>
     kable_styling(full_width = FALSE)
 ```
 
@@ -403,7 +403,7 @@ ifelse(test_condition,
 :::
 
 ```{r}
-tips <- tips %>%
+tips <- tips |>
     mutate(
         PctTip = ifelse(PctTip > 100, NA, PctTip)
     )
@@ -509,8 +509,8 @@ plt1 | plt2 | plt3
 A frequency table can be obtained using:
 
 ```{r}
-tbl_credit <- tips %>%
-    count(Credit) %>%
+tbl_credit <- tips |>
+    count(Credit) |>
     mutate(
         perc = round((n / sum(n)) * 100, 2)
     )
@@ -518,8 +518,8 @@ tbl_credit
 ```
 
 ```{r}
-tbl_day <- tips %>%
-    count(Day) %>%
+tbl_day <- tips |>
+    count(Day) |>
     mutate(
         perc = round((n / sum(n)) * 100, 2)
     )
@@ -527,8 +527,8 @@ tbl_day
 ```
 
 ```{r}
-tbl_server <- tips %>%
-    count(Server) %>%
+tbl_server <- tips |>
+    count(Server) |>
     mutate(
         perc = round((n / sum(n)) * 100, 2)
     )
@@ -558,9 +558,9 @@ kbl(list(tbl_credit, tbl_day, tbl_server), booktabs = TRUE)
 #| layout-ncol: 3
 #| echo: false
 
-kbl(tbl_credit) %>% kable_styling(full_width = FALSE)
-kbl(tbl_day) %>% kable_styling(full_width = FALSE)
-kbl(tbl_server) %>% kable_styling(full_width = FALSE)
+kbl(tbl_credit) |> kable_styling(full_width = FALSE)
+kbl(tbl_day) |> kable_styling(full_width = FALSE)
+kbl(tbl_server) |> kable_styling(full_width = FALSE)
 ```
 
 <!-- End test -->
@@ -571,11 +571,11 @@ kbl(tbl_server) %>% kable_styling(full_width = FALSE)
 Add `arrange(desc(<column_of_freq>))`. For example:
 
 ```{r}
-tbl_day <- tips %>%
-    count(Day) %>%
+tbl_day <- tips |>
+    count(Day) |>
     mutate(
         perc = round((n / sum(n)) * 100, 2)
-    ) %>%
+    ) |>
     arrange(desc(n))
 tbl_day
 ```
@@ -594,11 +594,11 @@ You can specify any valid name for the percentages inside of mutate.
 For example:
 
 ```{r}
-tbl_day <- tips %>%
-    count(Day, name = "Freq") %>%
+tbl_day <- tips |>
+    count(Day, name = "Freq") |>
     mutate(
         Perc = round((Freq / sum(Freq)) * 100, 2)
-    ) %>%
+    ) |>
     arrange(desc(Freq))
 tbl_day
 ```
@@ -621,7 +621,7 @@ To reference a table in text you first give the code chunk a unique label, e.g. 
 
 ````
 ```{{r tableLabel}}
-tbl_credit %>%
+tbl_credit |>
     kbl(digits = 2, booktabs = TRUE, caption = "My table caption is this")
 ```
 ````
@@ -631,8 +631,8 @@ This creates
 ```{r tableLabel, echo=FALSE}
 #| label: tbl-label
 #| tbl-cap: "My table caption is this"
-tbl_credit %>%
-    kbl(digits = 2, caption = "My table caption is this") %>%
+tbl_credit |>
+    kbl(digits = 2, caption = "My table caption is this") |>
     kable_styling(full_width = FALSE)
 ```
 
@@ -654,7 +654,7 @@ To conclude the lab, add the new functions to the glossary of R functions that y
 | Function   | Use and package |
 |:-----------|:--------------|
 | `factor` | ? |
-| `%>%` | ? |
+| `|>` | ? |
 | `geom_bar` | ? |
 | `labs` | ? |
 | `count`     | ?   |

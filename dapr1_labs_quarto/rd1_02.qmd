@@ -48,19 +48,19 @@ We can write in a different style, however, and this may help to keep code tidy 
 
 ![](images/categorical/pipes.png)
 
-Notice that what we are doing is using a new symbol: `%>%`  
-This symbol takes the output of whatever is on it's left-hand side, and uses it as an _input_ for whatever is on the right-hand side. The `%>%` symbol gets called a "pipe".  
+Notice that what we are doing is using a new symbol: `|>`  
+This symbol takes the output of whatever is on it's left-hand side, and uses it as an _input_ for whatever is on the right-hand side. The `|>` symbol gets called a "pipe".  
 
-Let's see it in action with the starwars2 dataset. The data contains information on various characteristics of characters from Star Wars. Before we can use the pipe operator, `%>%`, we need to load the tidyverse packages, because that is where `%>%` is found.
+Let's see it in action with the starwars2 dataset. The data contains information on various characteristics of characters from Star Wars. Before we can use the pipe operator, `|>`, we need to load the tidyverse packages, because that is where `|>` is found.
 
 ```{r}
 library(tidyverse)
 library(patchwork)
 
 starwars2 <- read_csv("https://uoepsy.github.io/data/starwars2.csv")
-starwars2 %>%
+starwars2 |>
     head()
-starwars2 %>%
+starwars2 |>
     summary()
 ```
 
@@ -73,8 +73,8 @@ summary(as.factor(starwars2$homeworld))
 or which requires reading it from left to right:
 
 ```{r}
-starwars2$homeworld %>%
-    as.factor() %>%
+starwars2$homeworld |>
+    as.factor() |>
     summary()
 ```
 
@@ -89,15 +89,15 @@ round(mean(log(cumsum(diff(1:10)))))
 becomes:
 
 ```{r eval=FALSE}
-1:10 %>%
-    diff() %>%
-    cumsum() %>%
-    log() %>%
-    mean() %>%
+1:10 |>
+    diff() |>
+    cumsum() |>
+    log() |>
+    mean() |>
     round()
 ```
 
-We're going to use this way of writing a lot throughout the course, and it pairs really well with a group of functions in the __tidyverse__ packages, which were designed to be used in conjunction with `%>%`.
+We're going to use this way of writing a lot throughout the course, and it pairs really well with a group of functions in the __tidyverse__ packages, which were designed to be used in conjunction with `|>`.
 
 
 ## Data Exploration
@@ -146,16 +146,16 @@ psych_disciplines
 We can get the frequencies of different response levels of the _discipline_ variable by using the following code: 
 ```{r}
 # start with the psych_disciplines dataframe 
-# %>%
+# |>
 # count() the values in the "area" variable 
-psych_disciplines %>%
+psych_disciplines |>
     count(area)
 ```
 
 :::{.callout-note collapse="true"}
 ### Extra detail on how this works
 
-In the code above, R knows to look for the _area_ variable inside the psych_disciplines data because we used `%>%` to "pipe" in the psych_disciplines dataframe.  
+In the code above, R knows to look for the _area_ variable inside the psych_disciplines data because we used `|>` to "pipe" in the psych_disciplines dataframe.  
 We could have also done:
 ```{r}
 # count(data, variable)
@@ -178,7 +178,7 @@ Let's store it as an object in R:
 # the counts of values of "area" variable in 
 # the psych_discipline dataframe.
 freq_table <- 
-    psych_disciplines %>%
+    psych_disciplines |>
     count(area)
 
 # show the object called "freq_table"
@@ -187,8 +187,8 @@ freq_table
 
 For a report, we might want to make it a little more easily readable:
 ```{r eval=FALSE, echo=FALSE}
-knitr::kable(count(psych_disciplines, area) %>% 
-                 arrange(desc(n)) %>%
+knitr::kable(count(psych_disciplines, area) |> 
+                 arrange(desc(n)) |>
                  rename(`sub-discipline`=area, `number of respondents`=n))
 ```
 
@@ -240,7 +240,7 @@ freq_table$prop <- freq_table$n/sum(freq_table$n)
 freq_table
 ```
 <br>
-However, we can also do this within a sequence of pipes (`%>%`). To do so, we use a new function called `mutate()`.  
+However, we can also do this within a sequence of pipes (`|>`). To do so, we use a new function called `mutate()`.  
 
 :::{.callout-note}
 ### mutate
@@ -248,10 +248,10 @@ However, we can also do this within a sequence of pipes (`%>%`). To do so, we us
 The `mutate()` function is used to add or modify variables to data.  
 ```{r eval=FALSE}
 # take the data
-# %>%
+# |>
 # mutate it, such that there is a variable called "newvariable", which
 # has the values of a variable called "oldvariable" multiplied by two.
-data %>%
+data |>
   mutate(
     newvariable = oldvariable * 2
   )
@@ -261,7 +261,7 @@ __Note:__ Inside `mutate()`, we don't have to keep using the dollar sign `$`, as
 To ensure that our additions/modifications of variables are stored in R's environment (rather than simply printed out), we need to *reassign* the name of our dataframe:
 ```{r eval=FALSE}
 data <- 
-  data %>%
+  data |>
   mutate(
     newvariable = oldvariable * 2
   )
@@ -276,8 +276,8 @@ We can actually _add this step to our earlier code:_
 # from there, 'mutate' such that there is a variable called "prop" which
 # has the values of the "n" variable divided by the sum of the "n" variable.
 freq_table <- 
-  psych_disciplines %>%
-  count(area) %>%
+  psych_disciplines |>
+  count(area) |>
   mutate(
     prop = n/sum(n)
   )
@@ -415,14 +415,14 @@ psych_survey
 
 For these questions (variables _happiness_ and _job_sat_), we could do the same thing as we did above for unordered categorical data, and summarise this into  frequencies:
 ```{r}
-# take the "psych_survey" dataframe %>%
+# take the "psych_survey" dataframe |>
 # count() the values in the "happiness" variable 
-psych_survey %>%
+psych_survey |>
     count(happiness)
     
-# take the "psych_survey" dataframe %>%
+# take the "psych_survey" dataframe |>
 # count() the values in the "job_sat" variable 
-psych_survey %>%
+psych_survey |>
     count(job_sat)
 ```
 
@@ -504,15 +504,15 @@ They are the __successive addition of percentages__ in each category. For exampl
 tibble(
   Category = paste0("Response ",1:5),
   n = c(10,10,20,25,10)
-) %>% mutate(
+) |> mutate(
   p = n/sum(n)*100,
   cn = cumsum(n),
   cp = cumsum(p)
-) %>% rename(`Frequency count (n)`=n,
+) |> rename(`Frequency count (n)`=n,
              `Relative frequency (%)`=p,
              `Cumulative frequency`=cn,
              `Cumulative percentage`=cp
-             ) %>%
+             ) |>
   knitr::kable(digits = 2)
 ```
 :::
@@ -520,12 +520,12 @@ tibble(
 We saw before how we can calculate the proportions/percentages in each category:  
 ( __Note:__ We multiply by 100 here to turn the proportion into a percentage)
 ```{r}
-# take the "psych_survey" dataframe %>%
+# take the "psych_survey" dataframe |>
 # count() the values in the "happiness" variable (creates an "n" column), and
 # from there, 'mutate' such that there is a variable called "percent" which
 # has the values of the "n" variable divided by the sum of the "n" variable.
-psych_survey %>%
-  count(happiness) %>%
+psych_survey |>
+  count(happiness) |>
   mutate(
     percent = n/sum(n)*100
   )
@@ -533,14 +533,14 @@ psych_survey %>%
 
 We can add another variable, and make it the cumulative percentage, by using the `cumsum()` function. 
 ```{r}
-# take the "psych_survey" dataframe %>%
+# take the "psych_survey" dataframe |>
 # count() the values in the "happiness" variable (creates an "n" column), and
 # from there, 'mutate' such that there is a variable called "percent" which
 # has the values of the "n" variable divided by the sum of the "n" variable,
 # and also make a variable called "cumulative_percent" which is the 
 # successive addition of the values in the "percent" variable
-psych_survey %>% 
-  count(happiness) %>% 
+psych_survey |> 
+  count(happiness) |> 
   mutate(
     percent = n/sum(n)*100,
     cumulative_percent = cumsum(percent)
@@ -554,8 +554,8 @@ psych_survey %>%
 Think about why this will not work:
 
 ```{r eval=FALSE}
-psych_survey %>% 
-  count(happiness) %>% 
+psych_survey |> 
+  count(happiness) |> 
   mutate(
     cumulative_percent = cumsum(percent),
     percent = n/sum(n)*100
@@ -601,8 +601,8 @@ We will talk about quartiles in numeric data too, where we commonly use the _dif
 We can visualise ordered categorical data in the same way we did for unordered.  
 First we save our frequencies/percentages as a new object:
 ```{r}
-freq_table2 <- psych_survey %>%
-  count(happiness) %>%
+freq_table2 <- psych_survey |>
+  count(happiness) |>
   mutate(
     percent = n/sum(n)*100
   )
@@ -629,7 +629,7 @@ ggplot(data = freq_table2, aes(x = happiness, y = percent)) +
 + __mode:__ Most common value.
 + __median:__ Middle value.
 <br><br>
-+ `%>%` Takes the output of whatever is on the LHS and gives it as the input of whatever is on the RHS.
++ `|>` Takes the output of whatever is on the LHS and gives it as the input of whatever is on the RHS.
 + `count()` Counts the number of occurrences of each unique value in a variable.
 + `mutate()` Used to add variables to the dataframe, or modify existing variables. 
 + `min()` Returns the minimum value of a variable. 

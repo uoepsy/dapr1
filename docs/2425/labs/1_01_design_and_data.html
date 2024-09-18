@@ -576,9 +576,9 @@ Think about it
 </div>
 </div></div><ul>
 <li><p>What is the type of each variable?<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></p></li>
-<li><p>What’s the minimum and maximum budget in the sample? What about the average Rotten Tomatoes rating?<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a></p></li>
-<li><p>Do you notice any issues when computing the minimum and maximum Budget and the average RottenTomatoes rating?<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a></p></li>
-<li><p>What is the range (i.e.&nbsp;minimum and maximum) of the variables in the data? What about the number of missing values for each variable?<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a></p></li>
+<li><p>What’s the minimum and maximum budget in the sample? What about the minimum and maximum Rotten Tomatoes rating?<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a></p></li>
+<li><p>Do you notice any issues when computing the minimum/maximum Budget and the minimum/maximum RottenTomatoes rating?<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a></p></li>
+<li><p>Which variables have missing values in the dataset, and how many missing values does each have?<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a></p></li>
 <li><p>Write-up a description of the dataset for the reader. You don’t need to show the actual data in the report, but a description in words is sufficient for the reader.</p></li>
 </ul>
 <!-- Some code --><!-- End --></section></section><section id="worked-example" class="level2 page-columns page-full" data-number="2"><h2 data-number="2" class="anchored" data-anchor-id="worked-example">
@@ -965,6 +965,21 @@ Alternative
         NA's   :1      </code></pre>
 </div>
 </div>
+<p>The function <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> return a numeric answer for the min/max/mean, see above, even in the presence of missing values (NAs).</p>
+<p>However, if you use functions such as <code><a href="https://rdrr.io/r/base/Extremes.html">min()</a></code>, <code><a href="https://rdrr.io/r/base/Extremes.html">max()</a></code>, <code><a href="https://rdrr.io/r/base/mean.html">mean()</a></code>, which compute the minimum, maximum, and mean (i.e., average) of a variable respectively, they will return NA when applied to a variable that contains a missing value:</p>
+<div class="cell">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">tips</span><span class="op">$</span><span class="va">Tip</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] NA</code></pre>
+</div>
+</div>
+<p>To get a numeric result, you need to include the argument, i.e.&nbsp;the option, <code>na.rm = TRUE</code>:</p>
+<div class="cell">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">tips</span><span class="op">$</span><span class="va">Tip</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.25</code></pre>
+</div>
+</div>
 <div class="callout callout-style-simple callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1048,12 +1063,12 @@ Lock, Robin H, Patti Frazer Lock, Kari Lock Morgan, Eric F Lock, and Dennis F Lo
 <li id="fn2"><p> Hint: <code>nrow(DATA)</code> <br> or <code>dim(DATA)[1]</code><a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn3"><p> Hint: <code>ncol(DATA)</code> <br> or <code>dim(DATA)[2]</code><a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn4"><p> Hint: <code>glimpse(DATA)</code> from <code>tidyverse</code><br> or <code>str(DATA)</code><br> or <code>sapply(DATA, data.class)</code><a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn5"><p> Hint: <code>summary(DATA)</code><br> or <code>min(DATA$VARIABLE)</code> and <code>max(DATA$VARIABLE)</code><br> Hint: <code>mean(DATA$VARIABLE)</code><a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p> Hint: <code>summary(DATA$VARIABLE)</code><br> or <code>min(DATA$VARIABLE)</code> and <code>max(DATA$VARIABLE)</code><a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn6"><p> For some movies, data on the budget or rotten tomatoes rating are not available (NA). These are also called missing values.<br>
-If you used the functions <code><a href="https://rdrr.io/r/base/Extremes.html">min()</a></code>, <code><a href="https://rdrr.io/r/base/Extremes.html">max()</a></code>, <code><a href="https://rdrr.io/r/base/mean.html">mean()</a></code> you will get NA as a result. This is because if a value is missing, you cannot compute the mean of something you don’t know. For example, what is the mean of 5, 10, and NA? How would I compute (5 + 10 + NA) / 3? I don’t know, so it remains NA.<br>
-You can tell R to ignore the missing values by saying <code>min(DATA$VARIABLE, na.rm = TRUE)</code> and similarly for <code>max</code> and <code>mean</code>.<br>
-Instead, <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> does this for you automatically and immediately tells you if a variable had any NAs and how many.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn7"><p> Hint: <code>summary(DATA)</code> and <code>nrow(DATA)</code><a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+If you used the functions <code><a href="https://rdrr.io/r/base/Extremes.html">min()</a></code>, <code><a href="https://rdrr.io/r/base/Extremes.html">max()</a></code>, you will get NA as a result. This is because if a value is missing, you cannot compute the mean of something you don’t know. For example, what is the mean of 5, 10, and NA? How would I compute (5 + 10 + NA) / 3? I don’t know, so it remains NA.<br>
+You can tell R to ignore the missing values by saying <code>min(DATA$VARIABLE, na.rm = TRUE)</code> and similarly for <code>max</code> and other functions like <code>mean</code>, which computes the average instead.<br>
+The <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> function, instead, does this for you automatically and immediately tells you if a variable had any NAs and how many.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p> Hint: <code>summary(DATA)</code> shows the variables and the number of missing values in each variable.<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol></section></div></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
