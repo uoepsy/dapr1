@@ -48,7 +48,7 @@ To see the hints, hover your cursor on the superscript numbers.
 :::
 
 - Reopen last week's Rmd file, as you will continue last week's work and build on it.^[
-Hint: ask last week's driver for the Rmd file, they should share it with the group via email or Teams.
+Hint: access the Rmd file from the Group Discussion Space. <br>If last week's driver hasn't uploaded it yet, please ask them to share it with the group via the Group Discussion Space, email, or Teams.
 ]
 
 :::{.callout-note collapse="true"}
@@ -57,6 +57,10 @@ Hint: ask last week's driver for the Rmd file, they should share it with the gro
 Consider a table of toy data comprising a participant identifier (id: 1 to 5), the participant age, the course (A or B) they are enrolled into, and their height:
 
 ```{r}
+# This code creates some toy data. 
+#   tibble() creates a dataset
+#   each column is specied as column_name = values
+#   the function c() is used to concatenate the values going into a column
 toy_data <- tibble(
     id = 1:5,
     age = c(18, 20, 25, 22, 19),
@@ -113,7 +117,7 @@ However, if you check the data in `toy_data`, those didn't change. The result of
 toy_data
 ```
 
-To store it, we need to assign the result:
+To store it, we need to assign the result to an object. By using the same name `toy_data` we overwrite the data:
 
 ```{r}
 toy_data <- toy_data |>
@@ -127,7 +131,7 @@ toy_data
 By doing the above, we have overwritten the data stored in `toy_data` with the selected columns.
 :::
 
-- Overwrite the data to only include the first 15 variables (i.e. columns).^[Hint: the `select()` function from `tidyverse`]
+- In Formative Report A you will only work with the variables (i.e., columns) `Movie` up to, and including, `Year`. Overwrite the data to only include the first 15 variables.^[Hint: the `select()` function from `tidyverse`.<br>For an explanation of the function, did you read the drop down "Selecting a subset of columns"?]
 
 - Create a plot displaying the frequency distribution of movie genres.[^geom-bar]
 
@@ -136,32 +140,47 @@ By doing the above, we have overwritten the data stored in `toy_data` with the s
     Example: For the `toy_data` from above, the frequency distribution of course enrollment is:
 
     ```{r}
+    #| code-line-numbers: true
+    #| eval: false
     ggplot(toy_data, aes(x = course)) +
         geom_bar() +
         labs(x = "Enrollment per course", y = "Frequency")
     ```
-
+    
+    Line 1 sets the plotting canvas: it tells R to make a plot of the data `toy_data` and to put the column `course` on the x-axis of the plot.  
+    Line 2 tells R to plot the data as a frequency barplot.  
+    Line 3 provides user-friendly labels for the x-axis and y-axis.
+    
+    ```{r}
+    #| echo: false
+    ggplot(toy_data, aes(x = course)) +
+        geom_bar() +
+        labs(x = "Enrollment per course", y = "Frequency")
+    ```
+    
 - Create a plot displaying the frequency distribution of the lead studios.^[
 Hint: similar to above, change the column to `LeadStudio`.
 ]
 
-- Would it make sense to create a plot of the frequency distribution of movie names?^[
-Hint: what would be the height of each bar? Would adding such a plot to a report bring any insights and be useful to a decision maker?<br><br>
-In the data, `Movie`, which stores the movie title, is what is known is statistics as the "identifier" or "ID". This uniquely identifies each unit in the study. If your study involved several participants, your ID would be the unique participant identifier. It doesn't make sense to plot the frequency distribution of an identifier variable as it will have vertical bars all of height equal 1.
+- _Thinking question:_ Would it make sense to plot the frequency distribution of movie titles (`Movie`)?^[
+Hint: what would be the height of each bar? Would adding such plot to a report give any useful insights to decision makers?<br><br>
+In the data, `Movie` stores the movie titles. This variable is what is known in statistics as an "identifier" or "ID" variable as it uniquely identifies each unit in the study. 
+If your study involved several participants, your ID would be the unique participant identifier. 
+Plotting the frequency distribution of an identifier variable doesn't convey insights or summarise the data as all vertical bars in the frequency plot will have height equal 1.
 ]
 
 ::: {.callout-tip}
 #### Tip
 
-Before applying a function to your data, you should always ask yourself if what you are about to do is going to convey any insight about the data, compared to just looking at the data itself.  
-The goal of data analysis is to to go from a multitude of values to insights that provide actionable information from a quick glance.
+Before applying a function to your data, you should always ask yourself if what you are about to do is going to convey insights about the data, as opposed to directly looking at the data.  
+The goal of data analysis is to to go from a multitude of values to insights that provide actionable information.
 :::
 
 - Describe the distribution of movie genres. You may want to include both the frequency and the percentage frequency.[^movies-freq-distr]
 
 [^movies-freq-distr]: Hint: We describe categorical variables with frequency distributions.
 
-    Consider using the `count` function from tidyverse and `mutate` for adding percentages.
+    Consider using the `count()` function from tidyverse and `mutate()` for adding percentages.
     
     Example:
     
@@ -169,61 +188,36 @@ The goal of data analysis is to to go from a multitude of values to insights tha
     toy_data |>
         count(course) |>
         mutate(
-            perc = round(n / sum(n) * 100, 2)
+            Percent = round(n / sum(n) * 100, digits = 2)
         )
     ```
     
     __Advanced__: `count(course)` is equivalent to `group_by(course) |> summarise(n = n())`. See the box below for more details.
 
 :::{.callout-note collapse="true"}
-#### Alternative
+#### An alternative to `count()`
 
-Consider this code:
-
-```{r}
-toy_data |>
-    count(course) |>
-    mutate(
-        perc = round(n / sum(n) * 100, 2)
-    )
-```
-
-You can change the names of the frequency from `n` to `Freq` and `perc` to `Perc` using:
+Consider the code below, which creates a table of absolute frequencies (or counts):
 
 ```{r}
 toy_data |>
-    count(course, name = "Freq") |>
-    mutate(
-        Perc = round(Freq / sum(Freq) * 100, 2)
-    )
+    count(course)
 ```
 
-An alternative to the above involves using the `group_by()`, `summarise()`, and `n()` functions from `tidyverse`. The following code creates a table of absolute frequencies (or counts):
+An alternative to the above involves using the `group_by()`, `summarise()`, and `n()` functions from `tidyverse`:
 
 ```{r}
+#| code-line-numbers: true
 toy_data |>
     group_by(course) |>
     summarise(
-        Freq = n()
+        n = n(),
     )
 ```
 
-In the code above, we take `toy_data` and perform a grouped computation for each separate `course` (because of `group_by`). The computation says to summarise the data by creating a new column named `Freq` which stores the counts of the values in each group (`n()`).
-
-The following code mutates the frequency table and adds a new column storing the percentages, which is given the name `Perc`:
-
-```{r}
-toy_data |>
-    group_by(course) |>
-    summarise(
-        Freq = n()
-    ) |>
-    mutate(
-        Perc = round(Freq / sum(Freq) * 100, 2)
-    )
-```
-
-The function `round(<values>, 2)` tells R to round the percentages to 2 decimal places.
+Line 1 takes `toy_data` and then does something to it (`|>`).  
+Line 2 specifies to do any computations which follow separately for each `course` (the groups).  
+Lines 3-5 summarise the data by creating a column named `n` (the name goes before the = sign) that stores the sizes of each group. The group size is returned by the tidyverse function `n()`.
 
 :::
 
@@ -233,10 +227,14 @@ Hint: similar to above, but replacing `Genre` with `LeadStudio`
 
 - What is the most common genre and the most common lead studio?^[
 Hint: What is the mode of `Genre` and `LeadStudio`? In other words, which category in each of those frequency distributions has the highest frequency?<br><br>
-Tip: You may want to order the barplots and/or frequency tables in descending order. For barplots, the function `fct_infreq()` may help. For tables, the function `arrange(desc(<column_of_freq>))` may help.
+Tip: You may want to order the barplots and/or frequency tables in descending order to help you identify the mode.  
+For barplots, use `aes(x = fct_infreq(VARIABLE))` instead of `aes(x = VARIABLE)`. The function `fct_infreq()` orders a categorical variable according to the frequencies.  
+For tables, add `|> arrange(desc(n))` at the end of the table code.
 ]
 
 - Format your frequency tables properly using the `kbl()` function from the `kableExtra` package.^[Hint: See the worked example below.]
+
+- Summarise your findings in the Analysis section. For each categorical variable, show either the frequency table or frequency plot in the Analysis section, not both. This avoids duplication of information.
 
 
 <!-- Solution -->
@@ -269,15 +267,13 @@ freqLeadStudio <- ggplot(movies, aes(x = LeadStudio)) +
 freqGenre | freqLeadStudio
 
 movies |> 
-    count(Genre, name = 'Freq') |> 
-    mutate(Perc = Freq / sum(Freq) * 100) |> 
-    mutate(Perc = round(Perc, 2)) |> 
-    arrange(desc(Freq))
+    count(Genre) |> 
+    mutate(Perc = round(n / sum(n) * 100, digits = 2)) |> 
+    arrange(desc(n))
 
 movies |> 
     count(LeadStudio, name = 'Freq') |> 
-    mutate(Perc = Freq / sum(Freq) * 100) |> 
-    mutate(Perc = round(Perc, 2)) |> 
+    mutate(Perc = round(n / sum(n) * 100, digits = 2)) |> 
     arrange(desc(Freq))
 
 ```
@@ -512,7 +508,7 @@ A frequency table can be obtained using:
 tbl_credit <- tips |>
     count(Credit) |>
     mutate(
-        perc = round((n / sum(n)) * 100, 2)
+        Percent = round((n / sum(n)) * 100, digits = 2)
     )
 tbl_credit
 ```
@@ -521,7 +517,7 @@ tbl_credit
 tbl_day <- tips |>
     count(Day) |>
     mutate(
-        perc = round((n / sum(n)) * 100, 2)
+        Percent = round((n / sum(n)) * 100, digits = 2)
     )
 tbl_day
 ```
@@ -530,7 +526,7 @@ tbl_day
 tbl_server <- tips |>
     count(Server) |>
     mutate(
-        perc = round((n / sum(n)) * 100, 2)
+        Percent = round((n / sum(n)) * 100, digits = 2)
     )
 tbl_server
 ```
@@ -574,7 +570,7 @@ Add `arrange(desc(<column_of_freq>))`. For example:
 tbl_day <- tips |>
     count(Day) |>
     mutate(
-        perc = round((n / sum(n)) * 100, 2)
+        Percent = round((n / sum(n)) * 100, digits = 2)
     ) |>
     arrange(desc(n))
 tbl_day
@@ -597,7 +593,7 @@ For example:
 tbl_day <- tips |>
     count(Day, name = "Freq") |>
     mutate(
-        Perc = round((Freq / sum(Freq)) * 100, 2)
+        Perc = round((Freq / sum(Freq)) * 100, digits = 2)
     ) |>
     arrange(desc(Freq))
 tbl_day
