@@ -47,7 +47,7 @@ To see the hints, hover your cursor on the superscript numbers.
 :::
 
 - Reopen last week's Rmd file, as you will continue last week's work and build on it.^[
-Hint: ask last week's driver for the Rmd file, they should share it with the group via email or Teams.  
+Hint: access the Rmd file from the Group Discussion Space. <br>If last week's driver hasn't uploaded it yet, please ask them to share it with the group via the Group Discussion Space, email, or Teams.<br><br>
 To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
 ]
 
@@ -105,7 +105,7 @@ ggplot(starwars, aes(x = height)) +
     + Foreign gross income
     + Year of movie release
 
-[^num-hist]: Hint: `geom_histogram()`, `geom_density()`, or `geom_boxplot()`. 
+[^num-hist]: Hint: you could use `geom_histogram()`, `geom_density()`, or `geom_boxplot()`. 
 
     __Stop and think__. Do you notice anything strange in the distribution of one of the variables? Among the six variables, one is different from the other 5. Can you think of which one, and why? 
     
@@ -113,9 +113,9 @@ ggplot(starwars, aes(x = height)) +
 
 - Arrange the above plots as a single figure comprising 2 by 3 panels[^num-patchwork]
 
-[^num-patchwork]: Hint: the `|` and `/` functions from the `patchwork` package.
+[^num-patchwork]: Hint: use the `|` and `/` functions from the `patchwork` package. Before you can use these functions, remember to load the package via `library(patchwork)`.
 
-    For example, if `plt1`, `plt2`, `plt3`, and `plt4` are four plots, this creates a single figure of 2 by 2 panels:
+    For example, if you stored four plots into `plt1`, `plt2`, `plt3`, and `plt4`, the code below creates a single figure of 2 by 2 panels:
     
     `(plt1 | plt2) / (plt3 | plt4)`
 
@@ -126,9 +126,9 @@ ggplot(starwars, aes(x = height)) +
 Consider again the starwars dataset. The mean and SD of the height variable can be computed as:
 
 ```{r}
-starwars %>%
+starwars |>
     summarise(M = mean(height, na.rm = TRUE),
-              SD = sd(height, na.rm = TRUE)) %>%
+              SD = sd(height, na.rm = TRUE)) |>
     round(digits = 2)
 ```
 
@@ -137,19 +137,19 @@ To make a nice table for the PDF document, you can use the `kbl()` function from
 ```{r eval = FALSE}
 library(kableExtra)
 
-starwars %>%
+starwars |>
     summarise(M = mean(height, na.rm = TRUE),
-              SD = sd(height, na.rm = TRUE)) %>%
+              SD = sd(height, na.rm = TRUE)) |>
     kbl(booktabs = TRUE, digits = 2)
 ```
 
 ```{r echo = FALSE}
 library(kableExtra)
 
-starwars %>%
+starwars |>
     summarise(M = mean(height, na.rm = TRUE),
-              SD = sd(height, na.rm = TRUE)) %>%
-    kbl(digits = 2) %>%
+              SD = sd(height, na.rm = TRUE)) |>
+    kbl(digits = 2) |>
     kable_styling(full_width = FALSE)
 ```
 :::
@@ -170,9 +170,9 @@ The following code creates a table of descriptive statistics (via the `describe`
 library(kableExtra) # for the kbl function
 library(psych)      # for the describe function
 
-starwars %>%
-    select(height, mass) %>%
-    describe() %>%
+starwars |>
+    select(height, mass) |>
+    describe() |>
     kbl(digits = 2, booktabs = TRUE)   # kbl converts to a nice PDF table
 ```
 
@@ -180,10 +180,10 @@ starwars %>%
 library(kableExtra) # for the kbl function
 library(psych)      # for the describe function
 
-starwars %>%
-    select(height, mass) %>%
-    describe() %>%
-    kbl(digits = 2) %>%
+starwars |>
+    select(height, mass) |>
+    describe() |>
+    kbl(digits = 2) |>
     kable_styling(full_width = FALSE)
 ```
 
@@ -193,10 +193,10 @@ To only show the columns `n`, `mean`, `sd`, `median` you can use:
 library(kableExtra) # for the kbl function
 library(psych)      # for the describe function
 
-starwars %>%
-    select(height, mass) %>%
-    describe() %>%
-    select(n, mean, sd, median) %>%
+starwars |>
+    select(height, mass) |>
+    describe() |>
+    select(n, mean, sd, median) |>
     kbl(digits = 2, booktabs = TRUE)   # kbl converts to a nice PDF table
 ```
 
@@ -204,11 +204,11 @@ starwars %>%
 library(kableExtra) # for the kbl function
 library(psych)      # for the describe function
 
-starwars %>%
-    select(height, mass) %>%
-    describe() %>%
-    select(n, mean, sd, median) %>%
-    kbl(digits = 2) %>%
+starwars |>
+    select(height, mass) |>
+    describe() |>
+    select(n, mean, sd, median) |>
+    kbl(digits = 2) |>
     kable_styling(full_width = FALSE)
 ```
 
@@ -278,8 +278,8 @@ tribble(
     'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday',
     'Server', 'Code for specific waiter/waitress: A, B, or C',
     'PctTip', 'Tip as a percentage of the bill'
-) %>%
-    kbl() %>%
+) |>
+    kbl() |>
     kable_styling(full_width = FALSE)
 ```
 
@@ -307,7 +307,7 @@ glimpse(tips)
 ```
 
 ```{r}
-tips <- tips %>%
+tips <- tips |>
     mutate(
         PctTip = ifelse(PctTip > 100, NA, PctTip)
     )
@@ -367,7 +367,7 @@ pltPctTip <- ggplot(tips, aes(x = PctTip)) +
 To summarise one numeric variable, you can use the `summarise` function from tidyverse, which takes the data and computes a numeric summary. The syntax is:
 
 ```
-data %>%
+data |>
     summarise(
         write_the_column_name = computation
     )
@@ -376,21 +376,21 @@ data %>%
 This computes the mean and SD of tip size (in US dollars), and calls the column storing the mean `M`, and the column storing the standard deviation `SD`:
 
 ```{r eval=F}
-tips %>%
+tips |>
     summarise(
         M = mean(Tip, na.rm = TRUE),
         SD = sd(Tip, na.rm = TRUE)
-    ) %>%
+    ) |>
     kbl(digits = 2, booktabs = TRUE)
 ```
 
 ```{r echo=F}
-tips %>%
+tips |>
     summarise(
         M = mean(Tip, na.rm = TRUE),
         SD = sd(Tip, na.rm = TRUE)
-    ) %>%
-    kbl(digits = 2) %>%
+    ) |>
+    kbl(digits = 2) |>
     kable_styling(full_width = FALSE)
 ```
 
@@ -400,9 +400,9 @@ To summarise all of the numeric variables into a single table of descriptive sta
 library(kableExtra)
 library(psych)
 
-tips %>%
-    select(Bill, Tip, Guests, PctTip) %>%
-    describe() %>%
+tips |>
+    select(Bill, Tip, Guests, PctTip) |>
+    describe() |>
     kbl(booktabs = TRUE, digits = 2)
 ```
 
@@ -410,10 +410,10 @@ tips %>%
 library(kableExtra)
 library(psych)
 
-tips %>%
-    select(Bill, Tip, Guests, PctTip) %>%
-    describe() %>%
-    kbl(digits = 2) %>%
+tips |>
+    select(Bill, Tip, Guests, PctTip) |>
+    describe() |>
+    kbl(digits = 2) |>
     kable_styling(full_width = FALSE)
 ```
 
@@ -423,10 +423,10 @@ To only keep the sample size, mean, SD, median, min, max, we use the `select` fu
 library(kableExtra)
 library(psych)
 
-tips %>%
-    select(Bill, Tip, Guests, PctTip) %>%
-    describe() %>%
-    select(n, mean, sd, median, min, max) %>%
+tips |>
+    select(Bill, Tip, Guests, PctTip) |>
+    describe() |>
+    select(n, mean, sd, median, min, max) |>
     kbl(booktabs = TRUE, digits = 2)
 ```
 
@@ -434,11 +434,11 @@ tips %>%
 library(kableExtra)
 library(psych)
 
-tips %>%
-    select(Bill, Tip, Guests, PctTip) %>%
-    describe() %>%
-    select(n, mean, sd, median, min, max) %>%
-    kbl(digits = 2) %>%
+tips |>
+    select(Bill, Tip, Guests, PctTip) |>
+    describe() |>
+    select(n, mean, sd, median, min, max) |>
+    kbl(digits = 2) |>
     kable_styling(full_width = FALSE)
 ```
 
