@@ -46,6 +46,56 @@ library(moments)
 ex1 <- read_csv("./ex1.csv", col_types = "cfddd")
 ```
 
+# Course Overview
+
+.pull-left[
+
+```{r echo = FALSE, results='asis'}
+block1_name = "Exploratory Data Analysis"
+block1_lecs = c("Research design and data",
+                "Describing categorical data",
+                "Describing continuous data",
+                "Describing relationships",
+                "Functions")
+block2_name = "Probability"
+block2_lecs = c("Probability theory",
+                "Probability rules",
+                "Random variables (discrete)",
+                "Random variables (continuous)",
+                "Sampling")
+
+source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+course_table(block1_name,block2_name,block1_lecs,block2_lecs,week=3)
+```
+
+
+]
+
+.pull-right[
+
+
+```{r echo = FALSE, results='asis'}
+block3_name = "Foundations of inference"
+block3_lecs = c("Confidence intervals",
+                "Hypothesis testing (p-values)",
+                "Hypothesis testing (critical values)",
+                "Hypothesis testing and confidence intervals",
+                "Errors, power, effect size, assumptions")
+block4_name = "Common hypothesis tests"
+block4_lecs = c("One sample t-test",
+                "Independent samples t-test",
+                "Paired samples t-test",
+                "Chi-square tests",
+                "Correlation")
+
+source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=0)
+```
+
+]
+
+---
+
 
 # Weeks Learning Objectives
 1. Understand the appropriate visualization for the distribution of numeric data.
@@ -97,8 +147,8 @@ set.seed(1984)
 df2 <- tibble(
     dat = rnorm(225, 155, 15)
 )
-hp <- df2 %>%
-    ggplot(., aes(x=dat)) +
+hp <- df2 |>
+    ggplot( aes(x=dat)) +
     geom_histogram(bins = 20, color = "white", fill = "steelblue4") +
     labs(x = "Height (cm)", y = "Count") +
     scale_x_continuous(breaks = c(120, 130, 140, 150, 160, 170, 180, 190, 200))
@@ -154,8 +204,8 @@ hp
 
 .pull-left[
 ```{r, echo=FALSE}
-df2 %>%
-    ggplot(., aes(x=dat)) +
+df2 |>
+    ggplot( aes(x=dat)) +
     geom_histogram(bins = 5, color = "white", fill = "steelblue4") +
     labs(x = "Height (cm)", y = "Count") +
     scale_x_continuous(breaks = c(120, 130, 140, 150, 160, 170, 180, 190, 200))
@@ -166,8 +216,8 @@ df2 %>%
 
 .pull-right[
 ```{r, echo=FALSE}
-df2 %>%
-    ggplot(., aes(x=dat)) +
+df2 |>
+    ggplot(aes(x=dat)) +
     geom_histogram(bins = 25, color = "white", fill = "steelblue4") +
     labs(x = "Height (cm)", y = "Count") +
     scale_x_continuous(breaks = c(120, 130, 140, 150, 160, 170, 180, 190, 200))
@@ -190,8 +240,8 @@ kable(ex1[1:10,])
 .pull-right[
 
 ```{r, echo=FALSE}
-ex1 %>%
-  ggplot(., aes(x=Score1)) +
+
+  ggplot(data = ex1, aes(x=Score1)) +
   geom_histogram(bins = 15, color = "white", fill = "steelblue4")+
   xlab("Pre- Statistics Test Score") +
   ylab("Count \n")
@@ -206,8 +256,7 @@ ex1 %>%
 .pull-left[
 
 ```{r, eval=FALSE}
-ex1 %>%
-  ggplot(., aes(x=Score1)) +
+  ggplot(data = ex1, aes(x=Score1)) +
   geom_histogram(bins = 15, #<<
                  color = "white", #<< 
                  fill = "steelblue4")+ #<<
@@ -227,8 +276,8 @@ ex1 %>%
 .pull-right[
 
 ```{r, echo=FALSE}
-ex1 %>%
-  ggplot(., aes(x=Score1)) +
+
+  ggplot(data = ex1, aes(x=Score1)) +
   geom_histogram(bins = 15, color = "white", fill = "steelblue4")+
   xlab("Pre- Statistics Test Score") +
   ylab("Count \n")
@@ -302,7 +351,7 @@ mean(ex1$Score1)
 **Working with `tidyverse`**
 
 ```{r}
-ex1 %>%
+ex1 |>
     summarise(
         mean = mean(Score1)
     )
@@ -322,8 +371,8 @@ ex1 %>%
 ```{r, echo=FALSE}
 mean_vec <- rep(mean(ex1$Score1), 150)
 x <- 1:150
-dev <- ex1 %>%
-  ggplot(., aes(x=factor(ID), y=Score1)) +
+dev <- ex1 |>
+  ggplot(aes(x=factor(ID), y=Score1)) +
   geom_point(size=1.5, color = "steelblue4") + 
   xlab("ID") +
   ylab("Pre- Statistics Score \n") +
@@ -365,15 +414,15 @@ $$
 # Calculation: First 10 rows
 
 ```{r, echo=FALSE}
-ex1 %>%
-  select(ID, Score1) %>%
-  slice(., 1:10) %>%
+ex1 |>
+  select(ID, Score1) |>
+  slice( 1:10) |>
   mutate(
     Score = Score1,
     Mean = rep(mean(Score1), 10),
     Deviance = Score1 - mean(Score1)
-  ) %>%
-  kable(.) %>%
+  ) |>
+  kable() |>
   kable_styling(bootstrap_options = "striped", full_width = F)
 ```
 
@@ -381,7 +430,7 @@ ex1 %>%
 #  Problem: Sum of deviations 
 
 ```{r, eval=FALSE}
-ex1 %>%
+ex1 |>
   summarise(
     Variable = "Statistics Test Score",
     "Sum Deviation" = round(sum(Score1 - mean(Score1)),2) #<<
@@ -390,12 +439,12 @@ ex1 %>%
 
 
 ```{r, echo=FALSE}
-ex1 %>%
+ex1 |>
   summarise(
     Variable = "Statistics Test Score",
     "Sum Deviation" = round(sum(Score1 - mean(Score1)),2)
-  ) %>%
-  kable(.)
+  ) |>
+  kable()
 ```
 
 
@@ -423,16 +472,16 @@ $$
 # Calculation
 
 ```{r, echo=FALSE}
-ex1 %>%
-  select(ID, Score1) %>%
-  slice(., 1:10) %>%
+ex1 |>
+  select(ID, Score1) |>
+  slice( 1:10) |>
   mutate(
     Score = Score1,
     Mean = rep(mean(Score1), 10),
     Deviance = Score1 - mean(Score1),
     Deviance_sq = Deviance^2
-  ) %>%
-  kable(.) %>%
+  ) |>
+  kable() |>
   kable_styling(bootstrap_options = "striped", full_width = F)
 ```
 
@@ -440,7 +489,7 @@ ex1 %>%
 #  Variance 
 
 ```{r, eval=FALSE}
-ex1 %>%
+ex1 |>
   summarise(
     Variable = "Statistics Test Score",
     "Sum Deviation" = round(sum(Score1 - mean(Score1)),2),
@@ -449,17 +498,17 @@ ex1 %>%
 ```
 
 ```{r, echo=FALSE}
-ex1 %>%
+ex1 |>
   summarise(
     Variable = "Statistics Test Score",
     "Sum Deviation" = round(sum(Score1 - mean(Score1)),2),
     Variance = round((sum((Score1 - mean(Score1))^2))/(length(Score1)-1),2)
-  ) %>%
-  kable(.)
+  ) |>
+  kable()
 ```
 
-+ Problem: 
-  + Our units here are not quite right.
++ N.B.: 
+  + Variance is not on the same scale as the data.
   + Variance is the mean **squared** deviation from the mean.
 
 ---
@@ -474,12 +523,12 @@ ex1 %>%
 $$
 s = \sqrt{\frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}}
 $$
-
++ $s$ = sample standard deviation 
 ---
 #  Standard deviation 
 
 ```{r}
-ex1 %>%
+ex1 |>
   summarise(
     Variable = "Statistics Test Score",
     Variance = round(sum((Score1 - mean(Score1))^2)/(length(Score1)-1),2),
@@ -493,7 +542,7 @@ ex1 %>%
 + Easier `R` calculation
 
 ```{r}
-ex1 %>%
+ex1 |>
   summarise(
     Variable = "Statistics Test Score",
     "Sum Deviation" = round(sum(Score1 - mean(Score1)),2),
@@ -540,49 +589,16 @@ $$
 
 --
 
-+ NOTE: R defaults to sample values. 
+
 + $\mu$ = population mean; $\bar{x}$ = sample mean
-+ $\sigma$ = population standard deviation; s = sample standard deviation
++ $\sigma^2$ = population variance; $s^2$ = sample variance
++ $\sigma$ = population standard deviation; $s$ = sample standard deviation
 + N = population size; n = sample size
++ NOTE: R defaults to sample values. 
 
 ???
 Make the point that we will come back to this in more detail, but for now it is just important to note that the R defaults to sample.
 
----
-# Summary of last 2 lectures
-
-```{r, echo = FALSE}
-tbl16 <- tibble::tribble(
-~`Measure`, ~`Strength`, ~`Weakness`,
-"Mode","Actually occurs in our data","Not algebraically calculable",
-" ","Unaffected by extreme values","Probably does not exist for true continuous data (think reaction time)",
-"Median","No assumptions about interval value of data","Not relatable to measures of dispersion (see next week)",
-" ","Unaffected by extreme values"," ",
-"Mean","Algebraically tractable","Sensitive to extreme values",
-" ","Related to measures of dispersion (see next week)","Assumes data are interval or better",
-" "," ","Possible no case in your data takes the value of the mean"
-)
-
-kableExtra::kable_styling(knitr::kable(tbl16), font_size = 22)
-```
-
-
----
-#  Which measure should we use? 
-
-```{r, echo = FALSE}
-tbl18 <- tibble::tribble(
-~`Variable Type`, ~`Central Tendency`,
-"Categorical (Nominal)","Mode",
-"Categorical (Ordered)","Mode/Median",
-"Continuous","Mean (any in fact)",
-"Count","Mode (mean)"
-)
-
-kableExtra::kable_styling(knitr::kable(tbl18), font_size = 26)
-```
-
-+ Depends on the level of measurement.
 
 
 ---
@@ -592,9 +608,9 @@ kableExtra::kable_styling(knitr::kable(tbl18), font_size = 26)
 tbl23 <- tibble::tribble(
 ~`Variable Type`, ~`Central Tendency`, ~`Dispersion`,
 "Categorical (Nominal)","Mode","Frequency Table",
-"Categorical (Ordered)","Mode/Median","Range",
-"Continuous","Mean (any in fact)","Variance & Standard Deviation",
-"Count","Mode (mean)","Range (Variance & SD)"
+"Categorical (Ordered)","Mode/Median","Range/IQR",
+"Continuous","Mean/Median","Variance & Standard Deviation",
+"Count","Mode/Mean","Range (Variance & SD)"
 )
 
 kableExtra::kable_styling(knitr::kable(tbl23), font_size = 22)
@@ -619,8 +635,8 @@ kableExtra::kable_styling(knitr::kable(tbl23), font_size = 22)
 tibble(
   Value = c(rbeta(10000, 5, 2), rbeta(10000, 5, 5), rbeta(10000, 2,5)),
   Skew = c(rep("Negative", 10000), rep("None",10000), rep("Positive",10000))
-) %>%
-  ggplot(., aes(x=Value, fill = Skew, color = Skew)) +
+) |>
+  ggplot(aes(x=Value, fill = Skew, color = Skew)) +
   geom_density(alpha = .5) +
   ylab("Density \n")
 ```
@@ -634,8 +650,8 @@ tibble(
 tibble(
   Value = c(rnorm(10000, 0, 0.5), rnorm(10000, 0, 1), rnorm(10000, 0, 2)),
   Kurtosis = c(rep("Leptokurtic", 10000), rep("None",10000), rep("Platykurtic",10000))
-) %>%
-  ggplot(., aes(x=Value, fill = Kurtosis, color = Kurtosis)) +
+) |>
+  ggplot( aes(x=Value, fill = Kurtosis, color = Kurtosis)) +
   geom_density(alpha = .5) +
   ylab("Density \n")
 ```
@@ -651,8 +667,8 @@ tibble(
 set.seed(07021984)
 df <- tibble(Data = rsn(1000, 5, 2, 5)) 
 
-df %>%
-  ggplot(., aes(x=Data)) +
+df |>
+  ggplot( aes(x=Data)) +
   geom_histogram(colour = "darkgrey", fill = "white") +
   geom_vline(xintercept = mean(df$Data), col = "red", size = 2) +
   geom_vline(xintercept = median(df$Data), col = "blue", size = 2) +
@@ -676,10 +692,39 @@ df %>%
 + We can describe the shape of the distribution with skew and kurtosis
 
 ---
-# Next tasks
-+ Next week, we will look at describing relationships.
+# This week
 
-+ This week:
-  + Complete your lab
-  + Come to office hours
-  + No quiz this week (week 3). Assessed quiz on categorical data next week (week 4)
+<script src="https://cdn.jsdelivr.net/npm/iconify-icon@2.1.0/dist/iconify-icon.min.js"></script>
+
+.pull-left[
+<iconify-icon icon="clarity:tasks-solid" width="64" height="64"  style="color: #0F4C81"></iconify-icon>
+
+## Tasks
+
+- Attend both lectures
+
+- Attend your lab and work together on the lab tasks
+
+- Complete the weekly assessed quiz
+    + Opens Monday at 9am
+    + Closes Sunday at 5pm
+    
+<!-- - Submit Formative Report A by 12 noon on Friday the 18th of October 2024 -->
+<!-- - Submit Formative Report B by 12 noon on Friday the 29th of November 2024 -->
+<!-- - Submit Formative Report C by 12 noon on Friday the 14th of February 2025 -->
+<!-- - Submit the Assessed Report by 12 noon on Friday the 28th of March 2025 -->
+]
+
+
+.pull-right[
+<iconify-icon icon="raphael:help" width="64" height="64"  style="color: #0F4C81"></iconify-icon>
+
+## Support
+
+- **Office hours**: for one-to-one support on course materials or assessments<br>(see LEARN > Course information > Course contacts)
+
+- **Piazza**: help each other on this peer-to-peer discussion forum
+
+- **Student Adviser**: for general support while you are at university<br>(find your student adviser on MyEd/Euclid)
+]
+
