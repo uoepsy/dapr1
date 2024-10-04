@@ -63,7 +63,7 @@ stroopdata <- read_csv("https://uoepsy.github.io/data/strooptask.csv")
 # calculate the "stroop effect" - the difference in time taken to complete
 # the matching vs mismatching sets 
 stroopdata <- 
-    stroopdata %>% 
+    stroopdata |> 
         mutate(
             stroop_effect = mismatching - matching
         )
@@ -81,11 +81,11 @@ The researchers are interested in two relationships:
 Recall that the "stroop-effect" is the difference (in seconds) between participants' times on the mismatching set of words vs the matching set. We know how to describe a numeric variable such as the stroop-effect, for instance by calculating the mean and standard deviation, or median and IQR. We saw how to produce visualisations of numeric variables in the form of density curves, histogram, and boxplots.  
 
 ```{r}
-# take the "stroopdata" dataframe %>%
+# take the "stroopdata" dataframe |>
 # summarise() it, such that there is a value called "mean_stroop", which
 # is the mean() of the "stroop_effect" variable, and a value called "sd_stroop", which
 # is the standard deviation of the "stroop_effect" variable.
-stroopdata %>% 
+stroopdata |> 
   summarise(
     mean_stroop = mean(stroop_effect),
     sd_stroop = sd(stroop_effect)
@@ -102,7 +102,7 @@ To understand the relationship between *categorical* (practice) and the *numeric
 In other words, we want to calculate the mean and standard deviation of the _stroop_effect_ variable separately for those observations where _practice_ is "no", and for those where _practice_ is "yes":
 ```{r echo=FALSE}
 set.seed(421)
-sample_n(stroopdata, n()) %>% select(practice,stroop_effect) %>% mutate(stroop_effect = round(stroop_effect,2)) %>% head(9L) %>% rbind("...") %>% knitr::kable()
+sample_n(stroopdata, n()) |> select(practice,stroop_effect) |> mutate(stroop_effect = round(stroop_effect,2)) |> head(9L) |> rbind("...") |> knitr::kable()
 ```
 
 
@@ -116,11 +116,11 @@ The `group_by()` function creates a _grouping_ in the dataframe, so that subsequ
 It is most useful in combination with `summarise()`, to reduce a variable into a summary value _for each group in a grouping variable_:  
 
 ```{r eval=FALSE}
-# take the data %>%
-# make it grouped by each unique value in the "grouping_variable" %>%
+# take the data |>
+# make it grouped by each unique value in the "grouping_variable" |>
 # summarise() it FOR EACH GROUP, creating a value called "summary_value" ()
-data %>% 
-  group_by(grouping_variable) %>%
+data |> 
+  group_by(grouping_variable) |>
   summarise(
     summary_value = ...
   )
@@ -130,13 +130,13 @@ data %>%
 
 Let's do this for the Stroop Task data - we will `summarise()` the _stroop_effect_ variable, **after** grouping the data by the _practice_ variable:
 ```{r}
-# take the "stroopdata" %>%
-# and group it by each unique value in the "practice" variable (yes/no) %>%
+# take the "stroopdata" |>
+# and group it by each unique value in the "practice" variable (yes/no) |>
 # then summarise() it FOR EACH GROUP, creating summary values called 
 # "mean_stroop" and "sd_stroop" which are the means and standard deviations of 
 # the "stroop_effect" variable entries for each group of "practice".
-stroopdata %>%
-  group_by(practice) %>%
+stroopdata |>
+  group_by(practice) |>
   summarise(
     mean_stroop = mean(stroop_effect),
     sd_stroop = sd(stroop_effect)
@@ -175,7 +175,7 @@ tibble(
   x = seq(-10, 25, 0.2),
   y = dnorm(x, 10, 4.2),
   y2 = dnorm(x, 14.5, 4.2)
-) %>% ggplot(.,aes(x=x))+
+) |> ggplot(aes(x=x))+
   geom_line(aes(y=y, col="no"))+
   geom_line(aes(y=y2, col="yes"))+
   scale_color_manual("Practice",breaks = c("no","yes"),values=c("tomato1","blue"))+
@@ -188,7 +188,7 @@ tibble(
   x = seq(-10, 25, 0.2),
   y = dnorm(x, 4.5, 4.2),
   y2 = dnorm(x, 0, 2.2)
-) %>% ggplot(.,aes(x=x))+
+) |> ggplot(aes(x=x))+
   geom_line(aes(y=y, col="no"))+
   geom_line(aes(y=y2, col="yes"))+
   scale_color_manual("Practice",breaks = c("no","yes"),values=c("tomato1","blue"))+
@@ -249,8 +249,8 @@ The visual pattern that these points make on the plot tells us something about t
 But we can also have relationships between two numeric variables that look the opposite, or have no obvious pattern, or have a more consistent patterning (see Figure \@ref(fig:numnumrels))
 ```{r numnumrels, echo=FALSE, fig.cap = "Relationships between two numeric variables can look very different"}
 tibble(x=rnorm(100,100,15),
-       y=-x*2+rnorm(100,0,10)) %>%
-  ggplot(.,aes(x=x,y=y))+
+       y=-x*2+rnorm(100,0,10)) |>
+  ggplot(aes(x=x,y=y))+
   geom_point() + 
   theme_minimal()+
   theme(axis.text = element_blank(), axis.ticks = element_blank())+
@@ -258,8 +258,8 @@ tibble(x=rnorm(100,100,15),
 
 
 tibble(x=rnorm(100,100,15),
-       y=rnorm(100)) %>%
-  ggplot(.,aes(x=x,y=y))+
+       y=rnorm(100)) |>
+  ggplot(aes(x=x,y=y))+
   geom_point() + 
   theme_minimal()+
   theme(axis.text = element_blank(), axis.ticks = element_blank())+
@@ -293,7 +293,7 @@ where:
 
 ```{r echo=FALSE, message=FALSE,warning=FALSE}
 set.seed(7135)
-tibble(x=runif(10,20,80),y=rnorm(10,160,10)) %>%
+tibble(x=runif(10,20,80),y=rnorm(10,160,10)) |>
   mutate(y=y+x/2,
          coldir = ifelse( (x>mean(x) & y>mean(y)) | (x<mean(x) & y<mean(y)), "pos","neg")
   ) -> df
@@ -402,9 +402,9 @@ We can either use the `$` to pull out the variables from the datset:
 ```{r}
 cov(stroopdata$age, stroopdata$stroop_effect)
 ```
-Or we can specify the dataframe, use the `%>%` symbol, and call `cov()` inside `summarise()`:  
+Or we can specify the dataframe, use the `|>` symbol, and call `cov()` inside `summarise()`:  
 ```{r}
-stroopdata %>%
+stroopdata |>
   summarise(
     mean_age = mean(age),
     mean_stroop = mean(stroop_effect),
@@ -425,7 +425,7 @@ head(titanic)
 
 Recall that we summarised one categorical variable using a **frequency table**:
 ```{r}
-titanic %>%
+titanic |>
   count(survived)
 ```
 
@@ -433,7 +433,7 @@ We can also achieve this using the `table()` function:
 ```{r eval=FALSE}
 #thes two lines of code do exactly the same thing!
 table(titanic$survived)
-titanic %>% select(survived) %>% table()
+titanic |> select(survived) |> table()
 ```
 ```{r echo=FALSE}
 table(titanic$survived)
@@ -447,7 +447,7 @@ We can create **two-way** table, where we have each variable on either dimension
 #Either this:
 table(titanic$class, titanic$survived)
 # or this:
-titanic %>% select(class, survived) %>% table()
+titanic |> select(class, survived) |> table()
 ```
 ```{r echo=FALSE}
 table(titanic$class, titanic$survived)
@@ -459,27 +459,27 @@ We can turn them into:
 1. proportions of the total:  
 
 ```{r}
-titanic %>% 
-    select(class, survived) %>% 
-    table() %>%
+titanic |> 
+    select(class, survived) |> 
+    table() |>
     prop.table()
 ```
 
 2. proportions of each row:  
 
 ```{r}
-titanic %>% 
-    select(class, survived) %>% 
-    table() %>%
+titanic |> 
+    select(class, survived) |> 
+    table() |>
     prop.table(margin = 1)
 ```
 
 3. proportions of each column:  
 
 ```{r}
-titanic %>% 
-    select(class, survived) %>% 
-    table() %>%
+titanic |> 
+    select(class, survived) |> 
+    table() |>
     prop.table(margin = 2)
 ```
 
@@ -488,26 +488,26 @@ titanic %>%
 The equivalent way to visualise a contingency table is in the form of a **mosaic plot**.  
 
 ```{r}
-titanic %>% 
-  select(class, survived) %>% 
-  table() %>%
+titanic |> 
+  select(class, survived) |> 
+  table() |>
   plot()
 ```
 
 You can think of the `prop.table(margin = )` as scaling the areas of one of the variables to be equal:
 ```{r}
-titanic %>% 
-  select(class, survived) %>% 
-  table() %>%
+titanic |> 
+  select(class, survived) |> 
+  table() |>
   prop.table(margin = 1)
 ```
 In the table above, each row (representing each level of the "Class" variable) sums to 1. 
 The equivalent plot would make each of level of the "Class" variable as the same area:
 ```{r}
-titanic %>% 
-  select(class, survived) %>% 
-  table() %>%
-  prop.table(margin = 1) %>%
+titanic |> 
+  select(class, survived) |> 
+  table() |>
+  prop.table(margin = 1) |>
   plot()
 ```
 
