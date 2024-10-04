@@ -41,7 +41,61 @@ library(patchwork)
 library(ggmosaic)
 ```
 
-# Weeks Learning Objectives
+# Course Overview
+
+.pull-left[
+
+```{r echo = FALSE, results='asis'}
+block1_name = "Exploratory Data Analysis"
+block1_lecs = c("Research design and data",
+                "Describing categorical data",
+                "Describing continuous data",
+                "Describing relationships",
+                "Functions")
+block2_name = "Probability"
+block2_lecs = c("Probability theory",
+                "Probability rules",
+                "Random variables (discrete)",
+                "Random variables (continuous)",
+                "Sampling")
+
+source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+course_table(block1_name,block2_name,block1_lecs,block2_lecs,week=4)
+```
+
+
+]
+
+.pull-right[
+
+
+```{r echo = FALSE, results='asis'}
+block3_name = "Foundations of inference"
+block3_lecs = c("Confidence intervals",
+                "Hypothesis testing (p-values)",
+                "Hypothesis testing (critical values)",
+                "Hypothesis testing and confidence intervals",
+                "Errors, power, effect size, assumptions")
+block4_name = "Common hypothesis tests"
+block4_lecs = c("One sample t-test",
+                "Independent samples t-test",
+                "Paired samples t-test",
+                "Chi-square tests",
+                "Correlation")
+
+source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=0)
+```
+
+]
+
+
+---
+
+
+
+
+# Week's Learning Objectives
 1. Understand the relation between X-Y (explanatory/outcome) specification and practical research questions.
 
 2. Understand how to summarise and visualize categorical-categorical relationships.
@@ -161,15 +215,15 @@ ex1 %>%
 .pull-left[
 
 ```{r, eval=FALSE}
-ex1 %>%
-  select(.,Degree, Year) %>% #<<
+ex1 |>
+  select(Degree, Year) |> #<<
   table() #<<
 ```
 
 + `ex1` is our data set
 
 + `select` is used to pick variables from the data set
-  + `.` is used to indicate that the select function should use the data set passed by the `%>%`
+  + `.` is used to indicate that the select function should use the data set passed by the `|>`
   + `Degree` and `Year` are names of variables in our data set
 
 + `table()` produces the frequency table
@@ -180,8 +234,8 @@ ex1 %>%
 .pull-right[
 
 ```{r, echo=FALSE}
-ex1 %>%
-  select(.,Degree, Year) %>% #<<
+ex1 |>
+  select(Degree, Year) |> #<<
   table() #<<
 ```
 
@@ -194,8 +248,8 @@ ex1 %>%
 
 ```{r, eval=FALSE, warning=FALSE}
 
-ex1 %>%
-  ggplot(.) +
+
+  ggplot(data=ex1) +
   geom_mosaic(aes(x = product(Degree, Year), #<<
                   fill=Degree)) + #<<
   labs(x = "\n Year")
@@ -213,8 +267,8 @@ ex1 %>%
 
 ```{r, echo=FALSE,warning=FALSE}
 
-ex1 %>%
-  ggplot(.) +
+
+  ggplot(data=ex1) +
   geom_mosaic(aes(x = product(Degree, Year), 
                   fill=Degree)) +
   labs(x = "\n Year")
@@ -254,8 +308,8 @@ ex1 %>%
 .pull-left[
 
 ```{r, eval=FALSE}
-ex1 %>%
-  group_by(Degree) %>% #<<
+ex1 |>
+  group_by(Degree) |> #<<
   summarise(
     Average = round(mean(Score1),2),
     SD = round(sd(Score1),2)
@@ -273,8 +327,8 @@ ex1 %>%
 .pull-right[
 
 ```{r, echo=FALSE}
-ex1 %>%
-  group_by(Degree) %>% #<<
+ex1 |>
+  group_by(Degree) |> #<<
   summarise(
     Average = round(mean(Score1),2),
     SD = round(sd(Score1),2)
@@ -291,8 +345,7 @@ ex1 %>%
 .pull-left[
 
 ```{r, eval=FALSE}
-ex1 %>%
-  ggplot(., aes(x=Score1)) +
+  ggplot(data=ex1, aes(x=Score1)) +
   geom_histogram(bins = 15, 
                  color = "white", 
                  fill = "steelblue4") +
@@ -313,8 +366,7 @@ ex1 %>%
 .pull-right[
 
 ```{r, echo=FALSE}
-ex1 %>%
-  ggplot(., aes(x=Score1)) +
+  ggplot(data=ex1, aes(x=Score1)) +
   geom_histogram(bins = 15, 
                  color = "white", 
                  fill = "steelblue4") +
@@ -346,8 +398,7 @@ The shape of the distributions are different. There is positive skew in the psyc
 .pull-left[
 
 ```{r, eval=FALSE}
-ex1 %>%
-  ggplot(., aes(x=Score1, y=Score2)) + #<<
+  ggplot(data=ex1, aes(x=Score1, y=Score2)) + #<<
   geom_point(colour = "steelblue4") + #<<
   labs(x = "\n Pre Test Score", 
        y = "Post Test Score \n")
@@ -358,8 +409,7 @@ ex1 %>%
 .pull-right[
 
 ```{r, echo=FALSE}
-ex1 %>%
-  ggplot(., aes(x=Score1, y=Score2)) + #<<
+  ggplot(data=ex1, aes(x=Score1, y=Score2)) + #<<
   geom_point(colour = "steelblue4") + #<<
   labs(x = "\n Pre Test Score", 
        y = "Post Test Score \n")
@@ -373,9 +423,9 @@ ex1 %>%
 .pull-left[
 
 ```{r}
-ex1 %>%
-  slice(1) %>%
-  select(., Score1, Score2)
+ex1 |>
+  slice(1) |>
+  select(Score1, Score2)
 ```
 
 
@@ -383,7 +433,7 @@ ex1 %>%
 
 .pull-right[
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 red <- ex1 %>%
   slice(1)
 
@@ -480,44 +530,44 @@ cov((ex1$Score1*100), ex1$Score2)
 + Later in the course we will discuss correlation
   + A standardized covariance
 
----
-# Descriptive statistics can deceive
+<!-- --- -->
+<!-- # Descriptive statistics can deceive -->
 
-```{r, echo=FALSE}
-anscombe %>%
-  gather(., key= set, value = score) %>%
-  group_by(set) %>%
-  summarise(
-    mean = round(mean(score),2), 
-    sd = round(sd(score),2)
-  ) %>%
-  kable(.) %>%
-  kable_styling(bootstrap_options = "striped", full_width = F)
-```
+<!-- ```{r, echo=FALSE} -->
+<!-- anscombe %>% -->
+<!--   gather(., key= set, value = score) %>% -->
+<!--   group_by(set) %>% -->
+<!--   summarise( -->
+<!--     mean = round(mean(score),2),  -->
+<!--     sd = round(sd(score),2) -->
+<!--   ) %>% -->
+<!--   kable(.) %>% -->
+<!--   kable_styling(bootstrap_options = "striped", full_width = F) -->
+<!-- ``` -->
 
 
----
-# Always visualize data
+<!-- --- -->
+<!-- # Always visualize data -->
 
-```{r, echo=FALSE}
-a <- ggplot(anscombe, aes(x=x1, y=y1)) +
-  geom_point(size = 2) +
-  xlab("X1") +
-  ylab("Y1")
-b <- ggplot(anscombe, aes(x=x2, y=y2)) +
-  geom_point(size = 2) +
-  xlab("X2") +
-  ylab("Y2")
-c <- ggplot(anscombe, aes(x=x3, y=y3)) +
-  geom_point(size = 2) +
-  xlab("X3") +
-  ylab("Y3")
-d <- ggplot(anscombe, aes(x=x4, y=y4)) +
-  geom_point(size = 2) +
-  xlab("X4") +
-  ylab("Y4")
-(a + b)/(c+d)
-```
+<!-- ```{r, echo=FALSE} -->
+<!-- a <- ggplot(anscombe, aes(x=x1, y=y1)) + -->
+<!--   geom_point(size = 2) + -->
+<!--   xlab("X1") + -->
+<!--   ylab("Y1") -->
+<!-- b <- ggplot(anscombe, aes(x=x2, y=y2)) + -->
+<!--   geom_point(size = 2) + -->
+<!--   xlab("X2") + -->
+<!--   ylab("Y2") -->
+<!-- c <- ggplot(anscombe, aes(x=x3, y=y3)) + -->
+<!--   geom_point(size = 2) + -->
+<!--   xlab("X3") + -->
+<!--   ylab("Y3") -->
+<!-- d <- ggplot(anscombe, aes(x=x4, y=y4)) + -->
+<!--   geom_point(size = 2) + -->
+<!--   xlab("X4") + -->
+<!--   ylab("Y4") -->
+<!-- (a + b)/(c+d) -->
+<!-- ``` -->
 
 
 ---
@@ -535,16 +585,39 @@ d <- ggplot(anscombe, aes(x=x4, y=y4)) +
   + Covariance
 
 ---
-# Next tasks
+---
+# This week
 
-+ Next week, we will look at functions.
-  + How we calculate, visualize and use them in statistics.
+<script src="https://cdn.jsdelivr.net/npm/iconify-icon@2.1.0/dist/iconify-icon.min.js"></script>
 
-+ This week:
-  + Complete your lab
-  + Come to office hours
-  + Weekly quiz - on Categorical variables
-      + Open Monday 09:00
-      + Closes Sunday 17:00
-      + Feedback available next week on Monday at 09:00
+.pull-left[
+<iconify-icon icon="clarity:tasks-solid" width="64" height="64"  style="color: #0F4C81"></iconify-icon>
 
+## Tasks
+
+- Attend both lectures
+
+- Attend your lab and work together on the lab tasks
+
+- Complete the weekly quiz
+    + Opens Monday at 9am
+    + Closes Sunday at 5pm
+    
+<!-- - Submit Formative Report A by 12 noon on Friday the 18th of October 2024 -->
+<!-- - Submit Formative Report B by 12 noon on Friday the 29th of November 2024 -->
+<!-- - Submit Formative Report C by 12 noon on Friday the 14th of February 2025 -->
+<!-- - Submit the Assessed Report by 12 noon on Friday the 28th of March 2025 -->
+]
+
+
+.pull-right[
+<iconify-icon icon="raphael:help" width="64" height="64"  style="color: #0F4C81"></iconify-icon>
+
+## Support
+
+- **Office hours**: for one-to-one support on course materials or assessments<br>(see LEARN > Course information > Course contacts)
+
+- **Piazza**: help each other on this peer-to-peer discussion forum
+
+- **Student Adviser**: for general support while you are at university<br>(find your student adviser on MyEd/Euclid)
+]
