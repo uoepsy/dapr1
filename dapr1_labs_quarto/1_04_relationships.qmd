@@ -24,11 +24,15 @@ Instructions and data were released in [week 1](1_01_design_and_data.html).
 ::: {.callout-important}
 **Next week: Submission of Formative report A**  
 
-Your group must submit one PDF file for formative report A by 12 noon on Friday the 20th of October 2023 (next week).
+Your group must submit one PDF file for formative report A by 12 noon on Friday the 18th of October 2024 (next week). 
+One person must submit on behalf of the entire group and let the group know when they have submitted by leaving a note on the Group Discussion Space. 
 
 To submit go to the course Learn page, click "Assessment", then click "Submit Formative Report A (PDF file only)".
 
-__No extensions.__ As mentioned in the Assessment Information page, no extensions are possible for group-based reports.
+__No extensions.__ As mentioned in the Assessment Information page, no extensions are possible for group-based reports. 
+
+__Name your submission: Group NUMBER.LETTER Formative A.pdf__
+
 :::
 
 
@@ -37,7 +41,7 @@ __No extensions.__ As mentioned in the Assessment Information page, no extension
 
 The two functions are equivalent.
 
-However, if you provide a list of tables, we recommend using the `kable()` function as it allows you to also provide a caption without errors when knitting.
+However, if you provide a list of tables, we recommend using the `kable()` function as it allows you to also provide a caption without errors when knitting. We have been made aware that this doesn't work with `kbl()` unfortunately.
 :::
 
 
@@ -67,23 +71,22 @@ To see the hints, hover your cursor on the superscript numbers.
 :::
 
 - Reopen last week's Rmd file, as you will continue last week's work and build on it.^[
-Hint: ask last week's driver for the Rmd file, they should share it with the group via email or Teams.  
+Hint: access the Rmd file from the Group Discussion Space. <br>If last week's driver hasn't uploaded it yet, please ask them to share it with the group via the Group Discussion Space, email, or Teams.<br><br>
 To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
 ]
 
-- Choose two variables and create a plot displaying their relationship.[^s1w4-rel2]
+- Choose two variables (either both numeric, or one categorical and one numeric). Create a plot displaying the relationship between the two variables.[^s1w4-rel2]
 
 [^s1w4-rel2]: Hint: Some possibilities are, among many others:
     
-    * Categorical-Categorical: `geom_mosaic()` from `ggmosaic` package, or `geom_bar()`  
-    * Categorical-Numeric: `geom_histogram()`, `geom_density()`, or `geom_boxplot()`  
+    * Categorical-Numeric: faceted `geom_histogram()`, coloured `geom_density()`, or `geom_boxplot()`  
     * Numeric-Numeric: `geom_point()`
 
-- Summarise the relationship with either a frequency table or descriptive statistics, depending on the type of the variables.[^s1w4-cov-na]
+- Summarise the relationship with a table of descriptive statistics, depending on the type of the variables.[^s1w4-cov-na]
 
 [^s1w4-cov-na]: Hint: 
 
-    Depending on the type of the variables some of these functions may be useful: `count()`, `table()`, `n()`, `mean()`, `sd()`, `cov()`  
+    Depending on the type of the variables some of these functions may be useful: `group_by()`, `n()`, `mean()`, `sd()`, `cov()`  
 
     __Stop and think.__ If the result is NA, what could have caused that?  
     
@@ -101,7 +104,7 @@ To download the file from the server, go to the RStudio Files pane, tick the box
 <!-- + If you have chosen a categorical-categorical relationship, choose a numeric variable for the third variable and invert the order of one categorical variable with the numeric one. This is because you cannot facet a plot by a continuous variable in `facet_wrap` (or `facet_grid`). -->
 
 - Summarise with a table how the relationship above varies across the third variable.^[
-Hint: you may want to use functions such as `count`, `table`, `summarise`, `n`, `mean`, `sd`, `cov`, `group_by`
+Hint: you may want to use functions such as `group_by`, `summarise`, `n`, `mean`, `sd`, `cov`
 ]
 
 - Organise your report to have three sections:
@@ -164,7 +167,7 @@ tribble(
     'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday',
     'Server', 'Code for specific waiter/waitress: A, B, or C',
     'PctTip', 'Tip as a percentage of the bill'
-) %>%
+) |>
     knitr::kable()
 ```
 
@@ -199,7 +202,7 @@ The percentage of total bill has a maximum value of 221, which seems very strang
 Let's inspect the row where `PctTip` is greater than 100:
 
 ```{r}
-tips %>% 
+tips |> 
     filter(PctTip > 100)
 ```
 
@@ -301,9 +304,9 @@ Similarly, you can compute grouped covariances via:
 
 ```{r eval=FALSE}
 library(kableExtra)
-tips %>%
-    group_by(Credit) %>%
-    summarise(Cov = cov(Bill, Tip, use = "pairwise.complete.obs")) %>% 
+tips |>
+    group_by(Credit) |>
+    summarise(Cov = cov(Bill, Tip, use = "pairwise.complete.obs")) |> 
     kable(digits = 2, booktabs = TRUE,
         caption = "Relationship between bill and tip size by credit card usage")
 ```
@@ -312,10 +315,10 @@ tips %>%
 #| label: tbl-tips
 #| tbl-cap: "Relationship between bill and tip size by credit card usage"
 library(kableExtra)
-tips %>%
-    group_by(Credit) %>%
-    summarise(Cov = cov(Bill, Tip, use = "pairwise.complete.obs")) %>% 
-    kable(digits = 2) %>%
+tips |>
+    group_by(Credit) |>
+    summarise(Cov = cov(Bill, Tip, use = "pairwise.complete.obs")) |> 
+    kable(digits = 2) |>
     kable_styling()
 ```
 
@@ -350,17 +353,17 @@ ggplot(tips)+
 Summarise with a contingency table:
 
 ```{r eval=F}
-tips %>%
-    select(Credit, Server) %>%
-    table() %>%
+tips |>
+    select(Credit, Server) |>
+    table() |>
     kable(booktabs = TRUE)
 ```
 
 ```{r echo=FALSE}
-tips %>%
-    select(Credit, Server) %>%
-    table() %>%
-    kable() %>%
+tips |>
+    select(Credit, Server) |>
+    table() |>
+    kable() |>
     kable_styling(full_width = FALSE)
 ```
 
@@ -392,26 +395,26 @@ ggplot(tips, aes(x = Tip, colour = Credit)) +
 Summarise via a grouped table of descriptive statistics:
 
 ```{r eval=F}
-tips %>%
-    group_by(Credit) %>%
+tips |>
+    group_by(Credit) |>
     summarise(N = n(),
               M = mean(Tip),
               SD = sd(Tip),
               Med = median(Tip),
-              IQR = IQR(Tip)) %>%
+              IQR = IQR(Tip)) |>
     kable(digits = 2, booktabs = TRUE)
 ```
 
 ```{r echo=FALSE}
-tips %>%
-    group_by(Credit) %>%
-    drop_na(Tip) %>%    # to drop rows with NA in the Tip column
+tips |>
+    group_by(Credit) |>
+    drop_na(Tip) |>    # to drop rows with NA in the Tip column
     summarise(N = n(),
               M = mean(Tip),
               SD = sd(Tip),
               Med = median(Tip),
-              IQR = IQR(Tip)) %>%
-    kable(digits = 2) %>%
+              IQR = IQR(Tip)) |>
+    kable(digits = 2) |>
     kable_styling(full_width = FALSE)
 ```
 
@@ -428,7 +431,7 @@ ggplot(tips, aes(x = Bill, y = Tip)) +
 Summarise with the covariance:
 
 ```{r}
-cov(tips$Bill, tips$Tip, use = "pairwise.complete.obs") %>%
+cov(tips$Bill, tips$Tip, use = "pairwise.complete.obs") |>
     round(digits = 2)
 ```
 
@@ -455,30 +458,29 @@ ggplot(tips)+
 Summarise with grouped frequency tables:
 
 ```{r}
-mon <- tips %>%
-    filter(Day == "Monday") %>%
-    select(Credit, Server) %>%
+mon <- tips |>
+    filter(Day == "Monday") |>
+    select(Credit, Server) |>
     table()
 
-tue <- tips %>%
-    filter(Day == "Tuesday") %>%
-    select(Credit, Server) %>%
+tue <- tips |>
+    filter(Day == "Tuesday") |>
+    select(Credit, Server) |>
     table()
 
-wed <- tips %>%
-    filter(Day == "Wednesday") %>%
-    select(Credit, Server) %>%
+wed <- tips |>
+    filter(Day == "Wednesday") |>
+    select(Credit, Server) |>
     table()
 
-
-thu <- tips %>%
-    filter(Day == "Thursday") %>%
-    select(Credit, Server) %>%
+thu <- tips |>
+    filter(Day == "Thursday") |>
+    select(Credit, Server) |>
     table()
 
-fri <- tips %>%
-    filter(Day == "Friday") %>%
-    select(Credit, Server) %>%
+fri <- tips |>
+    filter(Day == "Friday") |>
+    select(Credit, Server) |>
     table()
 ```
 
@@ -489,7 +491,7 @@ kable(list(mon, tue, wed, thu, fri), booktabs = TRUE,
 
 ```{r echo = FALSE}
 kbl(list(mon, tue, wed, thu, fri),
-      caption = "Frequency tables of Credit by Server for each day of the week (Mon to Fri)") %>%
+      caption = "Frequency tables of Credit by Server for each day of the week (Mon to Fri)") |>
     kable_styling()
 ```
 
@@ -514,19 +516,19 @@ ggplot(tips)+
 Summarise with a table of descriptive statistics grouped by the categorical variables:
 
 ```{r eval=F}
-tips %>%
-    group_by(Credit, Day) %>%
+tips |>
+    group_by(Credit, Day) |>
     summarise(M = mean(Tip, na.rm=TRUE),
-              SD = sd(Tip, na.rm=TRUE)) %>%
+              SD = sd(Tip, na.rm=TRUE)) |>
     kable(digits = 2, booktabs = TRUE)
 ```
 
 ```{r echo=FALSE}
-tips %>%
-    group_by(Credit, Day) %>%
+tips |>
+    group_by(Credit, Day) |>
     summarise(M = mean(Tip, na.rm=TRUE),
-              SD = sd(Tip, na.rm=TRUE)) %>%
-    kable(digits = 2) %>%
+              SD = sd(Tip, na.rm=TRUE)) |>
+    kable(digits = 2) |>
     kable_styling(full_width = FALSE)
 ```
 
@@ -544,21 +546,21 @@ ggplot(tips, aes(x = Bill, y = Tip)) +
 Summarise via a grouped table of descriptive statistics:
 
 ```{r eval=F}
-tips %>%
-    group_by(Day) %>%
+tips |>
+    group_by(Day) |>
     summarise(
         Cov = cov(Bill, Tip, use = "pairwise.complete.obs")
-    ) %>%
+    ) |>
     kable(digits = 2, booktabs = TRUE)
 ```
 
 ```{r echo=FALSE}
-tips %>%
-    group_by(Day) %>%
+tips |>
+    group_by(Day) |>
     summarise(
         Cov = cov(Bill, Tip, use = "pairwise.complete.obs")
-    ) %>%
-    kable(digits = 2) %>%
+    ) |>
+    kable(digits = 2) |>
     kable_styling(full_width = FALSE)
 ```
 
