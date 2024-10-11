@@ -36,11 +36,15 @@ And we can write this mapping as:
 $$f(x) = x + 2$$
 
 And we could visualise this relationship between $x$ and $y$:
+
 ```{r echo=FALSE}
 tibble(
     X = 1:8,
     Y = X+2
-) %>% ggplot(.,aes(X,Y))+geom_point()+theme_classic()
+) |> 
+    ggplot(aes(X,Y)) +
+    geom_point() +
+    theme_classic()
 ```
 
 :::
@@ -57,11 +61,11 @@ tibble(
     tree = rep(1:10,each=11),
     time = rep(0:10,10),
     growth = abs(round(rnorm(110,10,2)))
-) %>% 
-    mutate(growth = ifelse(time==0, round(growth/2), growth)) %>%
-    group_by(tree) %>% 
-    mutate(height=cumsum(growth)) %>% 
-    ungroup -> treedat 
+) |> 
+    mutate(growth = ifelse(time==0, round(growth/2), growth)) |>
+    group_by(tree) |> 
+    mutate(height=cumsum(growth)) |> 
+    ungroup() -> treedat 
 
 
 ggplot(treedat,aes(x=time, y=height))+
@@ -116,8 +120,8 @@ For example, it is often suggested that for difficult tasks, _some_ amount of st
 tibble(
     stress = -100:100,
     performance = -(stress^2)
-) %>% 
-    ggplot(.,aes(x=stress,y=performance))+
+) |> 
+    ggplot(aes(x=stress,y=performance))+
     geom_path()+
     scale_x_continuous(breaks=c(-100,100),labels=c("Low","High"))+
     theme_classic()+
@@ -135,7 +139,7 @@ and when we plot each value of $x$ against the corresponding value of $y$:
 ```{r echo=FALSE}
 tibble(x = -5:5,
        y = x^2
-) %>% ggplot(., aes(x = x, y = y)) + 
+) |> ggplot(aes(x = x, y = y)) + 
     geom_point()
 ```
 
@@ -168,15 +172,15 @@ We have seen previously how we might change all the values in a variable, for in
 # read in the starwars dataset and assign it the name "starwars2"
 starwars2 <- read_csv("https://uoepsy.github.io/data/starwars2.csv")
 
-# take the starwars2 dataframe %>%
+# take the starwars2 dataframe |>
 # mutate it such that there is a new variable called "height_m",
 # the values of which are equal to the "height" variable divided by 100.
 # then, select only the "height" and "height_m" columns (this is just 
 # to make it easier to see without all the other variables)
-starwars2 %>%
+starwars2 |>
     mutate(
         height_m = height/100
-    ) %>% 
+    ) |> 
     select(height, height_m)
 ```
 
@@ -191,12 +195,12 @@ We transform for various reasons. For instance, we can use it to change the unit
 
 We could even plot the heights in cm and heights in m against one another (note what units are on each axis): 
 ```{r echo=FALSE}
-starwars2 %>%
+starwars2 |>
     mutate(
         height_m = height/100
-    ) %>% 
-    select(height, height_m) %>%
-    ggplot(.,aes(x=height, y=height_m))+
+    ) |> 
+    select(height, height_m) |>
+    ggplot(aes(x=height, y=height_m))+
     geom_point()
 ```
 <br>
@@ -207,7 +211,7 @@ library(latex2exp)
 tibble(
   x = c(1:10),
   log_x = log(x)
-) %>% ggplot(.,aes(x=x,y=log_x))+geom_point()+
+) |> ggplot(aes(x=x,y=log_x))+geom_point()+
   scale_x_continuous(breaks=1:10)+
   labs(title=TeX("f(x) = log_e(x)"), y = TeX("log_e(x)"))
 ```
@@ -222,8 +226,11 @@ A __logarithm__ (log) is the power to which a number must be raised in order to 
 Take as examples $10^2$ and $10^3$:  
 
 $$
-10^2 = 100 \qquad \Longleftrightarrow \qquad \log_{10} (100) = 2 \\
-10^3 = 1000 \qquad \Longleftrightarrow \qquad \log_{10} (1000) = 3
+10^2 = 100 \quad \Longleftrightarrow \quad \log_{10} (100) = 2
+$$
+
+$$
+10^3 = 1000 \quad \Longleftrightarrow \quad \log_{10} (1000) = 3
 $$  
 
 We refer to $\log_{10}$ as "Log base 10". 
@@ -255,7 +262,7 @@ Recall our dataset from our [introduction to handling numerical data](https://uo
 wechsler <- read_csv("https://uoepsy.github.io/data/wechsler.csv")
 
 # calculate the mean and sd of IQs
-wechsler %>% 
+wechsler |> 
   summarise(
     mean_iq = mean(iq),
     sd_iq = sd(iq)
@@ -283,7 +290,7 @@ To mean-center in R, we can simply add a new variable using `mutate()` and subtr
 # such that there is a variable called "iq_meancenter" for which
 # the entries are equal to the "iq" variable entries minus the 
 # mean of the "iq" variable
-wechsler %>%
+wechsler |>
   mutate(
     iq_meancenter = iq - mean(iq)
   )
@@ -311,7 +318,7 @@ We can achieve this in R either by manually performing the calculation:
 # such that there is a variable called "iq_z" for which
 # the entries are equal to the "iq" variable entries minus the mean of the "iq"
 # variable, divided by the standard deviation of the "iq" variable.  
-wechsler %>% 
+wechsler |> 
   mutate(
     iq_z = (iq - mean(iq)) / sd(iq)
   )
@@ -322,7 +329,7 @@ Or we can use the `scale()` function:
 # Take the "wechsler" dataframe, and mutate it,
 # such that there is a variable called "iq_std" for which
 # the entries are equal to the scaled values of the "iq" variable.  
-wechsler %>%
+wechsler |>
   mutate(
     iq_std = scale(iq)
   )
@@ -332,7 +339,7 @@ We can also use the `scale()` function to mean-center a variable, by setting `sc
 ```{r}
 # create two new variables in the "wechsler" dataframe, one which is 
 # mean centered iq, and one which is standardised iq:
-wechsler %>%
+wechsler |>
   mutate(
     iq_mc = scale(iq, center = TRUE, scale = FALSE),
     iq_std = scale(iq, center = TRUE, scale = TRUE) # these are the default settings

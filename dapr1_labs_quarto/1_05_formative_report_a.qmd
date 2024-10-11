@@ -21,13 +21,13 @@ Instructions and data were released in [week 1](1_01_design_and_data.html).
 ::: {.callout-important collapse="false"}
 ## This week: Submission of Formative report A {-}
 
-- Your group must submit one PDF file for formative report A by 12 noon on Friday 20 October 2023.
+- Your group must submit one PDF file for formative report A by 12 noon on Friday 18 October 2024.
     + No extensions are possible for group-based reports, see "Assessment Information" page on LEARN.
-- The submitted report must be a PDF file of max 6 sides of A4 paper.
-    - Keep the default settings in terms of Rmd knitting font and page margins.
+    + If you don't submit by the deadline, you won't receive written formative feedback.
+- The submitted report must be a PDF file of maximum 6 sides of A4 paper. Keep the default settings in terms of Rmd knitting font and page margins.
 - At the end of the file, you will place the appendices and these will not count towards the six-page limit. 
-    + You can include an _optional_ appendix for additional tables and figures which you can't fit in the main part of the report;
-    + You _must include a compulsory_ appendix listing all of the R code used in the report. This is done automatically if you end your file with the following section, which is already included in the template Rmd file:
+    + You can include an _optional_ appendix (Appendix A) for additional tables and figures which you can't fit in the main part of the report;
+    + You _must include a compulsory_ appendix (Appendix B) listing all of the R code used in the report. This is created automatically if you end your file with the following section, which is already included in the template Rmd file:
     
     ````
     # Appendix: R code
@@ -40,11 +40,15 @@ Instructions and data were released in [week 1](1_01_design_and_data.html).
 - Excluding the Appendix, the report should not include any reference to R code or functions, but be written for a generic reader who is only assumed to have a basic statistical understanding without any R knowledge.
 - To submit go to the course Learn page, click "Assessment", then click "Submit Formative Report A (PDF file only)".
     + Only one person per group is required to submit on behalf of the entire group.
+    + If two submissions are made for one group, the most recent will be used.
+    + The Turnitin submission title should be the group name, e.g. Group 5.K
+    + Once you have submitted, let your group know on the Group Discussion Space.
     + Ensure that everyone in the group has joined the group on LEARN. Otherwise, you won't see the feedback.
 - In Week 6 (next week)
     + There will be no lectures
-    + The labs are still on - please go to the labs.
-    + In the labs (a) check the formative feedback for your submission, and (b) study the example solutions and ask questions to tutors on code that is unclear.
+    + There will be no labs
+    + We will post the example solutions for Formative Report A and you will be asked to study them during week 6 while we'll be giving feedback on your submission.
+    + We will return your submission with feedback before week 7.
     
 :::
 
@@ -77,9 +81,19 @@ To see the hints, hover your cursor on the superscript numbers.
 - Ensure all group members have joined the group on LEARN. If you have not done so yet, go to the course LEARN page, click "Groups" from the top menu bar, find the group having the same name as your table label, and click Join.
 
 - Reopen last week's Rmd file, as you will continue last week's work and build on it.^[
-Hint: ask last week's driver for the Rmd file, they should share it with the group via email or Teams.  
+Hint: access the Rmd file from the Group Discussion Space. <br>If last week's driver hasn't uploaded it yet, please ask them to share it with the group via the Group Discussion Space, email, or Teams.<br><br>
 To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
 ]
+
+- Did you install tinytex? If yes, go to the next point. If not, copy the line below and paste it into the console:
+    
+    `install.packages("tinytex")`
+    
+    press Enter. Then copy and paste the line below into the console:
+    
+    `tinytex::install_tinytex()`
+    
+    press Enter. Type Y and press Enter again.
 
 - Organise the Rmd file to have the following structure:
 
@@ -264,23 +278,22 @@ which, when you Knit to PDF, becomes:
 :::{.callout-tip collapse="true"}
 ### Referencing tables
 
-First, you need to pick a **unique** label for the code chunk that displays the table, in this case `anotherLabel` but you should use a more descriptive name.
+Say you created a tibble and stored it into `tblEye`. Please make sure you haven't made it into a kbl() yet. 
+Create a code chunk to display `tblEye`, and then pipe it into `kbl()` to make a table for a PDF file. You can also specify the table caption (caption = ""), whether to include tab lines (booktabs = TRUE), and whether to round to 2 digits (digits = 2).
+To reference a table you need to pick a **unique** label for the code chunk that displays the table, in this case `anotherLabel` but you should use a more descriptive name.
 
 ````
 ```{{r anotherLabel, echo=FALSE}}
-library(kableExtra)
-tblEye <- starwars %>%
-    count(eye_color) %>%
-    kable(booktabs = TRUE, caption = "Short table caption")
-tblEye
+tblEye |>
+    kbl(booktabs = TRUE, caption = "Short table caption")
 ```
 ````
 
 ```{r echo=F}
 library(kableExtra)
-tblEye <- starwars %>%
-    count(eye_color) %>%
-    kable(caption = "Short table caption") %>%
+tblEye <- starwars |>
+    count(eye_color) |>
+    kable(caption = "Short table caption") |>
     kable_styling(full_width = FALSE)
 tblEye
 ```
@@ -373,8 +386,8 @@ tribble(
     'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday',
     'Server', 'Code for specific waiter/waitress: A, B, or C',
     'PctTip', 'Tip as a percentage of the bill'
-) %>%
-    kbl() %>%
+) |>
+    kbl() |>
     kable_styling(full_width = FALSE)
 ```
 
@@ -409,7 +422,7 @@ Let's inspect the row where `PctTip` is greater than 100:
 
 
 ```{r}
-tips %>% 
+tips |> 
     filter(PctTip > 100)
 ```
 
@@ -520,8 +533,8 @@ ggplot(tips, aes(x = Bill, y = Tip)) +
 ```
 
 ```{r eval=FALSE, echo=FALSE}
-coef(lm(Tip ~ Bill, data = filter(tips, Credit == 'No'))) %>% round(3)
-coef(lm(Tip ~ Bill, data = filter(tips, Credit == 'Yes'))) %>% round(3)
+coef(lm(Tip ~ Bill, data = filter(tips, Credit == 'No'))) |> round(3)
+coef(lm(Tip ~ Bill, data = filter(tips, Credit == 'Yes'))) |> round(3)
 ```
 
 Again, you will not know how to find out the functional relationship between the variables within each group until the course DAPR2 in 2nd year, so I will give it to you.
