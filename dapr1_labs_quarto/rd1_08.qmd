@@ -56,10 +56,10 @@ If the probability of observing the face "2" in a die is 1/6 = 0.17,
 what's the probability of not observing the face "2"? It must be 1 - 1/6
 = 5/6 = 0.83.
 
-If $A = \{2\}$, the event not A is written $\sim A$, which is a shortcut
+If $A = \{2\}$, the event "not A" is the complement of A and is written $A^c$, which is a shortcut
 for $S$ without $A$, that is $\{1, 3, 4, 5, 6\}$.
 
-$$P(\sim A) = 1 - P(A)$$
+$$P(A^c) = 1 - P(A)$$
 
 **Rule 4: Addition rule for disjoint events**
 
@@ -214,16 +214,16 @@ library(tidyverse)
 library(janitor)
 library(kableExtra)
 
-df <- as.data.frame(Titanic) %>%
-  uncount(Freq) %>%
-  filter(Class != 'Crew') %>%
+df <- as.data.frame(Titanic) |>
+  uncount(Freq) |>
+  filter(Class != 'Crew') |>
   mutate(Class = fct_drop(Class))
 
-df %>%
-  tabyl(Class, Survived) %>%
-  adorn_totals(c("row", "col")) %>%
-  kable() %>%
-  add_header_above(c(" " = 1, "Survived" = 2, " " = 1)) %>%
+df |>
+  tabyl(Class, Survived) |>
+  adorn_totals(c("row", "col")) |>
+  kable() |>
+  add_header_above(c(" " = 1, "Survived" = 2, " " = 1)) |>
   kable_styling(full_width = FALSE)
 ```
 
@@ -285,10 +285,10 @@ To see this, remember that $P(S) = 1$ and we can then rewrite
 
 $$P(A) = \frac{P(A)}{1} = \frac{P(A)}{P(S)} = \frac{P(A \cap S)}{P(S)} = P(A | S)$$
 
-The rule $P(A) + P({} \sim A) = 1$ can be written as $P(A | S) + P({} \sim A | S) = 1$.
+The rule $P(A) + P(A^c) = 1$ can be written as $P(A | S) + P(A^c | S) = 1$.
 
 **Complement rule for conditional probabilities**  
-In general, according to the complement rule, $P({}\sim B|A) = 1 - P(B|A)$. 
+In general, according to the complement rule, $P(B^c|A) = 1 - P(B|A)$. 
 
 **Product rule for conditionally independent events**  
 We also have a similar rule for independence. Two events $A$ and $B$ are conditionally independent given $C$ if:
@@ -304,7 +304,7 @@ Consider the following plot:
 ```{r echo=FALSE}
 library(eikosograms)
 
-eikos(Survived ~ Class, data = df %>% mutate(Survived = fct_relevel(Survived, 'Yes')))
+eikos(Survived ~ Class, data = df |> mutate(Survived = fct_relevel(Survived, 'Yes')))
 ```
 
 On the y-axis we see the conditional probabilities of survival given the passenger class.
@@ -379,9 +379,9 @@ tbl = tibble(
   Survived = c('Yes', 'Yes', 'Yes', 'Yes', 'No', 'No', 'No', 'No'),
   Class = c('1st', '2nd', '3rd', 'Crew', '1st', '2nd', '3rd', 'Crew'),
   Freq = c(.7, .7, .7, .7, .3, .3, .3, .3) * 1000
-) %>%
-  mutate_if(is_character, factor) %>%
-  mutate(Survived = fct_relevel(Survived, 'Yes')) %>%
+) |>
+  mutate_if(is_character, factor) |>
+  mutate(Survived = fct_relevel(Survived, 'Yes')) |>
   uncount(Freq)
 
 eikos(Survived ~ Class, data = tbl, main = 'Independence')
@@ -397,9 +397,9 @@ tbl = tibble(
   Survived = c('Yes', 'Yes', 'Yes', 'Yes', 'No', 'No', 'No', 'No'),
   Class = c('1st', '2nd', '3rd', 'Crew', '1st', '2nd', '3rd', 'Crew'),
   Freq = c(1,0,0,0,0,1,1,1) * 1000
-) %>%
-  mutate_if(is_character, factor) %>%
-  mutate(Survived = fct_relevel(Survived, 'Yes')) %>%
+) |>
+  mutate_if(is_character, factor) |>
+  mutate(Survived = fct_relevel(Survived, 'Yes')) |>
   uncount(Freq)
 
 eikos(Survived ~ Class, data = tbl, main = 'Perfect dependence')
