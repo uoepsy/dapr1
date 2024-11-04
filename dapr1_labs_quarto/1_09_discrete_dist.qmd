@@ -15,14 +15,14 @@ library(tidyverse)
 
 movies <- read_csv("https://uoepsy.github.io/data/hollywood_movies_subset.csv")
 
-movies2 <- movies %>%
-    filter(Genre %in% c("Drama", "Action", "Comedy")) %>%
-    mutate(Rating = ifelse(AudienceScore <= 50, 'Bad', 'Good')) %>%
+movies2 <- movies |>
+    filter(Genre %in% c("Drama", "Action", "Comedy")) |>
+    mutate(Rating = ifelse(AudienceScore <= 50, 'Bad', 'Good')) |>
     mutate(Genre = factor(Genre),
            Rating = factor(Rating))
 
-movies_prop <- table(movies2$Genre, movies2$Rating) %>%
-    prop.table() %>%
+movies_prop <- table(movies2$Genre, movies2$Rating) |>
+    prop.table() |>
     addmargins()
 movies_prop
 
@@ -41,6 +41,15 @@ m_plot
 Instructions and data were released in [week 7](1_07_prob_theory.html).
 :::
 
+::: {.callout-tip}
+Names of operators:
+
+- `<-` assignment operator:
+    - `object_name <- what_to_store` means assign `what_to_store` into `object_name`
+
+- `|>` or `%>%`, pipe operator:
+    - take what's on the left and then do something to it
+:::
 
 ### Tasks
 
@@ -75,7 +84,8 @@ In this lab, you will need to consider both the `Snacks` and `PrivateTransport` 
 
 - Reopen last week's Rmd file, and continue building on last week's work. Make sure you are still using the movies dataset filtered to only include the top 3 genres.[^share-file]
 
-[^share-file]: Hint: Ask last week's driver for the Rmd file, they should share it with the group via the group discussion space or email. To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
+[^share-file]: Hint: access the Rmd file from the Group Discussion Space. <br>If last week's driver hasn't uploaded it yet, please ask them to share it with the group via the Group Discussion Space, email, or Teams.<br><br>
+To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
 
 - Consider the `Snacks` and `PrivateTransport` variables, are they discrete or continuous? What are the lowest and highest possible values that the two random variables could take?[^snacks-transport-support]
 
@@ -180,7 +190,7 @@ tribble(
     'HadCoffee', 'Number of guests in the group who had coffee',
     'IQ1', 'Score on IQ test for guest 1',
     'IQ2', 'Score on IQ test for guest 2'
-) %>%
+) |>
     kable(format = 'simple')
 ```
 
@@ -204,9 +214,9 @@ Compute the frequency distribution and relative frequency:
 
 ```{r}
 # freq_distr data contains the sample frequencies
-freq_distr <- tips2 %>%
-    count(HadCoffee) %>%
-    mutate(rel_freq = n / sum(n)) %>%
+freq_distr <- tips2 |>
+    count(HadCoffee) |>
+    mutate(rel_freq = n / sum(n)) |>
     rename(freq = n)    # the code rename(new_name = current_name)
                         # renames column 'n' created by count() to 'freq'
 freq_distr
@@ -375,7 +385,7 @@ pbinom(1, size = 2, prob = p_hat)
 You can also see this by creating a new column in the binomial distribution which has the cumulative sums of the probabilities, i.e. the values P(X = 0), followed by P(X = 0) + P(X = 1), and finally by P(X = 0) + P(X = 1) + P(X = 2):
 
 ```{r}
-binom_distr %>% 
+binom_distr |> 
     mutate(
         cumul_prob = cumsum(binom_prob)
     )
