@@ -117,9 +117,7 @@ __This week you will only focus on task B4.__ Below there are sub-steps you need
 
 To see the hints, hover your cursor on the superscript numbers.
 
-Focus on completing all of the lab tasks, and leave non-essential things like changing colors for later.
-
-If, after looking at the hint, you still have no clue on how to answer a question, check the worked example below!
+Focus on completing all of the lab tasks, and leave non-essential things like changing colours for later.
 :::
 :::
 
@@ -147,13 +145,14 @@ To summarise, IQ is an example of a variable that is considered as coming from a
 ::: {.callout-tip collapse="true"}
 #### README: Wide vs long data
 
-Currently the IQ data are in wide format, i.e. each movie has multiple columns providing the IQ scores of the 50 audience raters. However, later on we will want to plot the IQ scores of all raters across all movies. To do so, `ggplot` wants a single column of IQ scores into `aes()`.
+Currently the IQ data are in wide format, i.e. each movie has multiple columns providing the IQ scores for each of the 50 audience raters. 
+However, later on we will want to plot the IQ scores of all raters across all movies. To do so, `ggplot` wants a single column of IQ scores into `aes()`.
 
 Consider this fictitious dataset in __wide form__:
 
 ```{r}
 df <- tibble(
-    movie = c('x1', 'x2', 'x3'),
+    movie = c('mov1', 'mov2', 'mov3'),
     IQ1   = c(91, 92, 93),
     IQ2   = c(101, 102, 103)
 )
@@ -168,7 +167,7 @@ df_long <- df |>
 df_long
 ```
 
-The function `pivot_longer` takes the range of columns you want to compress (`IQ1` to `IQ2` in this case), and the names of 2 new columns to create:
+As you see, the above is just a different rearrangement of the same data. The function `pivot_longer` takes the range of columns you want to compress (`IQ1` to `IQ2` in this case), and the names of 2 new columns to create:
 
 - `names_to`: where the __names__ of the columns to compress will go into - in this case, "IQ_ID"
 - `values_to`: where the __values__ of the columns to compress will go into - in this case, "IQ_Scores"
@@ -183,7 +182,7 @@ df_long |>
 ```
 :::
 
-- Using the `pivot_longer()` function, pivot the data so that it is in long format. Ensure the column names go into a new column called "IQ_ID", and the values go into a column called "IQ_Scores".[^func-pivot]
+- Using the `pivot_longer()` function, pivot the data so that it is in long format. Ensure the column names go into a new column called "IQ_ID", and the values go into a column called "IQ_Scores". Store the data in long format in a new object.[^func-pivot]
 
 [^func-pivot]: Hint: When the data is wide, we can make it long using `pivot_longer()`. When we make data longer, we’re essentially making lots of columns into 2 longer columns. Below, in the animation, the wide variable x, y and z go into a new longer column called `"name"` (specified by the argument `names_to = "name"`) that specifies which (x/y/z) it came from, and the values get put into the `"val"` column (specified by the argument `values_to = "val"`).
 
@@ -207,48 +206,56 @@ This is because a single audience rater didn't appear in more than one movie. Ev
 
 - What kind of distribution does your plot follow? Estimate the parameters of your distribution from the sample data.[^est-params]
 
-[^est-params]: Hint: A normal distribution has two parameters, the mean ($\mu$) and the standard deviation ($\sigma$).
+[^est-params]: Hint: A normal distribution has two parameters, the mean ($\mu$) and the standard deviation ($\sigma$). The mean specifies where the normal distribution is centred at along the x-axis. The standard deviation specifies how spread out the normal distribution is.
 
 - Plot the fitted normal distribution on top of the sample distribution. Is the normal distribution a good fit?[^plt-norm]
 
-[^plt-norm]: Hint: Here you will need to consider using `dnorm()`, as you are interested in the **norm**al **d**istribution at values of x.  
+[^plt-norm]: Hint: Here you will need to consider using `dnorm()`, as you are interested in the **norm**al **d**istribution at different values of x.  
     
     First, you will need to create a tibble with two columns:
     
-    + The first column will contain a sequence of x-values (a grid) for which you want to compute the normal distribution curve at
+    + The first column will contain a sequence of x-values (a grid) for which you want to compute the normal distribution curve at.
     + The second column will contain the y-values: the normal distribution at that sequence of x-values.
-        
-    This way, you will have the x-values and the heights (normal distribution) at those x-values.  
-    When specifying your x-axis sequence, consider how many standard deviations above and below the mean to give. This can either be 2, 3, or 4. Alternative you can go from the minimum of your data to the maximum.  
-    For the y-values, use the `dnorm()` function with inputs being the x-axis grid, the sample mean, and sample standard deviation.  
+    
+    ```
+    norm_distr <- tibble(
+        IQ_Grid   = ... ,
+        IQ_Norm_Distr = ...
+    )
+    ```
+    
+    This way, you will have the x-values (IQ_Grid) and the heights (IQ_Norm_Distr) at those x-values.  
+    When specifying your x-axis sequence, consider how many standard deviations above and below the mean to give. Typical values are 3, 4, or 2 - try! Alternatively, you can go from the minimum of your data to the maximum.  
+    For the y-values, use the `dnorm(x, mean, sd)` function with inputs being the x-axis grid, the sample mean, and sample standard deviation.  
     Plot this on top of the histogram/density using `geom_line(data = ?, aes(x = ?, y = ?))`. If you are using a histogram, make sure the y-axis are comparable: counts vs density isn't appropriate!
 
-- Calculate the following:[^probs-IQ]
-    * The probability of a movie viewer having an IQ score <97.4, i.e. less than the Texas average.
-    * The probability of a movie viewer having an IQ score >97.4, i.e. more than the Texas average.
-    <!-- * The probability of a movie viewer having an IQ score between 90-109, corresponding to the Average category in the Wechsler Intelligence Scale. -->
-
-[^probs-IQ]: Hint: Here you are being asked to calculate:       
-
-    * P(X <= x) = P(X < x)  
-    * P(X >= x) = P(X > x)  
-    <!-- * P(a < X < b) = P(X < b) - P(X < a) -->
-                    
-- Calculate the following:[^quant-IQ]
+- Using the normal distribution, calculate the following:[^quant-IQ]
     * The value of IQ that 25% of movie watchers have scores equal to or less than
     * The value of IQ that 50% of movie watchers have scores equal to or less than
     * The value of IQ that 75% of movie watchers have scores equal to or less than
-    * The interval comprising the middle 95% of the people's IQ scores in the sample
+    <!-- * The interval comprising the middle 95% of the people's IQ scores in the sample -->
 
 [^quant-IQ]: Hint: 
 
-    For the first three questions, you are being asked to calculate the quantile x such that P(X <= x) is 0.25, 0.50, and 0.75 respectively. That is, you are asked to find the first, second, and third quartiles respectively. 
+    You are being asked to calculate the quantile x such that P(X <= x) is 0.25, 0.50, and 0.75 respectively. That is, you are asked to find the first, second, and third quartiles respectively. 
     
-    For the final question, you are looking for those values that comprise the middle 0.95 of the distribution, i.e. cutting an area of 0.05 outside.  
-    The 0.05 probability needs to be equally divided between the left (0.025) and the right (0.025) tails. Also note that a probability of 0.025 to the right is equivalent to a probability of 0.975 to the left (= 1 - 0.025). 
-    In symbols, you are asked to calculate P(a < X < b) where a is the 2.5th percentile and b is the 97.5th percentile. 
+    To obtain the quantile of a normal distribution, use the `qnorm(p, mean, sd)` function. This will return the x-value that has a probability p to its left.
+    
+    <!-- For the final question, you are looking for those values that comprise the middle 0.95 of the distribution, i.e. cutting an area of 0.05 outside.   -->
+    <!-- The 0.05 probability needs to be equally divided between the left (0.025) and the right (0.025) tails. Also note that a probability of 0.025 to the right is equivalent to a probability of 0.975 to the left (= 1 - 0.025).  -->
+    <!-- In symbols, you are asked to calculate P(a < X < b) where a is the 2.5th percentile and b is the 97.5th percentile.  -->
 
 - How do the normal quartiles computed above compare to those obtained from the `summary()` function? If they are similar, this will provide further evidence that the normal distribution is a good model for IQ scores.
+
+- Using the normal distribution, calculate the probability of a movie viewer having an IQ score >97.4, i.e. more than the Texas average.[^probs-IQ]
+
+[^probs-IQ]: Hint: Here you are being asked to calculate P(X > x) = 1 - P(X <= x). 
+    
+    Recall that in a normal distribution:
+    
+    * P(X <= x) = P(X < x)
+    * P(X >= x) = P(X > x)
+    
 
 - Based on the probabilities you have reported above, do you think that the new movie theatre should simplify the questions for their trivia night, make them harder, or make no changes? Justify your answer. 
 
@@ -387,15 +394,18 @@ tips_sigma_hat
 First we will create a tibble with the normal distribution at a grid of x values.
 
 ::: column-margin
-__M $\pm$ 4 * SD vs M $\pm$ 3 * SD__  
-Typically, the interval M $\pm$ 3 * SD includes roughly all of the distribution values (99.7\%). However, in this case a few IQ scores escape the interval (as they are so widespread). As such, we extended the plotting interval to M $\pm$ 4 * SD.  
-Feel free to try with a grid of x values between M $\pm$ 3 * SD, and you will see that some scores exceed the plot range.
+__Why M $\pm$ 3 * SD?__  
+
+![](https://marketinvestopedia.com/wp-content/uploads/2023/10/Normal-Distribution.jpg)
+
+Typically, the interval M $\pm$ 3 * SD includes approximately 100\% of the distribution values (to be specific, 99.7\%). See [here](https://en.wikipedia.org/wiki/68%E2%80%9395%E2%80%9399.7_rule) for more information!  
+If you wanted, you can always extend the interval to be M $\pm$ 4 * SD or M $\pm$ 5 * SD if you want to extend your normal distribution plot.
 :::
 
 ```{r}
 normal_distr <- tibble(
-    x_grid = seq(tips_mu_hat - 4 * tips_sigma_hat, 
-                 tips_mu_hat + 4 * tips_sigma_hat, 
+    x_grid = seq(tips_mu_hat - 3 * tips_sigma_hat, 
+                 tips_mu_hat + 3 * tips_sigma_hat, 
                  by = 0.1),
     y_grid = dnorm(x_grid, mean = tips_mu_hat, sd = tips_sigma_hat)
 )
@@ -411,12 +421,86 @@ bistro_iq <- ggplot() +
     geom_histogram(data = tips2_long, aes(x = IQ_Scores, y = after_stat(density)), 
                    color = 'white') +
     geom_line(data = normal_distr, aes(x = x_grid, y = y_grid),
-              color = 'red') +
+              color = 'red', linewidth = 2) +
     labs(x = "IQ scores")
 bistro_iq
 ```
 
+In the code above, `linewidth = 2` changes the default line thickness from 1 to 2. You can also change the line type to be dashed, if you wish to, using `linetype = 2`.
+
 The normal distribution seems to be a good fit for the sample distribution, as the shape of the histogram tends to agree with the normal distribution across all possible values. The histogram appears to be symmetric around the mean and follows the normal bell-shaped curve.
+
+
+- We can calculate the value of IQ that a specific percentage of bistro customers have scores equal to or less than, for example:
+
+::: columns-margin
+s.t. means such that
+:::
+
+::: {.panel-tabset}
+
+## x s.t. P(X <= x) = 0.25
+
+To calculate the value of IQ that 25% of bistro customers have scores equal to or less than, we can compute the following: 
+
+```{r}
+qnorm(p = 0.25, mean = tips_mu_hat, sd = tips_sigma_hat)
+```
+
+## x s.t. P(X <= x) = 0.50
+
+To calculate the value of IQ that 50% of bistro customers have scores equal to or less than, we can compute the following: 
+
+```{r}
+qnorm(0.5, tips_mu_hat, tips_sigma_hat)
+```
+
+## x s.t. P(X <= x) = 0.75
+
+To calculate the value of IQ that 75% of bistro customers have scores equal to or less than, we can compute the following: 
+
+```{r}
+qnorm(0.75, tips_mu_hat, tips_sigma_hat)
+```
+
+:::
+
+- We can also comment on how these normal quartiles values compare to those from the `summary()` output:
+
+```{r}
+summary(tips2_long$IQ_Scores)
+```
+
+The quartiles from the fitted normal distribution are similar to the sample ones (i.e., those returned by `summary()`). This provides further evidence that a normal distribution is a good model for the sample of IQ scores.
+
+- To summarise the IQ scores of the bistro customers, we could compute the interval comprising the middle 95% of the customers IQ scores:
+
+If we want 0.95 probability in the middle, we need to split the leftover 0.05 probability equally between the two tails: 0.025 in the left, and 0.025 in the right. However, `qnorm()` wants the probability to the left, so we will give 0.025 and 0.975 = 1 - 0.025 as values.
+
+```{r}
+qnorm(c(0.025, 0.975), mean = tips_mu_hat, sd = tips_sigma_hat)
+```
+
+95% of the bistro customers had IQ scores between 69 and 130.
+
+
+:::{.callout-note collapse="true"}
+### Alternatively
+
+Alternatively, to specify that one probability is on the left tail and the other is on the upper tail, you have to run two separate statements:
+
+```{r}
+qnorm(0.025, mean = tips_mu_hat, sd = tips_sigma_hat)
+qnorm(0.025, mean = tips_mu_hat, sd = tips_sigma_hat, lower.tail = FALSE)
+```
+
+:::
+
+
+:::{.column-margin}
+For a classification of IQ scores, see the [Wechsler Intelligence Scales classification table](https://en.wikipedia.org/wiki/IQ_classification#Wechsler_Intelligence_Scales).
+:::
+
 
 - We can use the fitted normal distribution to calculate the probabilities, for example:
 
@@ -478,79 +562,13 @@ pnorm(130, tips_mu_hat, tips_sigma_hat) - pnorm(100, tips_mu_hat, tips_sigma_hat
 :::
 
 
-- We can calculate the value of IQ that a specific percentage of bistro customers have scores equal to or less than, for example:
 
-::: columns-margin
-s.t. means such that
-:::
-
-::: {.panel-tabset}
-
-## x s.t. P(X <= x) = 0.25
-
-To calculate the value of IQ that 25% of bistro customers have scores equal to or less than, we can compute the following: 
-
-```{r}
-qnorm(p = 0.25, mean = tips_mu_hat, sd = tips_sigma_hat)
-```
-
-## x s.t. P(X <= x) = 0.50
-
-To calculate the value of IQ that 50% of bistro customers have scores equal to or less than, we can compute the following: 
-
-```{r}
-qnorm(0.5, tips_mu_hat, tips_sigma_hat)
-```
-
-## x s.t. P(X <= x) = 0.75
-
-To calculate the value of IQ that 75% of bistro customers have scores equal to or less than, we can compute the following: 
-
-```{r}
-qnorm(0.75, tips_mu_hat, tips_sigma_hat)
-```
-
-:::
-
-- We can also comment on how these normal quartiles values compare to those from the `summary()` output:
-
-```{r}
-summary(tips2_long$IQ_Scores)
-```
-
-The estimated quartiles are very similar to those from the summary output, providing further indication that the sample of IQ scores follows a normal distribution.
-
-- To summarise the IQ scores of the bistro customers, we could compute the interval comprising the middle 95% of the customers IQ scores:
-
-If we want 0.95 probability in the middle, we need to split the leftover 0.05 probability equally between the two tails: 0.025 in the left, and 0.025 in the right. However, `qnorm()` wants the probability to the left, so we will give 0.025 and 0.975 = 1 - 0.025 as values.
-
-```{r}
-qnorm(c(0.025, 0.975), mean = tips_mu_hat, sd = tips_sigma_hat)
-```
-
-95% of the bistro customers had IQ scores between 69 and 130.
-
-
-:::{.callout-note collapse="true"}
-### Alternatively
-
-Alternatively, to specify that one probability is on the left tail and the other is on the upper tail, you have to run two separate statements:
-
-```{r}
-qnorm(0.025, mean = tips_mu_hat, sd = tips_sigma_hat)
-qnorm(0.025, mean = tips_mu_hat, sd = tips_sigma_hat, lower.tail = FALSE)
-```
-
-:::
-
-
-For a classification of IQ scores, see the [Wechsler Intelligence Scales classification table](https://en.wikipedia.org/wiki/IQ_classification#Wechsler_Intelligence_Scales).
 
 :::{.callout-tip}
 
 #### Example writeup
 
-@fig-IQ displays the distribution of IQ scores, with a normal distribution superimposed as a red histogram. Most of the bistro customers (95%) have IQ scores between 69 and 130. Based on our analysis above, 48% of bistro customers are likely to have IQ scores above 100, though there is less than a 10% chance that customers have superior IQ scores (i.e., above 120). Therefore the bistro owner has set the questions to his quiz at the desired level of difficulty - the vast majority of his customers should find the questions extremely challenging. However, if the Bistro owner did want to make some changes, they should only consider making the quiz more difficult. 
+@fig-IQ displays the distribution of IQ scores, with a normal distribution superimposed as a red curve. Most of the bistro customers (95%) have IQ scores between 69 and 130. Based on our analysis above, 48% of bistro customers are likely to have IQ scores above 100, though there is less than a 10% chance that customers have superior IQ scores (i.e., above 120). Therefore the bistro owner has set the questions to his quiz at the desired level of difficulty - the vast majority of his customers should find the questions extremely challenging. However, if the Bistro owner did want to make some changes, they should only consider making the quiz more difficult. 
 
 :::
 
