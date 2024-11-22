@@ -235,8 +235,8 @@ library(DT)
 datatable(samples,
           options = list(autoWidth = TRUE, pageLength = 10,
                          columnDefs = list(list(className = 'dt-center', 
-                                                targets = 1:3)))) %>%
-  formatSignif('gest_period', 5) %>%
+                                                targets = 1:3)))) |>
+  formatSignif('gest_period', 5) |>
   formatStyle('sample',
               backgroundColor = styleEqual(
                 unique(samples$sample), 
@@ -250,8 +250,8 @@ datatable(samples,
 Now, imagine computing the mean of the five observation in each sample. This will lead to 10 means, one for each of the 10 samples (of 5 individuals each).
 
 ```{r}
-sample_means <- samples %>%
-  group_by(sample) %>%
+sample_means <- samples |>
+  group_by(sample) |>
   summarise(mean_gest = mean(gest_period))
 
 sample_means
@@ -261,15 +261,15 @@ As you can see this leads to a tibble having 10 rows (one for each sample), wher
 
 The gestation period (in days) for the first five women sampled were
 <center>
-`r filter(samples, sample == 1)$gest_period %>% round(2)`
+`r filter(samples, sample == 1)$gest_period |> round(2)`
 </center>
-This sample has a mean of $\bar x$ = `r filter(samples, sample == 1)$gest_period %>% mean() %>% round(2)` days.  
+This sample has a mean of $\bar x$ = `r filter(samples, sample == 1)$gest_period |> mean() |> round(2)` days.  
 
 The second sample of 5 women had gestation periods
 <center>
-`r filter(samples, sample == 2)$gest_period %>% round(2)`
+`r filter(samples, sample == 2)$gest_period |> round(2)`
 </center>
-The second sample has a mean gestation period of $\bar x$ = `r filter(samples, sample == 2)$gest_period %>% mean() %>% round(2)` days.  
+The second sample has a mean gestation period of $\bar x$ = `r filter(samples, sample == 2)$gest_period |> mean() |> round(2)` days.  
 
 In @fig-sampl-10-5-50 we display the individual gestation periods in each sample as dots, along with the means gestation period $\bar x$ of each sample. The position of the sample mean is given by a red vertical bar.
 
@@ -282,13 +282,13 @@ We then increased the sample size to 50 women and took 10 samples each of 50 ind
 library(patchwork)
 
 # data
-da <- samples %>% 
-  group_by(sample) %>%
+da <- samples |> 
+  group_by(sample) |>
   mutate(mean_gest = mean(gest_period))
 
-db <- gest %>%
-  rep_sample_n(n = 50, samples = 10) %>%
-  group_by(sample) %>%
+db <- gest |>
+  rep_sample_n(n = 50, samples = 10) |>
+  group_by(sample) |>
   mutate(mean_gest = mean(gest_period))
 
 # theme
@@ -353,23 +353,23 @@ We will also add at the end of each tibble a column specifying the sample size. 
 
 ```{r}
 # (a) 1,000 means from 1,000 samples of 5 women each
-sample_means_5 <- rep_sample_n(gest, n = 5, samples = 1000) %>%
-  group_by(sample) %>%
-  summarise(mean_gest = mean(gest_period)) %>%
+sample_means_5 <- rep_sample_n(gest, n = 5, samples = 1000) |>
+  group_by(sample) |>
+  summarise(mean_gest = mean(gest_period)) |>
   mutate(n = 5)
 head(sample_means_5)
 
 # (b) 1,000 means from 1,000 samples of 50 women each
-sample_means_50 <- rep_sample_n(gest, n = 50, samples = 1000) %>%
-  group_by(sample) %>%
-  summarise(mean_gest = mean(gest_period)) %>%
+sample_means_50 <- rep_sample_n(gest, n = 50, samples = 1000) |>
+  group_by(sample) |>
+  summarise(mean_gest = mean(gest_period)) |>
   mutate(n = 50)
 head(sample_means_50)
 
 # (c) 1,000 means from 1,000 samples of 500 women each
-sample_means_500 <- rep_sample_n(gest, n = 500, samples = 1000) %>%
-  group_by(sample) %>%
-  summarise(mean_gest = mean(gest_period)) %>%
+sample_means_500 <- rep_sample_n(gest, n = 500, samples = 1000) |>
+  group_by(sample) |>
+  summarise(mean_gest = mean(gest_period)) |>
   mutate(n = 500)
 head(sample_means_500)
 ```
@@ -418,13 +418,13 @@ A sampling distribution shows how the statistic varies from sample to sample due
 What is the mean and standard deviation of each histogram?
 
 ```{r}
-sample_means_n %>%
-  group_by(n) %>%
+sample_means_n |>
+  group_by(n) |>
   summarise(mean_xbar = mean(mean_gest),
             sd_xbar = sd(mean_gest))
 ```
 
-Compare these quantities to the population mean and standard deviation: $\mu$ = `r mean(gest$gest_period) %>% signif(3)` and $\sigma$ = `r sd(gest$gest_period) %>% signif(3)`.
+Compare these quantities to the population mean and standard deviation: $\mu$ = `r mean(gest$gest_period) |> signif(3)` and $\sigma$ = `r sd(gest$gest_period) |> signif(3)`.
 
 Regardless of the size of the samples we were drawing (5, 50, or 500), the average of the sample means was equal to the population mean.
 However, the standard deviation of the sample means was smaller than the population mean. The variability in sample means also decreases as the sample size increases.
@@ -441,10 +441,10 @@ sigma <- sd(gest$gest_period)
 Now compute add a column that compares the SD from sampling with the theory-based one:
 
 ```{r}
-sample_means_n %>%
-  group_by(n) %>%
+sample_means_n |>
+  group_by(n) |>
   summarise(mean_xbar = mean(mean_gest),
-            sd_xbar = sd(mean_gest)) %>%
+            sd_xbar = sd(mean_gest)) |>
   mutate(sd_theory = sigma / sqrt(n))
 ```
 
@@ -611,9 +611,9 @@ If we could afford to measure the entire population, then we would find the exac
 By taking multiple samples of size equal to the entire population, every time we would obtain the population parameter exactly, so the distribution would look like a histogram with a single bar on top of the true value: we would find the true parameter with a probability of one, and the estimation error would be 0.
 
 ```{r}
-pop_means <- gest %>%
-  rep_sample_n(n = nrow(gest), samples = 10) %>%
-  group_by(sample) %>%
+pop_means <- gest |>
+  rep_sample_n(n = nrow(gest), samples = 10) |>
+  group_by(sample) |>
   summarise(mean_gest = mean(gest_period))
 pop_means
 ```

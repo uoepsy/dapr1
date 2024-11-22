@@ -18,14 +18,14 @@ library(patchwork)
 
 movies <- read_csv("https://uoepsy.github.io/data/hollywood_movies_subset.csv")
 
-movies2 <- movies %>%
-    filter(Genre %in% c("Drama", "Action", "Comedy")) %>%
-    mutate(Rating = ifelse(AudienceScore <= 50, 'Bad', 'Good')) %>%
+movies2 <- movies |>
+    filter(Genre %in% c("Drama", "Action", "Comedy")) |>
+    mutate(Rating = ifelse(AudienceScore <= 50, 'Bad', 'Good')) |>
     mutate(Genre = factor(Genre),
            Rating = factor(Rating))
 
-movies_prop <- table(movies2$Genre, movies2$Rating) %>%
-    prop.table() %>%
+movies_prop <- table(movies2$Genre, movies2$Rating) |>
+    prop.table() |>
     addmargins()
 movies_prop
 
@@ -36,7 +36,7 @@ m_plot <- ggplot(movies2) +
 m_plot
 
 #week 4
-movies2_long <- movies2 %>%
+movies2_long <- movies2 |>
     pivot_longer(IQ1:IQ50, names_to = "ID", values_to = "IQ")
 movies2_long 
 
@@ -96,13 +96,13 @@ se_movies <- sd(movies2$AudienceScore) / sqrt(n_movies)
 se_movies
 
 #variation by lead studio
-tbl_movies <- movies2 %>%
-    group_by(LeadStudio) %>% 
+tbl_movies <- movies2 |>
+    group_by(LeadStudio) |> 
     summarise(n = n(),
               xbar = mean(AudienceScore),
-              se = sd(AudienceScore) / sqrt(n)) %>%
+              se = sd(AudienceScore) / sqrt(n)) |>
     mutate(xbar = round(xbar, 2),
-           se = round(se, 2)) %>% 
+           se = round(se, 2)) |> 
     as.data.frame()
 tbl_movies
 
@@ -129,11 +129,12 @@ Instructions and data were released in [week 7](1_07_prob_theory.html).
 ::: {.callout-important collapse="false"}
 ### This week: Submission of Formative Report B {-}
 
-- Your group must submit one PDF file for formative report B by 12 noon on Friday 1st December 2023.
+- Your group must submit one PDF file for formative report B by 12 noon on Friday 29th of November 2024.
     + No extensions are possible for group-based reports, see "Assessment Information" page on LEARN.
     + To submit, go to the course Learn page > click "Assessment" > click "Submit Formative Report B (PDF file only)".
-    + Only one person per group is required to submit on behalf of the entire group.
+    + Only one person per group is required to submit on behalf of the entire group. Once submitted, let your group know on the Group Discussion Space. The other members in the group don't have to do anything else.
     + Ensure that everyone in the group has joined the group on LEARN. Otherwise, you won't see the feedback.
+    + If more than one submission is made per group, only the most recent one will be considered.
 
 - The submitted report must be a PDF file of max 6 sides of A4 paper.
     - Keep the default settings in terms of Rmd knitting font and page margins.
@@ -156,9 +157,18 @@ Instructions and data were released in [week 7](1_07_prob_theory.html).
 
 - In Week 12 (next week)
     + There will be no lectures
-    + The labs are still on - please go to the labs.
-    + In the labs (a) check the formative feedback for your submission, and (b) study the example solutions and ask questions to tutors on code that is unclear.
+    + There will be no labs
+    + There will be no weekly quiz
+    + Solutions to Formative Report B will be posted on LEARN as study material.
+    + At the end of week 12, we will send an announcement when we will have finished providing feedback on your submissions.
     
+:::
+
+::: {.callout-tip collapse="false"}
+### Formatting resources {-}
+
+At [this page](zf_formatting_resources.html){target="_blank"} you can find resources to help you with your report formatting.
+
 :::
 
 
@@ -171,7 +181,7 @@ This week's task is highlighted in bold below. Please only focus on completing t
 > B2) Investigate if a movie receiving a good rating is independent of the genre.  
 > B3) Computing and plotting probabilities with a binomial distribution.  
 > B4) Computing and plotting probabilities with a normal distribution.  
-> B5) **Plot standard error of the mean, and finish the report write-up (i.e., knit to PDF, and submit the PDF for formative feedback).**  
+> B5) **Finish the report write-up and formatting, knit to PDF, and submit the PDF for formative feedback.**  
 
 
 ### B5 sub-tasks
@@ -187,306 +197,264 @@ To see the hints, hover your cursor on the superscript numbers.
 :::
 
 
-::: {.callout-important}
-#### Context
-
-An investor has gotten in touch and has asked you to consult on what Lead Studio they should invest in, based on audience scores of the top three movie genres. They want to be presented with two options:
-
-A. *High risk option*: Highest average audience score, irrespectively of the standard error  
-B. *Low risk option*: Small spread in audience scores, but with highest average audience score possible among those
-:::
-
 - Reopen last week's Rmd file, and continue building on last week's work. Make sure you are still using the movies dataset filtered to only include the top 3 genres.[^share-file]
 
-[^share-file]: Hint: Ask last week's driver for the Rmd file, they should share it with the group via the group discussion space or email. To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
-
-<!-- - Visualise the distribution of the audience scores by lead studios and note if there are any unusual observations (for example, outliers) that may affect the mean and SEs.[^out-dist] -->
-
-<!-- [^out-dist]: Hint: It would be a good idea to visualise your data to try and identify any outliers in the data. You may want to consider one of these functions: `geom_density()`, `geom_histogram()`, `geom_boxplot()`. -->
+[^share-file]: Hint: access the Rmd file from the Group Discussion Space. <br>If last week's driver hasn't uploaded it yet, please ask them to share it with the group via the Group Discussion Space, email, or Teams.<br><br>
+To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
 
 
-::: {.callout-tip collapse="true"}
-#### README: Mean and Standard Error
+- Did you install tinytex? If yes, go to the next bullet point. If not, check the hint. This package is required to compile an Rmd file into a PDF for submission.[^install-tinytex]
 
-This box contains a recap of the sample mean and its standard error.
-
-**Mean**: The sample mean $\bar{x}$ (pronounced x-bar) is the mean computed from the sample data (sample statistic). As this is an estimate of the population mean $\mu$, it can also be denoted $\hat{\mu}$ (pronounced mu-hat). Because the sample mean depends on the data sample, it will vary from random sample to random sample. The distribution of all possible values of the mean, across all possible random samples, is called the sampling distribution of the mean.
-
-$$
-\bar{x} = \frac{\sum_{i=1}^n x_i}{n}
-$$
-
-**Standard error**: The standard error of the mean, denoted $SE$ or $SE_{\bar x}$, is the standard deviation of the sampling distribution of the mean. The standard error is $SE_{\bar x} = \sigma / \sqrt{n}$ but, as we often don't know the population standard deviation ($\sigma$), we must estimate it with the sample standard deviation ($s$). This leads to the following formula for the standard error of the mean when only one sample is available:
-
-$$
-SE_{\bar x} = \frac{s}{\sqrt{n}}
-$$
-
-:::
-
-
-- To advise the investor on what studio to invest in, calculate the sample mean and standard error of audience scores across Lead Studios. Make sure to also interpret your output.[^mean-se]
-
-[^mean-se]: Hint: You can calculate the mean and standard error for each Lead Studio by using `group_by()` followed by the `summarise()` function.  
-
-    In `group_by()`, you want to put Lead Studio, as you are computing the mean and SE separately for each studio.
+[^install-tinytex]: **Installing tinytex.** Copy the line below and paste it into the console:
     
-    Inside summarise() you want to define two columns:
-        
-    - M = mean(DATA$COLUMN)
-    - SE = sd(DATA$COLUMN) / sqrt(n())
-        
-    If you want, you can also have a column with the sample sizes.
+    `install.packages("tinytex")`
+     
+    press Enter. Copy and paste the line below into the console:
+     
+    `tinytex::install_tinytex()`
+     
+    press Enter. Type Y and press Enter again.
 
 
-::: {.callout-tip collapse="true"}
-#### Pause For Thought
+- Organise the report to have the following structure:
 
-Is the variation of means equal to or less than the variability of the sample data?
+    - **Introduction**:
+        - What are the data that you are analysing (i.e. give a brief intro) and where can these be found?
+        - Which questions of interested are you investigating in the report?
+        - Which variables will you use to answer those questions and what do those variables represent?
+        - What is the type of these variables?
+        - Are there any missing values in these variables?
 
-```{r echo=FALSE}
-library(kableExtra)
-movies2 %>%
-    group_by(LeadStudio) %>% 
-    summarise(
-        n = n(),
-        M = mean(AudienceScore),
-        SD = sd(AudienceScore),
-        SE = SD / sqrt(n)
-    ) %>%
-    kable(digits = 2) %>%
-    kable_styling(full_width = FALSE)
-```
+    - **Analysis**: Present and interpret your results. This section should only contain text, figures, and tables. No R code or R output printout should be visible.
+    
+    - **Discussion**: Summarise the key findings from the analysis section, and provide take-home messages that directly answer the questions of interest. Link your answers to the questions detailed in the introduction. No new statistical results should be presented in the discussion.
+    
+    - **Appendix A** (optional): For additional figures and tables that don't fit in the page limit. Any figures/tables presented here should be referenced in the main part of the report and have a caption. Appendix A doesn't count in the page limit.
+    
+    - **Appendix B** (compulsory): Presents all the R code used. This is automatically created for you if you used the template Rmd file. If you haven't copy and paste that section from the template into your file. Appendix B doesn't count in the page limit.
 
-Compare the standard errors to the standard deviations. The SEs are all smaller than the SDs.  
 
-Recall that the standard deviation tells you how much each data point varies around the mean. 
-Conversely, the standard error of the mean tells you how much the means (from many different random samples) vary with respect to their mean (the unknown population mean). 
+- Edit your figures/tables formatting as required to ensure that your report meets the page limit.
 
-In rough terms, the SE tells you how much the different means that you would have obtained from other possible random samples would differ from the mean you have obtained!
+::: {.callout-tip collapse="false"}
+### Formatting resources {-}
+
+At [this page](zf_formatting_resources.html){target="_blank"} you can find resources to help you with your report formatting.
+
 :::
 
-- Visualise the average audience scores and SEs - how do these vary between the Lead Studios[^assoc-viz]?
 
-[^assoc-viz]: Hint: Use the function `geom_pointrange()` to draw a point with error bars. Within `aes()` provide the following:
+- Knit the document to PDF: click File > Knit Document.
 
-    - `x`: is the lead studio
-    - `y`: is the sample mean
-    - `ymin`: is the lower end of the error bars (mean - 2 * SE)
-    - `ymax`: is the upper end of the error bars (mean + 2 * SE)
+:::{.callout-tip}
+# Successful knitting checklist
 
-    If you think it makes it easier to read your plot, you can also use the `coord_flip()` function to 'flip' your axes. 
+If you encounter errors when knitting the Rmd file, go through the following checklist to try finding the source of the errors.
 
-- Based on what you have reported above, what high and low risk options will you present to the investor? Justify your answer. 
+- [Successful knitting checklist](https://uoepsy.github.io/dapr1/2425/useful_files/checklist_knitting.pdf)
 
-- In the analysis section of your report, write up a summary of what you have reported above, using proper rounding to 2 decimal places and avoiding any reference to R code or functions. 
+:::
 
-- Organise the Rmd file to have the the same structure as the last formative report: Introduction, Analysis, Discussion:
 
-    - In the Introduction briefly introduce the data, the questions of interest that you have investigated, and introduce the variables that you have used to answer those questions. In other words, you don't need to introduce all of the variables in the dataset, but only those that you actually used to answer the questions.
-    - In the Analysis section present and interpret your results. This section should only contain text, figures, and tables. No R code or R code output should be visible.
-    - In the Discussion summarise the key findings and provide take-home messages that directly answer the questions of interest.
-
-- Knit the document to PDF (RStudio > File > Knit Document). Next, submit the PDF file on Learn:
-
-    + Go to the course Learn page
-    + Click "Assessment"
-    + Click "Submit Formative report B (PDF file only)"
+- Submit the PDF file on Learn by 12 noon on Friday 29th November 2024:
+    + Go to the Learn page of the course
+    + Click Assessments
+    + Click Submit Formative Report B (PDF file only)
     + Follow the instructions
 
 
 
-## Worked Example
+<!-- ## Worked Example -->
 
-The dataset available at <https://uoepsy.github.io/data/RestaurantTips.csv> was collected by the owner of a US bistro, and contains 157 observations on 7 variables.^[Data adapted from @lock2020.]
+<!-- The dataset available at <https://uoepsy.github.io/data/RestaurantTips.csv> was collected by the owner of a US bistro, and contains 157 observations on 7 variables.^[Data adapted from @lock2020.] -->
 
-> The bistro servers are concerned that some shifts are more profitable than others, and that their rota needs to be updated so that they all get the chance to maximise their tips. They have asked the owner to find out what days the highest percentage of tips are given, on average. They have also asked the owner to tell them the days on which variation in percentage tips is highest and lowest. We need to advise the bistro owner so that they can update their servers with the requested information. 
+<!-- > The bistro servers are concerned that some shifts are more profitable than others, and that their rota needs to be updated so that they all get the chance to maximise their tips. They have asked the owner to find out what days the highest percentage of tips are given, on average. They have also asked the owner to tell them the days on which variation in percentage tips is highest and lowest. We need to advise the bistro owner so that they can update their servers with the requested information.  -->
 
-```{r, echo=FALSE}
-library(tidyverse)
-library(kableExtra)
+<!-- ```{r, echo=FALSE} -->
+<!-- library(tidyverse) -->
+<!-- library(kableExtra) -->
 
-tribble(
-    ~'Variable Name', ~'Description',
-    'Bill', 'Size of the bill (in dollars)',
-    'Tip', 'Size of the tip (in dollars)',
-    'Credit', 'Paid with a credit card? n or y',
-    'Guests', 'Number of people in the group',
-    'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday',
-    'Server', 'Code for specific waiter/waitress: A, B, or C',
-    'PctTip', 'Tip as a percentage of the bill'
-) %>%
-    kable(format = 'simple')
-```
+<!-- tribble( -->
+<!--     ~'Variable Name', ~'Description', -->
+<!--     'Bill', 'Size of the bill (in dollars)', -->
+<!--     'Tip', 'Size of the tip (in dollars)', -->
+<!--     'Credit', 'Paid with a credit card? n or y', -->
+<!--     'Guests', 'Number of people in the group', -->
+<!--     'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday', -->
+<!--     'Server', 'Code for specific waiter/waitress: A, B, or C', -->
+<!--     'PctTip', 'Tip as a percentage of the bill' -->
+<!-- ) |> -->
+<!--     kable(format = 'simple') -->
+<!-- ``` -->
 
-```{r}
-library(tidyverse)
-library(patchwork)
-tips <- read_csv("https://uoepsy.github.io/data/RestaurantTips.csv")
-head(tips)
-```
+<!-- ```{r} -->
+<!-- library(tidyverse) -->
+<!-- library(patchwork) -->
+<!-- tips <- read_csv("https://uoepsy.github.io/data/RestaurantTips.csv") -->
+<!-- head(tips) -->
+<!-- ``` -->
 
-- First we want to prepare our data, and check for any unusual or impossible values (e.g., outliers). One useful way to do this would be to plot our data:
+<!-- - First we want to prepare our data, and check for any unusual or impossible values (e.g., outliers). One useful way to do this would be to plot our data: -->
 
-```{r}
-ggplot(tips, aes(x = PctTip)) + 
-    geom_histogram()
-```
+<!-- ```{r} -->
+<!-- ggplot(tips, aes(x = PctTip)) +  -->
+<!--     geom_histogram() -->
+<!-- ``` -->
 
-We can see one outlier (on the far right of the plot), where the percentage tip appears to be more than 2 x the total bill(!), so lets inspect that outlier:
+<!-- We can see one outlier (on the far right of the plot), where the percentage tip appears to be more than 2 x the total bill(!), so lets inspect that outlier: -->
 
-```{r}
-tips %>%
-    filter(PctTip > 100)
-```
+<!-- ```{r} -->
+<!-- tips |> -->
+<!--     filter(PctTip > 100) -->
+<!-- ``` -->
 
-We can see that the 'Tip' column has an NA value, so perhaps the 'PctTip' value of 221 was a data input error? If so, we want to remove the outlier:
+<!-- We can see that the 'Tip' column has an NA value, so perhaps the 'PctTip' value of 221 was a data input error? If so, we want to remove the outlier: -->
 
-```{r}
-tips <- tips %>%
-    filter(PctTip <= 100)
-```
+<!-- ```{r} -->
+<!-- tips <- tips |> -->
+<!--     filter(PctTip <= 100) -->
+<!-- ``` -->
 
-- Since we are interested in looking at the percentage tips across weekdays, we may want to give our 'Day' variable better labels for levels:
+<!-- - Since we are interested in looking at the percentage tips across weekdays, we may want to give our 'Day' variable better labels for levels: -->
 
-```{r}
-tips$Day <- factor(tips$Day, 
-                   levels = c("m", "t", "w", "th", "f"),
-                   labels = c("Mon", "Tue", "Wed", "Thu", "Fri"))
-```
+<!-- ```{r} -->
+<!-- tips$Day <- factor(tips$Day,  -->
+<!--                    levels = c("m", "t", "w", "th", "f"), -->
+<!--                    labels = c("Mon", "Tue", "Wed", "Thu", "Fri")) -->
+<!-- ``` -->
 
-- If we were asked to visualise the shape of the distribution of the 'PctTip' variable, we could use either a histogram, a density plot, or a boxplot:
+<!-- - If we were asked to visualise the shape of the distribution of the 'PctTip' variable, we could use either a histogram, a density plot, or a boxplot: -->
 
-::: {.panel-tabset}
+<!-- ::: {.panel-tabset} -->
 
-## Histogram
+<!-- ## Histogram -->
 
-```{r}
-ggplot(tips, aes(x = PctTip)) + 
-    geom_histogram(colour = 'white')
-```
+<!-- ```{r} -->
+<!-- ggplot(tips, aes(x = PctTip)) +  -->
+<!--     geom_histogram(colour = 'white') -->
+<!-- ``` -->
 
-## Density
+<!-- ## Density -->
 
-```{r}
-ggplot(tips, aes(x = PctTip)) + 
-    geom_density()
-```
+<!-- ```{r} -->
+<!-- ggplot(tips, aes(x = PctTip)) +  -->
+<!--     geom_density() -->
+<!-- ``` -->
 
-## Boxplot
+<!-- ## Boxplot -->
 
-```{r}
-ggplot(tips, aes(x = PctTip)) + 
-    geom_boxplot()
-```
+<!-- ```{r} -->
+<!-- ggplot(tips, aes(x = PctTip)) +  -->
+<!--     geom_boxplot() -->
+<!-- ``` -->
 
-:::
+<!-- ::: -->
 
-The distribution of percentage tip is not exactly normal as it shows a slight skew to the right. This suggests that there were more individuals tipping well above the mean than below (i.e., more extremely high tips)
-
-
-- Now that we have visualised our distribution, it would be useful to estimate the centre and spread of our data. In other words, calculate the sample mean and standard error of the mean. 
-
-We can calculate our sample statistics as follows:
-
-```{r}
-n_tips <- nrow(tips)
-n_tips
-xbar_tips <- mean(tips$PctTip)
-xbar_tips
-se_tips <- sd(tips$PctTip) / sqrt(n_tips)
-se_tips
-```
-
-- We can then check how our sample statistics vary across each day of the week: 
-
-```{r}
-#| eval: false
-library(kableExtra)
-
-tbl_tips <- tips %>%
-    group_by(Day) %>% 
-    summarise(n = n(),
-              M = mean(PctTip),
-              SE = sd(PctTip) / sqrt(n))
-tbl_tips %>%
-    kbl(digits = 2, booktabs = TRUE)
-```
-
-```{r}
-#| label: tbl-tips-day
-#| tbl-cap: "Descriptive statistics of tips, as a percentage of the total bill, by day"
-#| echo: false
-library(kableExtra)
-
-tbl_tips <- tips %>%
-    group_by(Day) %>% 
-    summarise(n = n(),
-              M = mean(PctTip),
-              SE = sd(PctTip) / sqrt(n))
-tbl_tips %>%
-    kbl(digits = 2, 
-        caption = "Descriptive statistics of tips, as a percentage of the total bill, by day") %>%
-    kable_styling(full_width = FALSE)
-```
-
-- If we were asked to interpret the sample statistics for each day, we could summarise as below:
-
-    * Interpreting $\bar{x}$ / $\hat{\mu}$
-        * Of the days of the week, Tuesday was when the highest average percentage tips were received, and Monday the lowest.
-        * Apart from Tuesday (when the average percentage tip is likely to be above average), the other days of the week are very close to 16%.
+<!-- The distribution of percentage tip is not exactly normal as it shows a slight skew to the right. This suggests that there were more individuals tipping well above the mean than below (i.e., more extremely high tips) -->
 
 
-    * Interpreting $SE$
-        * The percentage of tips varied most on Tuesdays on Fridays, where tips could either be very generous or measly.
+<!-- - Now that we have visualised our distribution, it would be useful to estimate the centre and spread of our data. In other words, calculate the sample mean and standard error of the mean.  -->
 
-- Next we want to visualise the association between days and percentage tip. We can do this using `ggplot()` and the tibble we created above (`tbl_tips`):
+<!-- We can calculate our sample statistics as follows: -->
 
-```{r}
-#| label: fig-tips-day
-#| fig-cap: "% Tips by Day."
-plt_tips <- ggplot(tbl_tips) +
-    geom_pointrange(aes(x = Day, y = M,
-                        ymin = M - 2 * SE,
-                        ymax = M + 2 * SE)) + 
-    ylim(0,50)
-plt_tips
-```
+<!-- ```{r} -->
+<!-- n_tips <- nrow(tips) -->
+<!-- n_tips -->
+<!-- xbar_tips <- mean(tips$PctTip) -->
+<!-- xbar_tips -->
+<!-- se_tips <- sd(tips$PctTip) / sqrt(n_tips) -->
+<!-- se_tips -->
+<!-- ``` -->
+
+<!-- - We can then check how our sample statistics vary across each day of the week:  -->
+
+<!-- ```{r} -->
+<!-- #| eval: false -->
+<!-- library(kableExtra) -->
+
+<!-- tbl_tips <- tips |> -->
+<!--     group_by(Day) |>  -->
+<!--     summarise(n = n(), -->
+<!--               M = mean(PctTip), -->
+<!--               SE = sd(PctTip) / sqrt(n)) -->
+<!-- tbl_tips |> -->
+<!--     kbl(digits = 2, booktabs = TRUE) -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- #| label: tbl-tips-day -->
+<!-- #| tbl-cap: "Descriptive statistics of tips, as a percentage of the total bill, by day" -->
+<!-- #| echo: false -->
+<!-- library(kableExtra) -->
+
+<!-- tbl_tips <- tips |> -->
+<!--     group_by(Day) |>  -->
+<!--     summarise(n = n(), -->
+<!--               M = mean(PctTip), -->
+<!--               SE = sd(PctTip) / sqrt(n)) -->
+<!-- tbl_tips |> -->
+<!--     kbl(digits = 2,  -->
+<!--         caption = "Descriptive statistics of tips, as a percentage of the total bill, by day") |> -->
+<!--     kable_styling(full_width = FALSE) -->
+<!-- ``` -->
+
+<!-- - If we were asked to interpret the sample statistics for each day, we could summarise as below: -->
+
+<!--     * Interpreting $\bar{x}$ / $\hat{\mu}$ -->
+<!--         * Of the days of the week, Tuesday was when the highest average percentage tips were received, and Monday the lowest. -->
+<!--         * Apart from Tuesday (when the average percentage tip is likely to be above average), the other days of the week are very close to 16%. -->
 
 
-- We know that the variability of the mean Percentage Tip across each day of the week should be less than or equal to the variability of the sample data. We can check that this is the case with the following:
+<!--     * Interpreting $SE$ -->
+<!--         * The percentage of tips varied most on Tuesdays on Fridays, where tips could either be very generous or measly. -->
 
-```{r}
-tips %>%
-    group_by(Day) %>% 
-    summarise(n = n(),
-              M = mean(PctTip),
-              SD = sd(PctTip),
-              SE = SD / sqrt(n)) %>%
-    mutate(IsSESmaller = SE < SD) 
-```
+<!-- - Next we want to visualise the association between days and percentage tip. We can do this using `ggplot()` and the tibble we created above (`tbl_tips`): -->
 
-For each entry in the 'IsSESmaller' column, we can see that it is true!
+<!-- ```{r} -->
+<!-- #| label: fig-tips-day -->
+<!-- #| fig-cap: "% Tips by Day." -->
+<!-- plt_tips <- ggplot(tbl_tips) + -->
+<!--     geom_pointrange(aes(x = Day, y = M, -->
+<!--                         ymin = M - 2 * SE, -->
+<!--                         ymax = M + 2 * SE)) +  -->
+<!--     ylim(0,50) -->
+<!-- plt_tips -->
+<!-- ``` -->
 
-:::{.callout-tip}
 
-#### Example writeup
+<!-- - We know that the variability of the mean Percentage Tip across each day of the week should be less than or equal to the variability of the sample data. We can check that this is the case with the following: -->
 
-The bistro servers are correct - percentage tips do vary by day (see @tbl-tips-day). These differences are displayed in @fig-tips-day, showing that Tuesdays are when servers received the highest average percentage tips (18.02%), and Mondays were the lowest (15.94%). The other days of the week had average percentage tips roughly close to 16%.  
-In terms of variability, Tuesday also had the highest variability of average percentage tips (SE = 2.11), followed by Friday (SE = 1.21). This indicates that, while customers tend to tip higher than other days on average, there is also more variability - meaning that there may be very generous or measly tips.
-:::
+<!-- ```{r} -->
+<!-- tips |> -->
+<!--     group_by(Day) |>  -->
+<!--     summarise(n = n(), -->
+<!--               M = mean(PctTip), -->
+<!--               SD = sd(PctTip), -->
+<!--               SE = SD / sqrt(n)) |> -->
+<!--     mutate(IsSESmaller = SE < SD)  -->
+<!-- ``` -->
 
-## Student Glossary
+<!-- For each entry in the 'IsSESmaller' column, we can see that it is true! -->
 
-To conclude the lab, add the new functions to the glossary of `R` functions. 
+<!-- :::{.callout-tip} -->
 
-| Function   | Use and package |
-|:-----------|:--------------|
-| `filter`     | ? |
-| `factor`     | ? |
-| `group_by()`     | ? |
-| `geom_histogram() `     | ? |
-| `geom_boxplot()`     | ? |
-| `geom_density()`     | ? |
-| `geom_line() `     | ? |
-| `after_stat()`      | ? |
+<!-- #### Example writeup -->
+
+<!-- The bistro servers are correct - percentage tips do vary by day (see @tbl-tips-day). These differences are displayed in @fig-tips-day, showing that Tuesdays are when servers received the highest average percentage tips (18.02%), and Mondays were the lowest (15.94%). The other days of the week had average percentage tips roughly close to 16%.   -->
+<!-- In terms of variability, Tuesday also had the highest variability of average percentage tips (SE = 2.11), followed by Friday (SE = 1.21). This indicates that, while customers tend to tip higher than other days on average, there is also more variability - meaning that there may be very generous or measly tips. -->
+<!-- ::: -->
+
+<!-- ## Student Glossary -->
+
+<!-- To conclude the lab, add the new functions to the glossary of `R` functions.  -->
+
+<!-- | Function   | Use and package | -->
+<!-- |:-----------|:--------------| -->
+<!-- | `filter`     | ? | -->
+<!-- | `factor`     | ? | -->
+<!-- | `group_by()`     | ? | -->
+<!-- | `geom_histogram() `     | ? | -->
+<!-- | `geom_boxplot()`     | ? | -->
+<!-- | `geom_density()`     | ? | -->
+<!-- | `geom_line() `     | ? | -->
+<!-- | `after_stat()`      | ? | -->
