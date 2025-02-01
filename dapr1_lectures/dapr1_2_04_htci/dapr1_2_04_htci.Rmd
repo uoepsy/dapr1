@@ -70,7 +70,54 @@ theme_set(
 ```
 
 
+# Course Overview
 
+.pull-left[
+
+```{r echo = FALSE, results='asis'}
+block1_name = "Exploratory Data Analysis"
+block1_lecs = c("Research design and data",
+                "Describing categorical data",
+                "Describing continuous data",
+                "Describing relationships",
+                "Functions")
+block2_name = "Probability"
+block2_lecs = c("Probability theory",
+                "Probability rules",
+                "Random variables (discrete)",
+                "Random variables (continuous)",
+                "Sampling")
+
+source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+course_table(block1_name,block2_name,block1_lecs,block2_lecs,week=11)
+```
+
+]
+
+.pull-right[
+
+```{r echo = FALSE, results='asis'}
+block3_name = "Foundations of inference"
+block3_lecs = c("Confidence intervals",
+                "Hypothesis testing (p-values)",
+                "Hypothesis testing (critical values)",
+                "Hypothesis testing and confidence intervals",
+                "Errors, power, effect size, assumptions")
+block4_name = "Common hypothesis tests"
+block4_lecs = c("One sample t-test",
+                "Independent samples t-test",
+                "Paired samples t-test",
+                "Chi-square tests",
+                "Correlation")
+
+source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=4)
+```
+
+]
+
+
+---
 # Learning objectives
 
 1. Interpret a confidence interval as the plausible values of a parameter that would not be rejected in a two-sided hypothesis test.
@@ -170,7 +217,7 @@ $$H_0 : \mu = 50 \\ H_1: \mu \neq 50$$
 
 - $SE = s / \sqrt n = 5.5 / \sqrt{30} = 1.004$
 
-- $t = \frac{47 - 50}{1.004} = -2.99$
+- $t = t_{obs} = \frac{47 - 50}{1.004} = -2.99$
 
 - The sample mean (47) is about 3 standard errors smaller than the claimed mean (50)
 ]
@@ -204,11 +251,11 @@ text(53, 0.35, label = expression(t * ' ' * values), col = 'blue',
      cex = 1.1, adj = 0)
 text(xbar, 0.10, label = expression(bar(x) == 47), col = 'black', 
      cex = 1.1, adj = 1.18)
-text(xbar, 0.07, label = expression(t == -2.99), col = 'blue', 
+text(xbar, 0.07, label = expression(t[obs] == -2.99), col = 'blue', 
      cex = 1.1, adj = 1.1)
 
 arrows(50, 0.1, 50, 0, col = 'black')
-text(50, 0.15, label = 'Hypothesised mean\nmu = 50', 
+text(50, 0.15, label = 'Hypothesised mean\nmu = 50',
      col = 'black', cex = 1.1)
 ```
 ]
@@ -224,7 +271,7 @@ tstar <- qt(c(0.025, 0.975), df = 29)
 tstar
 ```
 
-- As $t \leq -t^*$, we reject $H_0$.
+- As $t_{obs} \leq -t^*$, we reject $H_0$.
 
 ]
 
@@ -258,12 +305,14 @@ text(53, 0.35, label = expression(t * ' ' * values), col = 'blue',
      cex = 1.1, adj = 0)
 text(xbar, 0.10, label = expression(bar(x) == 47), col = 'white', 
      cex = 1.1, adj = 1.18)
-text(xbar, 0.07, label = expression(t == -2.99), col = 'blue', 
+text(xbar, 0.07, label = expression(t[obs] == -2.99), col = 'blue', 
      cex = 1.1, adj = 1.1)
+text(tstar[1] * se + mu0 + 0.4, 0.015, label = expression(-t~'*'), col = 'red')
+text(tstar[2] * se + mu0 - 0.4, 0.015, label = expression(+t~'*'), col = 'red')
 
-arrows(50, 0.1, 50, 0, col = 'black')
-text(50, 0.15, label = 'Hypothesised mean\nmu = 50', 
-     col = 'black', cex = 1.1)
+# arrows(50, 0.1, 50, 0, col = 'black')
+# text(50, 0.15, label = 'Hypothesised mean\nmu = 50', 
+#      col = 'black', cex = 1.1)
 ```
 ]
 
@@ -289,7 +338,7 @@ $$H_0: \mu = \mu_0 \qquad \text{vs} \qquad H_1 : \mu \neq \mu_0$$
 
 - We start by computing the observed value of the t-statistic for our sample:
 
-$$t = \frac{\bar x - \mu_0}{s / \sqrt n}$$
+$$t = t_{obs} = \frac{\bar x - \mu_0}{s / \sqrt n}$$
 
 --
 
@@ -389,7 +438,7 @@ class: inverse, center, middle
 ```{r, echo=TRUE}
 library(tidyverse)
 tempsample <- read_csv('https://uoepsy.github.io/data/BodyTemperatures.csv')
-tempsample <- tempsample %>% drop_na(BodyTemp)
+tempsample <- tempsample |> drop_na(BodyTemp)
 ```
 
 .pull-left[
@@ -442,7 +491,7 @@ options(pillar.sigfig = 4)
 ```
 
 ```{r echo=TRUE}
-stats <- tempsample %>%
+stats <- tempsample |>
     summarise(
         n = n(),
         xbar = mean(BodyTemp),
@@ -512,8 +561,7 @@ ggplot(plt, aes(x = x, y = y)) +
 - If you were to compute the p-value, you would reach the same conclusion.
 
 ```{r, echo=T}
-pvalue <- pt(-abs(tobs), df = n - 1) + 
-          pt( abs(tobs), df = n - 1, lower.tail = FALSE)
+pvalue <- 2 * pt( abs(tobs), df = n - 1, lower.tail = FALSE)
 pvalue
 ```
 
@@ -645,22 +693,39 @@ We could say that we are 95% confident that the population mean is [`r sort(37 -
 
 
 ---
-class: inverse, center, middle
-
-
----
 # This week
 
-- Read the lab worked example and complete your lab
+.pull-left[
 
-    + Remember you need to submit Formative Report C by 12 noon on Friday the 16th of February 2024 (next week).
+### Tasks
 
-- Complete any assigned readings
+- Attend both lectures
 
-- Go to office hours if you have questions
+- Attend your lab and work together on the lab tasks
+    - Tip: read the worked example in advance!
+    - Reminder: Formative Report C will be due 12 noon on 14 February 2025 (next week)
+
+- Complete any lecture activities and/or readings
 
 - Complete the weekly quiz
-
     + Opens Monday at 9am
     + Closes Sunday at 5pm
+
+<!-- - Submit Formative Report A by 12 noon on Friday the 18th of October 2024 -->
+<!-- - Submit Formative Report B by 12 noon on Friday the 29th of November 2024 -->
+<!-- - Submit Formative Report C by 12 noon on Friday the 14th of February 2025 -->
+<!-- - Submit the Assessed Report by 12 noon on Friday the 28th of March 2025 -->
+]
+
+
+.pull-right[
+
+### Support
+
+- **Office hours**: for one-to-one support on course materials or assessments<br>(see LEARN > Course information > Course contacts)
+
+- **Piazza**: help each other on this peer-to-peer discussion forum
+
+- **Student Adviser**: for general support while you are at university<br>(find your student adviser on MyEd/Euclid)
+]
 
