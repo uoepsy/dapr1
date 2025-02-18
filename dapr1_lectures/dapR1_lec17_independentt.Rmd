@@ -1,6 +1,6 @@
 ---
 title: "<b>T-Test: Independent Samples</b>"
-subtitle: "<small>Data Analysis for Psychology in R 1<br>Semester 2, Week 7</small>"
+subtitle: "<small>Data Analysis for Psychology in R 1<br>Semester 2 Week 7</small>"
 author: "<b>Dr Emma Waterston</b>"
 institute: "Department of Psychology<br/>The University of Edinburgh"
 date: ""
@@ -71,32 +71,87 @@ theme_set(
 )
 ```
 
+# Course Overview
+
+.pull-left[
+
+```{r echo = FALSE, results='asis'}
+block1_name = "Exploratory Data Analysis"
+block1_lecs = c("Research design and data",
+                "Describing categorical data",
+                "Describing continuous data",
+                "Describing relationships",
+                "Functions")
+block2_name = "Probability"
+block2_lecs = c("Probability theory",
+                "Probability rules",
+                "Random variables (discrete)",
+                "Random variables (continuous)",
+                "Sampling")
+
+source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+course_table(block1_name,block2_name,block1_lecs,block2_lecs, week = 0)
+```
+
+
+]
+
+.pull-right[
+
+
+```{r echo = FALSE, results='asis'}
+block3_name = "Foundations of inference"
+block3_lecs = c("Confidence intervals",
+                "Hypothesis testing (p-values)",
+                "Hypothesis testing (critical values)",
+                "Hypothesis testing and confidence intervals",
+                "Errors, power, effect size, assumptions")
+block4_name = "Common hypothesis tests"
+block4_lecs = c("One sample t-test",
+                "Independent samples t-test",
+                "Paired samples t-test",
+                "Chi-square tests",
+                "Correlation")
+
+source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=7)
+```
+
+]
+
+---
 # Learning Objectives
 - Understand when to use an independent samples $t$-test
 - Understand the null hypothesis for an independent sample $t$-test
 - Understand how to calculate the test statistic
 - Know how to conduct the test in `R`
+
 ---
 # Topics for Today
-- Conceptual background and introduction to our example
-- Calculations and `R`-functions
+- Conceptual background and overview of the independent samples $t$-test
+- Independent samples $t$-test example
+- Inferential tests for the independent samples $t$-test
 - Assumptions and effect size
 
 ---
-# Independent T-Test Purpose & Data
+# Independent Samples T-Test: Purpose
 
 - The independent $t$-test is used when we want to test the difference in mean between two measured groups.
-
-- The groups must be independent:
-	- No person can be in both groups.
 
 - Examples:
 	- Treatment versus control group in an experimental study
 	- Married versus not married
+	
 
-- Data Requirements:
-  - A continuously measured variable
-  - A binary variable denoting groups
+---
+
+class: center, middle
+# **Questions?**
+
+---
+class: inverse, center, middle
+
+# T-Test: Independent Samples
 
 ---
 # t-statistic
@@ -108,74 +163,113 @@ $$t = \frac{(\bar{x}_1 - \bar{x}_2) - \delta_0}{SE_{(\bar{x}_1 - \bar{x}_2)}}$$
   - $\delta_0$ is the hypothesised population difference in means in the null hypothesis $(\mu_1 - \mu_2)$
   - $SE_{(\bar{x}_1 - \bar{x}_2)}$ is standard error of the difference
 
-- Sampling distribution is a $t$-distribution with $n-2$ degrees of freedom, where $n$ = $n_1 + n_2$.
+- Sampling distribution is a $t$-distribution with $n-2$ degrees of freedom, where $n$ = $n_1 + n_2$
 
 
 ---
 # Standard Error Difference
-- First calculate the pooled standard deviation. 
+- First calculate the pooled standard deviation
 
 $$s_p = \sqrt\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2}$$
+<br>
 
-- Then use this to calculate the SE of the difference.
+- Then use this to calculate the SE of the difference
 
 $$SE_{(\bar{x}_1 - \bar{x}_2)} = s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}$$
 
 ---
 # Hypotheses
+
 .pull-left[
 
-- Two-tailed:
+**Two-tailed**
 $$
-\begin{matrix}
-H_0: \mu_1 = \mu_2 \\
+\begin{aligned}
+H_0: \mu_1 = \mu_2 
+\qquad \text{vs} \qquad 
 H_1: \mu_1 \neq \mu_2
-\end{matrix}
+\end{aligned}
 $$
 
-- One-tailed:
+<br> 
+
+**One-tailed**
 
 $$
-\begin{matrix}
-H_0: \mu_1 = \mu_2 \\
-H_1: \mu_1 < \mu_2 \\
+\begin{aligned}
+H_0: \mu_1 = \mu_2 
+\qquad \text{vs} \qquad 
+H_1: \mu_1 < \mu_2 
+\end{aligned}
+$$
+
+<br>
+
+$$
+\begin{aligned}
+H_0: \mu_1 = \mu_2
+\qquad \text{vs} \qquad 
 H_1: \mu_1 > \mu_2
-\end{matrix}
+\end{aligned}
 $$
+
+
 ]
 
 .pull-right[
 
-- Two-tailed:
+<br>
 $$
-\begin{matrix}
-H_0: \mu_1 -\mu_2 = 0 \\
+\begin{aligned}
+H_0: \mu_1 -\mu_2 = 0
+\qquad \text{vs} \qquad 
 H_1: \mu_1 - \mu_2 \neq 0 
-\end{matrix}
+\end{aligned}
 $$
 
-- One-tailed:
+<br>
+
+
+<br>
+$$
+\begin{aligned}
+H_0: \mu_1 -\mu_2 = 0
+\qquad \text{vs} \qquad 
+H_1: \mu_1 - \mu_2 < 0 
+\end{aligned}
+$$
+<br>
 
 $$
-\begin{matrix}
-H_0: \mu_1 -\mu_2 = 0 \\
-H_1: \mu_1 - \mu_2 < 0 \\
+\begin{aligned}
+H_0: \mu_1 -\mu_2 = 0 
+\qquad \text{vs} \qquad 
 H_1: \mu_1 - \mu_2 > 0
-\end{matrix}
+\end{aligned}
 $$
-] 
----
-class: center, middle
 
+] 
+
+---
+
+class: center, middle
 # **Questions?**
 
 ---
+class: inverse, center, middle
+
 # Example
+
+
+---
+# Stereotype Threat
+
 - Example taken from Howell, D.C. (2010). *Statistical Methods for Psychology, 7th Edition*. Belmont, CA: Wadsworth Cengage Learning.
 
-- Data from Aronson, Lustina , Good, Keough , Steele and Brown (1998). Experiment on stereotype threat.
-	- Two independent groups college students (n=12 control; n=11 threat condition). 
-	- Both samples excel in maths.
+- Data from Aronson, Lustina , Good, Keough, Steele and Brown (1998). Experiment on stereotype threat.
+
+	- Two independent groups college students ($n$=12 control; $n$=11 threat condition) 
+	- Both samples excel in maths
 	- Threat group told certain students usually do better in the test
 
 ---
@@ -189,24 +283,40 @@ threat <- tibble(
 threat
 ```
 
----
-# Visualizing data 
-- We spoke earlier in the course about the importance of visualizing our data.
-
-- Here, we want to show the mean and distribution of scores by group.
-
-- So we want a.....
 
 ---
-# Visualizing data 
+# Hypotheses
+- My hypothesis is that the threat group will perform worse than the control group.
+
+- I elect to use a one-tailed test with alpha $(\alpha)$ of .05, and specify the hypotheses as:
+
+$$
+\begin{matrix}
+H_0: \mu_1 = \mu_2\\
+H_1: \mu_1 < \mu_2\\
+\end{matrix}
+$$
+
+---
+# Visualizing Data 
+- We spoke earlier in the course about the importance of visualizing our data
+
+- Here, we want to show the mean and distribution of scores by group
+
+- So we want a...
+
+---
+# Visualizing Data 
 
 .pull-left[
-```{r, eval=FALSE, echo = TRUE}
+
+```{r, eval=FALSE, echo = TRUE, out.width = '70%'}
 ggplot(data = threat, 
-       aes(x = Group,  y = Score, fill = Group)) +
+       aes(x = Group, y = Score, fill = Group)) + #<<
   geom_boxplot() + 
   geom_jitter(width = 0.1)
 ```
+
 ]
 
 .pull-right[
@@ -217,29 +327,16 @@ ggplot(data = threat, aes(x = Group, y = Score, fill = Group)) +
 ```
 ]
 
-
----
-# Hypotheses
-- My hypothesis is that the threat group will perform worse than the control group.
-  - This is a one-tailed hypothesis.
-
-- And I will use an $\alpha= .05$
-
-
----
-class: center, middle
-
-# **Questions?**
-
 ---
 # Calculation
-- Steps in my calculations:
-  - Calculate the sample mean in both groups $\bar{x}_1$ and $\bar{x}_2$.
-  - Calculate the pooled SD $(s_p)$.
-  - Check I know my $n$.
-  - Calculate the standard error $(SE)$.
 
-- Use all this to calculate $t$.
+$$t = \frac{(\bar{x}_1 - \bar{x}_2) - \delta_0}{SE_{(\bar{x}_1 - \bar{x}_2)}}$$
+
+- Steps to calculate $t$:
+    - Calculate the sample mean in both groups $\bar{x}_1$ and $\bar{x}_2$
+    - Calculate the pooled SD $(s_p)$
+    - Check I know my $n$
+    - Calculate the standard error $(SE)$
 
 ---
 # Calculation
@@ -283,38 +380,41 @@ threat %>%
 
 - Calculate pooled standard deviation:
 
-$$s_p = \sqrt\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2} = \sqrt{\frac{(11-1)*1.27^2 + (12-1)*1.51^2}{11+12-2}} = \sqrt{\frac{10*1.27^2 + 11*1.51^2}{11+12-2}} = \sqrt{\frac{41.21}{21}} = 1.401$$
+$$s_p = \sqrt\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2} = \sqrt{\frac{(11-1) \cdot 1.27^2 + (12-1) \cdot 1.51^2}{11+12-2}} = \sqrt{\frac{10 \cdot 1.27^2 + 11 \cdot 1.51^2}{11+12-2}} = \sqrt{\frac{41.21}{21}} = 1.401$$
+<br>
+
 - Calculate the standard error:
 
-$$SE_{(\bar{x}_1 - \bar{x}_2)} = s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}} = 1.401 \sqrt{\frac{1}{11}+\frac{1}{12}} = 1.401 * 0.417 = 0.584$$
+$$SE_{(\bar{x}_1 - \bar{x}_2)} \quad = \quad  s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}} \quad = \quad  1.401 \cdot \sqrt{\frac{1}{11}+\frac{1}{12}} \quad = \quad 1.401 \cdot 0.417 \quad = \quad 0.584$$
 
 ---
 # Calculation
 
 - Steps in my calculations:
-  - Calculate the sample mean in both groups - Threat $(\bar{x}_1 = 5.27)$, Control $(\bar{x}_2 = 9.58)$.
-  - Calculate the pooled SD $(s_p = 1.401)$.
-  - Check I know my $n$ - Threat $(n_1 = 11)$ and Control $(n_2 = 12)$ - $n = 23$.
-  - Calculate the standard error $(SE = 0.584)$.  
+  - Calculate the sample mean in both groups - Threat $(\bar{x}_1 = 5.27)$, Control $(\bar{x}_2 = 9.58)$
+  - Calculate the pooled SD $(s_p = 1.401)$
+  - Check I know my $n$ - Threat $(n_1 = 11)$ and Control $(n_2 = 12)$ - $n = 23$
+  - Calculate the standard error $(SE = 0.584)$.
    
-- Use all this to calculate $t$.
+- Use all this to calculate $t$
 
 $$t = \frac{(\bar{x}_1 - \bar{x}_2) - 0}{SE_{(\bar{x}_1 - \bar{x}_2)}} = \frac{5.27-9.58}{0.584} = -7.38$$
 - So in our example $t= -7.38$  
   
-- Note: When doing hand calculations there might be a small amount of rounding error when we compare to $t$ calculated in `R`.
+- Note: When doing hand calculations there might be a small amount of rounding error when we compare to $t$ calculated in `R`
 
 ---
-# Is our test significant?
+# Is our Test Significant?
 - We have all the pieces we need:
   - Degrees of freedom =  $n-2 = (12+11)-2 = 23-2 = 21$
   - We have our $t$-statistic (-7.38)
   - Hypothesis to test (one-tailed)
-  - $\alpha$ level (.05).
+  - $\alpha$ level (.05)
 
-- So now all we need is the critical value from the associated $t$-distribution in order to make our decision.
+- Now all we need is the critical value from the associated $t$-distribution in order to make our decision
+
 ---
-# Is our test significant?
+# Is our Test Significant?
 
 .pull-left[
 ```{r, echo=FALSE, out.width = '100%'}
@@ -349,16 +449,19 @@ tibble(
 ]
 
 ---
-# Is my test significant?
-- So our critical value is -1.72
-	- Our $t$-statistic (-7.38) is larger than this
-	- So we reject the null hypothesis since $p < .001$
+# Is our Test Significant?
+
+- The critical value is -1.72, and our $t$-statistic (-7.38) is larger than this
+
+- We found that $p < .001$, which is $< \alpha$
+
+- Thus, we **reject the null hypothesis** 
 
 ---
-# Our Test: In R
+# Independent Samples T-Test **in R**
 
 .pull-left[
-```{r, echo = TRUE}
+```{r, echo = TRUE, out.width = '80%'}
 res <- t.test(threat$Score ~ threat$Group, 
        alternative = "less",
        mu = 0,
@@ -373,7 +476,7 @@ res
 
 To get **missing** CI - need to do a **two-sided** test
 
-```{r eval=FALSE, echo = TRUE}
+```{r eval=FALSE, echo = TRUE, out.width = '80%'}
 t.test(threat$Score ~ threat$Group, 
        alternative = "two.sided",
        mu = 0,
@@ -384,9 +487,8 @@ t.test(threat$Score ~ threat$Group,
 ]
 
 ---
-# Write up
-An independent sample $t$-test was used to determine whether the average maths score of the stereotype threat group $(n = `r calc[1,4]`)$ was significantly lower $(\alpha = .05)$ than the control group $(n = `r calc[2,4]`)$. There was a significant difference in test score between the control $(M = `r calc[2,2]`, SD=`r calc[2,3]`)$ and threat $(M = `r calc[1,2]`, SD=`r calc[1,3]`)$ groups, where the scores were significantly lower in the threat group $(t(`r res$parameter`)=`r round(res$statistic,2)`, p < .001, one-tailed)$. Therefore, we can reject the null hypothesis. The direction of difference supports our directional hypothesis and indicates that the threat group performed more poorly than the control group.
-
+# Write Up
+An independent samples $t$-test was used to determine whether the average maths score of the stereotype threat group $(n = `r calc[1,4]`)$ was significantly lower $(\alpha = .05)$ than the control group $(n = `r calc[2,4]`)$. There was a significant difference in test score between the control $(M = `r calc[2,2]`, SD=`r calc[2,3]`)$ and threat $(M = `r calc[1,2]`, SD=`r calc[1,3]`)$ groups, where the scores were significantly lower in the threat group $(t(`r res$parameter`)=`r round(res$statistic,2)`, p < .001, one-tailed)$. Therefore, we can reject the null hypothesis. The direction of difference supports our directional hypothesis and indicates that the threat group performed more poorly than the control group.
 
 ---
 class: center, middle
@@ -394,41 +496,67 @@ class: center, middle
 # **Questions?**
 
 ---
-# Assumption checks summary 
+class: inverse, center, middle
+
+# Data Requirements & Assumptions
+
+---
+
+# Data Requirements
+
+- A numeric variable
+
+- A binary variable denoting groups
+
+---
+# Assumption Checks Summary 
 
 ```{r tbl7, echo = FALSE}
 tbl7 <- tibble::tribble(
-~` `, ~`Description`, ~`One-Sample  t-test`, ~`Independent Sample t-test`, ~`Paired Sample t-test`,
-"Normality","Continuous variable (and difference) is normally distributed.","Yes (Population)","Yes (Both groups/ Difference)","Yes (Both groups/ Difference)",
-"Tests:","Descriptive Statistics; Shapiro-Wilks Test; QQ-plot"," "," "," ",
-"Independence","Observations are sampled independently.","Yes","Yes (within and across groups)","Yes (within groups)",
+~` `, ~`Description`, ~`One-Sample t-test`, ~`Independent Samples t-test`, ~`Paired Samples t-test`,
+"Normality","Numeric variable (or difference) is normally distributed OR sample size is sufficiently large.","Yes (variable). Sample size guideline: n ≥ 30","Yes (variable in each group).  Sample size guideline: n1 ≥ 30 and n2 ≥ 30","Yes (difference).    Sample size guideline: number of pairs ≥ 30",
+"Tests:","Descriptive Statistics and Plots; QQ-Plot; Shapiro-Wilks Test"," "," "," ",
+"Independence","Observations are sampled independently.","Yes","Yes (within and across groups)","Yes (across pairs)",
 "Tests:","None. Design issue."," "," "," ",
-"Homogeneity of variance","Population level standard deviation is the same in both groups.","NA","Yes","NA",
+"Homogeneity of variance","Population standard deviation is the same in both groups.","NA","Yes[note]","NA",
 "Tests:","F-test"," "," "," ",
 "Matched Pairs in data","For paired sample, each observation must have matched pair.","NA","NA","Yes",
-"Tests:","None. Data structure issue."," "," "," "
+"Tests:","None. Data structure issue."," "," "," ",
+" "," "," "," "," "
 )
 
 
-kable(tbl7) %>%
-  kable_styling(bootstrap_options = "striped", full_width = F, font_size = 18)
+kable(tbl7) |>
+  kable_styling(bootstrap_options = "striped", full_width = F, font_size = 18) |>
+   add_footnote(c("Welch t-test is available if this is not met"), notation = "symbol")
+
 ```
 
 
 ---
-# Assumptions
-- The independent sample $t$-test has the following assumptions:
-	- Independence of observations within and across groups.
-	- Continuous variable is approximately normally distribution **within both groups**.
-	  - Equivalently, that the difference in means is normally distributed.
-	- Homogeneity of variance across groups.
+# Data Requirements & Assumptions: How to Check/Test
+
+- DV is numeric
+  - The dependent variable should be measured on a interval/ratio/integer scale
+  
+- Normality **within groups**
+  - Can be checked with descriptive statistics, visually with plots, and with a Shapiro-Wilks test for each group separately 
+
+- Independence of observations **within and across groups**
+  - More of a study design issue, and cannot directly test
+  - Need to make sure that each individual only belongs to one group, and only has one observation in the group they belong to 
+
+  
+- Homogeneity of variance **across groups**
+  - Can be checked using an $F$-test
 
 ---
-#  Assumption checks: Normality 
-- Descriptive statistics:
-  - Skew:
-	  - Below are some rough guidelines on how to interpret skew.
-	  - No strict cuts for skew - these are loose guidelines.
+#  Normality: Skew
+- Skew is a descriptive statistic informing us of both the direction and magnitude of asymmetry
+	- Below are some rough guidelines on how to interpret skew
+	- No strict cuts for skew - these are loose guidelines
+
+<br>
 
 ```{r echo=FALSE}
 library(kableExtra)
@@ -443,82 +571,74 @@ tribble(~"Verbal label", ~"Magnitude of skew in absolute value",
 
 ---
 
-# Skew
+# Skew **in R**
 
 ```{r, echo = TRUE}
 library(psych)
 threat %>%
-  group_by(Group) %>%
+  group_by(Group) %>% #<<
     summarise(
       skew = round(skew(Score),2)
   )
 ```
 
 ---
-# Histograms
+
+# Normality: Visual Assessment 
+- We can visually assess normality by plotting the distribution of our outcome variable in both groups separately:
+
+  - Histograms
+      - The count (or frequency) of data points that fall within specified intervals/bins
+        
+  - Density Plots
+      - The probability density (or proportion of values) of data points at each value of the observed variable  
+      
+   - QQ-Plots (Quantile-Quantile plot):
+      - Plots the sorted quantiles of one data set (distribution) against sorted quantiles of data set (distribution)
+	  - Quantile = the percent of points falling below a given value
+	  - For a normality check, we can compare our own data to data drawn from a normal distribution
+	  
+---
+
+# Histogram & Density Plots **in R**
 
 .pull-left[
-```{r, eval=FALSE, echo = TRUE, out.width = '100%'}
-ggplot(threat, aes(x=Score)) +
+```{r, echo = TRUE, out.width = '70%'}
+ggplot(data = threat, aes(x=Score)) +
   geom_histogram() +
-  facet_wrap(~ Group)  + 
+  facet_wrap(~ Group) + #<<
   labs(title = "Histogram")
 ```
 
 ]
 
 .pull-right[
-```{r, echo=FALSE, out.width = '100%'}
-ggplot(threat, aes(x=Score)) +
-  geom_histogram() +
-  facet_wrap(~ Group) + 
-  labs(title = "Histogram")
-```
-]
 
----
-
-# Density
-
-.pull-left[
-```{r, eval=FALSE, echo = TRUE, out.width = '100%'}
-ggplot(threat, aes(x=Score)) +
+```{r, echo = TRUE, out.width = '70%'}
+ggplot(data = threat, aes(x=Score)) +
   geom_density() +
-  facet_wrap(~ Group) + 
+  facet_wrap(~ Group) + #<<
   labs(title = "Density")
 ```
+
 ]
 
-.pull-right[
-```{r, echo=FALSE, out.width = '100%'}
-ggplot(threat, aes(x=Score)) +
-  geom_density() +
-  facet_wrap(~ Group)  + 
-  labs(title = "Density")
-```
-]
+- No concerns in histogram or density plots for either group
 
 ---
-#  Assumption checks: Normality 
-- QQ-plots:
-	- Plots the sorted quantiles of one data set (distribution) against sorted quantiles of data set (distribution).
-	- Quantile = the percent of points falling below a given value.
-	- For a normality check, we can compare our own data to data drawn from a normal distribution
-
----
-# QQ-plots
+# QQ-Plots **in R**
 
 .pull-left[
-```{r, eval=FALSE, echo = TRUE, out.width = '100%'}
+```{r, eval=FALSE, echo = TRUE, out.width = '90%'}
 ggplot(data = threat, 
-       aes(sample = Score, colour = Group)) +
+       aes(sample = Score, colour = Group)) +  #<<
   geom_qq() +
   geom_qq_line() +
       labs(title="QQ-plot", 
-       subtitle="The closer the data fit to the line the more normally \ndistributed they are",
        x = "Theoretical quantiles",
        y = "Sample quantiles")
 ```
+
 ]
 
 .pull-right[
@@ -538,7 +658,7 @@ ggplot(threat, aes(sample = Score, colour = Group)) +
 - This looks reasonable in both groups
 
 ---
-#  Assumption checks: Normality 
+#  Normality: Shapiro-Wilks Test 
 - Shapiro-Wilks test:
 	- Checks properties of the observed data against properties we would expected from normally distributed data.
 	- Statistical test of normality.
@@ -549,12 +669,13 @@ ggplot(threat, aes(sample = Score, colour = Group)) +
 
 
 ---
-#  Shapiro-Wilks in R
+#  Shapiro-Wilks Test **in R**
+
 .pull-left[
 
 ```{r, echo = TRUE}
 threat %>% 
-  filter(Group == "Control") %>% 
+  filter(Group == "Control") %>%   #<<
   pull(Score) %>%
 shapiro.test()
 ```
@@ -566,7 +687,7 @@ $W = 0.96, p = .716$
 .pull-right[
 ```{r, echo = TRUE}
 thr <- threat %>% 
-  filter(Group == "Threat") %>% 
+  filter(Group == "Threat") %>%  #<<
   select(Score)
 shapiro.test(thr$Score)
 ```
@@ -575,31 +696,35 @@ $W = 0.94, p = .518$
 
 ]
 ---
-#  Assumption checks: Homogeneity of variance 
-- The $F$-test is a test that compares the variances of two groups.
-  - This test is preferable for $t$-test.
-	- $H_0$: Population variances are equal.
-	- $p$-value $< \alpha$ = reject the null, the variances differ across groups.
+#  Homogeneity of Variance: F-Test
+- The $F$-test is a test that compares the variances of two groups
+  - This test is preferable for $t$-test
+  
+- Hypotheses:
+	- $H_0$: Population variances are equal
+	- $H_1$: Population variances are **not** equal
+
+- Interpretation: 
+  - If $p$-value $< \alpha$, then reject the null as the variances differ across groups
 
 ---
-#  F-test R
+#  F-test **in R**
 ```{r echo = TRUE}
 var.test(threat$Score ~ threat$Group, ratio = 1)
 ```
 
-- Why `ratio = 1`?
 
-.pull-left[
-  - $H_0: \sigma_1^2 = \sigma_2^2$ 
-  - $H_1: \sigma_1^2 \neq \sigma_2^2$
-]  
+#### Why `ratio = 1`?
 
-.pull-right[
-  - $H_0: \frac{\sigma_1^2}{\sigma_2^2} = 1$ 
-  - $H_1: \frac{\sigma_1^2}{\sigma_2^2} \neq 1$
-] 
+$$
+\begin{matrix}
+H_0: \quad \sigma_1^2 = \sigma_2^2 \quad \text{which is equivalent to} \quad \frac{\sigma_1^2}{\sigma_2^2} = 1 \\
+H_1: \quad \sigma_1^2 \neq \sigma_2^2 \quad \text{which is equivalent to} \quad \frac{\sigma_1^2}{\sigma_2^2} \neq 1
+\end{matrix}
+$$
+
 ---
-#  Violation of homogeneity of variance 
+#  Violation of Homogeneity of Variance 
 - If the variances differ, we can use a Welch test.
 
 - Conceptually very similar, but we do not use a pooled standard deviation.
@@ -607,10 +732,8 @@ var.test(threat$Score ~ threat$Group, ratio = 1)
 	- As do our degrees of freedom
 
 ---
-#  Welch test
-- If the variances differ, we can use a Welch test.
-
-- Test statistic = same:
+#  Welch Test
+- Test statistic:
 
 $$t = \frac{(\bar{x}_1 - \bar{x}_2) - \delta_0}{SE_{(\bar{x}_1 - \bar{x}_2)}}$$
 
@@ -618,12 +741,12 @@ $$t = \frac{(\bar{x}_1 - \bar{x}_2) - \delta_0}{SE_{(\bar{x}_1 - \bar{x}_2)}}$$
 
 $$SE_{(\bar{x}_1 - \bar{x}_2)} = \sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}$$
 
-- And degrees of freedom (don't worry, not tested):
+- Degrees of freedom:
 
 $$df = \frac{(\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2})^2}{\frac{(\frac{s_1^2}{n_1})^2}{n_1 -1} + \frac{(\frac{s_2^2}{n_2})^2}{n_2 -1}}$$
 
 ---
-# Welch: In R
+# Welch Test **in R**
 
 ```{r echo = TRUE}
 t.test(threat$Score ~ threat$Group, 
@@ -632,23 +755,46 @@ t.test(threat$Score ~ threat$Group,
        var.equal = FALSE, #default, only here to highlight difference
        conf.level = 0.95)
 ```
----
-#  Cohen's D: Independent samples t-test
 
-- Independent-sample $t$-test (if you do have equality of variances):
+---
+
+class: center, middle
+# **Questions?**
+
+---
+
+class: inverse, center, middle
+
+# Effect Size
+
+---
+#  Cohen's D: Independent Samples T-Test
+
+.pull-left[
+
+If you **do** have equality of variances:
 
 $$
 D = \frac{(\bar{x}_1 - \bar{x}_2) - \delta_0}{s_p}
 $$
   - $\bar{x}_1$ = mean group 1
   -	$\bar{x}_2$ = mean group 2
-  - $\delta_0$ is the hypothesised population difference in means in the null hypothesis $(\mu_1 - \mu_2)$
+  - $\delta_0$ = the hypothesised population difference in means in the null hypothesis $(\mu_1 - \mu_2)$
   -	$s_p$ = pooled standard deviation
+  
+]
 
-- Independent-sample $t$-test (if you do not have equality of variances):
-  - Calculate via `cohens_d()` function from `effectsize` package in `R` - do not calculate by hand.
 
-- Recall the common "cut-offs" for $D$-scores:
+.pull-right[
+
+If you **do not** have equality of variances:
+
+  - Calculate via `cohens_d()` function from **`effectsize`** package in `R` - do not calculate by hand
+
+]
+
+<br> 
+Recall the common "cut-offs" for $D$-scores:
 
 | Verbal label         | Magnitude of $D$ in absolute value |
 |:--------------------:|:-----------------:|
@@ -657,11 +803,11 @@ $$
 | Large (or strong)    | $\geq 0.80$       |
 
 ---
-# Cohen's D in R
+# Cohen's D: Independent Samples T-Test **in R**
 
 .pull-left[
 
-```{r, warning=FALSE, echo = TRUE}
+```{r, warning=FALSE, echo = TRUE, out.width = '80%'}
 library(effectsize)
 cohens_d(threat$Score ~ threat$Group, 
          mu = 0, 
@@ -675,8 +821,8 @@ cohens_d(threat$Score ~ threat$Group,
 
 To get **missing** CI - need to do a **two-sided** test:
 
-```{r eval=FALSE, echo = TRUE}
-t.test(threat$Score ~ threat$Group, 
+```{r eval=TRUE, echo = TRUE, out.width = '80%'}
+cohens_d(threat$Score ~ threat$Group, 
        alternative = "two.sided",
        mu = 0,
        var.equal = TRUE,
@@ -685,9 +831,10 @@ t.test(threat$Score ~ threat$Group,
 
 ]
 
+
 ---
-# Write up: Assumptions
-The DV of our study, Score, was measured on a continuous scale, and data were independent (participants belonged to one of two groups - Control or Threat). The assumption of normality was visually assessed (via histograms, density plots, and a QQplot) as well as statistically via a Shapiro-Wilks test. The QQplots did not show much deviation from the diagonal line in either group, and the Shapiro-Wilks test for both the Control $(W = 0.96, p = .716)$ and Threat $(W = 0.94, p = .518)$ conditions suggested that the samples came from a population that was normally distributed. This was inline with the histogram and density plots for each group, which suggested that Score was normally distributed (and where $skew < 1$). Based on the results of our $F$-test, there was no significant difference between the two population variances $(F(10,11) = 0.71, p = .604)$. The size of the effect was found to be large $D = -3.08~[-5.53,-2.02]$. 
+# Write Up: Data Requirements, Assumptions, & Effect Size
+The DV of our study, Score, was measured on a continuous scale, and data were independent (participants belonged to one of two groups - Control or Threat). The assumption of normality was visually assessed (via histograms, density plots, and a QQplot) as well as statistically via a Shapiro-Wilks test. The QQplots did not show much deviation from the diagonal line in either group, and the Shapiro-Wilks test for both the Control $(W = 0.96, p = .716)$ and Threat $(W = 0.94, p = .518)$ conditions suggested that the samples came from a population that was normally distributed. This was inline with the histogram and density plots for each group, which suggested that Score was normally distributed (and where $skew < 1$). Based on the results of our $F$-test, there was no significant difference between the two population variances $(F(10,11) = 0.71, p = .604)$. The size of the effect was found to be large $D = -3.08~[-4.30,-2.02]$. 
 
 ---
 # Summary
@@ -699,12 +846,33 @@ The DV of our study, Score, was measured on a continuous scale, and data were in
   - Effect size measures
 
 ---
-# Tasks 
+# This Week
 
-+ Go to your lab and work on the assessed report  
-+ Complete any assigned readings  
-+ Go to office hours if you have questions  
-  + Emma's Office Hours = Tuesdays 10:30-11:30 in G15, 7 George Square  
-+ Complete the weekly quiz  
-  + Opens Monday at 9am  
-  + Closes Sunday at 5pm  
+<script src="https://cdn.jsdelivr.net/npm/iconify-icon@2.1.0/dist/iconify-icon.min.js"></script>
+
+.pull-left[
+<iconify-icon icon="clarity:tasks-solid" width="64" height="64"  style="color: #0F4C81"></iconify-icon>
+
+## Tasks
+
+- Attend both lectures
+
+- Attend your lab and work on the assessed report with your group (due by 12 noon on Friday 28th of March 2025)
+
+- Complete the weekly quiz
+    + Opened Monday at 9am
+    + Closes Sunday at 5pm
+
+]
+
+.pull-right[
+<iconify-icon icon="raphael:help" width="64" height="64"  style="color: #0F4C81"></iconify-icon>
+
+## Support
+
+- **Office Hours**: for one-to-one support on course materials or assessments<br>(see LEARN > Course information > Course contacts)
+
+- **Piazza**: help each other on this peer-to-peer discussion forum
+
+- **Student Adviser**: for general support while you are at university<br>(find your student adviser on MyEd/Euclid)
+]
