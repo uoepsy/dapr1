@@ -1,6 +1,6 @@
 ---
 title: "<b>Correlation</b>"
-subtitle: "Data Analysis for Psychology in R 1"
+subtitle: "<small>Data Analysis for Psychology in R 1<br>Semester 2 Week 10</small>"
 author: "<b>Dr Emma Waterston</b>"
 institute: "Department of Psychology<br/>The University of Edinburgh"
 output:
@@ -71,22 +71,73 @@ theme_set(
 )
 ```
 
-# Week's Learning Objectives
 
-1. Understand the difference between variance, covariance, and correlation
+# Course Overview
 
-2. Know how to calculate both covariance and correlation
+.pull-left[
 
-3. Understand how to interpret the correlation coefficient
+```{r echo = FALSE, results='asis'}
+block1_name = "Exploratory Data Analysis"
+block1_lecs = c("Research design and data",
+                "Describing categorical data",
+                "Describing continuous data",
+                "Describing relationships",
+                "Functions")
+block2_name = "Probability"
+block2_lecs = c("Probability theory",
+                "Probability rules",
+                "Random variables (discrete)",
+                "Random variables (continuous)",
+                "Sampling")
 
-4. Know how perform and interpret the results of a significance test of your correlation
+source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+course_table(block1_name,block2_name,block1_lecs,block2_lecs, week = 0)
+```
 
-5. Understand which form of correlation is most appropriate to use with your data
+
+]
+
+.pull-right[
+
+
+```{r echo = FALSE, results='asis'}
+block3_name = "Foundations of inference"
+block3_lecs = c("Confidence intervals",
+                "Hypothesis testing (p-values)",
+                "Hypothesis testing (critical values)",
+                "Hypothesis testing and confidence intervals",
+                "Errors, power, effect size, assumptions")
+block4_name = "Common hypothesis tests"
+block4_lecs = c("One sample t-test",
+                "Independent samples t-test",
+                "Paired samples t-test",
+                "Chi-square tests",
+                "Correlation")
+
+source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=10)
+```
+
+]
+
+---
+# Learning Objectives
+
+- Understand the difference between variance, covariance, and correlation  
+- Know how to calculate both covariance and correlation  
+- Understand how to interpret the correlation coefficient  
+- Know how perform and interpret the results of a significance test of your correlation  
+- Understand which form of correlation is most appropriate to use with your data
 
 
 ---
+class: inverse, center, middle
 
 # Example
+
+---
+
+# Running Program
 
 - Suppose a running coach wants to know whether there is an association between a participants' time spent enrolled in their running program (recorded in days) and the maximum distance they can run (receded in miles)  
 
@@ -106,7 +157,7 @@ dat$maxDistance[dat$maxDistance<0] <- dat$maxDistance[dat$maxDistance<0]-min(dat
 
 ```
 
-```{r,echo=F}
+```{r,echo=TRUE}
 head(dat)
 ```
 
@@ -122,7 +173,7 @@ ggplot(dat, aes(daysInProgram, maxDistance)) +
   geom_smooth(method = 'lm', se=FALSE) +
   labs(x='Days In Program', 
        y='Max Distance (miles)', 
-       title = "Association between Running Distance and Program Membership Duration")
+       title = "Association between Running Distance \nand Program Membership Duration")
 ```
 
 ]
@@ -131,7 +182,7 @@ ggplot(dat, aes(daysInProgram, maxDistance)) +
 
 ```{r, echo=F, message = F, fig.width=7, fig.height=5}
 ggplot(dat, aes(daysInProgram, maxDistance)) + geom_point(alpha = 0.5) + geom_smooth(method = 'lm', se=F, color = "#0F4C81") +
-  labs(x='Days In Program', y='Max Distance (miles)') + 
+  labs(x='Days In Program', y='Max Distance (miles)', title = "Association between Running Distance \nand Program Membership Duration") + 
   theme(axis.text = element_text(size=12), axis.title = element_text(size=14, face = 'bold'))
 ```
 
@@ -139,8 +190,13 @@ ggplot(dat, aes(daysInProgram, maxDistance)) + geom_point(alpha = 0.5) + geom_sm
 
 ---
 
+class: center, middle
+# **Questions?**
+
+---
+
 class: inverse, center, middle
-# Part 1: Variance & Covariance
+# Variance & Covariance
 
 ---
 
@@ -185,7 +241,7 @@ $$s^2_x = \frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}$$
 
 + **Variance:** Deviance around the mean of a single variable
 
-+ Raw deviation is the distance between each person's days in the program and the mean number of days in the program. 
++ Raw deviation is the distance between each person's days in the program and the mean number of days in the program 
 ]
 
 .pull-right[
@@ -216,11 +272,11 @@ $$s^2_x = \frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}$$
 
 + **Variance:** Deviance around the mean of a single variable
 
-+ Raw deviation is the distance between each person's days in the program and the mean number of days in the program. 
++ Raw deviation is the distance between each person's days in the program and the mean number of days in the program 
 
 + To get the variance, we:
   1. Square the values to get rid of the negative
-  2. Sum them up and divide by $n-1$ to get the average deviation of the group from its mean.
+  2. Sum them up and divide by $n-1$ to get the average deviation of the group from its mean
 ]
 
 .pull-right[
@@ -556,18 +612,18 @@ p4
 
 + A value of `r round(sum(sampleDat$varXY)/6, 2)` seems high...I think. Is it?
 
-  + Maybe? But maybe not. 
+  + Maybe? But maybe not 
   
-  + Covariance is related specifically to the scales of the variables we are analysing. 
+  + Covariance is related specifically to the scales of the variables we are analysing 
   
-  + Variables with larger scales will naturally have larger covariance values.
+  + Variables with larger scales will naturally have larger covariance values
 
 
 ---
 
 # The Trouble with Covariance
 
-+ Consider what would happen if we converted our distance data to kilometers instead of miles.
++ Consider what would happen if we converted our distance data to kilometers instead of miles
 
 ```{r, echo=F}
 sampleDat$maxDistancekm <- sampleDat$maxDistance*1.61
@@ -660,14 +716,19 @@ $$Cov_{xy} = \frac{`r round(sum(sampleDat$varXYkm), 2)`}{7-1} = `r round(sum(sam
 
 ---
 
+class: center, middle
+# **Questions?**
+
+---
+
 class: inverse, center, middle
-# Part 2: The Correlation Coefficient
+# The Correlation Coefficient
 
 ---
 
 # Correlation
 
-+ Correlation allows you to compare continuous variables across different scales without the magnitude of the variables skewing your results.
++ Correlation allows you to compare continuous variables across different scales without the magnitude of the variables skewing your results
 
 + The correlation coefficient, $r$, is the standardised version of covariance:
 
@@ -682,7 +743,7 @@ count: false
 
 # Correlation
 
-+ Correlation allows you to compare continuous variables across different scales without the magnitude of the variables skewing your results.
++ Correlation allows you to compare continuous variables across different scales without the magnitude of the variables skewing your results
 
 + **Pearson's product moment correlation**, $r$, is the standardised version of covariance:
 
@@ -691,53 +752,9 @@ count: false
 $$r=\frac{\frac{\sum_{i=1}^n(x_i-\bar{x})(y_i-\bar{y})}{n-1}}{\sqrt{\frac{\sum_{i=1}^n(x_i-\bar{x})^2}{n-1}}\sqrt{\frac{\sum_{i=1}^n(y_i-\bar{y})^2}{n-1}}} = \frac{Cov_{xy}}{s_xs_y}$$
 ]
 
-+ By dividing covariance by the product of the standard deviations of $x$ and $y$, we remove issues with scale differences in the original variables.
++ By dividing covariance by the product of the standard deviations of $x$ and $y$, we remove issues with scale differences in the original variables
 
-+ Because of this, you can use $r$ to investigate the association(s) between continuous variables with completely different ranges. 
-
----
-# Correlation
-
-
-.pull-left[
-
-.center[**Miles**]
-
-|        $x_i - \bar{x}$          |            $(x_i - \bar{x})^2$    |        $y_i - \bar{y}$          |            $(y_i - \bar{y})^2$    |
-|--------------------------------:|----------------------------------:|
-| `r round(sampleDat$daysInProgram[1]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[1]^2 , 2)` |`r round(sampleDat$maxDistance[1]-mean(sampleDat$maxDistance), 2)` | `r round(sampleDat$varY[1]^2 , 2)` |
-| `r round(sampleDat$daysInProgram[2]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[2]^2, 2)` |`r round(sampleDat$maxDistance[2]-mean(sampleDat$maxDistance), 2)` | `r round(sampleDat$varY[2]^2 , 2)` |
-| `r round(sampleDat$daysInProgram[3]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[3]^2, 2)` |`r round(sampleDat$maxDistance[3]-mean(sampleDat$maxDistance), 2)` | `r round(sampleDat$varY[3]^2 , 2)` |
-| `r round(sampleDat$daysInProgram[4]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[4]^2, 2)` |`r round(sampleDat$maxDistance[4]-mean(sampleDat$maxDistance), 2)` | `r round(sampleDat$varY[4]^2 , 2)` |
-| `r round(sampleDat$daysInProgram[5]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[5]^2, 2)` |`r round(sampleDat$maxDistance[5]-mean(sampleDat$maxDistance), 2)` | `r round(sampleDat$varY[5]^2 , 2)` |
-| `r round(sampleDat$daysInProgram[6]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[6]^2, 2)` |`r round(sampleDat$maxDistance[6]-mean(sampleDat$maxDistance), 2)` | `r round(sampleDat$varY[6]^2 , 2)` |
-| `r round(sampleDat$daysInProgram[7]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[7]^2, 2)` |`r round(sampleDat$maxDistance[7]-mean(sampleDat$maxDistance), 2)` | `r round(sampleDat$varY[7]^2 , 2)` |
-|                                                                        |  **`r round(sum(sampleDat$varX^2), 2)`**|                                                              |  **`r round(sum(sampleDat$varY^2), 2)`**|
-  
-
-$${s_x}~=~\sqrt{\frac{`r round(sum(sampleDat$varX^2), 2)`}{7-1}}~=~ `r round(sd(sampleDat$daysInProgram), 2)`~~{s_y}~=~\sqrt{\frac{`r round(sum(sampleDat$varY^2), 2)`}{7-1}}~=~ `r round(sd(sampleDat$maxDistance), 2)`$$
-
-]
-
-.pull-left[
-
-.center.f3[**Kilometers**]
-
-|        $x_i - \bar{x}$          |            $(x_i - \bar{x})^2$    |        $y_i - \bar{y}$          |            $(y_i - \bar{y})^2$    |
-|--------------------------------:|----------------------------------:|
-| `r round(sampleDat$daysInProgram[1]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[1]^2 , 2)` |`r round(sampleDat$maxDistancekm[1]-mean(sampleDat$maxDistancekm), 2)`| `r round(sampleDat$varYkm[1]^2, 2)`|
-| `r round(sampleDat$daysInProgram[2]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[2]^2, 2)` |`r round(sampleDat$maxDistancekm[2]-mean(sampleDat$maxDistancekm), 2)` | `r round(sampleDat$varYkm[2]^2 , 2)` |
-| `r round(sampleDat$daysInProgram[3]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[3]^2, 2)` |`r round(sampleDat$maxDistancekm[3]-mean(sampleDat$maxDistancekm), 2)` | `r round(sampleDat$varYkm[3]^2 , 2)` |
-| `r round(sampleDat$daysInProgram[4]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[4]^2, 2)` |`r round(sampleDat$maxDistancekm[4]-mean(sampleDat$maxDistancekm), 2)` | `r round(sampleDat$varYkm[4]^2 , 2)` |
-| `r round(sampleDat$daysInProgram[5]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[5]^2, 2)` |`r round(sampleDat$maxDistancekm[5]-mean(sampleDat$maxDistancekm), 2)` | `r round(sampleDat$varYkm[5]^2 , 2)` |
-| `r round(sampleDat$daysInProgram[6]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[6]^2, 2)` |`r round(sampleDat$maxDistancekm[6]-mean(sampleDat$maxDistancekm), 2)` | `r round(sampleDat$varYkm[6]^2 , 2)` |
-| `r round(sampleDat$daysInProgram[7]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[7]^2, 2)` |`r round(sampleDat$maxDistancekm[7]-mean(sampleDat$maxDistancekm), 2)` | `r round(sampleDat$varYkm[7]^2 , 2)` |
-|                                                                        |  **`r round(sum(sampleDat$varX^2), 2)`**|                                                              |  **`r round(sum(sampleDat$varYkm^2), 2)`**|
-
-
-$${s_x}~=~\sqrt{\frac{`r round(sum(sampleDat$varX^2), 2)`}{7-1}}~=~ `r round(sd(sampleDat$daysInProgram), 2)`~~{s_y}~=~\sqrt{\frac{`r round(sum(sampleDat$varYkm^2), 2)`}{7-1}}~=~ `r round(sd(sampleDat$maxDistancekm), 2)`$$
-
-]
++ Because of this, you can use $r$ to investigate the association(s) between continuous variables with completely different ranges 
 
 ---
 # Correlation
@@ -759,11 +776,11 @@ $${s_x}~=~\sqrt{\frac{`r round(sum(sampleDat$varX^2), 2)`}{7-1}}~=~ `r round(sd(
 |                                                                        |  **`r round(sum(sampleDat$varX^2), 2)`**|                                                              |  **`r round(sum(sampleDat$varY^2), 2)`**|
   
 
+$${s_x}~=~\sqrt{\frac{`r round(sum(sampleDat$varX^2), 2)`}{7-1}}~=~ `r round(sd(sampleDat$daysInProgram), 2)`~~{s_y}~=~\sqrt{\frac{`r round(sum(sampleDat$varY^2), 2)`}{7-1}}~=~ `r round(sd(sampleDat$maxDistance), 2)` \quad $$
 
-$$r = \frac{Cov_{xy}}{s_xs_y} ~~=~~\frac{`r round(sum(sampleDat$varXY)/6, 2)`}{`r round(sd(sampleDat$daysInProgram),2)`\cdot`r round(sd(sampleDat$maxDistance),2)`}=`r round((sum(sampleDat$varXY)/6)/(sd(sampleDat$daysInProgram)*sd(sampleDat$maxDistance)), 2)`$$
 ]
 
-.pull-left[
+.pull-right[
 
 .center.f3[**Kilometers**]
 
@@ -778,7 +795,51 @@ $$r = \frac{Cov_{xy}}{s_xs_y} ~~=~~\frac{`r round(sum(sampleDat$varXY)/6, 2)`}{`
 | `r round(sampleDat$daysInProgram[7]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[7]^2, 2)` |`r round(sampleDat$maxDistancekm[7]-mean(sampleDat$maxDistancekm), 2)` | `r round(sampleDat$varYkm[7]^2 , 2)` |
 |                                                                        |  **`r round(sum(sampleDat$varX^2), 2)`**|                                                              |  **`r round(sum(sampleDat$varYkm^2), 2)`**|
 
-$$r = \frac{Cov_{xy}}{s_xs_y} ~~=~~\frac{`r round(sum(sampleDat$varXYkm)/6, 2)`}{`r round(sd(sampleDat$daysInProgram),2)`\cdot`r round(sd(sampleDat$maxDistancekm),2)`}=`r round((sum(sampleDat$varXYkm)/6)/(sd(sampleDat$daysInProgram)*sd(sampleDat$maxDistancekm)), 2)`$$
+
+$$\quad {s_x}~=~\sqrt{\frac{`r round(sum(sampleDat$varX^2), 2)`}{7-1}}~=~ `r round(sd(sampleDat$daysInProgram), 2)`~~{s_y}~=~\sqrt{\frac{`r round(sum(sampleDat$varYkm^2), 2)`}{7-1}}~=~ `r round(sd(sampleDat$maxDistancekm), 2)`$$
+
+]
+
+---
+# Correlation
+
+
+.pull-left[
+
+.center[**Miles**]
+
+|        $x_i - \bar{x}$          |            $(x_i - \bar{x})^2$    |        $y_i - \bar{y}$          |            $(y_i - \bar{y})^2$    |
+|--------------------------------:|----------------------------------:|
+| `r round(sampleDat$daysInProgram[1]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[1]^2 , 2)` |`r round(sampleDat$maxDistance[1]-mean(sampleDat$maxDistance), 2)` | `r round(sampleDat$varY[1]^2 , 2)` |
+| `r round(sampleDat$daysInProgram[2]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[2]^2, 2)` |`r round(sampleDat$maxDistance[2]-mean(sampleDat$maxDistance), 2)` | `r round(sampleDat$varY[2]^2 , 2)` |
+| `r round(sampleDat$daysInProgram[3]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[3]^2, 2)` |`r round(sampleDat$maxDistance[3]-mean(sampleDat$maxDistance), 2)` | `r round(sampleDat$varY[3]^2 , 2)` |
+| `r round(sampleDat$daysInProgram[4]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[4]^2, 2)` |`r round(sampleDat$maxDistance[4]-mean(sampleDat$maxDistance), 2)` | `r round(sampleDat$varY[4]^2 , 2)` |
+| `r round(sampleDat$daysInProgram[5]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[5]^2, 2)` |`r round(sampleDat$maxDistance[5]-mean(sampleDat$maxDistance), 2)` | `r round(sampleDat$varY[5]^2 , 2)` |
+| `r round(sampleDat$daysInProgram[6]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[6]^2, 2)` |`r round(sampleDat$maxDistance[6]-mean(sampleDat$maxDistance), 2)` | `r round(sampleDat$varY[6]^2 , 2)` |
+| `r round(sampleDat$daysInProgram[7]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[7]^2, 2)` |`r round(sampleDat$maxDistance[7]-mean(sampleDat$maxDistance), 2)` | `r round(sampleDat$varY[7]^2 , 2)` |
+|                                                                        |  **`r round(sum(sampleDat$varX^2), 2)`**|                                                              |  **`r round(sum(sampleDat$varY^2), 2)`**|
+  
+
+
+$$r = \frac{Cov_{xy}}{s_xs_y} =~~\frac{`r round(sum(sampleDat$varXY)/6, 2)`}{`r round(sd(sampleDat$daysInProgram),2)`\cdot`r round(sd(sampleDat$maxDistance),2)`}=`r round((sum(sampleDat$varXY)/6)/(sd(sampleDat$daysInProgram)*sd(sampleDat$maxDistance)), 2)`\quad $$
+]
+
+.pull-right[
+
+.center.f3[**Kilometers**]
+
+|        $x_i - \bar{x}$          |            $(x_i - \bar{x})^2$    |        $y_i - \bar{y}$          |            $(y_i - \bar{y})^2$    |
+|--------------------------------:|----------------------------------:|
+| `r round(sampleDat$daysInProgram[1]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[1]^2 , 2)` |`r round(sampleDat$maxDistancekm[1]-mean(sampleDat$maxDistancekm), 2)`| `r round(sampleDat$varYkm[1]^2, 2)`|
+| `r round(sampleDat$daysInProgram[2]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[2]^2, 2)` |`r round(sampleDat$maxDistancekm[2]-mean(sampleDat$maxDistancekm), 2)` | `r round(sampleDat$varYkm[2]^2 , 2)` |
+| `r round(sampleDat$daysInProgram[3]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[3]^2, 2)` |`r round(sampleDat$maxDistancekm[3]-mean(sampleDat$maxDistancekm), 2)` | `r round(sampleDat$varYkm[3]^2 , 2)` |
+| `r round(sampleDat$daysInProgram[4]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[4]^2, 2)` |`r round(sampleDat$maxDistancekm[4]-mean(sampleDat$maxDistancekm), 2)` | `r round(sampleDat$varYkm[4]^2 , 2)` |
+| `r round(sampleDat$daysInProgram[5]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[5]^2, 2)` |`r round(sampleDat$maxDistancekm[5]-mean(sampleDat$maxDistancekm), 2)` | `r round(sampleDat$varYkm[5]^2 , 2)` |
+| `r round(sampleDat$daysInProgram[6]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[6]^2, 2)` |`r round(sampleDat$maxDistancekm[6]-mean(sampleDat$maxDistancekm), 2)` | `r round(sampleDat$varYkm[6]^2 , 2)` |
+| `r round(sampleDat$daysInProgram[7]-mean(sampleDat$daysInProgram), 2)` | `r round(sampleDat$varX[7]^2, 2)` |`r round(sampleDat$maxDistancekm[7]-mean(sampleDat$maxDistancekm), 2)` | `r round(sampleDat$varYkm[7]^2 , 2)` |
+|                                                                        |  **`r round(sum(sampleDat$varX^2), 2)`**|                                                              |  **`r round(sum(sampleDat$varYkm^2), 2)`**|
+
+$$\quad r = \frac{Cov_{xy}}{s_xs_y} ~~=~~\frac{`r round(sum(sampleDat$varXYkm)/6, 2)`}{`r round(sd(sampleDat$daysInProgram),2)`\cdot`r round(sd(sampleDat$maxDistancekm),2)`}=`r round((sum(sampleDat$varXYkm)/6)/(sd(sampleDat$daysInProgram)*sd(sampleDat$maxDistancekm)), 2)`$$
 
 ]
 
@@ -786,7 +847,7 @@ $$r = \frac{Cov_{xy}}{s_xs_y} ~~=~~\frac{`r round(sum(sampleDat$varXYkm)/6, 2)`}
 
 # Correlations
 
-+ Correlations measure the degree of association between two variables.
++ Correlations measure the degree of association between two variables
 
 + If one variable changes, does the other variable also change?
 
@@ -794,9 +855,9 @@ $$r = \frac{Cov_{xy}}{s_xs_y} ~~=~~\frac{`r round(sum(sampleDat$varXYkm)/6, 2)`}
 
 
 ---
-# Correlation in R
+# Correlation **in R**
 
-+ To run a simple correlation in R, you can use `cor()`
++ To run a simple correlation, you can use `cor()`
 
 + Let's compute the correlation between the number of days in the program and the max running distance for our entire sample of `r nrow(dat)`:
 
@@ -815,11 +876,11 @@ cor(dat$daysInProgram, dat$maxDistance)
 
 + Values of $r$ fall between -1 and 1.
 
-  + Values closer to 0 indicate a weaker association
+  + Values closer to 0 indicate a weaker association  
   
-  + More extreme values indicate a stronger association
-
-  + Interpretation:
+  + More extreme values indicate a stronger association  
+  
++ Interpretation:
 
 ```{r, echo = F}
 ESint <- tibble(Strength=c('Weak', 'Moderate', 'Strong'), Value = c('.1 < |r| < .3', '.3 < |r| < .5', '|r| > .5'))
@@ -829,7 +890,7 @@ kable(ESint, align = c('l', 'c'))
 ---
 # Interpreting $r$
 
-+ Values of $r$ fall between -1 and 1.
++ Values of $r$ fall between -1 and 1
 
   + Values closer to 0 indicate a weaker association
   
@@ -935,13 +996,13 @@ class: center, middle
 ---
 
 class: inverse, center, middle
-# Part 3: Hypothesis Testing with $r$
+# Hypothesis Testing with $r$
 
 ---
 
 # Hypotheses
 
-+ There may be times that a correlation is the test of interest, and we can formulate associated hypotheses tests.
++ There may be times that a correlation is the test of interest, and we can formulate associated hypotheses tests
 
 + There is no association between two random variables, so the null hypothesis should reflect this:
 
@@ -978,7 +1039,7 @@ Remember the key steps of hypothesis testing:
 + The $t$-statistic for a correlation is calculated as:
 
 $$t=r\sqrt{\frac{n-2}{1-r^2}}$$
-+ So in our example:
++ In our example:
 
 ```{r, echo = F}
 rStat <- round(cor.test(dat$daysInProgram, dat$maxDistance)$estimate, 2)
@@ -987,10 +1048,10 @@ tStat <- as.numeric(round(rStat*(sqrt((nrow(dat)-2)/denom)),2))
 pVal <- as.numeric(round(2*pt(rStat*(sqrt((nrow(dat)-2)/denom)), df = nrow(dat)-2, lower.tail=F), 3))
 ```
 
-$$t\ =\ `r rStat`\sqrt{\frac{`r nrow(dat)`-2}{1-`r rStat`^2}}\ =\ `r rStat`\sqrt{\frac{`r nrow(dat)-2`}{`r denom`}}\ =\ `r rStat`\sqrt{`r round((nrow(dat)-2)/denom, 2)`}\ =\ `r tStat`$$
+$$t\ =\quad r\sqrt{\frac{n-2}{1-r^2}} \quad = \quad \ `r rStat`\cdot \sqrt{\frac{`r nrow(dat)`-2}{1-`r rStat`^2}}\ \quad = \quad \ `r rStat`\cdot \sqrt{\frac{`r nrow(dat)-2`}{`r denom`}}\ \quad = \quad \ `r rStat`\cdot \sqrt{`r round((nrow(dat)-2)/denom, 2)`}\ \quad = \quad \ `r tStat`$$
 ---
 
-# Is our test significant?
+# Is our Test Significant?
 
 **Locate the test statistic on a distribution**
 
@@ -1002,9 +1063,9 @@ $$t\ =\ `r rStat`\sqrt{\frac{`r nrow(dat)`-2}{1-`r rStat`^2}}\ =\ `r rStat`\sqrt
       + $n-2$: we had to calculate the means of *two* variables (e.g., in our example `daysInProgram` and `maxDistance`)
   + We will use two-tailed $\alpha$ = .05
 
-+ So now all we need is to calculate the $p$-value in order to make our decision.
-]
++ Now all we need is to calculate the $p$-value in order to make our decision
 
+]
 
 .pull-right[
 ```{r, echo=F, fig.height=3.5, fig.width=5, message = F}
@@ -1025,7 +1086,7 @@ corTestPlot + geom_vline(xintercept=tStat, linetype = 'dashed', color = "#0F4C81
 
 ---
 
-# Is our test significant?
+# Is our Test Significant?
 
 **Determine whether the probability associated with your test statistic is lower than $\alpha$**
 
@@ -1040,7 +1101,7 @@ tibble(
 ```
 
 + The probability that we would have a $t$-statistic at least as extreme as `r tStat` if $H_0$ were true is only `r pVal`   
-  + $`r pVal`<.05$, so we conclude our results are significant
+  + $`r pVal`<.05$ (i.e., $p$ < $\alpha$), so we conclude our results are significant
 ]
 
 .pull-right[
@@ -1056,7 +1117,7 @@ corTestPlot + geom_vline(xintercept=tStat, linetype = 'dashed', color = "#0F4C81
 
 ---
 
-# Our Test: in R
+# Correlation **in R**
 
 + Use `cor.test()`
 
@@ -1081,16 +1142,30 @@ class: center, middle
 ---
 
 class: inverse, center, middle
-# Part 4: Assumptions
+# Assumptions
 
 ---
 
 # Assumptions of Pearson Correlation
 
-1. Variables must be interval or ratio (continuous)
-
---
+1. Variables must be interval or ratio (continuous)   
   
+2. Variables must be normally distributed  
+  
+3. There must be no extreme outliers in your data  
+  
+4. The association between the two variables must be linear  
+  
+5. Homoscedasticity (homogeneity of variance)   
+
+]
+---
+
+# Assumptions of Pearson Correlation
+
+&nbsp;1. Variables must be interval or ratio (continuous)
+
+
   + Knowledge of your data
   
   + No Likert scales!
@@ -1100,11 +1175,8 @@ class: inverse, center, middle
 
 # Assumptions of Pearson Correlation
 
-1. Variables must be interval or ratio (continuous)
-	
-2. Variables must be normally distributed
+&nbsp;2. Variables must be normally distributed
 
---
 
 .pull-left[
 .center[**Max Distance**]
@@ -1134,17 +1206,13 @@ ggplot(dat, aes(daysInProgram)) + geom_histogram(aes(y=..density..), bins = 18, 
 ```
 ]
 
+
 ---
 
 # Assumptions of Pearson Correlation
 
-1. Variables must be interval or ratio (continuous)
-	
-2. Variables must be normally distributed
-	
-3. There must be no extreme outliers in your data
+&nbsp;3. There must be no extreme outliers in your data
 
---
 
 .pull-left[
 
@@ -1180,27 +1248,19 @@ ggplot(dat2, aes(daysInProgram, maxDistance)) + geom_point(alpha = 0.5) + geom_s
 
 # Assumptions of Pearson Correlation
 
+&nbsp;4. The association between the two variables must be linear
+
+
 .pull-left[
-
-1. Variables must be interval or ratio (continuous)
-	
-2. Variables must be normally distributed.
-	
-3. There must be no extreme outliers in your data
-
-4. The association between the two variables must be linear
-
-]
-
---
-
-.pull-right.center[
-**Ok!**
+.center[**Ok!**]
 ```{r, echo = F, fig.height = 2.25, fig.width = 5, message=F}
 datPlot
 ```
-<br>
-**Should be investigated**
+
+]
+
+.pull-right[
+.center[**Should be investigated**]
 ```{r, echo = F, fig.height = 2.25, fig.width = 5, message = F}
 nonLinDat <- read.csv('https://uoepsy.github.io/data/anx_perf.csv')
 nonLinDat <- nonLinDat[nonLinDat$anxiety<30,]
@@ -1212,29 +1272,21 @@ ggplot(nonLinDat, aes(anxiety, performance)) + geom_point() + geom_smooth(se=F, 
 
 # Assumptions of Pearson Correlation
 
+&nbsp;5. Homoscedasticity (homogeneity of variance)     
+
+
 .pull-left[
 
-1. Variables must be interval or ratio (continuous)
-	
-2. Variables must be normally distributed.
-	
-3. There must be no extreme outliers in your data
-
-4. The association between the two variables must be linear
-	
-5. Homoscedasticity (homogeneity of variance)   
-
-]
-
---
-
-.pull-right.center[
-**Ok!**
+.center[**Ok!**]
 ```{r, echo = F, fig.height = 2.25, fig.width = 5, message=F}
 datPlot
 ```
-<br>
-**Should be investigated**
+
+]
+
+.pull-right[
+
+.center[**Should be investigated**]
 ```{r, echo = F, fig.height = 2.25, fig.width = 5, message = F}
 set.seed(113)
 dat2 <- rbind(dat, rnorm_multi(n=150, mu=c(130, 18), sd = c(15, 20), varnames = c('daysInProgram', 'maxDistance')))
@@ -1253,7 +1305,7 @@ class: center, middle
 ---
 
 class: inverse, center, middle
-# Part 5: Other Types of Correlation
+# Other Types of Correlation
 
 ---
 
@@ -1273,7 +1325,7 @@ class: inverse, center, middle
 ---
 # Spearman's Correlation
 
-+ Spearman's $\rho$ (or rank-order correlation) uses data on the rank-ordering of $x$, $y$ responses for each individual.
++ Spearman's $\rho$ (or rank-order correlation) uses data on the rank-ordering of $x$, $y$ responses for each individual
   
 + Spearman's $\rho$ is a nonparametric version of Pearson's $r$, so it doesn't require the same constraints on your data
 
@@ -1286,7 +1338,7 @@ class: inverse, center, middle
 ---
 # Spearman's Correlation
 
-+ Spearman's is not testing for linear associations, it is testing for increasing monotonic association.
++ Spearman's is not testing for linear associations, it is testing for increasing monotonic association
 
 --
 
@@ -1332,7 +1384,7 @@ A perfectly increasing monotonic association between A & C
 ---
 # Monotonic Association
 
-+ **Perfect Monotonic Association:** The rank position of all observations on Variable A is the same as the rank position of all observations on Variable C.
++ **Perfect Monotonic Association:** The rank position of all observations on Variable A is the same as the rank position of all observations on Variable C
 
 .pull-left[
 
@@ -1369,7 +1421,7 @@ mp
 $$\rho=1-\frac{6\sum{d^2_i}}{n(n^2-1)}$$
 + $d_i=$ rank( $x_i$ ) $-$ rank( $y_i$ )
 
-+ Steps
++ Steps:
   1. Rank each variable from largest to smallest 
   2. Calculate the difference in rank for each person on the two variables
   3. Square the difference
@@ -1377,7 +1429,7 @@ $$\rho=1-\frac{6\sum{d^2_i}}{n(n^2-1)}$$
 
 ---
 
-# Calculating Spearman's $\rho$ by hand
+# Calculating Spearman's $\rho$ by Hand
 
 + Imagine we want to know whether the participants' ratings (on a 1-10 scale) of the program are associated with how difficult they found the program (on a 1-10 scale):
 
@@ -1406,11 +1458,11 @@ kable(ratings)
 
 <br>
 
-$$\rho=~1-\frac{6 \cdot 10}{7(7^2-1)} ~=~ 1-\frac{60}{7(49-1)} ~=~ 1-\frac{60}{336} ~=~ 1-0.18 ~=~ 0.82 $$
+$$\rho \quad = \quad 1-\frac{6\sum{d^2_i}}{n(n^2-1)} \quad = \quad 1-\frac{6 \cdot 10}{7\cdot(7^2-1)} \quad = \quad 1-\frac{60}{7 \cdot (49-1)} \quad = \quad 1-\frac{60}{336}  \quad = \quad 1-0.18  \quad = \quad 0.82 $$
 
 ---
 
-# Calculating Spearman's $\rho$ in R 
+# Spearman's $\rho$ **in R** 
 
 + You can also use `cor()` and `cor.test()` to calculate Spearman's $\rho$ in R
     + Just need to update the `method = ` argument  
@@ -1427,7 +1479,6 @@ cor.test(ratings$ProgRating, ratings$Difficulty,
 
 
 ---
-
 # Summary
 
 + Today we have covered:  
@@ -1437,23 +1488,35 @@ cor.test(ratings$ProgRating, ratings$Difficulty,
   + Other methods for correlation and calculated Spearman's $\rho$
 
 ---
-# Tasks & Next Week 
+# This Week
 
-**Tasks**  
-+ Go to your lab and work on the assessed report  
-+ Submit the assessed report by 12 noon on Friday 29th March 2024, see report instructions  
-+ Complete the Peer Assessment of Contribution form   
-    + The form closes at 12 noon on the 5th of April 2024
-    + Find it on the course LEARN page > Assessment > DAPR1 Peer Assessment
-+ Go to office hours if you have questions    
-  + Emma's Office Hours = Tuesdays 10:30-11:30 in G15, 7 George Square  
-+ Complete any assigned reading  
-  
-**Next week (week beginning 1st April)**  
-  + There will be no lectures  
-  + The labs will still go ahead
-    + In the labs you will work through mock exam questions
-    + Don't forget to bring a calculator, a pencil, and an eraser with you
-  + Next week will be the last week of labs (and of the course)
+<script src="https://cdn.jsdelivr.net/npm/iconify-icon@2.1.0/dist/iconify-icon.min.js"></script>
+
+.pull-left[
+<iconify-icon icon="clarity:tasks-solid" width="64" height="64"  style="color: #0F4C81"></iconify-icon>
+
+## Tasks
+
+- Attend both lectures
+
+- Attend your lab and work on the assessed report with your group (due by 12 noon on Friday 28th of March 2025)
+
+- Complete the weekly quiz
+    + Opened Monday at 9am
+    + Closes Sunday at 5pm
+
+]
+
+.pull-right[
+<iconify-icon icon="raphael:help" width="64" height="64"  style="color: #0F4C81"></iconify-icon>
+
+## Support
+
+- **Office Hours**: for one-to-one support on course materials or assessments<br>(see LEARN > Course information > Course contacts)
+
+- **Piazza**: help each other on this peer-to-peer discussion forum
+
+- **Student Adviser**: for general support while you are at university<br>(find your student adviser on MyEd/Euclid)
+]
 
 
