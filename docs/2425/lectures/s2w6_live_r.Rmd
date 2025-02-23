@@ -32,7 +32,7 @@ str(rt_data) # data that should be factors/numeric not currently coded as so
 summary(rt_data) # we have values over 30cm, need to remove these
 
 #make numeric / factors
-rt_data <- rt_data %>% 
+rt_data <- rt_data |> 
     mutate(age = as.numeric(age),
            sex = as.factor(sex),
            handedness = as.factor(handedness),
@@ -58,7 +58,7 @@ rt_data[ , c(8:17)][rt_data[ , c(8:17)] > 30] <- NA
 ###### STEP 2: DISTANCE TO TIME CONVERSION (ON PSYCH 1A LAB SHEET) ###### 
 
 #function to convert distance to time
-rt_data <- rt_data %>%
+rt_data <- rt_data |>
   mutate(across(visualcue_attempt1:auditorycue_attempt5, .fns = function(y) sqrt(2 * y / 980)) )
 
 ###### STEP 3: CREATE AVERAGE SCORES (QON PSYCH 1A LAB SHEET) AND SUBSET / FILTER ###### 
@@ -71,7 +71,7 @@ rt_data$AuditoryCue_AvgRT <- rowMeans(rt_data[ , c(13:17)], na.rm = TRUE)
 rt_data2 <- rt_data[ , c(1:7, 18:19)]
 
 #retain only complete cases
-rt_data2 <- rt_data2 %>%
+rt_data2 <- rt_data2 |>
   filter(complete.cases(VisualCue_AvgRT, AuditoryCue_AvgRT))
 
 ### STEP 4: CONDUCT ANALYSIS & ASSUMPTION CHECKS ##### 
@@ -96,7 +96,7 @@ cohens_d(rt_data2$VisualCue_AvgRT, mu = 0.16, alternative = "two.sided")
 ####Descriptives
 
 #skew
-rt_data2 %>%
+rt_data2 |>
   summarise(
     viz_skew_one = round(skew(VisualCue_AvgRT), 2)
   )

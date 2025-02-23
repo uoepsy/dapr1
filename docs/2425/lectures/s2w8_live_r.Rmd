@@ -32,7 +32,7 @@ str(rt_data) # data that should be factors/numeric not currently coded as so
 summary(rt_data) # we have values over 30cm, need to remove these
 
 #make numeric / factors
-rt_data <- rt_data %>% 
+rt_data <- rt_data |> 
     mutate(age = as.numeric(age),
            sex = as.factor(sex),
            handedness = as.factor(handedness),
@@ -58,7 +58,7 @@ rt_data[ , c(8:17)][rt_data[ , c(8:17)] > 30] <- NA
 ###### STEP 2: DISTANCE TO TIME CONVERSION (ON PSYCH 1A LAB SHEET) ###### 
 
 #function to convert distance to time
-rt_data <- rt_data %>%
+rt_data <- rt_data |>
   mutate(across(visualcue_attempt1:auditorycue_attempt5, .fns = function(y) sqrt(2 * y / 980)) )
 
 ###### STEP 3: CREATE AVERAGE SCORES (QON PSYCH 1A LAB SHEET) AND SUBSET / FILTER ###### 
@@ -71,7 +71,7 @@ rt_data$AuditoryCue_AvgRT <- rowMeans(rt_data[ , c(13:17)], na.rm = TRUE)
 rt_data2 <- rt_data[ , c(1:7, 18:19)]
 
 #retain only complete cases
-rt_data2 <- rt_data2 %>%
+rt_data2 <- rt_data2 |>
   filter(complete.cases(VisualCue_AvgRT, AuditoryCue_AvgRT))
 
 ### STEP 4: CONDUCT ANALYSIS & ASSUMPTION CHECKS ##### 
@@ -96,7 +96,7 @@ cohens_d(rt_data2$VisualCue_AvgRT, mu = 0.16, alternative = "two.sided")
 ####Descriptives
 
 #skew
-rt_data2 %>%
+rt_data2 |>
   summarise(
     viz_skew_one = round(skew(VisualCue_AvgRT), 2)
   )
@@ -136,7 +136,7 @@ shapiro.test(rt_data2$VisualCue_AvgRT)
 levels(rt_data2$lab_session)
 
 ## we need to create a new variable of just lab_time
-rt_data2 <- rt_data2 %>%
+rt_data2 <- rt_data2 |>
   mutate(lab_time = factor(lab_session,
                            levels = c("Friday_AM", "Friday_PM", "Wednesday_AM"),
                            labels = c("AM", "PM", "AM")))
@@ -152,13 +152,13 @@ p2 <- ggplot(data = rt_data2, aes(x = lab_time, y = VisualCue_AvgRT, fill = lab_
 p2
 
 #create a table of descriptives, grouped by lab time
-descr2 <- rt_data2 %>%
-  group_by(lab_time) %>%
+descr2 <- rt_data2 |>
+  group_by(lab_time) |>
   summarise(
     M = mean(VisualCue_AvgRT),
     SD = sd(VisualCue_AvgRT),
-    n = n()) %>%
-  kable(caption = "Descriptives RQ2", digits = 2) %>%
+    n = n()) |>
+  kable(caption = "Descriptives RQ2", digits = 2) |>
   kable_styling()
 descr2 
 
@@ -178,7 +178,7 @@ res2
 #what if our data were in wide format?
 
 ##pivot long data to make wide
-data_wide <- rt_data2 %>%
+data_wide <- rt_data2 |>
   pivot_wider(names_from = "lab_time", values_from = "VisualCue_AvgRT")
 
 
@@ -202,8 +202,8 @@ res_wide
 ####Descriptives
 
 #skew
-rt_skew_indep <- rt_data2 %>%
-  group_by(lab_time) %>%
+rt_skew_indep <- rt_data2 |>
+  group_by(lab_time) |>
   summarise(
     viz_skew = round(skew(VisualCue_AvgRT), 2)
   )
@@ -237,15 +237,15 @@ q_viz_indep
 #shapiro-wilk - recall that we need to do this for each level of our group variable, so need for AM and PM
 
 #AM condition
-rt_data2 %>%
-  filter(lab_time == "AM") %>%
-  pull(VisualCue_AvgRT) %>%
+rt_data2 |>
+  filter(lab_time == "AM") |>
+  pull(VisualCue_AvgRT) |>
   shapiro.test()
 
 #PM condition
-rt_data2 %>%
-  filter(lab_time == "PM") %>%
-  pull(VisualCue_AvgRT) %>%
+rt_data2 |>
+  filter(lab_time == "PM") |>
+  pull(VisualCue_AvgRT) |>
   shapiro.test()
 
 ###Homogeneity of variances
@@ -260,15 +260,15 @@ var.test(rt_data2$VisualCue_AvgRT ~ rt_data2$lab_time, ratio = 1)
 
 ###### STEP 1: DESCRIBE DATA ######
 
-desc_pair <- rt_data2 %>%
+desc_pair <- rt_data2 |>
   summarise(
     M_Viz = mean(VisualCue_AvgRT),
     M_Aud = mean(AuditoryCue_AvgRT),
     SD_Viz = sd(VisualCue_AvgRT),
     SD_Aud = sd(AuditoryCue_AvgRT),
     n = n()
-  ) %>%
-  kable(caption = "Descriptives RQ3", digits = 2) %>%
+  ) |>
+  kable(caption = "Descriptives RQ3", digits = 2) |>
   kable_styling()
 desc_pair
 
@@ -294,7 +294,7 @@ cohens_d(rt_data2$AuditoryCue_AvgRT, rt_data2$VisualCue_AvgRT,
 ###### STEP 3: CHECK ASSUMPTIONS ######
 
 #first step: add difference scores to dataset
-rt_data2 <- rt_data2 %>%
+rt_data2 <- rt_data2 |>
   mutate(cue_dif = AuditoryCue_AvgRT - VisualCue_AvgRT)
 
 ###Normality
@@ -302,7 +302,7 @@ rt_data2 <- rt_data2 %>%
 ####Descriptives
 
 #skew 
-rt_skew_pair <- rt_data2 %>%
+rt_skew_pair <- rt_data2 |>
   summarise(
     skew = round(skew(cue_dif), 2)
   )
@@ -336,7 +336,7 @@ shapiro.test(rt_data2$cue_dif)
 
 #### PIVOT_LONGER DEMO #####
 ##T-TEST CAN BE ON WIDE OR LONG DATA - NOT NECESSARY TO DO THIS - JUST FOR SHOW ##
-data_long <- rt_data2 %>%
+data_long <- rt_data2 |>
   pivot_longer(c(VisualCue_AvgRT, AuditoryCue_AvgRT), names_to = "Cue_Condition", values_to = "AvgRT")
   
 res3_long <- t.test(data_long$AvgRT ~ data_long$Cue_Condition,
