@@ -1,0 +1,1 @@
+Except where otherwise noted, work in this repository is licensed under a Creative Commons Attribution 4.0 Attribution-NonCommercial-NoDerivatives License.  
