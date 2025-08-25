@@ -1,0 +1,463 @@
+---
+title: "Research design & data"
+subtitle: "Semester 1 - Week 1"
+callout-appearance: simple
+---
+
+```{r setup}
+#| include: false
+
+source('assets/setup.R')
+```
+
+
+
+## 0 Setup {-}
+
+
+**Practicalities**:
+
+- Sit in tables of at most 5 students per table.
+- Check your table name and register for that group on LEARN. To do so, navigate to the course LEARN page > click Groups > select Labs_1_2_3 > find your group > click Join. 
+- Each week, one person within a table will be the "driver", responsible for typing on the PC, while the others are the "navigators", responsible for spotting typos and suggesting the strategy/code the driver should use to answer tasks. This is based on novel pedagogical practice called pair-programming.
+- The person who is the "driver" will rotate every week, so that everyone experiences being a driver at least once.  
+- Driver:
+    - Log into the RStudio server: <https://rstudio.ppls.ed.ac.uk/>
+        - Forgot your password? Re-set it here: <https://rstudio.ppls.ed.ac.uk/setpass.php>
+    - [Click here to download the template Rmd file](https://uoepsy.github.io/dapr1/2526/useful_files/template_formative_report_a.Rmd)
+    - Upload the template Rmd file to the RStudio server and add your work to that file.
+    - Save your work regularly by clicking File > Save.
+    - At the end of the lab, download the Rmd file and then share it on your Group Discussion Space.
+- Navigators:
+    - Have the lab tasks open and be ready to tell the driver what to do.
+- If you have questions, raise your hand and a tutor will come over to help!
+
+
+**Overview**:
+
+- At the start of each teaching block (recall that each block is five weeks long), you will be given a dataset that you will use throughout the labs of that block. By the end of each block your group should have produced a report that analyses the given dataset.
+- The reports are due by:
+    - Formative Report A (Block 1): 12 noon, Friday the 17th of October 2025.
+    - Formative Report B (Block 2): 12 noon, Friday the 28th of November 2025.
+    - Formative Report C (Block 3): 12 noon, Friday the 13th of February 2026.
+    - Assessed Report (Block 4): 12 noon, Friday the 27th of March 2026.
+- You will be required to submit a PDF file, not the Rmd file used to create the PDF.
+- No extensions will be available for the formative reports.
+- You will receive written formative feedback on each of the formative reports the week after the report due date. This will be signposted via announcements.
+
+
+**Lab help and support**:
+
+- The lab is structured to provide various levels of support. 
+- When attending a lab, you should put away distractions and prioritise completing that week's tasks to make the most of the help available.
+- If you are unsure or stuck at any point, you should make use of all the available help:
+    - Raise your hand to get help from a tutor;
+    - Hover your mouse on the superscript number to get a quick hint. The hints may sometimes show multiple equivalent ways of getting an answer - you just need one way;
+    - Scroll down to the _Worked Example_ section, where you can read through a worked example. 
+    - Even if you don't use the Worked Example to complete the tasks, ensure you review and study its content during your independent study time.
+
+
+
+## Formative Report A
+
+
+::: {.callout-important collapse="true"}
+### Instructions - Don't Skip! {-}
+
+Formative Report A covers the labs from weeks 1-5 of the DAPR1 course in semester 1. You’ll need to create a PDF report using RMarkdown, which will be submitted by 12 noon on Friday, 17th October 2025. No extensions are available as this is a formative report. Expect written formative feedback in week 6 of semester 1.
+
+Your report should be tailored for a reader with basic statistical knowledge and should not include any references to R code or functions in the main report write-up. Instead, keep the main report focused on text, figures, and tables. All R code should be included in the compulsory Appendix B for reproducibility, which is automatically created for you in the template Rmd file (do not edit that section).
+If you need to add extra tables or figures that don’t fit in the main part of the report, you can use an optional Appendix A. Remember, the main report should be a PDF file and should not exceed six sides of A4 paper, though appendices at the end don’t count towards this limit.
+
+Ensure to use the default settings for font and page margins in your RMarkdown file. Also, make sure your report title includes your group name: Group NAME.LETTER, and list the exam numbers of all group members in the author section.
+:::
+
+
+::: {.callout-important collapse="true"}
+### Formatting resources {-}
+
+At [this page](zf_formatting_resources.html){target="_blank"} you can find resources to help you with your report formatting.
+:::
+
+
+### Data
+
+**Hollywood Movies**. At the link <https://uoepsy.github.io/data/hollywood_movies_subset.csv> you will find data on Hollywood movies released between 2012 and 2018 from the top 5 lead studios and top 10 genres. 
+
+The following variables were recorded. For formative report A, please only focus on the variables `Movie` to `Year`, ignoring anything beyond that. In other words, do not analyse the variables `IQ1` to `PrivateTransport` in the next five weeks of the course. We will use those later in the course.
+
+```{r echo=FALSE}
+dcode <- tibble::tribble(
+    ~"Variable", ~"Description",
+    "Movie", "Title of the movie",
+    "LeadStudio", "Primary U.S. distributor of the movie",
+    "RottenTomatoes", "Rotten Tomatoes rating (critics)",
+    "AudienceScore", "Audience rating (via Rotten Tomatoes)",
+    "Genre", "One of Action Adventure, Black Comedy, Comedy, Concert, Documentary, Drama, Horror, Musical, Romantic Comedy, Thriller, or Western",
+    "TheatersOpenWeek", "Number of screens for opening weekend",
+    "OpeningWeekend", "Opening weekend gross (in millions)",
+    "BOAvgOpenWeekend", "Average box office income per theater, opening weekend",
+    "Budget", "Production budget (in millions)",
+    "DomesticGross", "Gross income for domestic (U.S.) viewers (in millions)",
+    "WorldGross", "Gross income for all viewers (in millions)",
+    "ForeignGross", "Gross income for foreign viewers (in millions)",
+    "Profitability", "WorldGross as a percentage of Budget",
+    "OpenProfit", "Percentage of budget recovered on opening weekend",
+    "Year", "Year the movie was released",
+    "IQ1-IQ50 (ignore for Formative report A)", "IQ score of each of 50 audience raters",
+    "Snacks (ignore for Formative report A)", "How many of the 50 audience raters bought snacks",
+    "PrivateTransport (ignore for Formative report A)", "How many of the 50 audience raters reached the cinema via private transportation"
+)
+
+knitr::kable(dcode) |>
+    kableExtra::kable_styling(full_width = FALSE)
+```
+
+
+
+### This week's task
+
+**Task A1**  
+
+> A1) Read the data into R, inspect it, and write a concise introduction to the data and its structure
+
+**Sub-steps**  
+
+Below there are sub-steps you need to consider to complete this week's task.
+
+:::{.column-margin}
+:::{.callout-tip}
+#### Tip
+
+To see the hints, hover your cursor on the superscript numbers.
+:::
+:::
+
+
+- Read the movie data into R, and give it a useful name. Inspect the data by looking at the data in RStudio. By viewing, we actually mean looking at the data either on the viewer or the console.^[
+Hint: To read the data use `read_csv()` from the `tidyverse` package. <br>
+To preview the data, use `View(DATA)` or `head(DATA)`
+]
+
+- How many observations are there?^[
+Hint: `nrow(DATA)` <br>
+or `dim(DATA)[1]`
+]
+
+- How many variables are there?^[
+Hint: `ncol(DATA)` <br>
+or `dim(DATA)[2]`
+]
+
+:::{.column-margin}
+::: {.callout-caution collapse="true"}
+### Think about it
+
+- What does `dim(DATA)` return?
+- What is the function of appending a `[1]` or `[2]`?
+:::
+:::
+
+- What is the type of each variable?^[
+Hint: `glimpse(DATA)` from `tidyverse`<br>
+or `str(DATA)`<br>
+or `sapply(DATA, data.class)`
+]
+
+- What's the minimum and maximum budget in the sample? What about the minimum and maximum Rotten Tomatoes rating?^[
+Hint: `summary(DATA$VARIABLE)`<br>
+or `min(DATA$VARIABLE)` and `max(DATA$VARIABLE)`
+]
+
+- Do you notice any issues when computing the minimum/maximum Budget and the minimum/maximum RottenTomatoes rating?^[
+For some movies, data on the budget or rotten tomatoes rating are not available (NA). These are also called missing values.  
+If you used the functions `min()`, `max()`, you will get NA as a result. This is because if a value is missing, you cannot compute the mean of something you don't know. For example, what is the mean of 5, 10, and NA? How would I compute (5 + 10 + NA) / 3? I don't know, so it remains NA.  
+You can tell R to ignore the missing values by saying `min(DATA$VARIABLE, na.rm = TRUE)` and similarly for `max` and other functions like `mean`, which computes the average instead.  
+The `summary()` function, instead, does this for you automatically and immediately tells you if a variable had any NAs and how many.
+]
+
+- Which variables have missing values in the dataset, and how many missing values does each have?^[
+Hint: `summary(DATA)` shows the variables and the number of missing values in each variable.
+]
+
+- Write-up a description of the dataset for the reader. You don't need to show the actual data in the report, but a description in words is sufficient for the reader.
+
+
+<!-- Example code -->
+
+```{r, echo=FALSE, eval=FALSE}
+library(tidyverse)
+movies <- read_csv("https://uoepsy.github.io/data/hollywood_movies_subset.csv")
+head(movies)
+nrow(movies)
+ncol(movies)
+dim(movies)
+glimpse(movies)
+summary(movies)
+```
+
+<!-- End -->
+
+
+
+## Worked example
+
+Consider the dataset available at <https://uoepsy.github.io/data/RestaurantTips.csv>, containing 157 observations on the following 7 variables:
+
+```{r, echo=FALSE}
+library(tidyverse)
+tribble(
+    ~'Variable Name', ~'Description',
+    'Bill', 'Size of the bill (in dollars)',
+    'Tip', 'Size of the tip (in dollars)',
+    'Credit', 'Paid with a credit card? n or y',
+    'Guests', 'Number of people in the group',
+    'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday',
+    'Server', 'Code for specific waiter/waitress: A, B, or C',
+    'PctTip', 'Tip as a percentage of the bill'
+) |>
+    knitr::kable()
+```
+
+These data were collected by the owner of a bistro in the US, who was interested in understanding the tipping patterns of their customers. The data are adapted from @lock2020.
+
+```{r}
+library(tidyverse)
+```
+
+:::{.column-margin}
+We load the `tidyverse` package as we will use the functions `read_csv` and `glimpse` from this package.
+:::
+
+```{r}
+tips <- read_csv("https://uoepsy.github.io/data/RestaurantTips.csv")
+```
+
+:::{.column-margin}
+`read_csv` is the function to read CSV (comma separated values) files. Once we have read the file, it is stored into an object called tips using the arrow (`<-`).
+:::
+
+```{r}
+head(tips)
+```
+
+:::{.column-margin}
+`head()` shows by default the top 6 rows of the data. Use the `n = ...` option to change the default behaviour, e.g. `head(<data>, n = 10)`.
+:::
+
+```{r}
+dim(tips)
+```
+
+:::{.column-margin}
+This returns the number of rows and columns in the data
+:::
+
+```{r}
+glimpse(tips)
+```
+
+:::{.column-margin}
+`glimpse` is part of the tidyverse package
+:::
+
+
+::: {.callout-note collapse="true"}
+### Alternative
+
+Alternatives to glimpse are the data "structure" function:
+
+```{r}
+str(tips)
+```
+
+or:
+
+```{r}
+sapply(tips, data.class)
+```
+:::
+
+::: {.callout-tip}
+### Example writeup
+A dataset containing records on 7 variables related to tipping was obtained from <https://uoepsy.github.io/data/RestaurantTips.csv>, and was provided by the owner of a bistro in the US interested in studying which factors affected the tipping behaviour of the bistro's customers.
+The data contains measurements for a total of 157 parties on four numeric variables: size of the bill (in dollars), size of the tip, number of guests in the group, and tip as a percentage of the bill total. The data also includes three categorical variables indicating whether or not the party paid with a credit card, the day of the week, as well as a server-specific identifier.
+:::
+
+
+```{r}
+summary(tips)
+```
+
+:::{.column-margin}
+`summary` returns a quick summary of the data, i.e. a list of numerical summaries.
+:::
+
+You probably won't understand some parts of the output above, but we will learn more in the coming weeks, so don't worry too much about it. For the moment, you should be able to understand the minimum, maximum, and the mean.  
+Currently, it is not showing very informative output for the categorical variables, also known as factors.
+
+We can replace each factor level with a clearer label. The following code takes the column `Day` from the `tips` data and assigns a new label "Monday" to the level "m", etc.
+
+```{r}
+tips$Day <- factor(tips$Day, 
+                   levels = c("m", "t", "w", "th", "f"),
+                   labels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"))
+
+tips$Credit <- factor(tips$Credit, 
+                      levels = c("n", "y"),
+                      labels = c("No", "Yes"))
+
+tips$Server <- factor(tips$Server)
+```
+
+
+::: {.callout-note collapse="true"}
+### Alternative
+
+You can change/update a variable (column) in the data using the function `mutate` from the tidyverse package. It works as follows:
+
+```{r eval=FALSE}
+tips <- tips |>
+    mutate(
+        Day = factor(Day,
+                     levels = c("m", "t", "w", "th", "f"),
+                     labels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")),
+        Credit = factor(Credit,
+                        levels = c("n", "y"),
+                        labels = c("No", "Yes")),
+        Server = factor(Server)
+    )
+```
+
+The function `|>` is called __pipe__ and works by taking what's on the left and passing it to the operation on the right. For example, you can take the logarithm of the whole numbers from 1 to 10 and round them to 2 digits using this code: 
+
+```{r}
+round(log(1:10), digits = 2)
+```
+
+or this equivalent code that uses the pipe `|>`:
+
+```{r}
+1:10 |>
+    log() |>
+    round(digits = 2)
+```
+
+You can loosely think of the pipe as "then". In fact, the pipe takes what's to its left, and then passes it on to what's on its right.
+
+__Curiosity:__ Sometimes you may also find an older version of the pipe, which is `%>%` and works in the same style. However, __it requires the package tidyverse__ to be loaded before you can use the older pipe `%>%`.
+:::
+
+
+Let's check the result of the changes to the variable types:
+
+```{r}
+glimpse(tips)
+```
+
+```{r}
+summary(tips)
+```
+
+:::{.column-margin}
+After making categorical variables factors, `summary` shows the count of each category for the categorical variables.
+:::
+
+The percentage of total bill has a maximum value of 221, which seems very strange. Someone is very unlikely to tip more than their bill total. In this case 221% of their bill value seems unlikely.
+
+Let's inspect the row where `PctTip` is greater than 100:
+
+```{r}
+tips[tips$PctTip > 100, ]
+```
+
+
+::: {.callout-note collapse="true"}
+## Alternative
+
+Alternatively, using tidyverse, the function `filter` is used to only filter the rows that satisfy a condition:
+
+```{r}
+tips |> 
+    filter(PctTip > 100)
+```
+:::
+
+
+With a bill of 49.6, the tip would be 109.62 dollars:
+
+```{r}
+49.6 * 221 / 100
+```
+
+Furthermore, we also notice that the tipping amount is not available (NA). The corresponding value in the percentage of total tip seems likely an inputting error, perhaps due to double typing the leading 2 when recording the data. We will set that value to not available (NA) with the following code:
+
+```{r}
+tips$PctTip[tips$PctTip > 100] <- NA
+```
+
+::: {.column-margin}
+`a > b` tests whether a is greater than b. `a < b` tests whether a is smaller than b. `a == b` tests whether a is equal to b; notice the double equal sign! You can also use `>=` or `<=`
+:::
+
+
+::: {.callout-note collapse="true"}
+### Alternative
+
+Alternatively you can use tidyverse:
+
+```{r, eval=FALSE}
+tips <- tips |>
+    mutate(
+        PctTip = ifelse(PctTip > 100, NA, PctTip)
+    )
+```
+
+Where the function `ifelse` selects a value depending on a condition to test: `ifelse(test, value_if_true, value_if_false)`. In the case above, each value in the column PctTip is replaced by NA if Pct > 100, and it is kept the same otherwise.
+
+:::
+
+
+```{r}
+summary(tips)
+```
+
+The function `summary()` return a numeric answer for the min/max/mean, see above, even in the presence of missing values (NAs).
+
+However, if you use functions such as `min()`, `max()`, `mean()`, which compute the minimum, maximum, and mean (i.e., average) of a variable respectively, they will return NA when applied to a variable that contains a missing value:
+
+```{r}
+min(tips$Tip)
+```
+
+To get a numeric result, you need to include the argument, i.e. the option, `na.rm = TRUE`:
+
+```{r}
+min(tips$Tip, na.rm = TRUE)
+```
+
+
+:::{.callout-tip}
+### Example writeup
+The average bill size was \$22.73, and the average tip was \$3.85, corresponding to roughly 17% of the total bill. Out of 157 parties, only 51 paid with a credit card. Most parties tended to be of around 2 people each, and people tended to go to that restaurant more often on Wednesday. Among the three servers, server C was the one that served the least number of parties.
+The data also included a missing tipping value, corresponding to a bill $49.59, and a data inputting error for the corresponding measure of the tip as a percentage of the total bill.
+:::
+
+
+## Student Glossary
+
+A good understanding of R functions is essential for your success in the DAPR curriculum and the degree more generally. We strongly recommend you get into the habit of keeping track of any new R function that you encounter and write a short description of what the function does and which package it comes from. You could save this into a Word, Excel, or Notebook file.
+You should get into the habit of updating that document as you encounter new R functions. For this week, we have provided below a completed table to help you get started!
+
+| Function   | Use and package |
+|:-----------|:--------------|
+| `read_csv` | For reading comma separated value files. Part of tidyverse package |
+| `View`     | Opens a spreadsheet-like data viewer in RStudio. Base R function |
+| `head`     | Shows the first 6 rows of a dataset (by default). Base R function |
+| `nrow`     | Returns the number of rows. Base R function |
+| `ncol`     | Returns the number of columns. Base R function |
+| `dim`      | Returns the dimensions (rows and columns). Base R function |
+| `glimpse`  | Similar to `str`. Displays an overview of the data variables with their types. Part of tidyverse package |
+| `str`      | Similar to `glimpse`. Displays an overview of the data variables with their types. Base R function |
+| `summary`  | Produces summary statistics. Base R function |
+| `factor`   | Creates or modifies a variable into a categorical one (factor) with levels. Base R function |
