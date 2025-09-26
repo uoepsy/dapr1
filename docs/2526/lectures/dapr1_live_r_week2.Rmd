@@ -1,0 +1,161 @@
+---
+title: "Dapr1: Notes on the Live R session, Week 2"
+output: pdf_document
+date: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This week's topic is describing categorical data. We will illustrate this using the dataset that was discussed in the Week 2 lecture. The dataset includes information about 150 students who attended a fictional summer school. Before we start, let's load tidyverse, which we will need for some of the functions in the session. We can do this with the "library(tidyverse)" command.
+
+```{r, results="hide", message=FALSE}
+library(tidyverse)
+```
+## What is a pipe?
+
+In the "tidyverse" package in R, the symbol |> is called the "pipe" symbol. The pipe takes the output of the expression to its left, and gives this as the input to the expression on its right. Here is an example to explain how the pipe works. Let's say we start off by making a list of the integers 1 to 10. We can do that in R like this:
+
+```{r}
+1:10
+```
+
+Now, let's say we want to find the log of each of those numbers. One way to do that is to use the pipe symbol, and direct the output of "1:10" to the "log()" function:
+
+```{r}
+1:10 |> log()
+```
+R has taken the output of "1:10", which is a list of the integers 1 to 10. Then, this output is given as the input of log(), and the output of that computation is the log of the integers 1 to 10. 
+Now, let's say we don't want to waste so much space, and we want to round the numbers to only two decimal places. We can pipe the output of "log()" to another function, "round()", which will round the number to a spcified number of decimal places, in this case 2.
+
+```{r}
+1:10 |> log() |> round(digits=2)
+```
+It may also be helpful to consider that there is also another (older) way of writing the pipe symbol in R, using %>% . Thus, the example above could also be written as follows:
+```{r, eval=FALSE}
+1:10 %>% log() %>% round(digits=2)
+```
+Knowing this alternative symbol could help you to understand code written by others, even if you do not use it yourself.
+
+ Incidentally, there is another way to do this same calculation, without using the pipe:
+```{r}
+round(log(1:10),digits=2)
+```
+In this way, R evaluates the expressions from the most deeply embedded and moves outward. This means that the order in which the function names are written from left to right is not the same as the order that they are evaluated. This is why some people prefer to use the pipe method. 
+
+## Reading in the data and defining a factor
+
+Now, back to the main topic. Let's start by reading in the data file. 
+The data file is on the departmental github website, and it is in csv format, so first we read it into R using read_csv.
+
+
+
+```{r, message=FALSE}
+ex1 <- read_csv("https://uoepsy.github.io/data/ex1.csv")
+```
+
+We have saved the data with the name ex1. Let's have a look at the first few lines:
+```{r}
+head(ex1)
+```
+This command will show the first six lines of data, and it will report the type of each variable column. 
+Now, let's say we will be doing an analysis where "Degree" is used a factor. If this is the case, we would need to tell R to treat this variable as a factor. One way to do this is as follows:
+
+```{r}
+ex1$Degree <- factor(ex1$Degree)
+```
+
+
+There is another way to do this, using the "pipe". The "mutate()" function is also used. This function  is used to manipulate columns in a data frame. It could be used to add a column, or it could be used to change an existing column in some way. Here, we are using "mutate()" to declare that the variable represented by the column is to be treated as a factor. We take the data that we saved in "ex1", and we pass that data to "mutate()" using the pipe sybol "|>". Within the "mutate()" function, we specify that we want to change the type of the column "Degree" so that it is treated as a factor.
+
+```{r}
+ex1 |> mutate(Degree = factor(Degree))
+```
+
+## Calculating and displaying the frequency distributions
+
+We can now count how many students are doing each of the degrees:
+
+```{r}
+ex1 |> count(Degree)
+```
+We can also go further and print out "Percent" column with the percentages. Here, we first apply "count()", then we pipe the output of that to a "mutate()" command that adds the new column. The column takes each value of the "n" column (which shows the number of students in the category), and divides it by the sum of all values in the "n" column (the total of 150 students) to get a proportion. The proportion is then multiplied by 100, and rounded to 2 decimal places:
+
+```{r}
+ex1 |>
+  count(Degree) |>
+  mutate(
+    Percent = round((n/sum(n))*100,2))
+```
+
+Now we will do a graph of the frequency distribution:
+
+```{r, out.width="55%", fig.align='center'}
+ggplot(data=ex1, aes(x=Degree)) +
+geom_bar(fill="steelblue4") +
+labs(x = "\n Degree Subject", y = "Count \n")
+```
+
+Here, we include "ex" as the name of our data set as the first argument of ggplot(). Also, we are specifying that the x-axis should include the value of "Degree", the bars should be blue, and the labels are "Degree Subject" and "Count". Note that the "\\n" charater adds a new line, and this can be used to put extra space between the graph and the axis label. 
+
+What happens if we want the bars to be a different colour? How about dark green?
+
+```{r, out.width="55%", fig.align='center'}
+ggplot(data = ex1, aes(x=Degree)) +
+geom_bar(fill="darkgreen") +
+labs(x = "\n Degree Subject", y = "Count \n")
+```
+How about if we want each bar to be a different colour? Then we could use a list of colours:
+```{r, out.width="55%", fig.align='center'}
+ggplot(data = ex1, aes(x=Degree)) +
+geom_bar(fill=c("darkgreen","darkred","violet","steelblue4")) +
+labs(x = "\n Degree Subject", y = "Count \n")
+```
+How about changing the order of the bars? We have already declared "Degree" to be a factor, but now we could specify an order:
+
+```{r, out.width="55%", fig.align='center'}
+ex1 |> mutate(Degree = factor(Degree,levels=c("Psych","Ling","Phil","Joint"))) |>
+  ggplot(data = _, aes(x=Degree)) +
+    geom_bar(fill="steelblue4") +
+    labs(x = "\n Degree Subject", y = "Count \n")
+```
+Notice in the above code, we start by typing the name of the dataset, "ex1", and then we pipe it to mutate() to specify the factor levels, and then pipe the result to ggplot(). This means that we use the placeholder "data = _", rather than "data = ex1" to specify the data used for ggplot(), because the data comes from the pipe, rather than directly from ex1. 
+
+To plot the year instead of the degree subject, we can simply write "x=Year" in the aesthetics section, and use a different label for the x-axis. R will use the information in the "Year" column to make the counts.
+
+```{r, out.width="55%", fig.align='center'}
+ggplot(data=ex1, aes(x=Year)) +
+geom_bar(fill="steelblue4") +
+labs(x = "\n Degree Year", 
+         y = "Count \n")
+```
+
+## Cumulative percentages, median and interquartile range 
+
+OK, now let's look at the percentages of students in each year group, and put them in a column called "Percent". Then we will also calculate the cumulative percentages, making a new column "Cumulative".
+
+```{r}
+ex1 |> count(Year) |>
+  mutate(Percent = round((n/sum(n)*100),digits=2), Cumulative = cumsum(Percent))
+```
+
+From this, we can see that Year 2 is the first category where the cumulative percentage  reaches 25%, and Year 3 is the first category where the cumulative percentage reaches 75%. Therefore Year 2 is quartile 1 (25% quartile), and Year 3 is quartile 3 (75% quartile). We can confirm this with the quantile() function:
+
+```{r}
+quantile(ex1$Year, c(.25, .75))
+```
+To find the interquartile range, we take the difference:  3-2=1. We can confirm this with the IQR function:
+
+```{r}
+IQR(ex1$Year)
+```
+We can also see how the cumulative percentages relate to the median. Here, Year 2 is the point where the cumulative percentage reaches 50% (year 2 is half-way through the ordered list of year categories of the 150 students), so 2 is the median. We can confirm this with the "median()" function:.
+
+```{r}
+median(ex1$Year)
+```
+
+
+
+
