@@ -15,11 +15,11 @@ This page contains formatting resources that will help you finalise your report 
 
 
 
-## Successful knitting checklist
+<!-- ## Successful knitting checklist
 
 If you encounter errors when knitting the Rmd file, go through the following checklist to try finding the source of the errors.
 
-- [Successful knitting checklist](https://uoepsy.github.io/dapr1/2526/useful_files/checklist_knitting.pdf)
+- [Successful knitting checklist](https://uoepsy.github.io/dapr1/2526/useful_files/checklist_knitting.pdf) -->
 
 
 
@@ -28,50 +28,6 @@ If you encounter errors when knitting the Rmd file, go through the following che
 Check the following guide for reporting numbers and statistics in APA style (7th edition).
 
 - [Numbers and statistics guide, APA style 7th edition](https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf)
-
-
-
-## Hiding code and/or output
-
-:::{.panel-tabset}
-### Hide R code
-
-To not show the code of an R code chunk, and only show the output, write:
-
-````
-```{{r, echo=FALSE}}
-# code goes here
-```
-````
-
-### Hide R output
-
-To show the code of an R code chunk, but hide the output, write:
-
-````
-```{{r, results='hide'}}
-# code goes here
-```
-````
-
-To hide both text output and figures, use:
-
-````
-```{{r, results='hide', fig.show='hide'}}
-# code goes here
-```
-````
-
-### Hide both R code and output
-
-To hide both code and output of an R code chunk, write:
-
-````
-```{{r, include=FALSE}}
-# code goes here
-```
-````
-:::
 
 
 
@@ -222,3 +178,206 @@ which, when you knit to PDF, is displayed as:
 For details on styling PDF tables, see [this link](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_pdf.pdf).
 
 
+
+## Hiding code and/or output
+
+:::{.panel-tabset}
+### Hide R code
+
+To not show the code of an R code chunk, and only show the output, write:
+
+````
+```{{r, echo=FALSE}}
+# code goes here
+```
+````
+
+### Hide R output
+
+To show the code of an R code chunk, but hide the output, write:
+
+````
+```{{r, results='hide'}}
+# code goes here
+```
+````
+
+To hide both text output and figures, use:
+
+````
+```{{r, results='hide', fig.show='hide'}}
+# code goes here
+```
+````
+
+### Hide both R code and output
+
+To hide both code and output of an R code chunk, write:
+
+````
+```{{r, include=FALSE}}
+# code goes here
+```
+````
+:::
+
+
+
+## Successful knitting checklist
+
+
+::: {.callout-tip}
+**Fixing errors is an iterative process**
+
+If you are getting errors when knitting an Rmd file, please try the following steps **in order**. 
+
+Once you have identified an error and fixed it, knit again to spot the next error in the file. 
+
+R will always stop at the first error, rather than listing all errors in your file. As such, fixing errors is an iterative process of spotting the first error to appear in your file, then fixing it, and continuing this way.
+:::
+
+
+Work through this checklist systematically when troubleshooting knitting issues:
+
+#### Prerequisites and Setup {.unnumbered}
+
+- [ ] **Install `tinytex`**. This is required for knitting to a PDF file. If not installed or if you are unsure, follow these steps:
+
+    *Step 1:* Type the following in the Console and press Enter:
+
+    ```r
+    install.packages("tinytex")
+    ```
+    
+    *Step 2:* Next, type the following in the console and press Enter:
+
+    ```r
+    tinytex::install_tinytex(force = TRUE)
+    ```
+
+    *Please note that the two lines above should not be included in your Rmd file. They are only to be run once in the Console.*
+
+
+#### Document Structure {.unnumbered}
+
+- [ ] **Empty lines around code chunks**. Ensure you have an empty line before and after every code chunk
+
+- [ ] **Empty lines around section titles**. Ensure you have an empty line before and after every section title
+
+- [ ] **Correct YAML header structure**. Ensure the top of the Rmd file is structured as follows, with matching open/closing quotes:
+
+    ```yaml
+    ---
+    title: "Title goes here"
+    author: "Author goes here" 
+    date: "Date goes here"
+    output: bookdown::pdf_document2
+    toc: false
+    ---
+    ```
+
+    > **⚠️ Common YAML Issues**
+    > 
+    > - The file won't knit if you forget to open and close the two delimiters `---`
+    > - The file won't knit if you use uppercase incorrectly (e.g., `toc: FALSE` or `toc: False` will lead to errors)
+
+#### Code Chunk Issues {.unnumbered}
+
+- [ ] **No underscores or spaces in chunk labels**. Replace any code chunk labels having spaces or underscores.
+
+::: {.panel-tabset}
+    
+##### ❌ These won't work
+````{verbatim}
+```{r plt freq distr}
+
+```
+````
+
+````{verbatim}
+```{r plt_freq_distr}
+
+```
+````
+
+##### ✅ Use these instead
+````{verbatim}
+```{r plt-freq-distr}
+
+```
+````
+
+````{verbatim}
+```{r pltFreqDistr}
+
+```
+````
+:::
+
+- [ ] **Unique code chunk labels**. Ensure that you don't have two code chunks with the same label. R can't tell them apart:
+
+    > **⚠️ Example of Duplicate Labels (Fix This!)**
+    > 
+    > ````{verbatim}
+    > ```{r pltHistogram}
+    > 
+    > ```
+    > ````
+    > 
+    > ````{verbatim}
+    > ```{r pltHistogram}  # This is a duplicate!
+    > 
+    > ```
+    > ````
+
+- [ ] **No comma before chunk labels**. Remove any comma before the code chunk label:
+
+::: {.panel-tabset}
+
+##### ❌ Incorrect
+````{verbatim}
+```{r, plt-freq-distr-example}
+
+```
+````
+
+##### ✅ Correct
+````{verbatim}
+```{r plt-freq-distr-example}
+
+```
+````
+:::
+
+#### Mathematical Symbols and Special Characters {.unnumbered}
+
+- [ ] **Mathematical symbols in equation blocks**. Ensure that all mathematical symbols only appear inside equation blocks (delimited by dollars), i.e. `$ equation $`. Equations should only appear in text, not inside of code chunks or comments in code chunks.
+
+    <details>
+    <summary><strong>Examples of Proper Math Formatting</strong></summary>
+    
+    **Example 1:** Consider $\cup$ in $P(A \cup B)$. This should be written as `$P(A \cup B)$` and you should not directly copy and paste the $\cup$ symbol into a comment or text.
+    
+    **Example 2:** Approximately equal to ($\approx$) should also only appear inside of an equation such as `p \approx 0`. You should not directly copy and paste this symbol into a comment or text.
+    
+    **Example 3:** $\alpha$ should be written within an equation as `$\alpha$`. You should not directly copy and paste this symbol into a comment or text.
+        
+    **Example 4:** $H_{0}$ should be written `$H_{0}$`. You should not directly copy and paste this symbol into a comment or text.
+    </details>
+
+
+- [ ] **No unicode characters**. Ensure that there are no unicode characters in your file. Unicode characters are symbols beyond those included in a standard PC keyboard, and can cause problems with tinytex.
+
+#### File Management {.unnumbered}
+
+- [ ] **Clean file names**. Ensure your file name doesn't have too many `(1) (1) (1)` at the end. R won't knit the file if the name is too long. Please rename your file with a better name.
+
+- [ ] **No % signs in table captions**. Remove any `%` sign in table captions, as these can cause problems when knitting.
+
+#### Final Notes {.unnumbered}
+
+- [ ] **Don't worry about figure/table order**. A reader will be able to find your figure or table as long as they are correctly referenced and numbered!
+
+> **💡 Pro Tip**
+> 
+> Bookmark/print this checklist and work through it systematically whenever you encounter knitting errors. Most issues can be resolved by carefully following these steps!
