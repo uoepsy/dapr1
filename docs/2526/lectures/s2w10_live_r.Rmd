@@ -1,0 +1,192 @@
+---
+title: "Block 4 Week 5: Fitness & Health Report"
+output: bookdown::pdf_document2
+toc: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+
+```{r include = FALSE}
+######## LOAD LIBRARIES & DATA ######## 
+library(tidyverse)
+library(kableExtra)
+library(psych)
+library(patchwork)
+library(kableExtra)
+
+
+dat <- read_csv("https://uoepsy.github.io/data/fitnessProgram.csv")
+
+###### DATA CHECKS ###### 
+
+str(dat)
+summary(dat)
+
+
+###################### RQ1 ########################
+
+####### ASSUMPTION CHECKS #######
+
+# Days in programme
+shapiro.test(dat$daysInProgram)
+
+hd_viz_time <- ggplot(dat, aes(x = daysInProgram, y = after_stat(density))) + 
+  geom_histogram() + 
+  geom_density()
+hd_viz_time
+
+q_viz_time <- ggplot(dat, aes(sample = daysInProgram)) + 
+  geom_qq() + 
+  geom_qq_line() + 
+  labs(title = "QQPlot - Days in Program")
+q_viz_time
+
+#CV health
+shapiro.test(dat$cvHealth)
+
+hd_viz_cv <- ggplot(dat, aes(x = cvHealth, y = after_stat(density))) + 
+  geom_histogram() + 
+  geom_density()
+hd_viz_cv 
+
+q_viz_cv <- ggplot(dat, aes(sample = cvHealth)) + 
+  geom_qq() + 
+  geom_qq_line() + 
+  labs(title = "QQPlot - CV Health")
+q_viz_cv
+
+####### VISUALISATION #######
+
+#Because we are interested in running a hypothesis test on the correlation between `daysInProgram` and `cvHealth`, we can produce a scatterplot to check for linearity, outliers, and heteroscedasticity. Can also use this to visulaise the association between our two variables:
+
+viz_time_cv <- ggplot(dat, aes(x = daysInProgram, y = cvHealth)) + 
+  geom_point() + 
+  geom_smooth(method = 'lm', colour = 'red', se = F) +
+  labs(x='Time in Program (days)', y = 'Cardiovascular Health', title = "Association Between Time in Program and Cardiovascular Health") 
+
+####### CORRELATION #######
+
+cor(dat$daysInProgram, dat$cvHealth)
+
+cor.test(dat$daysInProgram, dat$cvHealth,
+         alternative = "two.sided")
+
+###################### RQ2 ########################
+
+####### VISUALISATION #######
+
+# we can see that a scatterplot is not informative for Likert scale data:
+ggplot(dat, aes(x = Difficulty, y = Satisfaction)) + 
+  geom_point() + 
+  geom_smooth(method = 'lm', colour = 'red', se = F)
+
+#boxplots or barplots may be more informative 
+
+ggplot(dat, aes(x = factor(Difficulty), y = Satisfaction)) + 
+  geom_boxplot()
+
+viz_diff_sat <- ggplot(dat, aes(x = factor(Difficulty), fill = factor(Satisfaction))) + 
+  geom_bar(position = "fill") + 
+  labs(x = "Difficulty Rating", y = "Satisfaction Rating", fill = "Satisfaction Rating")
+viz_diff_sat
+
+####### CORRELATION #######
+
+cor.test(dat$Difficulty, dat$Satisfaction, 
+         alternative = "two.sided",
+         method = "spearman")
+
+#To suppress warning message, use the following `exact = FALSE` argument witin cor.test
+
+###################### BONUS CONTENT ########################
+
+
+#There are a few ways that you can plot correlation data. When you are looking at many correlation values, it may be helpful to plot a correlogram. There are lots of packages that allow you to do this. We're going to use the `corrplot` package. 
+
+#Instead of running separate correlations for each variable pair, it's much similar to create a correlation matrix to look at the correlations between all continuous variables. 
+
+corDat <- round(cor(dat[1:5]),2)
+corDat
+
+####### CORR PLOT #######
+
+library(corrplot)
+
+#You can make a correlogram with the numeric correlation values:
+corrplot(corDat, method = 'number')
+
+#or with representative colors:
+corrplot(corDat, method = 'color')
+
+#You can mix numbers and colors with the `corrplot.mixed` function. I've also added the `tl.col` argument to make the text black:  
+corrplot.mixed(corDat, lower='number', upper='color', tl.col='black')
+
+#the text is cut off in the diagonal, so I've added the `tl.pos` argument to set the text position to the left axis and the top:  
+corrplot.mixed(corDat, lower='number', upper='color', tl.col='black', tl.pos = 'lt')
+
+####### CORRR #######
+
+library(corrr)
+# Need to use dataset - so using columns 1-5 from dat dataset in this example
+
+#Network plot - variables that are more highly correlated appear closer together and are joined by stronger paths. Blue = positive, red = nagative correlations
+dat[1:5] |>
+  correlate() |>
+  network_plot()
+
+#shave() retain only one part of correlation matrix - upper or lower 
+#rplot() the correlations with shapes in place of the values - bigger shapes = larger associations
+dat[1:5] |>
+  correlate() |>
+  shave() |>
+  rplot()
+
+
+# present in well formatted table
+dat[1:5] |>
+  correlate() |>
+  shave() |>
+  fashion() |>
+  kable(caption = "Correlations", digits = 2) |>
+  kable_styling()
+
+```
+
+
+# Introduction
+
+The data available at https://uoepsy.github.io/data/fitnessProgram.csv were provided by a Personal Trainer who specializes in fitness programs, specifically running programs. Their dataset contained information on 8 variables - the number of days their clients have been enrolled on the program (`daysInProgram`), the maximum distance they can run (in miles; `maxDistance`), their base fitness level (`baseFitness`), their cardiovascular health rating (`cvHealth`), their average resting pulse rate (`pulse`), their age (in years; `age`), their difficulty rating of the program (on a scale of 1-5; `Difficulty`), and their overall rating of satisfaction with the program (on a scale of 1-5; `Satisfaction`). 
+
+## Research Questions
+
++ RQ1: Is there a significant association between the number of days one spends in the program and one's cardiovascular health?
++ RQ2: Is there a significant association between satisfaction and difficulty ratings?
+
+# Analysis 
+
+## Research Question 1
+
+Total time enrolled in the program was moderately positively associated with cardiovascular health, and this association was statistically significant $(r= .46, t(498) = 11.64, p < .001)$. This association is visually presented in Figure \@ref(fig:viz-rq1). These results suggested that a greater number of days in the program was positively associated with better cardiovascular health.
+
+```{r viz-rq1, fig.cap = "Association Between Time in Program and Cardiovascular Health", fig.height = 2}
+viz_time_cv
+```
+
+Both days in program ($W = 0.998, p = .725$) and cardiovascular health ($W = 0.996, p = .163$) were normally distributed. From Figure \@ref(fig:viz-rq1), we can see that there are no extreme outliers, the association between the two variables is linear, and there is no evidence of heteroscedasticity. 
+
+## Research Question 2
+
+We used Spearman's $\rho$ to determine whether there was a significant association between difficulty and satisfaction ratings. We found a significant weak negative association between difficulty and satisfaction $(\rho = -.21, p < .001)$, such that those who found the program more difficult reported lower satisfaction with the program overall.
+
+```{r viz-rq2, fig.cap = "Association Between Difficulty and Satisfaction", fig.height = 2}
+viz_diff_sat
+```
+
+# Appendix
+
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
+
