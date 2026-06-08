@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Independent samples t-test</title>
+
+<script src="site_libs/header-attrs-2.8/header-attrs.js"></script>
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+<script>
+function toggle_visibility(id1, id2) {
+var e = document.getElementById(id1);
+var f = document.getElementById(id2);
+e.style.display = ((e.style.display!='none') ? 'none' : 'block');
+if(f.classList.contains('fa-plus')) {
+    f.classList.add('fa-minus')
+    f.classList.remove('fa-plus')
+} else {
+    f.classList.add('fa-plus')
+    f.classList.remove('fa-minus')
+}
+}
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+<link rel="stylesheet" href="assets/style-labs.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"><strong>DAPR1</strong></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">
+    <span class="fas fa-home"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="intro_r_rstudio_year1.html">DAPR1 starts here</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Intro to data and R
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="01_data_types.html">1/1: Collecting data</a>
+    </li>
+    <li>
+      <a href="02_categorical.html">1/2: Categorical data</a>
+    </li>
+    <li>
+      <a href="03_numerical.html">1/3: Numerical data</a>
+    </li>
+    <li>
+      <a href="04_relationships.html">1/4: Relationships</a>
+    </li>
+    <li>
+      <a href="05_functions.html">1/5: Types of relations</a>
+    </li>
+    <li class="dropdown-header">1/6: Break week!</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Probability &amp; sampling
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="07_probability_basics.html">1/7: Probability basics</a>
+    </li>
+    <li>
+      <a href="08_probability_rules.html">1/8: Probability rules!</a>
+    </li>
+    <li>
+      <a href="09_discrete_distributions.html">1/9: Discrete random variables</a>
+    </li>
+    <li>
+      <a href="10_continuous_distributions.html">1/10: Continuous random variables</a>
+    </li>
+    <li>
+      <a href="11_sampling_distributions.html">1/11: Sampling distributions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Hypothesis testing
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="12_bootstrap_cis.html">2/1: Bootstrap &amp; CIs</a>
+    </li>
+    <li>
+      <a href="13_hypothesis_testing.html">2/2: Hypothesis testing: p-values</a>
+    </li>
+    <li>
+      <a href="14_critical_values.html">2/3: Hypothesis testing: critical values</a>
+    </li>
+    <li>
+      <a href="15_connecting_ci_ht.html">2/4: Hypothesis testing &amp; CIs</a>
+    </li>
+    <li>
+      <a href="16_ht_errors.html">2/5: Making decisions</a>
+    </li>
+    <li class="dropdown-header">2/6: Break week</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Basic tests
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="17_one_sample_mean.html">2/7: Test for one mean</a>
+    </li>
+    <li>
+      <a href="18_two_sample_means.html">2/8: Test for two means</a>
+    </li>
+    <li>
+      <a href="19_paired_t_test.html">2/9: Test for paired samples</a>
+    </li>
+    <li>
+      <a href="20_chi_square.html">2/10: Chi-square</a>
+    </li>
+    <li>
+      <a href="21_covcor.html">2/11: Covariance and correlation</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Independent samples t-test</h1>
+
+</div>
+
+
+<div class="lo">
+<ol style="list-style-type: decimal">
+<li>Understand when to use an independent sample <span class="math inline">\(t\)</span>-test</li>
+<li>Understand the null hypothesis for an independent sample <span class="math inline">\(t\)</span>-test</li>
+<li>Understand how to calculate the test statistic</li>
+<li>Know how to conduct the test in R</li>
+<li>Understand the assumptions for <span class="math inline">\(t\)</span>-tests</li>
+</ol>
+</div>
+<div id="recap-testing-one-mean" class="section level1">
+<h1>Recap: Testing One Mean</h1>
+<p>Last week you explored how to draw conclusions about a population mean on the basis of the observed sample t-statistic.
+In particular, given a random sample of size <span class="math inline">\(n\)</span> from a population, you tested if the population mean was equal to some hypothesized value.</p>
+<p>Let the observed sample mean be <span class="math inline">\(\bar{x}\)</span>. Given that the observed sample mean is <span class="math inline">\(\bar{x}\)</span>, we test whether it is plausible that the population mean <span class="math inline">\(\mu\)</span> could be equal to some hypothesised value <span class="math inline">\(\mu_0\)</span> (for example 0).</p>
+<p>This is done by comparing the observed <span class="math inline">\(t\)</span>-statistic</p>
+<p><span class="math display">\[
+t_{obs} = \frac{\bar{x} - \mu_0}{\frac{s}{\sqrt{n}}}
+\]</span></p>
+<p>with the appropriate critical value from a t distribution with df degrees of freedom.</p>
+<p>For an <span class="math inline">\(\alpha = 0.05\)</span>, if the alternative hypothesis <span class="math inline">\(H_1\)</span> is one-sided we have two cases:</p>
+<ul>
+<li><span class="math inline">\(H_1 : \mu &gt; \mu_0\)</span>, which has one critical value <code>qt(p = 0.95, df = n - 1)</code></li>
+<li><span class="math inline">\(H_1 : \mu &lt; \mu_0\)</span>, which has one critical value <code>qt(p = 0.05, df = n - 1)</code></li>
+</ul>
+<p>If the alternative hypothesis <span class="math inline">\(H_1\)</span> is two-sided:</p>
+<ul>
+<li><span class="math inline">\(H_1 : \mu \neq \mu_0\)</span>, we have two critical values <code>qt(p = c(0.025, 0.975), df = n - 1)</code></li>
+</ul>
+<p>We reject the null hypothesis if the observed <span class="math inline">\(t\)</span>-statistic is as extreme or more extreme than the critical value.
+Remember, more extreme is calculated in the direction specified by the alternative hypothesis!</p>
+<p>The above procedure applies when testing a single parameter (a proportion or a mean) from a single population.</p>
+<p>Today you will explore and apply inference procedures for comparing parameters between two populations or treatment groups.</p>
+</div>
+<div id="recap-of-key-terminology" class="section level1">
+<h1>Recap of Key Terminology</h1>
+<div class="optional-begin">
+Units and variables<span id="opt-start-181" class="fa fa-plus optional-icon clickable" onclick="toggle_visibility(&#39;opt-body-181&#39;, &#39;opt-start-181&#39;)"></span>
+</div>
+<div id="opt-body-181" class="optional-body" style="display: none;">
+<p><strong>Units and variables</strong></p>
+<p>The individual entities on which data are collected are called <em>observational units</em> or <em>cases</em>.</p>
+<p>The number of observational units in the study is known as the <em>sample size</em>, and is typically denoted by <span class="math inline">\(n\)</span>.</p>
+<p>A <em>variable</em> is any characteristic that varies from observational unit to observational unit.</p>
+</div>
+<p class="optional-end">
+</p>
+<div class="optional-begin">
+Categorical and numeric variables<span id="opt-start-182" class="fa fa-plus optional-icon clickable" onclick="toggle_visibility(&#39;opt-body-182&#39;, &#39;opt-start-182&#39;)"></span>
+</div>
+<div id="opt-body-182" class="optional-body" style="display: none;">
+<p><strong>Categorical and numeric variables</strong></p>
+<p>Variables are either <em>categorical</em> or <em>numeric</em>:</p>
+<ul>
+<li><p>A <em>categorical variable</em> divides the units into groups, placing each unit into exactly one of two or more categories.
+In R, a categorical variable should be a <code>factor</code>.</p></li>
+<li><p>A <em>numeric variable</em> measures a numerical quantity for each case.
+Numerical operations like adding and averaging make sense only for numeric variables. Often, numeric variables are equivalently called quantitative variables, as they measure a quantity.</p></li>
+</ul>
+<p>A special kind of categorical variable is a <em>binary variable</em>, for which only two possible categories exist.</p>
+<p><em>Note: One simple way to distinguish between categorical and numeric variables is to ask yourself if it makes sense to take an average of the values.</em></p>
+</div>
+<p class="optional-end">
+</p>
+<div class="optional-begin">
+Explanatory and response variables<span id="opt-start-183" class="fa fa-plus optional-icon clickable" onclick="toggle_visibility(&#39;opt-body-183&#39;, &#39;opt-start-183&#39;)"></span>
+</div>
+<div id="opt-body-183" class="optional-body" style="display: none;">
+<p><strong>Explanatory and response variables</strong></p>
+<p>If we are using one variable to help us understand or predict values of another variable, we call the former the <em>explanatory variable</em> and the latter the <em>response variable</em>.</p>
+</div>
+<p class="optional-end">
+</p>
+<div class="optional-begin">
+Observational studies vs randomized experiments<span id="opt-start-184" class="fa fa-plus optional-icon clickable" onclick="toggle_visibility(&#39;opt-body-184&#39;, &#39;opt-start-184&#39;)"></span>
+</div>
+<div id="opt-body-184" class="optional-body" style="display: none;">
+<p><strong>Observational studies vs randomized experiments</strong></p>
+<p>An <em>observational study</em> is a study in which the researcher does not manipulate the value of any variable, but simply observes the values as they naturally exist.</p>
+<p>A <em>randomized experiment</em> is a study in which the researcher determines <em>at random</em> the explanatory variable for each unit, before the response variable is measured.</p>
+</div>
+<p class="optional-end">
+</p>
+</div>
+<div id="summary-box" class="section level1">
+<h1>Summary Box</h1>
+<p><img src="images/two_sample_ttest.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="data-got-a-friend" class="section level1">
+<h1>Data: Got a friend?</h1>
+<p>You will now use a subset of data from the General Social Survey (GSS) conducted in the US in 2004. One of the questions asked to a random sample of adult Americans in the 2004 General Social Survey was:</p>
+<blockquote>
+<p>“From time to time, most people discuss important matters with other people. Looking back over the last six months — who are the people with whom you discussed matters important to you? Just tell me their first names or initials.”</p>
+</blockquote>
+<p>The interviewer task was to record how many names were mentioned by each survey participant, along with the participant’s sex. For more details, see the <a href="https://gssdataexplorer.norc.org/variables/848/vshow">GSS webpage</a>.</p>
+<ul>
+<li>How many names would you mention if you had to answer this question?</li>
+<li>How do you expect the responses to differ between men and women?</li>
+<li>Do you expect women to mention more names than men, or vice-versa, or perhaps the number of names to be similar between men and women?</li>
+</ul>
+<p>You will explore whether men and women differ with regard to the number of names they tend to mention when answering this question.
+For simplicity, we will refer to the people with whom you talk about important personal matters as “close friends.”</p>
+<p>The survey data are stored in the file <a href="https://uoepsy.github.io/data/CloseFriends.csv"><code>CloseFriends.csv</code></a> which can be downloaded from this address: <a href="https://uoepsy.github.io/data/CloseFriends.csv" class="uri">https://uoepsy.github.io/data/CloseFriends.csv</a></p>
+<p><br>
+<font size="2">
+<em><strong>Note</strong>: This survey was conducted in the US in the year 2004, at which point US officials recorded sex as “female” or “male.” We are merely analysing the data that were collected in that survey as it is an extensive and open-source dataset. The fact that we are using this data to demonstrate a statistical method to compare two group means is not an endorsement to the view that gender is a binary variable.</em>
+</font>
+<br><br></p>
+</div>
+<div id="exploratory-analysis" class="section level1">
+<h1>Exploratory analysis</h1>
+<p>Before testing for a potential difference in the mean of a quantitative variable between two independent groups, it is good practice to display, explore and summarise the data.</p>
+<p>We will now load the data into R and inspect it, paying particular attention to:</p>
+<ul>
+<li>the variable names;</li>
+<li>the dimensions of the data;</li>
+<li>the format of the data (i.e., making sure that variables are correctly encoded).</li>
+</ul>
+<p>Load the data:</p>
+<pre class="r"><code>library(tidyverse)
+
+gss &lt;- read_csv(&#39;https://uoepsy.github.io/data/CloseFriends.csv&#39;)</code></pre>
+<p>Inspect the names of the variables and the first six rows:</p>
+<pre class="r"><code>head(gss)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   sex    num_close_friends
+##   &lt;chr&gt;              &lt;dbl&gt;
+## 1 female                 0
+## 2 female                 0
+## 3 female                 0
+## 4 female                 0
+## 5 female                 0
+## 6 female                 0</code></pre>
+<p>Check the number of observational units and variables:</p>
+<pre class="r"><code>dim(gss)</code></pre>
+<pre><code>## [1] 1467    2</code></pre>
+<p>The tibble says that sex is of class <code>chr</code> (character). As sex is a categorical variable, we will encode it as a factor:</p>
+<pre class="r"><code>gss &lt;- gss %&gt;%
+  mutate(sex = factor(sex))
+
+# check encoding
+head(gss)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   sex    num_close_friends
+##   &lt;fct&gt;              &lt;dbl&gt;
+## 1 female                 0
+## 2 female                 0
+## 3 female                 0
+## 4 female                 0
+## 5 female                 0
+## 6 female                 0</code></pre>
+<p>The observational units are the 1,467 sampled adult Americans taking part in the 2004 General Social Survey (GSS).</p>
+<p>The recorded variables are the sex of the participant and the number of names given by the participant. The former is categorical, while the latter is a numerical value that varies from participant to participant.</p>
+<p>We are interested in how the number of mentioned names tends to vary with the sex of the participant. For this reason, sex is the explanatory variable, while number of close friends in the response variable.</p>
+<p>This study only involved random sampling of the observational units from the population of adult Americans in 2004.
+This is an observational study as the researchers limited themselves to record the values that naturally occur.
+The researchers did not perform any manipulation of the variables, such as random assignment of observational units to groups. If this were the case, we would be analysing data from a randomised experiment.</p>
+<p><br></p>
+<p>We will now state, in words, the null and alternative hypotheses to test whether the sample data provide evidence that American males and females tend to differ with regard to the average number of close friends they mention.</p>
+<p>The null hypothesis is that the population mean number of close friends is the same for adult American males as for females.
+In other words, the null hypothesis states that there is no difference in the population mean number of close friends between males and females.</p>
+<p>The alternative hypothesis is that the population mean number of close friends is not the same for males as for females.
+In other words, the alternative hypothesis states that there is a difference in the population mean number of close friends between males and females.</p>
+<p>To formally write out the null and alternative hypothesis, we need to define the parameters of interest in this study, and identify appropriate symbols for them:</p>
+<ul>
+<li><span class="math inline">\(\mu_f\)</span>: population mean number of close friends mentioned by adult American females</li>
+<li><span class="math inline">\(\mu_m\)</span>: population mean number of close friends mentioned by adult American males</li>
+</ul>
+<p>We can now formally state the null and alternative hypotheses using symbols:
+<span class="math display">\[
+H_0 : \mu_f = \mu_m       \\
+H_1 : \mu_f \neq \mu_m 
+\]</span>
+or, equivalently:
+<span class="math display">\[
+H_0 : \mu_f - \mu_m = 0    \\
+H_1 : \mu_f - \mu_m \neq 0
+\]</span></p>
+<p>The one-sample <span class="math inline">\(t\)</span>-test introduced last week tests if the population that the observed sample came from has a hypothesized mean.
+Here, instead, we want to compare the means of two populations (or, if it were a randomized experiment, between two treatment groups). Hence, in this application we need to use a two independent samples t-test.</p>
+<p><br></p>
+<p>We start by looking at descriptive summaries by sex:</p>
+<pre class="r"><code>descr_stats &lt;- gss %&gt;%
+  group_by(sex) %&gt;%
+  summarise(
+    SampleSize = n(),
+    Mean = mean(num_close_friends),
+    SD = sd(num_close_friends), 
+    Minimum = min(num_close_friends),
+    LowerQuartile = quantile(num_close_friends, p = 0.25),
+    Median = median(num_close_friends),
+    UpperQuartile = quantile(num_close_friends, p = 0.75),
+    Maximum = max(num_close_friends)
+  )
+descr_stats</code></pre>
+<pre><code>## # A tibble: 2 x 9
+##   sex    SampleSize  Mean    SD Minimum LowerQuartile Median UpperQuartile
+##   &lt;fct&gt;       &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;         &lt;dbl&gt;  &lt;dbl&gt;         &lt;dbl&gt;
+## 1 female        813  2.09  1.76       0             1      2             3
+## 2 male          654  1.86  1.78       0             0      1             3
+## # … with 1 more variable: Maximum &lt;dbl&gt;</code></pre>
+<p>To format the above tibble as a nice HTML table, you can use the function <code>kable</code> from the package <code>kableExtra</code>:</p>
+<pre class="r"><code>library(kableExtra)
+
+kable(descr_stats, digits = 2) %&gt;%
+    kable_styling(full_width = FALSE)</code></pre>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+sex
+</th>
+<th style="text-align:right;">
+SampleSize
+</th>
+<th style="text-align:right;">
+Mean
+</th>
+<th style="text-align:right;">
+SD
+</th>
+<th style="text-align:right;">
+Minimum
+</th>
+<th style="text-align:right;">
+LowerQuartile
+</th>
+<th style="text-align:right;">
+Median
+</th>
+<th style="text-align:right;">
+UpperQuartile
+</th>
+<th style="text-align:right;">
+Maximum
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+female
+</td>
+<td style="text-align:right;">
+813
+</td>
+<td style="text-align:right;">
+2.09
+</td>
+<td style="text-align:right;">
+1.76
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+male
+</td>
+<td style="text-align:right;">
+654
+</td>
+<td style="text-align:right;">
+1.86
+</td>
+<td style="text-align:right;">
+1.78
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+6
+</td>
+</tr>
+</tbody>
+</table>
+<p>The values in the above table are statistics. They are numerical summaries computed on observational units which represent a random sample from the population of adult Americans in 2004.</p>
+<div class="optional-begin">
+What are those values?<span id="opt-start-185" class="fa fa-plus optional-icon clickable" onclick="toggle_visibility(&#39;opt-body-185&#39;, &#39;opt-start-185&#39;)"></span>
+</div>
+<div id="opt-body-185" class="optional-body" style="display: none;">
+<p>When comparing a quantitative response variable between two independent groups, encoded in a categorical variable, we could report the sample size, mean, SD, minimum, lower quartile, median, upper quartile, maximum.</p>
+<p>The <strong>median</strong> is the value such that 50% of the data lies below and 50% of the data lies above that value.
+The median cuts the data into two parts: the part to the left of the median and part to the right of the median.</p>
+<p>The median of left part is known as the <strong>lower quartile</strong>, and represents the value for which 25% of the data lie below that value.
+The median of right part is known as the <strong>upper quartile</strong>, and represents the value for which 25% of the data lie above that value.</p>
+<p>The <strong>interquartile range</strong> (IQR) is simply the difference between the upper quartile and the lower quartile, and represents the width of the interval containing the middle 50% of all observations.</p>
+<p>The minimum, lower quartile, median, upper quartile, and maximum jointly form the so-called <strong>five-number summary</strong> of the distribution of a quantitative variable.</p>
+</div>
+<p class="optional-end">
+</p>
+<p>We can now visualise the distribution of the number of close friends by sex either via a boxplot or histogram:</p>
+<pre class="r"><code>library(patchwork)
+
+plt1 &lt;- ggplot(gss, aes(x = sex, y = num_close_friends)) +
+    geom_boxplot() +
+    labs(x = &#39;Sex&#39;, y = &#39;Number of close friends&#39;)
+
+plt2 &lt;- ggplot(gss, aes(x = num_close_friends)) +
+    geom_histogram(binwidth = 1, color = &#39;white&#39;) +
+    facet_grid(sex ~ .) +
+    labs(x = &#39;Number of close friends&#39;)
+
+plt1 | plt2</code></pre>
+<p><img src="18_two_sample_means_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" /></p>
+<p>The distribution of number of close friends for both males and females appears to be skewed to the right.
+The variability in the number of close friends seems to be similar across males and females.
+The sample mean number of close friends seems to be slightly higher for females than males.</p>
+<p>The sample mean number of close friends for females is <span class="math inline">\(\bar{x}_f\)</span> = 2.09, with standard deviation <span class="math inline">\(s_f\)</span> = 1.76 friends.</p>
+<p>For males, the sample mean number of close friends is <span class="math inline">\(\bar{x}_m\)</span> = 1.86, with standard deviation <span class="math inline">\(s_m\)</span> = 1.78 friends.</p>
+<p>The difference in sample means is <span class="math inline">\(\bar{x}_f - \bar{x}_m\)</span> = 0.23.</p>
+<p>Due to sampling variability, we can not conclude that, because the sample means differ, the means of the two populations must differ too.</p>
+<p>We must resort to a principled framework to test this, and we have already learned to use statistical hypothesis testing in order to assess if sample results (in our case, the observed difference in sample mean number of close friends) are significant in the sense of being unlikely to have occurred by chance (from random sampling) alone.</p>
+</div>
+<div id="hypothesis-test" class="section level1">
+<h1>Hypothesis test</h1>
+<p>We can perform a t-test either (a) by hand or (b) using built-in functions that automate all the computations. However, (a) is important to understand how the t-test works, so we will check (a) before showing the faster and completely equivalent way in (b).</p>
+<div id="a-step-by-step-calculations" class="section level2">
+<h2>(a) step-by-step calculations</h2>
+<p>We can use the table of summary statistics to calculate the value of the <span class="math inline">\(t\)</span>-statistic.</p>
+<p>Let’s extract the relevant statistics from the table of descriptive summaries:</p>
+<pre class="r"><code>n_f &lt;- filter(descr_stats, sex == &#39;female&#39;) %&gt;% pull(SampleSize)
+n_m &lt;- filter(descr_stats, sex == &#39;male&#39;) %&gt;% pull(SampleSize)
+
+xbar_f &lt;- filter(descr_stats, sex == &#39;female&#39;) %&gt;% pull(Mean)
+xbar_m &lt;- filter(descr_stats, sex == &#39;male&#39;) %&gt;% pull(Mean)
+
+s_f &lt;- filter(descr_stats, sex == &#39;female&#39;) %&gt;% pull(SD)
+s_m &lt;- filter(descr_stats, sex == &#39;male&#39;) %&gt;% pull(SD)</code></pre>
+<p><strong>Step 1.</strong> Can the population variances be assumed equal? Test the following hypotheses:</p>
+<p><span class="math display">\[
+H_0 : \sigma_f^2 = \sigma_m^2 \\
+H_1 : \sigma_f^2 \neq \sigma_m^2
+\]</span></p>
+<p>or, equivalently:
+<span class="math display">\[
+H_0 : \frac{\sigma_f^2}{\sigma_m^2} = 1 \\
+H_1 : \frac{\sigma_f^2}{\sigma_m^2} \neq 1
+\]</span></p>
+<p>Use the F-test to test for equality of the population variances:</p>
+<pre class="r"><code>var.test(num_close_friends ~ sex, data = gss)</code></pre>
+<pre><code>## 
+##  F test to compare two variances
+## 
+## data:  num_close_friends by sex
+## F = 0.98094, num df = 812, denom df = 653, p-value = 0.7937
+## alternative hypothesis: true ratio of variances is not equal to 1
+## 95 percent confidence interval:
+##  0.847352 1.134264
+## sample estimates:
+## ratio of variances 
+##          0.9809412</code></pre>
+<div class="int">
+<p>At a significance level of 0.05, the <span class="math inline">\(p\)</span>-value = 0.79 leads us to not reject the null hypothesis of equal variances across the two populations.</p>
+</div>
+<p><strong>Step 2.</strong> We can now perform the <span class="math inline">\(t\)</span>-test calculations using the appropriate formula for the standard error of the difference in means. As the population variances are assumed equal, we use the formula involving the pooled standard deviation:</p>
+<pre class="r"><code># Pooled SD
+s_p &lt;- sqrt(
+  ((n_f - 1) * s_f^2 + (n_m - 1) * s_m^2) / (n_f + n_m - 2)
+)
+
+SE &lt;- s_p * sqrt(1/n_f + 1/n_m)
+
+t_obs &lt;- (xbar_f - xbar_m) / SE
+t_obs</code></pre>
+<pre><code>## [1] 2.4523</code></pre>
+<p><br></p>
+<p>We reach to a conclusion about our hypothesis test either via the</p>
+<ul>
+<li><p><em>critical value approach</em>: Compare the <span class="math inline">\(t\)</span>-statistic with the appropriate 5% critical value from a <span class="math inline">\(t\)</span>-distribution.</p></li>
+<li><p><em>p-value approach</em>: Compare the <span class="math inline">\(p\)</span>-value with the significance level <span class="math inline">\(\alpha = 0.05\)</span>.</p></li>
+</ul>
+<p><br></p>
+<p><em>Critical value approach</em></p>
+<pre class="r"><code>upper_crit &lt;- qt(p = 0.975, df = n_f + n_m - 2)
+upper_crit</code></pre>
+<pre><code>## [1] 1.961585</code></pre>
+<pre class="r"><code>lower_crit &lt;- qt(p = 0.025, df = n_f + n_m - 2)
+lower_crit</code></pre>
+<pre><code>## [1] -1.961585</code></pre>
+<p>As you can see, the t-distribution is symmetric. The value that cuts an area of 0.025 to its left, <span class="math inline">\(t_{0.025} = -1.961585\)</span> is equal to minus the value that cuts an area of 0.025 to its right, <span class="math inline">\(t_{0.975} = 1.961585\)</span>
+<span class="math display">\[
+t_{0.025} = - t_{0.975}
+\]</span>
+so we will simply denote the lower critical value as <span class="math inline">\(-t_{0.975}\)</span> and the upper critical value as <span class="math inline">\(t_{0.975}\)</span>. That is, in a t-distribution with 1465 degrees of freedom, 95% of the values lie between <span class="math inline">\(-t_{0.975}\)</span> and <span class="math inline">\(t_{0.975}\)</span>, that is <span class="math inline">\(-1.96158\)</span> and <span class="math inline">\(1.961585\)</span>.</p>
+<p>Is the observed t-statistic more extreme than the critical values?</p>
+<pre class="r"><code>t_obs &lt;= lower_crit # or: t_obs &lt;= -upper_crit see discussion above!</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code>t_obs &gt;= upper_crit</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>The observed t-statistic 2.45 is larger than the upper critical value 1.96. Hence, at the 5% significance level we have sufficient evidence against the null hypothesis that males and females have the same number of close friends.</p>
+<p><br></p>
+<p><em><span class="math inline">\(p\)</span>-value approach</em></p>
+<pre class="r"><code>p_value &lt;- 2 * (1 - pt(t_obs, df = n_f + n_m - 2))
+p_value</code></pre>
+<pre><code>## [1] 0.01431058</code></pre>
+<p>At a 5% significance level, the observed difference in mean number of close friends between adult American females and males is significantly different from 0 (<span class="math inline">\(t(1465) = 2.45\)</span>, <span class="math inline">\(p = 0.01\)</span>, two-tailed).</p>
+<p>In other words, an observed difference in sample mean number of close friends of 0.23 is highly unlikely to occur by chance alone.</p>
+<p>The sample data provide very strong evidence that, on average, adult American females and males tend to not have the same number of close friends.</p>
+<p><br></p>
+<p>If you want to visualise where the observed t-statistic lies on the t-distribution, as well as the critical values (in red), you can use the following code:</p>
+<pre class="r"><code>plot_x &lt;- seq(-3, 3, by = 0.01)
+plot_y &lt;- dt(plot_x, df = n_f + n_m - 2)
+plot_df &lt;- tibble(plot_x, plot_y)
+plot_df</code></pre>
+<pre><code>## # A tibble: 601 x 2
+##    plot_x  plot_y
+##     &lt;dbl&gt;   &lt;dbl&gt;
+##  1  -3    0.00448
+##  2  -2.99 0.00461
+##  3  -2.98 0.00475
+##  4  -2.97 0.00490
+##  5  -2.96 0.00504
+##  6  -2.95 0.00519
+##  7  -2.94 0.00535
+##  8  -2.93 0.00551
+##  9  -2.92 0.00567
+## 10  -2.91 0.00584
+## # … with 591 more rows</code></pre>
+<pre class="r"><code>ggplot(plot_df, aes(x = plot_x, y = plot_y))+
+    geom_line() +
+    geom_vline(xintercept = t_obs, color = &#39;darkolivegreen4&#39;) +
+    geom_vline(xintercept = c(lower_crit, upper_crit), color = &#39;red&#39;) +
+    labs(x = &#39;Difference in means&#39;, y = &#39;t density&#39;)</code></pre>
+<p><img src="18_two_sample_means_files/figure-html/unnamed-chunk-17-1.png" width="70%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="b-built-in-r-function" class="section level2">
+<h2>(b) built-in R function</h2>
+<p>In R, we can also perform a two-sample <span class="math inline">\(t\)</span>-test very quickly using the function <code>t.test</code>. This is the same function you saw to perform a one-sample mean test.</p>
+<p>Before applying it though, we need to check with <code>var.test</code> whether to assume the population variances to be different or equal.</p>
+<br>
+Both R functions require a <strong>formula</strong> as first argument:
+<center>
+<code>goal( y ~ x )</code>
+</center>
+<p>where</p>
+<ul>
+<li><code>y</code> is the response variable</li>
+<li><code>x</code> is the explanatory variable
+<br><br></li>
+</ul>
+<div class="frame">
+<p><strong>Step 1.</strong> Test for equality of the population variances. This is important so that later we know whether to set <code>var = TRUE</code> or <code>var = FALSE</code> in the function <code>t.test()</code>:</p>
+<pre class="r"><code>var.test(num_close_friends ~ sex, data = gss)</code></pre>
+</div>
+<div class="frame">
+<p><strong>Step 2.</strong> According to the previous test, use the appropriate <span class="math inline">\(t\)</span>-test using either one of the following code chunks.</p>
+<ol style="list-style-type: lower-roman">
+<li>If you can not reject the null hypothesis of equal population variances, use a <span class="math inline">\(t\)</span>-distribution with <span class="math inline">\(n_1 + n_2 - 2\)</span> degrees of freedom:</li>
+</ol>
+<pre class="r"><code>t.test(num_close_friends ~ sex, data = gss, var.equal = TRUE)</code></pre>
+<ol start="2" style="list-style-type: lower-roman">
+<li>If the population variances were not equal, we would have used the Welch-Satterthwaite approximation to the degrees of freedom:</li>
+</ol>
+<pre class="r"><code># Welch-Satterthwaite approximation
+t.test(num_close_friends ~ sex, data = gss, var.equal = FALSE)
+
+# If not provided, var.equal = FALSE by default
+t.test(num_close_friends ~ sex, data = gss)</code></pre>
+</div>
+<p>We have already tested before for equality of the population variances:</p>
+<pre class="r"><code>var.test(num_close_friends ~ sex, data = gss)</code></pre>
+<pre><code>## 
+##  F test to compare two variances
+## 
+## data:  num_close_friends by sex
+## F = 0.98094, num df = 812, denom df = 653, p-value = 0.7937
+## alternative hypothesis: true ratio of variances is not equal to 1
+## 95 percent confidence interval:
+##  0.847352 1.134264
+## sample estimates:
+## ratio of variances 
+##          0.9809412</code></pre>
+<p>As we cannot reject the null hypothesis of equal variances across the two populations, we use a <span class="math inline">\(t\)</span>-test with <span class="math inline">\(\textrm{df} = n_1 + n_2 - 2\)</span>, i.e. we set <code>var.equal = TRUE</code>:</p>
+<pre class="r"><code>t.test(num_close_friends ~ sex, data = gss, var.equal = TRUE)</code></pre>
+<pre><code>## 
+##  Two Sample t-test
+## 
+## data:  num_close_friends by sex
+## t = 2.4523, df = 1465, p-value = 0.01431
+## alternative hypothesis: true difference in means between group female and group male is not equal to 0
+## 95 percent confidence interval:
+##  0.04556467 0.40984457
+## sample estimates:
+## mean in group female   mean in group male 
+##             2.088561             1.860856</code></pre>
+<p>The independent sample t-test has the following assumptions:</p>
+<ul>
+<li>Independence of observations within and across groups.</li>
+<li>Continuous variable is approximately normally distribution within both groups.
+<ul>
+<li>Equivalently, that the difference in means is normally distributed.</li>
+</ul></li>
+<li>Homogeneity of variance across groups.</li>
+</ul>
+<p>Let’s check them:</p>
+<ul>
+<li>The data were collected from a random sample of adult Americans.</li>
+<li>Even though the distribution of the number of close friends is clearly skewed, the sample sizes (813 and 654) are quite large. For large sample sizes, we know that the distribution of the difference in means will be normal.</li>
+<li>The result of the F-test for equality of the two variances indicates that fail to reject the null hypothesis of equal variances.</li>
+</ul>
+<p>Hence, the conditions required for the two-sample <span class="math inline">\(t\)</span>-test results to be valid are satisfied.</p>
+<p><br></p>
+<p>Now that we have established that there is significant evidence of a difference in the population mean number of close friends between females and males, how much do they actually differ???
+In other words, what is the magnitude of this difference in the population means?</p>
+<p>We can construct and interpret a 95% confidence interval for the difference in population mean number of close friends between females and males. We also need to pay particular attention on whether the interval is negative, positive, or contains zero.</p>
+<p>In order to estimate the magnitude of the difference in the population means we can use a confidence interval for the difference in means:</p>
+<pre class="r"><code>ci &lt;- tibble(
+  Lower = (xbar_f - xbar_m) - upper_crit * SE,
+  Upper = (xbar_f - xbar_m) + upper_crit * SE)
+ci</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##    Lower Upper
+##    &lt;dbl&gt; &lt;dbl&gt;
+## 1 0.0456 0.410</code></pre>
+<p>Note that the same result is given by the <code>t.test()</code> function in these lines of the output</p>
+<pre><code>## 95 percent confidence interval:
+##  0.04556467 0.40984457</code></pre>
+<p>A 95% confidence interval for the difference in the mean number of close friends between females and males is [0.046, 0.41].</p>
+<p>The confidence interval is entirely positive, supporting our conclusion that females and males tend to differ with regard to the average number of close friends.</p>
+<div class="int">
+<p>We are 95% confident that American females have between 0.046 and 0.41 more close friends, on average, than American males do.</p>
+</div>
+<p><br></p>
+<p><em>Causation:</em> Do the data provide evidence that how many close friends one has is <em>caused</em> by ones’ sex?</p>
+<p>No, we can not conclude that the person’s sex was responsible for the number of close friends.
+This data was collected as part of an observational study, hence the explanatory variable sex was simply observed in the observational units.</p>
+<p><br></p>
+<p><em>Generalisation:</em> To which population can the results of this study be applied to?</p>
+<p>Because the observational units are a random sample from the population of adult Americans in year 2004, we might apply our results to adult American men and women in that year.</p>
+<p>We might hesitate in generalising the results to all Americans and to a different year, as younger people were not included in the survey, and because the trend could have changed over time.</p>
+</div>
+</div>
+<div id="exercises-does-name-increase-tips" class="section level1">
+<h1>Exercises: Does name increase tips?</h1>
+<p><strong>Think about it</strong></p>
+<ul>
+<li>Can a server earn higher tips simply by introducing themselves by name when greeting customers?</li>
+<li>How can they investigate this?</li>
+<li>After data are collected, how can they decide if the results provide convincing evidence that giving their name does really lead to higher tips?</li>
+<li>And if they decided that introducing themself by name really helps, how can they estimate how much higher will the tips be, on average, when introducing themself by name?</li>
+</ul>
+<p><strong>The published experiment</strong></p>
+<p>Researchers <a href="https://doi.org/10.1111/j.1559-1816.1990.tb00405.x">Garrity and Degelman (1990)</a> investigated the effect of a server introducing themself by name on restaurant tipping.
+The study involved forty, 2-person parties eating a $23.21 fixed-price buffet Sunday brunch at Charley Brown’s Restaurant in Huntington Beach, California, on April 10 and 17, 1988.
+Each two-person party was randomly assigned by the server to either a name or a no name introduction condition using a random mechanism. The server kept track of the two-person party condition and how much the party tipped at the end of the meal.</p>
+<p><strong>The published data</strong></p>
+<p>The paper provides very limited information about the data, i.e. only summary statistics and not the individual measurements. For this reason, you won’t be able to use the <code>t.test()</code> function, which requires the actual data. You will have to compute the t-statistic using the formulas.</p>
+<ul>
+<li><p>The sample mean tip for the 20 parties in the name condition was <span class="math inline">\(\bar x_{name}= \$5.44\)</span>, with a standard deviation <span class="math inline">\(s_{name} = \$1.75\)</span>.</p></li>
+<li><p>For the 20 parties in the no name condition, the sample mean tip was <span class="math inline">\(\bar x_{no\ name}= \$3.49\)</span>, with a standard deviation <span class="math inline">\(s_{no\ name} = \$1.13\)</span>.</p></li>
+</ul>
+<div class="question-begin">
+Question 1
+</div>
+<div class="question-body">
+<p>Identify the observational units in this study.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-186" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-186&#39;, &#39;sol-start-186&#39;)"></span>
+</div>
+<div id="sol-body-186" class="solution-body" style="display: none;">
+<p>The observational units are the forty 2-person parties eating Sunday brunch in that restaurant on April 10 and 17, 1988.</p>
+<p>We can also refer to the observational units as <strong>experimental units</strong> because, as we will see later, they are part of an experiment.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 2
+</div>
+<div class="question-body">
+<p>Is this an observational study or a randomized experiment? Explain why.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-187" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-187&#39;, &#39;sol-start-187&#39;)"></span>
+</div>
+<div id="sol-body-187" class="solution-body" style="display: none;">
+<p>This study is a randomized experiment. The server used a random mechanism to assign the experimental units (the two-person parties) either to a name or no name condition.</p>
+<p>We also need to keep in mind that the server was not blind to which condition each party was assigned to and might have inadvertently provided better service to the parties they expected to give them a larger tip.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 3
+</div>
+<div class="question-body">
+<p>What are the explanatory and response variables in this study?</p>
+<p>Classify them as either categorical (also binary) or quantitative.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-188" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-188&#39;, &#39;sol-start-188&#39;)"></span>
+</div>
+<div id="sol-body-188" class="solution-body" style="display: none;">
+<ul>
+<li><p>Explanatory variable: condition (name or no name).</p>
+<p>Type: categorical and binary.</p></li>
+<li><p>Response variable: tipping amount.</p>
+<p>Type: quantitative.</p></li>
+</ul>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 4
+</div>
+<div class="question-body">
+<p>State, in words and in symbols, the server’s null and alternative hypotheses.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-189" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-189&#39;, &#39;sol-start-189&#39;)"></span>
+</div>
+<div id="sol-body-189" class="solution-body" style="display: none;">
+<p>The null hypothesis is that there is no effect on the tipping amount from the server giving their name as part of their greeting to the customers.</p>
+<p>Equivalently, the null hypothesis states that the population mean tip amount is the same whether the server introduces themself by name or not.</p>
+<p><br>
+The alternative hypothesis is that there is a positive effect on the tipping amount from the server giving their name as part of their greeting to the customers.</p>
+<p>Equivalently, the alternative hypothesis states that the population mean tip amount is greater when the server introduces themself by name than when they does not.</p>
+<p><br>
+In symbols,
+<span class="math display">\[
+H_0 : \mu_{name} = \mu_{no\ name} \\
+H_1 : \mu_{name} &gt; \mu_{no\ name}
+\]</span></p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 5
+</div>
+<div class="question-body">
+<p>Comment on what a Type I error and a Type II error would mean in this particular study.</p>
+<p>Would you consider one of these two errors to be more worrying than the other? Explain why.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-190" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-190&#39;, &#39;sol-start-190&#39;)"></span>
+</div>
+<div id="sol-body-190" class="solution-body" style="display: none;">
+<p>A Type I error is committed when the server decides that introducing themself by name helps when, in reality, it does not.</p>
+<p>A Type II error is committed when the server decides that introducing themself by name is not helpful when, in reality, it actually is.</p>
+<p>A Type I error means that the server will spend just a tiny amount of time longer as part of their greeting without getting any extra benefit from it.</p>
+<p>A Type II error means that the server will not bother giving customers their name and thus would lose out on a higher tip.</p>
+<p>Clearly, as the burden of adding the name to the introduction is minimal, we consider as more worrying (or worst error) losing out on potential tips. So, in this specific study, a Type II error is of higher concern.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 6
+</div>
+<div class="question-body">
+<p>Assuming that the population variances are <strong>not</strong> equal, calculate the test statistic and the <span class="math inline">\(p\)</span>-value. Note that this requires using the Welch t-test.</p>
+<p>For your convenience, we have already calculated the degrees of freedom, which are <span class="math inline">\(\textrm{df} =\)</span> 32.5.</p>
+<p><em><strong>Hint:</strong> As you do not have the party-by-party tipping amounts, but only summary statistics, you can not use the <code>t.test()</code> function, which requires the data at the finest level (the observational units).</em></p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-191" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-191&#39;, &#39;sol-start-191&#39;)"></span>
+</div>
+<div id="sol-body-191" class="solution-body" style="display: none;">
+<p>The two-sample <span class="math inline">\(t\)</span>-test in the case of unequal population variances involves the Welch-Satterthwaite approximation to the degrees of freedom.</p>
+<p>The <span class="math inline">\(t\)</span>-statistic is:</p>
+<pre class="r"><code>n_name &lt;- 20
+xbar_name &lt;- 5.44
+s_name &lt;- 1.75
+
+n_no &lt;- 20
+xbar_no &lt;- 3.49
+s_no &lt;- 1.13
+
+SE &lt;- sqrt(s_name^2 / n_name + s_no^2 / n_no)
+t_obs &lt;- (xbar_name - xbar_no) / SE
+t_obs</code></pre>
+<pre><code>## [1] 4.186343</code></pre>
+<p>The question provides us the degrees of freedom calculated using Welch’s formula: <span class="math inline">\(\textrm{df} = 32.5\)</span>.</p>
+<pre class="r"><code>df &lt;- 32.5</code></pre>
+<p>Critical value:</p>
+<pre class="r"><code>qt(0.95, df = df)</code></pre>
+<pre><code>## [1] 1.693112</code></pre>
+<p><span class="math inline">\(p\)</span>-value:</p>
+<pre class="r"><code>pvalue &lt;- 1 - pt(t_obs, df = df)
+pvalue</code></pre>
+<pre><code>## [1] 0.0001010876</code></pre>
+<p>The p-value is <span class="math inline">\(&lt; .001\)</span>.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 7
+</div>
+<div class="question-body">
+<p>At the significance level <span class="math inline">\(\alpha = 0.05\)</span>, what would you conclude?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-192" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-192&#39;, &#39;sol-start-192&#39;)"></span>
+</div>
+<div id="sol-body-192" class="solution-body" style="display: none;">
+<p>As <span class="math inline">\(p &lt; .001\)</span>, we reject the null hypothesis that there is no effect of introducing yourself by name on customers’ tipping amount.</p>
+<p>The sample results provide strong evidence that including your name as part of the customer’s greeting tends to lead to higher tips on average.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 8
+</div>
+<div class="question-body">
+<p>The paper only reports the sample mean tips and standard deviations for the name and no name conditions.</p>
+<p>Does the paper provide enough information to check whether the validity conditions of the two-sample t-test are satisfied?</p>
+<p>If yes, check that the conditions are met. If not, explain which additional information you would need.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-193" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-193&#39;, &#39;sol-start-193&#39;)"></span>
+</div>
+<div id="sol-body-193" class="solution-body" style="display: none;">
+<p>We do not have enough information to check whether the validity conditions are met.</p>
+<p>We are told that the two-person parties were randomly assigned either to the name or no name condition, but the two sample sizes (20 and 20) are not very large, so we should check whether the data came from normal distributions.</p>
+<p>However, we only have summary statistics and not the actual tip amounts for each party (experimental unit). We would ask the server to provide us the party-by-party tipping amounts in order to check if the populations the samples came from can be assumed to be normal.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 9
+</div>
+<div class="question-body">
+<p>Calculate a 95% confidence interval for the difference in population mean tipping amount between the name and no name conditions.</p>
+<p>Write a sentence or two interpreting what the interval reveals.</p>
+<p><em><strong>Hint</strong>: The degrees of freedom were given in Question 6.</em></p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-194" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-194&#39;, &#39;sol-start-194&#39;)"></span>
+</div>
+<div id="sol-body-194" class="solution-body" style="display: none;">
+<p>First, we must find the appropriate critical value <span class="math inline">\(t_{0.975}\)</span> (for the desired confidence level) from a t-distribution with degrees of freedom given by Welch’s method (see Question 6 for the value).</p>
+<p>The upper critical value for a 95% confidence level is:</p>
+<pre class="r"><code>upper_crit &lt;- qt(0.975, df)
+upper_crit</code></pre>
+<pre><code>## [1] 2.035705</code></pre>
+<p>Remember that because the t-distribution is symmetric, the lower critical value <span class="math inline">\(t_{0.025} = -t_{0.975}\)</span>.</p>
+<p>We compute a 95% confidence interval for the difference in population means, <span class="math inline">\(\mu_{name} - \mu_{no\ name}\)</span>, as follows:
+<span class="math display">\[
+(\bar x_{name} - \bar x_{no\ name}) \pm t_{0.975} \  \sqrt{\frac{s_{name}^2}{n_{name}} + \frac{s_{no\ name}^2}{n_{no\ name}}} \\
+(5.44 - 3.49) \pm 2.036 \ \sqrt{\frac{1.75^2}{20} + \frac{1.13^2}{20}}
+\]</span></p>
+<pre class="r"><code>SE &lt;- sqrt(s_name^2 / 20 + s_no^2 / 20)
+
+ci &lt;- tibble(
+  Lower = (xbar_name - xbar_no) - upper_crit * SE,
+  Upper = (xbar_name - xbar_no) + upper_crit * SE
+)
+ci</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##   Lower Upper
+##   &lt;dbl&gt; &lt;dbl&gt;
+## 1  1.00  2.90</code></pre>
+<p>The 95% confidence interval is [1, 2.9].</p>
+<div class="int">
+<p>We are 95% confident that the server would earn, on average, between $1 and $2.9 more per party with a $23.21 bill, by including their name as part of the greeting.</p>
+</div>
+<!-- We are 95% confident that the interval between \$1 and \$2.9 contains the true amount the waitress would earn, on average, per party with a \$23.21 bill, by including her name as part of the greeting. -->
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 10
+</div>
+<div class="question-body">
+<p>Regardless of whether the validity conditions of the t-test are met, summarise your conclusions from this test.</p>
+<p>Make sure to also comment on causation and generalisability of your results.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-195" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-195&#39;, &#39;sol-start-195&#39;)"></span>
+</div>
+<div id="sol-body-195" class="solution-body" style="display: none;">
+<p>The study involved random assignment of the experimental units to the groups, so the only difference between the groups was whether the party was given the server’s name or not.
+As the parties in the name condition tend to give significantly higher tips on average than those in the no name condition (<span class="math inline">\(t(32.5)\)</span> = 4.19, <span class="math inline">\(p &lt; .001\)</span>, one-sided), we can attribute this difference in means to being told the server’s name as part of the greeting.
+In other words, we can conclude a causal link between being given the name as part of the greeting and receiving higher tips on average.</p>
+<p>However, as the server was not blind to the treatment condition, we must be wary to the fact that the server could have given better service to the parties who they gave their name to. So, the results hold unless the server gave better service to the name condition.</p>
+<p>Having established that there is a significant difference in means between the two groups, a confidence intervals lets us now to estimate, on average, how much higher the tips will be when giving their name.
+Including their name as part of the greeting to customers increases the server’s tips, on average, by $1 to $2.9 per party.</p>
+<p>We must be careful when generalising these results to the population. As only one particular server participated in the study, we don’t want to generalise these results to other servers.
+Furthermore, we might also avoid generalising these results to customers different from those who eat Sunday brunch at Charley Brown’s Restaurant in Huntington Beach, California.</p>
+<p>Finally, the p-values and confidence interval are valid only if the response variable “tipping amount” is normally distributed in the two populations.</p>
+</div>
+<p class="solution-end">
+</p>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<ul>
+<li>Garrity, K., &amp; Degelman, D. (1990). Effect of server introduction on restaurant tipping. <em>Journal of Applied Social Psychology, 20</em>(2), 168-172.</li>
+<li>Rossman, A. J., &amp; Chance, B. L. (2011). <em>Workshop statistics: discovery with data.</em> John Wiley &amp; Sons.</li>
+</ul>
+<!-- Formatting -->
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;">
+
+</div>
+</div>
+
+<link rel="stylesheet" href="https://uoepsy.github.io/assets/css/ccfooter.css" />
+<div class="ccfooter"></div>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

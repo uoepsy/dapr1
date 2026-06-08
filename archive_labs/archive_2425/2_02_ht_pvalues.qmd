@@ -1,0 +1,356 @@
+---
+title: "Hypothesis testing: p-values"
+subtitle: "Semester 2 - Week 2"
+callout-appearance: simple
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+```{r setup}
+#| include: false
+
+source('assets/setup.R')
+
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+
+grad <- read_csv("https://uoepsy.github.io/data/dataset-ipeds-2012-subset2.csv")
+head(grad)
+glimpse(grad)
+
+plt.grad.h <- ggplot(grad, aes(x = gradratew)) +
+    geom_histogram(color = 'white')
+
+plt.grad.d <- ggplot(grad, aes(x = gradratew)) +
+    geom_density()
+
+plt.grad.b <- ggplot(grad, aes(x = gradratew)) +
+    geom_boxplot()
+
+plt.grad.h / plt.grad.b
+
+stats.grad <- grad |>
+    summarise(n = length(gradratew),
+              Min = min(gradratew),
+              Max = max(gradratew),
+              M = mean(gradratew),
+              SD = sd(gradratew))
+
+stats.grad |>
+    kbl(digits = 2) |>
+    kable_styling(full_width = FALSE)
+
+psych::describe(grad$gradratew)
+
+xbar <- mean(grad$gradratew)
+n <- nrow(grad)
+tstar <- qt(c(0.025, 0.975), n - 1)
+se <- sd(grad$gradratew) / sqrt(n)
+xbar + tstar * se
+
+stats.grad$M + tstar * stats.grad$SD / sqrt(stats.grad$n)
+
+# week 2 code ====
+
+xbar <- mean(grad$gradratew)
+n <- nrow(grad)
+s <- sd(grad$gradratew)
+se <- s / sqrt(n)
+
+tobs <- (xbar - 50) / se
+tobs
+
+pvalue <- 2 * pt(abs(tobs), df = n - 1, lower.tail = FALSE)
+pvalue
+
+tstar <- qt(c(0.025, 0.975), n - 1)
+xbar + tstar * se
+
+t.test(grad$gradratew, mu = 50)
+
+
+shapiro.test(grad$gradratew)
+
+qqnorm(grad$gradratew)
+qqline(grad$gradratew)
+
+dim(grad)
+```
+
+
+
+## Formative Report C
+
+
+::: {.callout-important}
+Instructions and data were released in [week 1 of semester 2](2_01_confint.html).
+:::
+
+
+### This week's task
+
+**Task C2**  
+
+> At the 5% significance level and using the p-value method, test whether the 2012 mean graduation rate for female students at colleges and universities in the United States is significantly different from a rate of 50 percent.  
+
+**Sub-steps**  
+
+Below there are sub-steps you need to consider to complete this week's task.
+
+:::{.column-margin}
+:::{.callout-tip}
+#### Tip
+
+To see the hints, hover your cursor on the superscript numbers.
+:::
+:::
+
+- Reopen last week's Rmd file, as you will continue last week's work and build on it.[^share-file]
+
+[^share-file]: Hint: Ask last week's driver for the Rmd file, they should share it with the group via email or the group discussion space. To download the file from the server, go to the RStudio Files pane, tick the box next to the Rmd file, and select More > Export.
+
+- Specify the null and alternative hypotheses.[^hypotheses]
+
+[^hypotheses]: Hint: Identify the hypothesised value of the mean, $\mu_0$, and replace that value in the following equations:
+
+    $$H_{0} : \mu = \mu_{0}$$
+    $$H_{1} : \mu \neq \mu_{0}$$
+    
+    Code used to write the above:
+    
+    ```
+    $$ H_{0} : \mu = \mu_{0} $$
+    $$ H_{1} : \mu \neq \mu_{0} $$
+    ```
+    
+    We write mathematical equations in the text part of an Rmd file, i.e. not inside a code chunk. Wrap a mathematical equation with dollar signs to tell R when an equation starts and ends. Text written within curly braces after an underscore is rendered as a subscript, so `_{0}` creates a subscript 0.
+
+- Compute the observed value of the t-statistic.[^t-stat]
+
+[^t-stat]: Hint: Use the following formula for the t-statistic:
+
+    $$t = \frac{\bar{x} - \mu_0}{SE_{\bar{x}}} \qquad \text{where} \qquad SE_{\bar{x}} = \frac{s}{\sqrt{n}}$$
+    
+    In the above:
+    
+    - $\bar{x}$ is the sample mean
+    - $\mu_0$ is the hypothesised value for the population mean
+    - $s$ is the sample standard deviation
+    - $n$ is the sample size
+
+<!-- - What distribution does the t-statistic follow?^[Hint: the t-statistic follows a $t(n-1)$ distribution where $n-1$ are the degrees of freedom. What are the degrees of freedom in this case?] -->
+
+- The t-statistic follows a t-distribution with how many degrees of freedom? You will need this number for the next task.^[Hint: the t-statistic follows a $t(n-1)$ distribution where $n-1$ are the degrees of freedom. In the next task, you will need to provide the degrees of freedom to the `pt()` function.]
+
+- Compute the p-value for the test.^[Hint: the `pt()` function will be useful]
+
+- Using a 5% significance level, i.e. $\alpha = .05$, make a decision on whether or not to reject the null hypothesis.^[Hint: compare the p-value with the significance level.  
+If p-value $\leq \alpha$, reject. Otherwise, do not reject.]
+
+- Provide a write up of your results in the context of the research question.
+
+- Update the report introduction to also include information about the second question being investigated, i.e. whether the mean graduation rate for female students at colleges and universities in the United States is significantly different from a rate of 50 percent.
+
+
+## Worked Example
+
+The Procrastination Assessment Scale for Students (PASS) was designed to assess how individuals approach decision situations, specifically the tendency of individuals to postpone decisions ([Solomon & Rothblum, 1984](https://psycnet.apa.org/doiLanding?doi=10.1037%2F0022-0167.31.4.503)).
+
+The PASS assesses the prevalence of procrastination in six areas: writing a paper; studying for an exam; keeping up with reading; administrative tasks; attending meetings; and performing general tasks. For a measure of total endorsement of procrastination, responses to 18 questions (each measured on a 1-5 scale) are summed together, providing a single score for each participant (range 0 to 90). The mean score from [Solomon & Rothblum, 1984](https://psycnet.apa.org/doiLanding?doi=10.1037%2F0022-0167.31.4.503) was 33.
+
+> __Research question:__
+> 
+> Does the mean procrastination score of Edinburgh University students differ from the Solomon & Rothblum average of 33?
+
+To answer this question, we will use data collected for a random sample of students from the University of Edinburgh: <https://uoepsy.github.io/data/pass_scores.csv>
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(kableExtra)
+
+tribble(
+    ~'Variable Name', ~'Description',
+    'sid', 'Subject identifier',
+    'school', 'School each subject belonged to',
+    'PASS', 'Total endorsement of procrastination score'
+) |>
+    kbl() |>
+    kable_styling(full_width = FALSE)
+```
+
+Necessary packages:
+
+::: {.column-margin}
+- tidyverse for using `read_csv()`, using `summarise()` and `ggplot()`.
+- patchwork for arranging plots side by side or underneath
+- kableExtra for creating user-friendly tables
+:::
+
+
+```{r}
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+```
+
+Read the data into R:
+
+```{r}
+pass_scores <- read_csv("https://uoepsy.github.io/data/pass_scores.csv")
+dim(pass_scores)
+```
+
+To inspect the data:
+
+::: {.panel-tabset}
+
+## head()
+```{r}
+head(pass_scores)
+```
+
+## glimpse()
+```{r}
+glimpse(pass_scores)
+```
+
+## summary()
+```{r}
+summary(pass_scores)
+```
+
+:::
+
+Visualise the distribution of `PASS` scores:
+
+::: {.column-margin}
+__Note__
+
+The boxplot highlights an outlier (40). However, this value is well within the plausible range of the scale (0 -- 90), hence it is of no concern and the point can be kept for the analysis.
+:::
+
+```{r}
+plt_hist <- ggplot(pass_scores, aes(x = PASS)) + 
+    geom_histogram(color = 'white')
+
+plt_box <- ggplot(pass_scores, aes(x = PASS)) + 
+    geom_boxplot()
+
+plt_hist / plt_box
+```
+
+Descriptive statistics:
+
+```{r}
+stats <- pass_scores |>
+    summarise(n = n(),
+              Min = min(PASS),
+              Max = max(PASS),
+              M = mean(PASS),
+              SD = sd(PASS))
+```
+
+```{r, eval=FALSE}
+stats |>
+    kbl(booktabs = TRUE, digits = 2, 
+        caption = "Descriptive statistics for PASS scores")
+```
+
+```{r, echo=FALSE}
+#| label: pass-stats
+stats |>
+    kbl(digits = 2, caption = "Descriptive statistics for PASS scores") |>
+    kable_styling(full_width = FALSE)
+```
+
+**Step 1: Identify the null and alternative hypotheses.**  
+
+First we need to write the null and alternative hypothesis, which take the form $H_0 : \mu = \mu_0$ vs $H_1: \mu \neq \mu_0$. From the research question, we identify the hypothesised value $\mu_0$ to be 33, hence:
+
+::: {.column-margin}
+These are written as:
+
+```
+$$H_{0}: \mu = 33$$
+$$H_{1}: \mu \neq 33$$
+```
+
+In H_{0} and H_{1} the 0 and 1 within curly braces are written as subscripts. The curly braces delimit what goes in the subscript. The symbol `\mu` denotes the greek letter "mu" that stands for the population mean (a parameter). The symbol `\neq` means not equal.
+:::
+
+
+$$H_0: \mu = 33$$
+$$H_1: \mu \neq 33$$
+
+**Step 2: Compute the t-statistic**  
+
+Next, we compute the t-statistics, which compares the difference between the sample and hypothesised mean ($\bar{x} - \mu_0$) to the variation due to random sampling ($SE_{\bar{x}}$).
+
+To test the hypothesis, we need to compute the t-statistic, 
+
+$$
+t = \frac{\bar{x} - \mu_0}{SE_{\bar{x}}} \qquad \text{where} \qquad SE_{\bar{x}} = \frac{s}{\sqrt{n}}
+$$
+
+```{r}
+# Sample mean
+xbar <- stats$M
+
+# Standard error
+s <- stats$SD
+n <- stats$n
+se <- s / sqrt(n)
+
+# Observed t-statistic
+tobs <- (xbar - 33) / se
+tobs
+```
+
+**Step 3: Identify the null distribution**, i.e. the distribution of the t-statistic assuming the null to be true.  
+
+As the sample size is $n =$ `r n`, if the null hypothesis is true the t-statistic will follow a t(`r n - 1`) distribution.
+
+**Step 4: Compute the p-value**  
+
+As the alternative hypothesis is two-sided (or two-tailed), we can compute the p-value as twice the area to the right of `abs(tobs)`.
+
+```{r}
+2 * pt(abs(tobs), df = n - 1, lower.tail = FALSE)
+```
+
+**Step 5: Make a decision**  
+
+Using the p-value method, we compare the p-value with the significance level ($\alpha = .05$ in this case). As .005800318 < .05, we reject $H_0$. Please note this is just an explanation and not how you would write up the result!
+
+
+We can update the example introduction to add the new question investigated:
+
+:::{.callout-tip}
+#### Example introduction
+A random sample of 20 students from the University of Edinburgh completed a questionnaire measuring their total endorsement of procrastination. The data, available from <https://uoepsy.github.io/data/pass_scores.csv>, were used to estimate the average procrastination score of all Edinburgh University students, __and whether the mean procrastination score differed from the Solomon & Rothblum reported average of 33 at the 5% significance level.__ The recorded variables included a subject identifier (`sid`), the school of each subject (`school`), and the total score on the Procrastination Assessment Scale for Students (`PASS`). The data do not include any impossible values for the PASS scores, as they were all within the possible range of 0 -- 90. To answer the question of interest, in the following we will only focus on the total PASS score variable.
+:::
+
+And this is a potential way to report the t-test results:
+
+:::{.callout-tip}
+#### Example hypothesis test write-up
+At the 5% significance level, the sample data provide very strong evidence against the null hypothesis and in favour of the alternative one that the mean procrastination score of Edinburgh University students is different from the Solomon & Rothblum reported average of 33: $t(19) = -3.11, p = .006$, two-sided.
+:::
+
+
+## Student Glossary
+
+To conclude the lab, add the new functions to the glossary of `R` functions. 
+
+| Function   | (package) and use |
+|:-----------|:--------------|
+| `geom_histogram` | (tidyverse) creates a histogram |
+| `geom_boxplot` | (tidyverse) creates a boxplot |
+| `summarise` | (tidyverse) used to compute some summaries of data |
+| `n()` |  (tidyverse) when used inside of summarise(), it counts the number of rows |
+| `mean` | compute the mean, i.e. the average |
+| `sd` | compute the standard deviation, i.e. the square root of the variance |
+| `abs` | absolute value, i.e. drop the sign |
+| `pt` | compute the probability in a t-distribution to the left (by default) |

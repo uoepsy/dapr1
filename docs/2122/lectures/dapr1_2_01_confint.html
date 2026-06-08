@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Confidence Intervals</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Dr Umberto Noè" />
+    <script src="jk_libs/libs/header-attrs/header-attrs.js"></script>
+    <link href="jk_libs/libs/panelset/panelset.css" rel="stylesheet" />
+    <script src="jk_libs/libs/panelset/panelset.js"></script>
+    <link rel="stylesheet" href="un-xaringan-themer.css" type="text/css" />
+    <link rel="stylesheet" href="jk_libs/tweaks.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# <b>Confidence Intervals</b>
+## <small>Data Analysis for Psychology in R 1<br>Semester 2, Week 1</small>
+### <b>Dr Umberto Noè</b>
+### Department of Psychology<br/>The University of Edinburgh
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+# Learning objectives
+
+1. Understand the importance of a confidence interval.
+
+1. Understand the link between standard errors and confidence intervals.
+
+1. Understand how to construct a confidence interval for an unknown parameter of interest.
+
+
+
+---
+class: inverse, center, middle
+
+# Part A
+## Recap
+
+
+---
+# Normal distribution
+
+.pull-left[
+`\(X \sim N(\mu, \sigma)\)`
+
+Probability to the LEFT of a value `x`:
+
+```
+p &lt;- pnorm(x, mean = mu, sd = sigma)
+```
+
+Value `x` having a probability of `p` to its LEFT:
+
+```
+x &lt;- qnorm(p, mean = mu, sd = sigma)
+```
+
+Example with `\(N(0,1)\)`:
+
+
+```r
+qnorm(0.975)
+```
+
+```
+## [1] 1.96
+```
+
+```r
+pnorm(1.96)
+```
+
+```
+## [1] 0.975
+```
+]
+
+
+.pull-right[
+&lt;img src="dapr1_2_01_confint_files/figure-html/unnamed-chunk-2-1.png" width="100%" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+- A variable `\(X\)` follows a normal distribution with mean `\(\mu\)` and standard deviation `\(\sigma\)` if its distribution is bell-shaped and symmetric. We write is as `\(X \sim N(\mu, \sigma)\)`
+
+
+---
+# Standardisation / z-scoring
+
+- Let `\(X \sim N(\mu, \sigma)\)`
+
+--
+
+- Define:
+$$
+Z = \frac{X - \mu}{\sigma}
+$$
+
+--
+
+- `\(Z \sim N(0,1)\)` follows a standard normal distribution
+
+--
+
+- To transform `\(Z\)` into `\(X\)` we use this transformation:
+$$
+X = \mu + Z \cdot \sigma
+$$
+
+---
+# Normal 68–95–99.7 rule
+
+- Recall that for a random variable `\(X \sim N(\mu, \sigma)\)`, roughly 95% of the values fall between `\(\mu - 2 \sigma\)` and `\(\mu + 2 \sigma\)`:
+
+&lt;img src="images/2_01_confint/normal_rule.png" width="80%" style="display: block; margin: auto;" /&gt;
+
+---
+# Normal 68–95–99.7 rule
+
+- The interval below contains __roughly__ 95% of the values in the distribution:
+$$
+\left[ 
+\mu - 2 \cdot \sigma , \
+\mu + 2 \cdot \sigma
+\right]
+$$
+
+--
+
+- To be more accurate, we need to find the x-values (quantiles) that have 0.025 probability to the left and 0.025 probability to the right, leaving 0.95 probability in the middle.
+
+
+```r
+qnorm(c(0.025, 0.975))  # using a N(0,1) distribution
+```
+
+```
+## [1] -1.96  1.96
+```
+
+--
+
+- The values `\(-1.96\)` and `\(1.96\)` are the quantiles of a standard Normal distribution, cutting a probability of 0.025 in the tails each.
+
+$$
+`\begin{aligned}
+z = -1.96 &amp; \quad \rightarrow \quad x = \mu - 1.96 \cdot \sigma \\
+z = 1.96 &amp;\quad \rightarrow \quad x = \mu + 1.96 \cdot \sigma
+\end{aligned}`
+$$
+
+--
+
+- The correct interval comprising exactly 95% of the values is:
+
+$$
+\left[ 
+\mu - 1.96 \cdot \sigma , \
+\mu + 1.96 \cdot \sigma
+\right]
+$$
+
+
+???
+
+- If we want to have 0.95 prob in the middle, we must have 0.05 prob equally divided in the tails, that is 0.025 on each tail.
+
+- qnorm wants the prob to the left, so the for the first quantile we put 0.025 and the second 1-0.025 = 0.975
+
+---
+# Using statistics to estimate parameters
+
+- Without loss of generality, in this lecture we will focus on the mean as the numerical summary of data.
+
+    + Population mean `\(\rightarrow\)` 
+    unknown `\(\rightarrow\)` 
+    example of a parameter `\(\rightarrow\)` `\(\mu\)`
+    
+    + Sample mean `\(\rightarrow\)` 
+    we can compute it `\(\rightarrow\)` 
+    example of a statistic `\(\rightarrow\)` `\(\bar x\)`
+
+--
+
+- We are typically interested in __estimating an unknown population mean__ (a __parameter__, `\(\mu\)`) using the __mean computed on a random sample__ (a __statistic__, `\(\bar x\)`).
+
+--
+
+- We will also call the sample mean (= statistic) the __estimate__.
+
+--
+
+- FACT: statistics vary from sample to sample and have a __sampling distribution__.
+
+--
+
+- The standard deviation of the sampling distribution is called the __standard error__ (SE)
+
+  + SE tells us the size of the typical "estimation error" = `\(\bar x - \mu\)`.
+  
+  + `\(SE = \dfrac{\sigma}{\sqrt{n}}\)`
+
+
+
+---
+
+# Key question
+
+&gt; How accurate is our estimate?
+
+- We are interested in how accurate our statistic `\(\bar{x}\)` is as an estimate of the unknown parameter `\(\mu\)`.
+
+--
+
+- Accuracy is a combination of two things:
+
+  + No bias
+  + Precision
+
+--
+
+- We avoid bias if we use random sampling. We have bias if our samples systematically do not include a part of the population.
+  
+  + If you choose convenience samples, you will systematically over-estimate or under-estimate the true value. 
+
+--
+
+- Precision relates to the variability of the sampling distribution, and the Standard Error (SE) is used to quantify precision.
+    
+    - SE = sd(of sampling distribution)
+    
+    - The smaller the SE, the closer our sample mean will tend to be to the population mean
+
+
+???
+
+- We want to report our reader not only an estimate of the unknown parameter, but also a measure of precision of our estimate. In other words, how reliable is it?
+
+- We aim for a statistic to be precise and not biased.
+
+- The sampling distribution of the statistic is used to assess precision.
+
+
+
+BIAS
+
+- Bias is avoided if you select samples at random from the population. You have bias if your samples systematically do not include a part of the population.
+
+- Bias is related to the centre of the sampling distribution, and you have bias when the statistics on average tend to be systematically “off” from the true value, meaning that we don’t have good guesses of the true parameter.
+
+- Example: True IQ is 100, but the average of the statistics is 120. We are very off, we may not have captured specific parts of the population in our samples.
+
+- Example: you want to estimate the average study hours per day of students in your university. If you select 50 students only from the library, your estimate will be higher than the true value. This is because your sample is not a good representation of the population, some students are not well-represented in the sample.
+
+
+PRECISION
+
+- The lower the SE, the lower is the typical “estimation error”, and hence the higher is the precision. If the SE is high, the precision is low, and this means that we don’t have reliable estimates as they vary too much from one sample to another.
+
+- Example 1: One sample gives an estimate of 70, another sample of 115. They are very different, which one do we trust? Would you trust 70 to be a good guess? And 115?
+
+- Example 2: One sample gives an estimate of 95, another sample of 101. Do you trust the values more now?
+
+
+---
+# Bias vs Precision
+
+&lt;img src="images/2_01_confint/bias_prec.png" width="80%" style="display: block; margin: auto;" /&gt;
+
+---
+# Sampling distribution
+
+&lt;img src="images/2_01_confint/2_01_sampl_dist.png" width="80%" style="display: block; margin: auto;" /&gt;
+
+
+---
+# Sampling distribution
+
+&lt;img src="images/2_01_confint/2_01_sampl_dist_t.png" width="80%" style="display: block; margin: auto;" /&gt;
+
+---
+# Sampling distribution
+
+&lt;img src="images/2_01_confint/2_01_sampl_dist_t_2.png" width="80%" style="display: block; margin: auto;" /&gt;
+
+
+---
+class: inverse, center, middle
+
+
+---
+class: inverse, center, middle
+
+# Part B
+## One sample only
+
+
+---
+# One sample only
+
+&lt;img src="images/2_01_confint/2_01_one_sample.png" width="80%" style="display: block; margin: auto;" /&gt;
+
+
+---
+# One sample only: Precision of sample mean
+
+- If we do NOT have the population data:
+
+    - we cannot compute `\(\mu\)`, the population mean
+    
+    - we also cannot compute `\(\sigma\)`, the population standard deviation
+
+--
+
+- Recall that `\(\sigma\)` is required to assess the precision of the sample mean by computing the SE:
+
+$$
+SE = \frac{\sigma}{\sqrt n}
+$$
+
+--
+
+- How can we compute the SE of the mean if we __do not have data on the full population__, and we __can only afford one sample__ of size `\(n\)`?
+
+
+---
+# One sample only: Precision of sample mean
+
+- We must also estimate `\(\sigma\)` with the corresponding sample statistic.
+
+- Substitute `\(\sigma\)` with the standard deviation computed in the sample, `\(s\)`.
+
+- Standard error of the mean becomes:
+
+$$
+SE = \frac{s}{\sqrt n}
+$$
+
+- Report estimate (sample mean), along with a measure of its precision (the above SE).
+
+
+---
+class: inverse, center, middle
+
+
+
+---
+class: inverse, center, middle
+
+# Part C
+## Confidence Intervals
+
+
+---
+# Key idea
+
+- Parameter estimate = single number. Almost surely the true value will be different from our estimate.
+
+--
+
+- Range of plausible values for the parameter, called __confidence interval__. More likely that the true value will be captured by a range.
+
+--
+
+&lt;img src="https://d33wubrfki0l68.cloudfront.net/45f6d2e16255dbcb42de86336e1e49ef732aa5da/8bcd0/images/shutterstock/point_estimate_vs_conf_int.png" width="80%" style="display: block; margin: auto;" /&gt;
+
+
+---
+# Confidence interval
+
+- Confidence interval (CI) = range of plausible values for the parameter.
+
+--
+
+- To create a confidence interval we must decide on a confidence level.
+
+--
+
+- Confidence level = a number between 0 and 1 specified by us. How confident do you want to be that the confidence interval will contain the true parameter value?
+
+--
+
+- The larger the confidence level, the wider the confidence interval.
+
+  + How confident are you that I am between 39 and 42 years old?
+  
+  + How confident are you that I am between 35 and 50 years old?
+  
+  + How confident are you that I am between 18 and 70 years old?
+
+--
+
+- Typical confidence levels are 90%, 95%, and 99%.
+
+
+---
+# CI for the population mean
+
+- Recall that if `\(X \sim N(\mu, \sigma)\)`, 95% of the values are between
+
+$$
+\left[ 
+\mu - 1.96 \cdot \sigma , \ 
+\mu + 1.96 \cdot \sigma
+\right]
+$$
+
+--
+
+- The sample mean follows a normal distribution:  
+
+`$$\bar{X} \sim N(\mu_{\overline{X}},\sigma_{\overline{X}})$$`
+
+where
+  
+  + `\(\mu_{\overline X} = \mu\)`  
+  
+  + `\(\sigma_{\overline X} = SE = \dfrac{\sigma}{\sqrt n}\)`
+
+--
+
+- Substitute in the interval above:
+
+`$$\left[ 
+\mu - 1.96 \cdot \frac{\sigma}{\sqrt n} , \ 
+\mu + 1.96 \cdot \frac{\sigma}{\sqrt n}
+\right]$$`
+
+
+
+---
+# Estimates of `\(\mu\)` and `\(\sigma\)`
+
+- Recall that we do not have the full population data. __We can only afford one sample!__
+
+--
+
+- We don't have the population mean `\(\mu\)` and we estimated it with the sample mean `\(\bar{x}\)`
+ 
+--
+
+- However, we also don't have `\(\sigma\)` so we need to estimate it with `\(s\)`, the sample standard deviation:
+
+$$
+\left[ 
+\bar{x} - 1.96 \cdot \frac{s}{\sqrt n} , \ 
+\bar{x} + 1.96 \cdot \frac{s}{\sqrt n}
+\right]
+$$
+
+--
+
+- However, this interval is now __wrong!__
+
+--
+
+- Because we didn't know `\(\sigma\)` and we had to estimate it with `\(s\)`, this bring and __extra element of uncertainty__
+
+--
+
+- As we are unsure about the actual value of the population standard deviation, the reference distribution is no longer Normal, but a distribution that is more "uncertain" and places higher probability in the tails of the distribution.
+
+--
+
+- When the population standard deviation is unknown, the sample mean follows a t-distribution.
+
+--
+
+- The quantiles -1.96 and 1.96 refer to the normal distribution, so these are wrong and we need to find the correct ones!
+
+
+---
+# t-distribution
+
+&lt;img src="dapr1_2_01_confint_files/figure-html/unnamed-chunk-11-1.png" width="60%" style="display: block; margin: auto;" /&gt;
+
+
+---
+# t-distribution
+
+- A distribution similar to the standard Normal distribution, also with a zero mean
+
+--
+
+- Depends on a number called __degrees of freedom__ (DF) = sample size - 1. That is, `\(df = n - 1\)`.
+
+--
+
+- We write the distribution as:
+
+$$
+t(n - 1)
+$$
+--
+
+- Suppose the sample size is 20. In R:
+
+
+```r
+qt(0.025, df = 19)    # quantile = t-value with 0.025 prob to the LEFT
+```
+
+```
+## [1] -2.093
+```
+
+```r
+pt(-2.093, df = 19)   # prob to the LEFT of t = -2.093
+```
+
+```
+## [1] 0.025
+```
+
+
+---
+# Finally: the correct confidence interval
+
+- Now we can finally compute the correct confidence interval. 
+
+--
+
+- We need to replace the quantiles with those from the `\(t(n-1)\)` distribution, denote them by `\(-t^*\)` and `\(+t^*\)`, and these will be different all the time as they depend on the sample size.
+
+--
+
+- Generic form the of the CI for the mean:
+
+`$$\left[ 
+\bar{x} - t^* \cdot \frac{s}{\sqrt n} , \ \bar{x} + t^* \cdot \frac{s}{\sqrt n}
+\right]$$`
+
+--
+
+- Generic form the of the 95% CI for the mean with a sample of size `\(n = 20\)`:
+
+
+```r
+qt(c(0.025, 0.975), df = 20 - 1)
+```
+
+```
+## [1] -2.093  2.093
+```
+
+`$$\left[ 
+\bar{x} -2.093 \cdot \frac{s}{\sqrt n} , \ \bar{x} + 2.093 \cdot \frac{s}{\sqrt n}
+\right]$$`
+
+
+---
+# Other confidence levels
+
+- Generic form the of the 99% CI for the mean with a sample of size `\(n = 20\)`:
+
+
+```r
+qt(c(0.005, 0.995), df = 20 - 1)
+```
+
+```
+## [1] -2.861  2.861
+```
+
+`$$\left[ 
+\bar{x} -2.861 \cdot \frac{s}{\sqrt n} , \ \bar{x} + 2.861 \cdot \frac{s}{\sqrt n}
+\right]$$`
+
+
+---
+# Example: 95% CI for the pop. mean salary
+
+- Parameter of interest: mean yearly salary of a NFL player in the year 2019, denoted `\(\mu\)`.
+
+- Sample of 50 players:
+
+
+```r
+library(tidyverse)
+nfl_sample &lt;- read_csv("https://uoepsy.github.io/data/NFLSample2019.csv")
+dim(nfl_sample)
+```
+
+```
+## [1] 50  5
+```
+
+```r
+head(nfl_sample)
+```
+
+```
+## # A tibble: 6 × 5
+##   Player          Position Team    TotalMoney YearlySalary
+##   &lt;chr&gt;           &lt;chr&gt;    &lt;chr&gt;        &lt;dbl&gt;        &lt;dbl&gt;
+## 1 Najee Goode     43OLB    Jaguars      0.805        0.805
+## 2 Jack Crawford   43DT     Falcons      9.9          2.48 
+## 3 Tra Carson      RB       Lions        1.23         0.615
+## 4 Jordan Richards S        Ravens       0.805        0.805
+## 5 Desmond Trufant CB       Falcons     68.8         13.8  
+## 6 Alex Anzalone   43OLB    Saints       3.47         0.866
+```
+
+---
+# Example: 95% CI for the pop. mean salary
+
+.pull-left[
+
+```r
+xbar &lt;- mean(nfl_sample$YearlySalary)
+xbar
+```
+
+```
+## [1] 3.359
+```
+
+```r
+s &lt;- sd(nfl_sample$YearlySalary)
+s
+```
+
+```
+## [1] 4.312
+```
+
+```r
+n &lt;- nrow(nfl_sample)
+n
+```
+
+```
+## [1] 50
+```
+
+```r
+SE &lt;- s / sqrt(n)
+SE
+```
+
+```
+## [1] 0.6098
+```
+]
+
+.pull-right[
+
+```r
+qt(c(0.025, 0.975), df = n-1)
+```
+
+```
+## [1] -2.01  2.01
+```
+
+```r
+xbar - 2.01 * SE
+```
+
+```
+## [1] 2.133
+```
+
+```r
+xbar + 2.01 * SE
+```
+
+```
+## [1] 4.584
+```
+]
+
+
+---
+# Example: 95% CI for the pop. mean salary
+
+- The 95% confidence interval for the mean salary of __all__ NFL players in the year 2019 is [2.13, 4.58] million dollars.
+
+--
+
+- Write this up as:
+
+&gt; We are 95% confident that the average salary of a NFL player in 2019 is between 2.13 and 4.58 million dollars.
+
+
+---
+# Warning!
+
+- If you had 100 random samples and computed a 95% confidence interval from each sample:
+  
+  + about 95 of those intervals will contain the true parameter value
+  + about 5 of those intervals will __not__ contain the true parameter value
+  
+--
+
+- We speak about __probability__ when we refer to the __collection__ of those 100 confidence intervals.  
+That is, the probability the that __collection__ of confidence intervals will contain the true parameter value is 0.95.
+  
+  + Think of this as
+
+$$
+\frac{\text{number of CIs containing }\mu}{100}
+$$
+
+--
+
+- We speak of __confidence__ when we refer to just __one__ confidence interval that we have computed.  
+Say the 95% CI is [2.5, 5.3] min. We would say: we are 95% confident that the population mean is between 2.5 and 5.3 minutes.
+  
+  + It is __wrong__ to say that there is a 95% probability that the population mean is between 2.5 and 5.3 minutes.
+
+
+---
+# Warning!
+
+&lt;img src="images/2_01_confint/int-ci-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+
+---
+# Warning!
+
+&lt;img src="images/2_01_confint/int-ci-2.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+
+---
+class: inverse, center, middle
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="jk_libs/macros.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

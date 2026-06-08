@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Hypothesis testing: the p-value approach</title>
+
+<script src="site_libs/header-attrs-2.8/header-attrs.js"></script>
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+<script>
+function toggle_visibility(id1, id2) {
+var e = document.getElementById(id1);
+var f = document.getElementById(id2);
+e.style.display = ((e.style.display!='none') ? 'none' : 'block');
+if(f.classList.contains('fa-plus')) {
+    f.classList.add('fa-minus')
+    f.classList.remove('fa-plus')
+} else {
+    f.classList.add('fa-plus')
+    f.classList.remove('fa-minus')
+}
+}
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+<style type="text/css">
+/* for pandoc --citeproc since 2.11 */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+<link rel="stylesheet" href="assets/style-labs.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"><strong>DAPR1</strong></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">
+    <span class="fas fa-home"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="intro_r_rstudio_year1.html">DAPR1 starts here</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Intro to data and R
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="01_data_types.html">1/1: Collecting data</a>
+    </li>
+    <li>
+      <a href="02_categorical.html">1/2: Categorical data</a>
+    </li>
+    <li>
+      <a href="03_numerical.html">1/3: Numerical data</a>
+    </li>
+    <li>
+      <a href="04_relationships.html">1/4: Relationships</a>
+    </li>
+    <li>
+      <a href="05_functions.html">1/5: Types of relations</a>
+    </li>
+    <li class="dropdown-header">1/6: Break week!</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Probability &amp; sampling
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="07_probability_basics.html">1/7: Probability basics</a>
+    </li>
+    <li>
+      <a href="08_probability_rules.html">1/8: Probability rules!</a>
+    </li>
+    <li>
+      <a href="09_discrete_distributions.html">1/9: Discrete random variables</a>
+    </li>
+    <li>
+      <a href="10_continuous_distributions.html">1/10: Continuous random variables</a>
+    </li>
+    <li>
+      <a href="11_sampling_distributions.html">1/11: Sampling distributions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Hypothesis testing
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="12_bootstrap_cis.html">2/1: Bootstrap &amp; CIs</a>
+    </li>
+    <li>
+      <a href="13_hypothesis_testing.html">2/2: Hypothesis testing: p-values</a>
+    </li>
+    <li>
+      <a href="14_critical_values.html">2/3: Hypothesis testing: critical values</a>
+    </li>
+    <li>
+      <a href="15_connecting_ci_ht.html">2/4: Hypothesis testing &amp; CIs</a>
+    </li>
+    <li>
+      <a href="16_ht_errors.html">2/5: Making decisions</a>
+    </li>
+    <li class="dropdown-header">2/6: Break week</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Basic tests
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="17_one_sample_mean.html">2/7: Test for one mean</a>
+    </li>
+    <li>
+      <a href="18_two_sample_means.html">2/8: Test for two means</a>
+    </li>
+    <li>
+      <a href="19_paired_t_test.html">2/9: Test for paired samples</a>
+    </li>
+    <li>
+      <a href="20_chi_square.html">2/10: Chi-square</a>
+    </li>
+    <li>
+      <a href="21_covcor.html">2/11: Covariance and correlation</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Hypothesis testing: the p-value approach</h1>
+
+</div>
+
+
+<div class="lo">
+<ol style="list-style-type: decimal">
+<li>Understand null and alternative hypotheses, and how to specify them for a given research question.</li>
+<li>Understand how to obtain a null distribution via simulation.</li>
+<li>Understand statistical significance and how to calculate p-values from null distributions.</li>
+</ol>
+</div>
+<div id="recap" class="section level1">
+<h1>Recap</h1>
+<p>We saw that a population is described by parameters, and samples are described by statistics. We typically cannot measure the entire population, so a population parameter needs to be estimated by a sample statistic. We quantified the uncertainty in our estimate by the standard error (SE) of the sample statistic. This is defined as the standard deviation of the sampling distribution. The latter shows the values of the sample statistic when computed on many samples of the same size from the same population.</p>
+<p>In practice, however, we are not able to quantify the SE by taking repeated samples from the population, as due to money or time constraints we only have one sample of size <span class="math inline">\(n\)</span>. We learned to approximate the sampling distribution by bootstrapping.
+This approach repeatedly samples with replacement from the observed sample, using the same sample size.
+The standard deviation of the bootstrap distribution is an estimate of the SE of the statistic.
+Using the statistic from the observed sample, and the estimated SE from the bootstrap distribution, we learned how to give a range of plausible values for the population parameter.</p>
+<p>This week we will learn how to use the sample data to answer a wide range of questions about a population.</p>
+</div>
+<div id="research-question" class="section level1">
+<h1>Research question</h1>
+<blockquote>
+<p>Can a simple smile have an effect on punishment assigned following an infraction?</p>
+</blockquote>
+<p>Researchers <span class="citation"><a href="#ref-LaFrance1995" role="doc-biblioref">LaFrance and Hecht</a> (<a href="#ref-LaFrance1995" role="doc-biblioref">1995</a>)</span> conducted a study to examine the effect of a smile on the leniency of disciplinary action for wrongdoers.
+Participants in the experiment took on the role of members of a college disciplinary panel judging students accused of cheating.
+They were given, along with a description of the offence, a picture of the “suspect” who was either smiling or had a neutral facial expression.
+A leniency score (on a 10-point scale) was calculated based on the disciplinary decisions made by the participants.
+The full data can be found in the <a href="https://uoepsy.github.io/data/Smiles.csv">Smiles.csv</a> dataset, also available at the following link: <a href="https://uoepsy.github.io/data/Smiles.csv" class="uri">https://uoepsy.github.io/data/Smiles.csv</a></p>
+<p>The experimenters have prior knowledge that smiling has a positive influence on people, and they are testing to see if the average lenience score is higher for smiling students than it is for students with a neutral facial expression (or, in other words, that smiling students are given more leniency and milder punishments.)</p>
+<div class="question-begin">
+Question A1
+</div>
+<div class="question-body">
+<p>Read the Smiles.csv data into R, and name it <code>smiles</code>.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-134" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-134&#39;, &#39;sol-start-134&#39;)"></span>
+</div>
+<div id="sol-body-134" class="solution-body" style="display: none;">
+<pre class="r"><code>library(tidyverse)
+
+smiles &lt;- read_csv(&#39;https://uoepsy.github.io/data/Smiles.csv&#39;)
+head(smiles)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   Leniency Group
+##      &lt;dbl&gt; &lt;chr&gt;
+## 1      7   smile
+## 2      3   smile
+## 3      6   smile
+## 4      4.5 smile
+## 5      3.5 smile
+## 6      4   smile</code></pre>
+<p>Group is a categorical variable encoding which type of picture the panel was shown, either neutral or with a smile. It should be a factor:</p>
+<pre class="r"><code>smiles$Group &lt;- as.factor(smiles$Group)
+head(smiles)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   Leniency Group
+##      &lt;dbl&gt; &lt;fct&gt;
+## 1      7   smile
+## 2      3   smile
+## 3      6   smile
+## 4      4.5 smile
+## 5      3.5 smile
+## 6      4   smile</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question A2
+</div>
+<div class="question-body">
+<p>How many participants are in each group? What’s the mean leniency score and its standard deviation in each group?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-135" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-135&#39;, &#39;sol-start-135&#39;)"></span>
+</div>
+<div id="sol-body-135" class="solution-body" style="display: none;">
+<p>The following code creates a table of descriptive sample statistics:</p>
+<pre class="r"><code>stats &lt;- smiles %&gt;%
+  group_by(Group) %&gt;%
+  summarise(Count = n(), 
+            M = mean(Leniency), 
+            SD = sd(Leniency))
+stats</code></pre>
+<pre><code>## # A tibble: 2 x 4
+##   Group   Count     M    SD
+##   &lt;fct&gt;   &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 neutral    34  4.12  1.52
+## 2 smile      34  4.91  1.68</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question A3
+</div>
+<div class="question-body">
+<p>Produce a boxplot displaying the distribution of leniency scores in each group.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-136" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-136&#39;, &#39;sol-start-136&#39;)"></span>
+</div>
+<div id="sol-body-136" class="solution-body" style="display: none;">
+<pre class="r"><code>ggplot(smiles, aes(x = Group, y = Leniency)) +
+  geom_boxplot()</code></pre>
+<p><img src="13_hypothesis_testing_files/figure-html/unnamed-chunk-5-1.png" width="60%" style="display: block; margin: auto;" /></p>
+</div>
+<p class="solution-end">
+</p>
+<p>Alternatively, the plot below shows a dotplot with the means marked as red plus symbols:</p>
+<pre class="r"><code>ggplot(smiles, aes(x = Group, y = Leniency)) +
+  geom_dotplot(binaxis = &#39;y&#39;) +
+  geom_point(x = 1 - 0.05, y = stats$M[1], 
+             color = &#39;red&#39;, size = 3, shape = 3) +
+  geom_point(x = 2 - 0.05, y = stats$M[2], 
+             color = &#39;red&#39;, size = 3, shape = 3)</code></pre>
+<p><img src="13_hypothesis_testing_files/figure-html/unnamed-chunk-6-1.png" width="60%" style="display: block; margin: auto;" /></p>
+<p>From the above plots it looks like the mean leniency score in the smiling group is higher than in the neutral group.</p>
+<p>The observed difference in sample means is:</p>
+<pre class="r"><code>stats %&gt;%
+  summarise(D_obs = diff(M)) %&gt;% 
+  pull(D_obs)</code></pre>
+<pre><code>## [1] 0.7941176</code></pre>
+<div class="optional-begin">
+What is diff?<span id="opt-start-137" class="fa fa-plus optional-icon clickable" onclick="toggle_visibility(&#39;opt-body-137&#39;, &#39;opt-start-137&#39;)"></span>
+</div>
+<div id="opt-body-137" class="optional-body" style="display: none;">
+<p>The <code>diff()</code> function computes the differences between the elements of a vector. For example, <code>diff(c(3,5))</code> returns 2, which is 5 - 3.</p>
+<p>If your vector had 3 elements, such as <code>x &lt;- c(2, 5, 7)</code>, the function <code>diff(x)</code> will return the pairwise differences 5-2 and 7-5, i.e. <code>c(3, 2)</code>.</p>
+</div>
+<p class="optional-end">
+</p>
+<p>For ease of use throughout the rest of the document, I’ll assign the observed difference in sample means to a variable called <code>D_obs</code>:</p>
+<pre class="r"><code>D_obs &lt;- diff(stats$M)
+D_obs</code></pre>
+<pre><code>## [1] 0.7941176</code></pre>
+<p><br></p>
+<p>Define</p>
+<ul>
+<li><span class="math inline">\(\bar x_s\)</span> = sample mean leniency score for smiling students</li>
+<li><span class="math inline">\(\bar x_n\)</span> = sample mean leniency score for students with a neutral expression</li>
+</ul>
+<p>The observed difference in means is <span class="math inline">\(D_{obs} = \bar x_s - \bar x_n =\)</span> 0.79.</p>
+</div>
+<div id="null-and-alternative-hypotheses" class="section level1">
+<h1>Null and alternative hypotheses</h1>
+<p>The null and alternative hypotheses, defined below, are precise statements about the population parameters and need to be written using appropriate symbols for the parameters. They are obtained from the research question of interest.</p>
+<div class="yellow">
+<ul>
+<li><p>The <strong>null hypothesis</strong> (denoted <span class="math inline">\(H_0\)</span>) is a statement that there is nothing happening. The specific null hypothesis varies from problem to problem, but generally it can be thought of as the status quo, or no relationship, or no difference. In most situations, the researcher hopes to disprove or reject the null hypothesis.</p></li>
+<li><p>The <strong>alternative hypothesis</strong> (denoted <span class="math inline">\(H_1\)</span>) is a statement that something is happening. In most situations, this hypothesis is what the researcher hopes to prove. It may be a statement that the assumed status quo is false, or that there is a relationship, or that there is a difference.</p></li>
+</ul>
+</div>
+<p>To visually help you identify the null vs the alternative, typically:</p>
+<ul>
+<li><span class="math inline">\(H_0\)</span> includes an <span class="math inline">\(=\)</span> sign</li>
+<li><span class="math inline">\(H_1\)</span> includes <span class="math inline">\(&gt;\)</span>, <span class="math inline">\(&lt;\)</span> or <span class="math inline">\(\neq\)</span></li>
+</ul>
+<p>If <span class="math inline">\(H_1\)</span> contains either <span class="math inline">\(&gt;\)</span> or <span class="math inline">\(&lt;\)</span>, we say that the alternative hypothesis is <strong>one-sided</strong>.
+If <span class="math inline">\(H_1\)</span> contains <span class="math inline">\(\neq\)</span>, we say that the alternative hypothesis is <strong>two-sided</strong>.</p>
+<p>In a hypothesis test, we measure evidence against the null hypothesis and in favour of the alternative hypothesis.</p>
+<p>Before stating the null and alternative hypothesis it is important to clearly introduce the notation for the relevant population parameters and define them.</p>
+<p><br></p>
+<p>The researchers’ hypothesis that smiling students are given more leniency and milder punishments involves two parameters:</p>
+<ul>
+<li><span class="math inline">\(\mu_s\)</span> = the population mean leniency score for the smiling students</li>
+<li><span class="math inline">\(\mu_n\)</span> = the population mean leniency score for students with a neutral expression</li>
+</ul>
+<p>The null hypothesis is that facial expression has no effect on the punishment given, i.e. that the population mean leniency score for smiling students is the same as that of neutral students. In other words, there is no difference in population mean leniency score between smiling and neutral students.</p>
+<p>The alternative hypothesis, instead, is the claim of interest to the researchers, i.e. that smiling results in a higher mean leniency score compared to non-smiling students.</p>
+<p>We are now ready to formally write the hypotheses being tested:</p>
+<p><span class="math display">\[
+H_0: \mu_s = \mu_n \\
+H_1: \mu_s &gt; \mu_n
+\]</span></p>
+<p>These can be equivalently written as follows:</p>
+<p><span class="math display">\[
+H_0: \mu_s - \mu_n = 0 \\
+H_1: \mu_s - \mu_n &gt; 0
+\]</span></p>
+<p><br></p>
+<p>Note that the hypotheses are written in terms of the population parameters <span class="math inline">\(\mu_s\)</span> and <span class="math inline">\(\mu_n\)</span>, not in terms of the sample statistics <span class="math inline">\(\bar x_s\)</span> and <span class="math inline">\(\bar x_n\)</span>. In fact, we already know that in the collected sample the mean leniency score is larger for smiling students. The key question is whether the sample provides convincing evidence that mean leniency score for <em>all</em> smiling students is larger than the mean leniency score for <em>all</em> neutral students.</p>
+<ul>
+<li><p>The mean leniency score for smiling students in the sample is <span class="math inline">\(\bar x_s =\)</span> 4.91</p></li>
+<li><p>The mean leniency score for neutral students in the sample is <span class="math inline">\(\bar x_n =\)</span> 4.12</p></li>
+<li><p>The sample difference in mean leniency scores is <span class="math inline">\(D_{obs} = \bar x_s - \bar x_n =\)</span> 0.7917647</p></li>
+<li><p>The population difference in mean leniency scores is <span class="math inline">\(\mu_s - \mu_n\)</span> and is <strong>unknown</strong>. This is the object of our inferences.</p></li>
+</ul>
+<p>The goal of hypothesis testing is to assess whether the sample data are consistent with the researchers’ hypothesis.</p>
+<p>Our null hypothesis specifies an hypothesised value of 0 for the unknown parameter <span class="math inline">\(\mu_s - \mu_n\)</span>. We will answer the key question: “Is an observed difference in sample means of 0.79 units far enough from 0 to provide sufficient evidence that the difference in population means is not 0?”</p>
+</div>
+<div id="statistical-tests" class="section level1">
+<h1>Statistical tests</h1>
+<p>As we saw in the <a href="https://uoepsy.github.io/dapr1/labs/11_sampling_distributions.html">last week</a> of semester 1, sample statistics vary from sample to sample.
+Even if there was really no difference in the mean leniency scores for all smiling students and all neutral students, the sample means would not be exactly equal in every random sample.</p>
+<p>The key question is then: <strong>how do we decide in a principled way if the difference in sample means is sufficiently large to suggest that the population means are in fact different too?</strong></p>
+<p>We saw that the sample difference in mean leniency score is <span class="math inline">\(\bar x_s - \bar x_n =\)</span> 0.79. Is 0.79 sufficiently larger than 0 to suggest that the population means are different?</p>
+<p>The set of principles that allows us to make an informed claim under uncertainty about the population is called <strong>statistical hypothesis testing</strong>.</p>
+<div class="yellow">
+<p><strong>Statistical test</strong></p>
+<p>A <strong><em>statistical test</em></strong> is a method that uses the data collected on a sample to assess a claim about the population.</p>
+</div>
+</div>
+<div id="statistical-significance" class="section level1">
+<h1>Statistical significance</h1>
+<p>Now that we have defined a framework to assess two competing hypotheses about a population parameter, how do we quantify the evidence that the sample data bring in favour of the alternative hypothesis?</p>
+<p>We do this by quantifying how unusual it is to obtain a statistic as extreme or more extreme than the observed statistic, if the null hypothesis is true.
+If it is very unusual, we have significant evidence against the null hypothesis.</p>
+<div class="yellow">
+<p><strong>Statistical significance</strong></p>
+<p>Assuming the null hypothesis to be true, we say that the sample results are <strong><em>statistically significant</em></strong> if it is unlikely that by random sampling alone we obtain a statistic that is as extreme as the observed sample statistic, or more extreme (in the direction specified by the alternative hypothesis).</p>
+</div>
+<p>Hypothesis testing basically boils down to quantifying how likely or unlikely it is to observe the sample statistic if the null hypothesis is true. Two decisions are possible:</p>
+<ul>
+<li><p>If the sample data are statistically significant, we <strong>reject</strong> <span class="math inline">\(H_0\)</span> as we have enough evidence against <span class="math inline">\(H_0\)</span> and in favour of <span class="math inline">\(H_1\)</span>.</p></li>
+<li><p>If the sample data are not statistically significant, we <strong>do not reject</strong> <span class="math inline">\(H_0\)</span> as we do not have convincing evidence against <span class="math inline">\(H_0\)</span>.</p></li>
+</ul>
+<p>This has an analogy in law. One of the fundamental legal principles is the <strong>presumption of innocence</strong>, which says that a person is considered innocent until proven guilty, and that the evidence must be beyond reasonable doubt.</p>
+<p>The null hypothesis (<span class="math inline">\(H_0\)</span>), corresponding to no effect, is that the defendant is innocent. The alternative hypothesis (<span class="math inline">\(H_1\)</span>) is that the defendant is guilty.</p>
+<p>The court presumes <span class="math inline">\(H_0\)</span> to be true (the defendant is innocent) unless the prosecutor can provide strong evidence that the defendant is guilty beyond a reasonable doubt. The burden of proof is on the prosecutor (in our case, the data) to convince the court that the defendant is guilty.</p>
+<p>Similarly, we retain <span class="math inline">\(H_0\)</span> unless there is strong evidence to reject <span class="math inline">\(H_0\)</span>.</p>
+<div id="scenario-1-statistically-significant-results" class="section level2">
+<h2>Scenario 1: statistically significant results</h2>
+<p>If results are <strong>statistically significant</strong>:</p>
+<ul>
+<li>The difference in sample means <span class="math inline">\(\bar x_s - \bar x_n\)</span> is unlikely to occur by random sampling alone when the population means are in fact equal.</li>
+<li>The sample data provide evidence that the population mean leniency score for smiling students is higher than the population mean leniency score of neutral student, meaning that we have evidence that smiling increases leniency.</li>
+</ul>
+</div>
+<div id="scenario-2-not-statistically-significant-results" class="section level2">
+<h2>Scenario 2: not statistically significant results</h2>
+<p>If results are <strong>not statistically significant</strong>:</p>
+<ul>
+<li>The difference in sample means <span class="math inline">\(\bar x_s - \bar x_n\)</span> could easily happen by random sampling alone when the population means are in fact equal.</li>
+<li>The sample data do not provide enough evidence to conclude that the population mean leniency score of smiling students is higher than the population mean leniency score of neutral students, or that smiling has increases leniency.</li>
+</ul>
+</div>
+</div>
+<div id="null-distribution" class="section level1">
+<h1>Null distribution</h1>
+<p>In the previous section, we said that if the observed statistic is very unusual, we have significant evidence against the null hypothesis. But <strong>how do we quantify if a value is unusual?</strong></p>
+<p>The key idea is to look at the sampling distribution of the statistic if <span class="math inline">\(H_0\)</span> were true. We do this by generating many samples, assuming the null hypothesis to be true, and computing the statistic on each of the generated samples. The distribution of these statistics is called the <strong>null distribution</strong>.</p>
+<div class="yellow">
+<p><strong>Null distribution</strong></p>
+<p>The <strong><em>null distribution</em></strong> is the sampling distribution of the statistic assuming the null hypothesis to be true.</p>
+<p><strong>Centre</strong>: The null distribution is centred at the value of the population parameter specified in the null hypothesis.</p>
+</div>
+<p>The sample statistic of interest is the difference in sample means. For our data, the observed difference in sample means is</p>
+<p><span class="math display">\[
+\bar x_s - \bar x_n = 0.79
+\]</span></p>
+<p>To determine whether this difference is statistically significant, we need to find the chance of a difference as large as 0.79 occurring if if smiling had really no effect on leniency scores.</p>
+<p>We generate a null distribution by assuming the null hypothesis is true. In this case, the null hypothesis is <span class="math inline">\(\mu_s = \mu_n\)</span> or, more generally, that smiling has no effect on leniency scores. What the assumption means, is that a person’s leniency score would be the same whether the person is assigned to the smiling or neutral facial expression group. Any of the values in the smiling group could just as easily have come from the non-smiling group and vice versa if a different random assignment had been made at the start of the experiment.</p>
+<p>To create a null distribution by assuming <span class="math inline">\(H_0\)</span> true, do the following steps many times:</p>
+<ul>
+<li><p>randomly assign the 68 observed leniency scores to the two facial expression groups</p></li>
+<li><p>compute the difference in sample means <span class="math inline">\(\bar x_s - \bar x_n\)</span></p></li>
+<li><p>repeat the two steps above</p></li>
+</ul>
+<p>You can think of this as writing the observed leniency numbers on 68 cards, shuffling the deck, and then repeatedly dealing them at random into two piles of 34 cards each. Each such random deal corresponds to a different random assignment of the subjects to the two facial expression groups, if the null hypothesis (no effect due to smiling) is true. If we repeat this many times, we obtain a null distribution of possible differences in the means under the assumption that the null hypothesis is true.</p>
+<div class="optional-begin">
+Original data<span id="opt-start-138" class="fa fa-plus optional-icon clickable" onclick="toggle_visibility(&#39;opt-body-138&#39;, &#39;opt-start-138&#39;)"></span>
+</div>
+<div id="opt-body-138" class="optional-body" style="display: none;">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Group
+</th>
+<th style="text-align:left;">
+data
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+neutral
+</td>
+<td style="text-align:left;">
+2.0, 4.0, 4.0, 3.0, 6.0, 4.5, 2.0, 6.0, 3.0, 3.0, 4.5, 8.0, 4.0, 5.0, 3.5, 4.5, 6.5, 3.5, 4.5, 4.5, 2.5, 2.5, 4.5, 2.5, 6.0, 6.0, 2.0, 4.0, 5.5, 4.0, 2.5, 2.5, 3.0, 6.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+smile
+</td>
+<td style="text-align:left;">
+7.0, 3.0, 6.0, 4.5, 3.5, 4.0, 3.0, 3.0, 3.5, 4.5, 7.0, 5.0, 5.0, 7.5, 2.5, 5.0, 5.5, 5.5, 5.0, 4.0, 5.0, 6.5, 6.5, 7.0, 3.5, 5.0, 3.5, 9.0, 2.5, 8.5, 3.5, 4.5, 3.5, 4.5
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+xbar_neutral
+</th>
+<th style="text-align:left;">
+xbar_smile
+</th>
+<th style="text-align:left;">
+D_obs
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+4.12
+</td>
+<td style="text-align:left;">
+4.91
+</td>
+<td style="text-align:left;">
+0.79
+</td>
+</tr>
+</tbody>
+</table>
+<p>Observed difference in means = <span class="math inline">\(D_{obs} = \bar x_s - \bar x_n =\)</span> 0.79.</p>
+</div>
+<p class="optional-end">
+</p>
+<div class="optional-begin">
+First randomization<span id="opt-start-139" class="fa fa-plus optional-icon clickable" onclick="toggle_visibility(&#39;opt-body-139&#39;, &#39;opt-start-139&#39;)"></span>
+</div>
+<div id="opt-body-139" class="optional-body" style="display: none;">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Group
+</th>
+<th style="text-align:left;">
+data
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+neutral
+</td>
+<td style="text-align:left;">
+7.0, 4.5, 4.0, 3.5, 5.0, 7.5, 5.0, 5.5, 5.0, 4.0, 7.0, 3.5, 5.0, 3.5, 3.5, 4.5, 3.5, 4.5, 4.0, 3.0, 6.0, 3.0, 3.0, 4.0, 5.0, 4.5, 2.5, 4.5, 2.5, 2.0, 5.5, 4.0, 2.5, 3.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+smile
+</td>
+<td style="text-align:left;">
+3.0, 6.0, 3.5, 3.0, 3.0, 4.5, 7.0, 5.0, 2.5, 5.5, 5.0, 6.5, 6.5, 9.0, 2.5, 8.5, 2.0, 4.0, 4.5, 2.0, 6.0, 4.5, 8.0, 3.5, 4.5, 6.5, 3.5, 4.5, 2.5, 6.0, 6.0, 4.0, 2.5, 6.5
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+xbar_neutral
+</th>
+<th style="text-align:left;">
+xbar_smile
+</th>
+<th style="text-align:left;">
+D
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+4.26
+</td>
+<td style="text-align:left;">
+4.76
+</td>
+<td style="text-align:left;">
+0.5
+</td>
+</tr>
+</tbody>
+</table>
+<p>Difference in means = <span class="math inline">\(D = \bar x_s - \bar x_n =\)</span> 0.5:</p>
+</div>
+<p class="optional-end">
+</p>
+<div class="optional-begin">
+Second randomization<span id="opt-start-140" class="fa fa-plus optional-icon clickable" onclick="toggle_visibility(&#39;opt-body-140&#39;, &#39;opt-start-140&#39;)"></span>
+</div>
+<div id="opt-body-140" class="optional-body" style="display: none;">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Group
+</th>
+<th style="text-align:left;">
+data
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+neutral
+</td>
+<td style="text-align:left;">
+7.0, 4.0, 3.0, 3.0, 5.0, 5.0, 7.5, 2.5, 5.5, 5.0, 7.0, 3.5, 2.5, 8.5, 3.5, 4.5, 2.0, 4.0, 3.0, 6.0, 2.0, 3.0, 4.5, 4.0, 3.5, 6.5, 4.5, 4.5, 4.5, 6.0, 5.5, 4.0, 2.5, 3.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+smile
+</td>
+<td style="text-align:left;">
+3.0, 6.0, 4.5, 3.5, 3.5, 4.5, 7.0, 5.0, 5.5, 5.0, 4.0, 6.5, 6.5, 3.5, 5.0, 9.0, 4.5, 3.5, 4.0, 4.5, 6.0, 3.0, 8.0, 5.0, 4.5, 3.5, 2.5, 2.5, 2.5, 6.0, 2.0, 4.0, 2.5, 6.5
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+xbar_neutral
+</th>
+<th style="text-align:left;">
+xbar_smile
+</th>
+<th style="text-align:left;">
+D
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+4.41
+</td>
+<td style="text-align:left;">
+4.62
+</td>
+<td style="text-align:left;">
+0.21
+</td>
+</tr>
+</tbody>
+</table>
+<p>Difference in means = <span class="math inline">\(D = \bar x_s - \bar x_n =\)</span> 0.21:</p>
+</div>
+<p class="optional-end">
+</p>
+<p>And so on…</p>
+<p>As we can see, the statistic “difference in means” (<span class="math inline">\(D\)</span>) varies from randomization sample to randomization sample.</p>
+<p>A visual representation of the approach is given below, where the group “neutral face” is represented in bold orange font, while “smiling face” is shown in blue font.</p>
+<p><img src="images/hyp_test/randomization_tests.png" width="70%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="null-distribution-using-r" class="section level1">
+<h1>Null distribution using R</h1>
+<p>In R we use the function <code>rep_randomize(data, columns, samples)</code> which has the following arguments:</p>
+<ul>
+<li><code>data</code>: the data that we are using</li>
+<li><code>columns</code>: the name of the factor which we want to randomize</li>
+<li><code>samples</code> (by default 1): the number of samples we want to obtain</li>
+</ul>
+<div class="red">
+<p><strong>NOTE</strong></p>
+<p>Every time you wish to use the <code>rep_randomize()</code> function in your analysis, you need to make sure you import it into your R session by placing this line of code in your file</p>
+<pre class="r"><code>source(&quot;https://uoepsy.github.io/files/rep_randomize.R&quot;)</code></pre>
+</div>
+<p>Load the function:</p>
+<pre class="r"><code>source(&quot;https://uoepsy.github.io/files/rep_randomize.R&quot;)</code></pre>
+<p>Set the random number generator seed to any number you like. If you use the same as me, you will get my same results. The random seed is something computers use to generate random numbers. They start from a starting seed, set with <code>set.seed()</code>, and every time they generate a random number they increase the seed by 1.</p>
+<pre class="r"><code>set.seed(1)</code></pre>
+<p>Compare the first 6 rows in the original data and in the randomized sample:</p>
+<pre class="r"><code># Original data
+head(smiles)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   Leniency Group
+##      &lt;dbl&gt; &lt;fct&gt;
+## 1      7   smile
+## 2      3   smile
+## 3      6   smile
+## 4      4.5 smile
+## 5      3.5 smile
+## 6      4   smile</code></pre>
+<pre class="r"><code># A randomized sample
+head(rep_randomize(smiles, columns = &#39;Group&#39;, samples = 1))</code></pre>
+<pre><code>## # A tibble: 6 x 3
+##   sample Leniency Group  
+##    &lt;dbl&gt;    &lt;dbl&gt; &lt;fct&gt;  
+## 1      1      7   neutral
+## 2      1      3   neutral
+## 3      1      6   smile  
+## 4      1      4.5 smile  
+## 5      1      3.5 neutral
+## 6      1      4   smile</code></pre>
+<p>We notice that the Leniency scores are the same, but the group assignment was changed.</p>
+<p>We can generate many more randomized samples, 1000 for example, as follows</p>
+<pre class="r"><code>rand_samples &lt;- rep_randomize(smiles, columns = &#39;Group&#39;, samples = 1000)
+rand_samples</code></pre>
+<pre><code>## # A tibble: 68,000 x 3
+##    sample Leniency Group  
+##     &lt;dbl&gt;    &lt;dbl&gt; &lt;fct&gt;  
+##  1      1      7   neutral
+##  2      1      3   smile  
+##  3      1      6   smile  
+##  4      1      4.5 smile  
+##  5      1      3.5 neutral
+##  6      1      4   smile  
+##  7      1      3   neutral
+##  8      1      3   smile  
+##  9      1      3.5 neutral
+## 10      1      4.5 neutral
+## # … with 67,990 more rows</code></pre>
+<p>which will have 68000 rows = 68 (rows of the original data) * 1000 (number of samples). The more samples you generate, the more precise the analysis will be. When publishing papers, you might typically want 10,000 or 100,000 samples!</p>
+<p>We can now compute the difference in mean leniency scores for each sample:</p>
+<pre class="r"><code>null_dist &lt;- rand_samples %&gt;%
+  group_by(sample, Group) %&gt;%
+  summarise(M = mean(Leniency)) %&gt;%
+  group_by(sample) %&gt;%
+  summarise(D = diff(M))
+null_dist</code></pre>
+<pre><code>## # A tibble: 1,000 x 2
+##    sample       D
+##     &lt;dbl&gt;   &lt;dbl&gt;
+##  1      1  0.441 
+##  2      2 -0.0882
+##  3      3 -0.0882
+##  4      4  0.294 
+##  5      5 -0.529 
+##  6      6 -0.706 
+##  7      7 -0.118 
+##  8      8  0.5   
+##  9      9 -0.382 
+## 10     10 -0.0294
+## # … with 990 more rows</code></pre>
+<p>We can plot the null distribution:</p>
+<pre class="r"><code>ggplot(null_dist, aes(x = D)) +
+  geom_dotplot(dotsize = 0.23, fill = &#39;gray&#39;) +
+  labs(x = &quot;Difference in leniency means&quot;)</code></pre>
+<p><img src="13_hypothesis_testing_files/figure-html/unnamed-chunk-19-1.png" width="80%" style="display: block; margin: auto;" /></p>
+<p>Each point in the plot above corresponds to one of the 1000 differences in sample means <span class="math inline">\(\bar x_s - \bar x_n\)</span>.</p>
+<p>Since we started by assuming that <span class="math inline">\(H_0 : \mu_s - \mu_n = 0\)</span> is true, it is should be no surprise that the null distribution of the statistic “difference in means” is centred approximately at zero (the hypothesised value for <span class="math inline">\(\mu_s - \mu_n\)</span> in <span class="math inline">\(H_0\)</span>) and symmetric.</p>
+<div class="yellow">
+<p><strong>Remark</strong></p>
+<p>The null distribution should be centred at the value of the parameter specified in the null hypothesis.</p>
+</div>
+<p>Let’s show with a vertical red line the observed difference in the original sample:</p>
+<pre class="r"><code>ggplot(null_dist, aes(x = D)) +
+  geom_dotplot(dotsize = 0.23, fill = &#39;gray&#39;) +
+  geom_vline(xintercept = D_obs, color = &#39;red&#39;) +
+  geom_text(aes(x = D_obs + 0.2, y = 0.5, label = &#39;D_obs&#39;), color = &#39;red&#39;) +
+labs(x = &quot;Difference in leniency means&quot;)</code></pre>
+<p><img src="13_hypothesis_testing_files/figure-html/unnamed-chunk-20-1.png" width="80%" style="display: block; margin: auto;" /></p>
+<p>Would the observed difference in our collected data, <span class="math inline">\(\bar x_s - \bar x_n =\)</span> 0.79, have a high chance of occurring under the null hypothesis that smiling does not affect leniency?</p>
+<p>Different researchers might reach different conclusions by looking at this plot. Rather than taking a decision by visually inspecting the plot, we want to find a generically applicable tool that would make different researchers all reach to the same conclusion.</p>
+</div>
+<div id="measuring-evidence-with-p-values" class="section level1">
+<h1>Measuring evidence with p-values</h1>
+<p>We have evidence against the null hypothesis if it would be very unusual to obtain statistics as extreme or more extreme than the observed statistic in the null distribution.</p>
+<p>To summarise: in order to measure how unusual the observed statistic is under the null hypothesis, we need to generate many statistics under the null hypothesis (null distribution) and see what’s the proportion of the generated statistics that are as extreme as, or more extreme than, the observed statistic.</p>
+<p>The proportion of statistics in the null distribution as extreme or more extreme than the observed statistic is known as the <strong>p-value</strong>.
+<strong>The smaller the p-value, the higher the statistical evidence against the null hypothesis.</strong></p>
+<div class="yellow">
+<p><strong>P-value</strong></p>
+<p>The <strong><em>p-value</em></strong> represents the chance of obtaining a statistic as extreme or more extreme than the observed one (in the direction specified by the alternative hypothesis), if the null hypothesis were true.</p>
+</div>
+<div class="red">
+<p><strong>NOTE</strong></p>
+<p>The p-value is a probability, so it’s always between 0 and 1.</p>
+</div>
+<p>We can identify the statistics in the null distribution that are as extreme or more extreme than the observed one by colour-coding them.</p>
+<p>The following chunk colour-codes the differences in sample means that are equal to, or greater, than the observed difference:</p>
+<pre class="r"><code>ggplot(null_dist, aes(x = D, fill = D &gt;= D_obs)) +
+  geom_dotplot(dotsize = 0.23, color = NA) +
+  scale_fill_manual(values = c(&quot;gray&quot;, &quot;red&quot;)) +
+  labs(x = &quot;Difference in leniency means&quot;,
+       fill = &quot;More extreme&quot;)</code></pre>
+<p><img src="13_hypothesis_testing_files/figure-html/unnamed-chunk-21-1.png" width="80%" style="display: block; margin: auto;" /></p>
+<p>We can calculate the proportion of statistics in the null distribution which are greater than or equal <span class="math inline">\(\bar x_s - \bar x_n =\)</span> 0.79. You can either do that by eye, counting the red dots (in my case this is 29) and dividing them by the total number of dots (1,000) or, more quickly:</p>
+<pre class="r"><code>pvalue_greaterthan &lt;- sum(null_dist$D &gt;= D_obs) / nrow(null_dist)
+pvalue_greaterthan</code></pre>
+<pre><code>## [1] 0.029</code></pre>
+<p>We may interpret the p-value as follows:</p>
+<div class="int">
+<p>If smiling had no effect on leniency scores, the chance of getting a difference in mean leniency scores between smiling and neutral students as high as 0.79 is 0.029, or 3 in 100 times.</p>
+</div>
+</div>
+<div id="making-a-formal-decision" class="section level1">
+<h1>Making a formal decision</h1>
+<p>The smaller the p-value, the greater the evidence that the data provide against the null hypothesis <span class="math inline">\(H_0\)</span>.</p>
+<div class="question-begin">
+Question A4
+</div>
+<div class="question-body">
+<p>Which of the following p-values gives the strongest evidence against <span class="math inline">\(H_0\)</span>?</p>
+<ol style="list-style-type: lower-alpha">
+<li>0.005</li>
+<li>0.1</li>
+<li>0.35</li>
+<li>0.92</li>
+</ol>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-141" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-141&#39;, &#39;sol-start-141&#39;)"></span>
+</div>
+<div id="sol-body-141" class="solution-body" style="display: none;">
+<p>The correct answer is (a) as it is the smallest p-value.</p>
+</div>
+<p class="solution-end">
+</p>
+<p>The outcome of a statistical test is either:</p>
+<ol style="list-style-type: decimal">
+<li>The p-value is small:</li>
+</ol>
+<ul>
+<li>we reject the null hypothesis;</li>
+<li>the observed sample statistic would be extreme in the null distribution;</li>
+<li>the results are statistically significant;</li>
+<li>the test concludes that we have enough evidence in favour of <span class="math inline">\(H_1\)</span>.</li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>The p-value is not small:</li>
+</ol>
+<ul>
+<li>we do not reject the null hypothesis;</li>
+<li>the observed sample statistic would not be extreme in the null distribution;</li>
+<li>the results are not statistically significant;</li>
+<li>we do not have sufficient evidence to reject <span class="math inline">\(H_0\)</span>.</li>
+</ul>
+<p><strong>How small should the p-value be?</strong></p>
+<p>This is set by the researcher before seeing any data.
+We decide if a p-value is small or not by specifying a threshold below which a p-value is deemed to be small.</p>
+<div class="yellow">
+<p><strong>Significance level</strong></p>
+<p>The <strong><em>significance level</em></strong> <span class="math inline">\(\alpha\)</span> is the threshold below which we deem a p-value small enough to reject the null hypothesis.</p>
+<p>Typical significance levels are <span class="math inline">\(\alpha = 0.05\)</span>, <span class="math inline">\(\alpha = 0.01\)</span>, or <span class="math inline">\(\alpha = 0.10\)</span>.</p>
+<p>It is fundamental to specify the chosen threshold once for all at the beginning of your study.</p>
+</div>
+<p>For a given significance level <span class="math inline">\(\alpha\)</span>:</p>
+<ul>
+<li>if the p-value <span class="math inline">\(\leq \alpha\)</span> we reject <span class="math inline">\(H_0\)</span>,</li>
+<li>if the p-value <span class="math inline">\(&gt; \alpha\)</span> we do not reject <span class="math inline">\(H_0\)</span>.</li>
+</ul>
+<div class="red">
+<p><strong>Caution</strong></p>
+<p>Never accept <span class="math inline">\(H_0\)</span>. “Do not reject <span class="math inline">\(H_0\)</span>” is not the same as “accept <span class="math inline">\(H_0\)</span>.” Not having sufficient evidence against <span class="math inline">\(H_0\)</span> does not mean having evidence for <span class="math inline">\(H_0\)</span>.</p>
+</div>
+<p>The following table summarizes in words the strength of evidence that the sample results bring in favour of the alternative hypothesis for different p-values:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="center">Approximate size of p-value</th>
+<th align="left">Loose interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">p-value <span class="math inline">\(&gt;\)</span> 0.1</td>
+<td align="left">little or no evidence against <span class="math inline">\(H_0\)</span></td>
+</tr>
+<tr class="even">
+<td align="center">0.05 <span class="math inline">\(&lt;\)</span> p-value <span class="math inline">\(\leq\)</span> 0.1</td>
+<td align="left">some evidence against <span class="math inline">\(H_0\)</span></td>
+</tr>
+<tr class="odd">
+<td align="center">0.01 <span class="math inline">\(&lt;\)</span> p-value <span class="math inline">\(\leq\)</span> 0.05</td>
+<td align="left">strong evidence against <span class="math inline">\(H_0\)</span></td>
+</tr>
+<tr class="even">
+<td align="center">p-value <span class="math inline">\(\leq\)</span> 0.01</td>
+<td align="left">very strong evidence against <span class="math inline">\(H_0\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>To conclude our example,</p>
+<div class="int">
+<p>At a 5% significance level, we tested whether the mean leniency score for smiling students is higher than for students with a neutral expression. The p-value of the test (<span class="math inline">\(p = 0.029\)</span>) indicates that if smiling truly had no effect on leniency scores, the chance of getting a difference in mean leniency scores between smiling and neutral students as high as 0.79 is 0.029, or 3 in 100 times. The sample data provide strong evidence against the null hypothesis that smiling had no effect on leniency and in favour of the alternative.</p>
+</div>
+<p>Based on these data we conclude that smiling makes a difference and we expect more leniency, on average, to be awarded to smiling suspects. If you go before a disciplinary panel, you should smile!</p>
+</div>
+<div id="summary" class="section level1">
+<h1>Summary</h1>
+<p>We have learned to assess how much evidence the sample data bring against the null hypothesis and in favour of the alternative hypothesis.</p>
+<p>The null hypothesis, denoted <span class="math inline">\(H_0\)</span>, is a claim about a population parameter that is initially assumed to be true. It typically represents “no effect” or “no difference between groups.”</p>
+<p>The alternative hypothesis, denoted <span class="math inline">\(H_1\)</span>, is the claim we seek evidence for.</p>
+<p>We assessed the strength of evidence against <span class="math inline">\(H_0\)</span> following these steps:</p>
+<ol style="list-style-type: decimal">
+<li>Generate many samples assuming the null hypothesis to be true;</li>
+<li>Obtain the null distribution by computing the statistic on each of the generated samples;</li>
+<li>Compute the p-value as the proportion of statistics in the null distribution as extreme or more extreme than the observed statistic, in the direction specified by the alternative hypothesis.</li>
+</ol>
+</div>
+<div id="exercises" class="section level1">
+<h1>Exercises</h1>
+<div id="theory-based-null-distribution" class="section level2">
+<h2>Theory-based null distribution</h2>
+<p>As we can see, the null distribution for the difference in means, obtained assuming the null hypothesis to be true, is symmetric about 0 and bell-shaped. In others words, the null distribution of the difference in means follows a normal distribution.</p>
+<p>We know from <a href="https://uoepsy.github.io/dapr1/labs/10_continuous_distributions.html">last semester</a> that, to do computations with a normal distribution, we need to know</p>
+<ol style="list-style-type: lower-alpha">
+<li><p>where the curve should be centred at, i.e. the mean of the distribution</p></li>
+<li><p>the spread of the curve, i.e. the standard deviation of the distribution</p></li>
+</ol>
+<p>Recall that the distribution of the sample mean is
+<span class="math display">\[
+\bar X \sim N(\mu, SE), \qquad \qquad
+SE = \frac{\sigma}{\sqrt{n}} = \sqrt{\frac{\sigma^2}{n}}
+\]</span></p>
+<p>In our case, however, we have the difference between two sample means. This will be distributed as:
+<span class="math display">\[
+\bar X_s - \bar X_n \sim N(\mu_s - \mu_n, SE), \qquad \qquad 
+SE = \sqrt{\frac{\sigma_s^2}{n_s} + \frac{\sigma_n^2}{n_n}}
+\]</span></p>
+<p>The null distribution, however, is the distribution of the sample statistic (<span class="math inline">\(\bar X_s - \bar X_n\)</span>) when the null hypothesis (<span class="math inline">\(H_0: \mu_s - \mu_n = 0\)</span>) is true. Hence, the null distribution is:</p>
+<p><span class="math display">\[
+\bar X_s - \bar X_n \sim N(0, SE)
+\]</span></p>
+<p><img src="13_hypothesis_testing_files/figure-html/unnamed-chunk-23-1.png" width="80%" style="display: block; margin: auto;" /></p>
+<p>For the next questions, use as standard deviations the sample standard deviations from question A2:</p>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Group
+</th>
+<th style="text-align:right;">
+Count
+</th>
+<th style="text-align:right;">
+M
+</th>
+<th style="text-align:right;">
+SD
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+neutral
+</td>
+<td style="text-align:right;">
+34
+</td>
+<td style="text-align:right;">
+4.12
+</td>
+<td style="text-align:right;">
+1.52
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+smile
+</td>
+<td style="text-align:right;">
+34
+</td>
+<td style="text-align:right;">
+4.91
+</td>
+<td style="text-align:right;">
+1.68
+</td>
+</tr>
+</tbody>
+</table>
+<div class="question-begin">
+Question B1
+</div>
+<div class="question-body">
+<p>Compute the p-value for testing the following hypotheses by using the properties of the normal distribution (i.e. using the red curve):
+<span class="math display">\[
+H_0 : \mu_s - \mu_n = 0 \\
+H_1 : \mu_s - \mu_n &gt; 0
+\]</span></p>
+<p>How does it compare with the randomization-based approach?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-142" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-142&#39;, &#39;sol-start-142&#39;)"></span>
+</div>
+<div id="sol-body-142" class="solution-body" style="display: none;">
+<pre class="r"><code>mu_null &lt;- 0
+sigma_null &lt;- sqrt(stats$SD[1]^2 / stats$Count[1] + stats$SD[2]^2 / stats$Count[2])</code></pre>
+<p>The p-value is twice the probability to the right of <code>D_obs</code>:</p>
+<pre class="r"><code>pvalue_theory_greaterthan &lt;- 1 - pnorm(D_obs, mu_null, sigma_null)
+pvalue_theory_greaterthan</code></pre>
+<pre><code>## [1] 0.02059867</code></pre>
+<ul>
+<li><p>The normal theory-based p-value is 0.021</p></li>
+<li><p>The randomization-based approach p-value was 0.029</p></li>
+</ul>
+<p>As we can see, the two agree up to the second decimal place. The agreement will be even better as we increase the number of randomization samples in <code>rep_randomize()</code>.</p>
+</div>
+<p class="solution-end">
+</p>
+</div>
+<div id="another-one-sided-alternative-hypothesis" class="section level2">
+<h2>Another one-sided alternative hypothesis</h2>
+<div class="question-begin">
+Question B2
+</div>
+<div class="question-body">
+<p>Before, we have tested whether the leniency score is higher for smiling students.</p>
+<p>Consider now the case when the experimenters believe that during a hearing for an offence such as cheating, a disciplinary panel will view smiling as arrogant and disrespectful. They are testing to see if there is evidence that smiling will cause harsher punishments (less leniency).</p>
+<p>What would the null and the alternative hypotheses be in this case?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-143" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-143&#39;, &#39;sol-start-143&#39;)"></span>
+</div>
+<div id="sol-body-143" class="solution-body" style="display: none;">
+<p>We are testing to see if there is evidence that the average score for smiling students is less than the average score for neutral students, so the alternative hypothesis is <span class="math inline">\(\mu_s &lt; \mu_n\)</span>.
+The null hypothesis is still “no effect”:
+<span class="math display">\[
+H_0 : \mu_s = \mu_n \\
+H_1 : \mu_s &lt; \mu_n
+\]</span></p>
+<p>or, equivalently:
+<span class="math display">\[
+H_0 : \mu_s - \mu_n = 0 \\
+H_1 : \mu_s - \mu_n &lt; 0
+\]</span></p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question B3
+</div>
+<div class="question-body">
+<p>Using the null distribution previously computed, reach to a decision about the statistical hypotheses stated in your answer to the question B2.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-144" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-144&#39;, &#39;sol-start-144&#39;)"></span>
+</div>
+<div id="sol-body-144" class="solution-body" style="display: none;">
+<p>The p-value is the proportion of statistics as extreme as, or more extreme, than the observed one, in the direction specified by the alternative hypothesis.</p>
+<p>In this case we have evidence against the null hypothesis when the mean leniency for smiling students is smaller than the mean leniency for students with a neutral expression. In other words, we have evidence against the null hypothesis when the difference in means between smiling and non-smiling students is negative. For this reason, we compute the p-value as the proportion to the left of the observed difference:</p>
+<pre class="r"><code>pvalue_lessthan &lt;- sum(null_dist$D &lt;= D_obs) / nrow(null_dist)
+pvalue_lessthan</code></pre>
+<pre><code>## [1] 0.977</code></pre>
+<div class="int">
+<p>At the 5% significance level, the p-value of 0.977 indicates that there isn’t sufficient evidence in favour of the alternative hypothesis that the mean leniency score for smiling students is smaller than for non-smiling students. If the mean leniency score in the two groups was the same, we expect to observe a difference in means smaller than or equal 0.79 roughly 98% of the time.</p>
+</div>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question B4
+</div>
+<div class="question-body">
+<p>Compute the p-value for testing the following hypothesis by using the properties of the normal distribution:
+<span class="math display">\[
+H_0 : \mu_s - \mu_n = 0 \\
+H_1 : \mu_s - \mu_n &lt; 0
+\]</span></p>
+<p>How does it compare with the randomization-based approach?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-145" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-145&#39;, &#39;sol-start-145&#39;)"></span>
+</div>
+<div id="sol-body-145" class="solution-body" style="display: none;">
+<p>The p-value the probability to the left of <code>D_obs</code>:</p>
+<pre class="r"><code>pvalue_theory_lessthan &lt;- pnorm(D_obs, mu_null, sigma_null)
+pvalue_theory_lessthan</code></pre>
+<pre><code>## [1] 0.9794013</code></pre>
+<ul>
+<li><p>The normal theory-based p-value is 0.98</p></li>
+<li><p>The randomization-based approach p-value was 0.98</p></li>
+</ul>
+</div>
+<p class="solution-end">
+</p>
+</div>
+<div id="two-sided-alternative-hypothesis" class="section level2">
+<h2>Two-sided alternative hypothesis</h2>
+<div class="question-begin">
+Question B5
+</div>
+<div class="question-body">
+<p>Consider now the scenario where the experimenters have no prior beliefs about the effect of smiling on leniency scores, and they are testing to see if facial expression has <strong>any</strong> effect (it could either increase or decrease leniency scores).</p>
+<p>State the null and alternative hypotheses in this case where the researchers make no assumption in advance on whether smiling helps or discourages leniency.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-146" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-146&#39;, &#39;sol-start-146&#39;)"></span>
+</div>
+<div id="sol-body-146" class="solution-body" style="display: none;">
+<p>We are testing to see if there is evidence that the average score for smiling students is different (in either direction) from the average score for neutral students, so the alternative hypothesis is of the form <span class="math inline">\(\mu_s \neq \mu_n\)</span>. The null hypothesis is still “no effect”:
+<span class="math display">\[
+H_0 : \mu_s = \mu_n \\
+H_1 : \mu_s \neq \mu_n
+\]</span></p>
+<p>or, equivalently:
+<span class="math display">\[
+H_0 : \mu_s - \mu_n = 0 \\
+H_1 : \mu_s - \mu_n \neq 0
+\]</span></p>
+</div>
+<p class="solution-end">
+</p>
+<p>For two-sided hypothesis tests, we have evidence against the null hypothesis when the observed statistic is either too large or too small, i.e. is in the right tail or the left tail of the distribution.</p>
+<p>For this reason, when computing the p-value for a two-sided alternative we double the proportion of statistics in the null distribution more extreme than the observed one:</p>
+<p><img src="13_hypothesis_testing_files/figure-html/unnamed-chunk-29-1.png" width="100%" style="display: block; margin: auto;" /></p>
+<ul>
+<li><p>In case (a), we would 2 * proportion to the left of -0.79</p></li>
+<li><p>In case (b), we would do 2 * proportion to the right of 0.79</p></li>
+</ul>
+<div class="red">
+<p><strong>WARNING</strong></p>
+<p>If your observed difference is negative (a) and you compute 2 * proportion to the right of the observed difference, you would obtain a p-value greater than 1, which is impossible! Always double the smaller tail.</p>
+<p>In other words, if the observed statistic is negative, double the area to the left, <strong>not</strong> the area to its right.
+Similarly, if the observed statistic is positive, double the area to its right, <strong>not</strong> the area to its left!</p>
+</div>
+<div class="yellow">
+<p><strong>TIME-SAVING TIP</strong></p>
+<p>If you don’t like to keep track of the two cases (either a negative observed difference or a positive observe difference), you can convert the observed difference to a positive value by using the absolute value function <code>abs()</code> which drops the sign, and then simply do 2 * proportion greater than <code>abs(D_obs)</code>. This way you will be always dealing with the right tail, even if the observed difference was negative!</p>
+<p>Two times the probability of observing a difference as extreme as the observed one is written also as:
+<span class="math display">\[
+\text{p-value} = 2 \cdot P(D &gt; |D_{obs}|)
+\]</span></p>
+<p>and, in R:</p>
+<pre><code>2 * sum(statistic &gt;= abs(observed_statistic)) / number_of_samples</code></pre>
+</div>
+<div class="question-begin">
+Question B6
+</div>
+<div class="question-body">
+<p>Using the null distribution previously computed, reach to a decision about the statistical hypotheses stated in your answer to question B5.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-147" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-147&#39;, &#39;sol-start-147&#39;)"></span>
+</div>
+<div id="sol-body-147" class="solution-body" style="display: none;">
+<p>The observed difference is positive, so the p-value for a two-sided alternative is twice the proportion to the right of the observed difference.</p>
+<pre class="r"><code>pvalue_noteq &lt;- 2 * sum(null_dist$D &gt;= D_obs) / nrow(null_dist)
+pvalue_noteq</code></pre>
+<pre><code>## [1] 0.058</code></pre>
+<div class="int">
+<p>At the 5% significance level, the p-value of 0.058 indicates that there isn’t sufficient evidence against the null hypothesis of equal mean leniency for smiling and non-smiling students.</p>
+</div>
+<p>Alternatively,</p>
+<pre class="r"><code>sum(null_dist$D &gt;= D_obs | null_dist$D &lt;= -D_obs) / nrow(null_dist)</code></pre>
+<pre><code>## [1] 0.049</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question B7
+</div>
+<div class="question-body">
+<p>Compute the p-value for testing the following hypothesis by using the properties of the normal distribution:
+<span class="math display">\[
+H_0 : \mu_s - \mu_n = 0 \\
+H_1 : \mu_s - \mu_n \neq 0
+\]</span></p>
+<p>How does it compare with the randomization-based approach?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-148" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-148&#39;, &#39;sol-start-148&#39;)"></span>
+</div>
+<div id="sol-body-148" class="solution-body" style="display: none;">
+<p>The p-value is twice the probability to the right of <code>D_obs</code>:</p>
+<pre class="r"><code>pvalue_theory_noteq &lt;- 2 * ( 1 - pnorm(abs(D_obs), mu_null, sigma_null) )
+pvalue_theory_noteq</code></pre>
+<pre><code>## [1] 0.04119733</code></pre>
+<p>or:</p>
+<pre class="r"><code>pnorm(-D_obs, mu_null, sigma_null) + (1 - pnorm(D_obs, mu_null, sigma_null))</code></pre>
+<pre><code>## [1] 0.04119733</code></pre>
+<ul>
+<li><p>The normal theory-based p-value is 0.041</p></li>
+<li><p>The randomization-based approach p-value was 0.058</p></li>
+</ul>
+</div>
+<p class="solution-end">
+</p>
+</div>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<!-- Formatting -->
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;">
+
+</div>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-LaFrance1995" class="csl-entry">
+LaFrance, Marianne, and Marvin A Hecht. 1995. <span>“Why Smiles Generate Leniency.”</span> <em>Personality and Social Psychology Bulletin</em> 21 (3): 207–14.
+</div>
+</div>
+</div>
+
+<link rel="stylesheet" href="https://uoepsy.github.io/assets/css/ccfooter.css" />
+<div class="ccfooter"></div>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

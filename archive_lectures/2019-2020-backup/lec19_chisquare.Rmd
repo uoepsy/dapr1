@@ -1,0 +1,585 @@
+---
+title: "Lecture 19: Chi-Square Test"
+subtitle: Data Analysis for Psychology in R 1
+author: Tom Booth
+---
+```{r premable, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(kableExtra)
+library(patchwork)
+library(moderndive)
+library(ggmosaic)
+```
+
+## Today
+- Discuss two forms of $\chi^2$ tests.
+  - Goodness of fit
+  - Test of independence
+- We will consider:
+  - When to use each
+  - Data requirements
+  - Calculation
+  - Interpretation
+  - Assumptions
+
+## Learning objectives
+- Understand when to use goodness of fit and tests of independence.
+- Understand the logic of the underlying calculations
+- Understand the structure of the R-code for completing the tests.
+
+## Purpose
+- $\chi^2$ goodness of fit test
+  - The primary purpose is to test whether the collected data (observed frequencies) are consistent with a hypothesized/known distribution (expected frequencies).
+
+- $\chi^2$ test of independence:
+  - We have 2 categorical variables, drawn from a single population.
+  - We want to know if the variables are independent or not.
+  - If the category membership is dependent, then knowing what category someone is in on variable 1, helps us predict what category they would be in for variable 2.
+
+## Data Requirements
+- $\chi^2$ goodness of fit test
+  - Single categorical variable
+- $\chi^2$ test of independence:
+  - Two categorical variables.
+  
+## Example: Goodness of fit
+- Suppose we are interested in the distribution of students across three final year psychology options (Social, Differential, Developmental). 
+- We have data from 2014-15, and we want to know if the distribution is the same in 2015-16.
+
+## Data
+
+```{r, echo=FALSE}
+set.seed(007)
+class <- tibble(
+  ID = paste("ID", 1:150, sep = ""),
+  course = as_factor(sample(c("Social", "Differential", "Developmental"), 150, replace = T, prob = c(.45, .20, .35)))
+)
+```
+
+```{r}
+head(class)
+```
+
+- `ID` = Unique ID variable
+- `course` = factor with 3 levels (Social, Differential, Developmental)
+
+## Observed frequencies
+
+```{r}
+tab1 <- class %>%
+  group_by(course) %>%
+  tally()
+```
+
+```{r}
+tab1
+```
+
+## Relative frequencies
+- In 2014-15, the department had the following proportions:
+  - Social = 0.50, or 50%
+  - Differential = 0.30, or 30%
+  - Developmental = 0.20, or 20%
+
+## Relative frequencies
+
+```{r}
+tab1 <- tab1 %>%
+  transmute(
+    course = course,
+    relative = c(0.30, 0.50, 0.20),
+    observed = n
+  )
+```
+
+```{r}
+tab1
+```
+
+
+## Expected frequencies
+- Given this, and a total number of students (n=150) for the current year, we can calculate the expected frequencies for each area.
+  - $Expected = Relative*N$
+
+## Put it together
+
+```{r}
+tab1 <- tab1 %>%
+  mutate(
+    expected = relative*sum(observed)
+  )
+```
+
+```{r}
+tab1
+```
+
+## Hypotheses
+$$
+\begin{matrix}
+H_0 = P(0.20, 0.50, 0.30) \\
+H_1 \neq P(0.20, 0.50, 0.30)
+\end{matrix}
+$$
+
+- $H_0$ says that the data follow a specific and known pattern or probabilities (frequencies)
+- $H_1$ says they don't
+
+## Test statistic
+
+$$
+\chi^2 = \sum_{i=1}^{k} \frac{(E_i - O_i)^2}{E_i}
+$$
+
+- $E_i$ = expected frequencies
+- $O_i$ = observed frequencies
+- $\sum_{i=1}^{k}$ = do the calculation starting from cell 1 through to cell $k$ (k=number groups) and add them up.
+
+
+## Null Distribution
+- Sampling distribution for $\chi^2$ test is a $\chi^2$ distribution.
+- $\chi^2$ distribution describes the distribution of the sum of $k$ squared independent standard normal variables.
+  - Huh?
+  
+$$
+\chi^2 = \sum_{i=1}^{k} \frac{(E_i - O_i)^2}{E_i}
+$$
+
+## Null Distribution
+- Parameter of the $\chi^2$ distribution is degrees of freedom (df) 
+  - Just like $t$-test.
+- df are determined by the number of categories ($k$)
+- Goodness of fit test has $k-1$ degrees of freedom.
+  - Why?
+
+## Null Distribution
+
+```{r, echo=FALSE}
+ggplot(NULL, aes(x = c(-1,15))) +
+  stat_function(fun=dchisq,
+                geom = "line",
+                args = list(df=2)) +
+  stat_function(fun=dchisq,
+                geom = "line",
+                colour = "red",
+                args = list(df=3)) +
+  stat_function(fun=dchisq,
+                geom = "line",
+                colour = "blue",
+                args = list(df=5)) +
+  xlab("\n x2") +
+  ylab("") +
+  ggtitle("Chi-square Distribution (df = 2, 3, 5)")
+```
+
+## Calculation
+
+```{r}
+tab1 <- tab1 %>%
+  mutate(
+    step1 = expected - observed,
+    step2 = step1^2,
+    step3 = step2/expected
+  )
+tab1
+```
+
+- Step1 = $E_i - O_i$
+- Step2 = $(E_i - O_i)^2$
+- Step3 = $\frac{(E_i - O_i)^2}{E_i}$
+
+## Calculation
+- Last step is to sum the values for step 3 to get the $\chi^2$
+
+```{r}
+x2 <- sum(tab1$step3)
+x2
+```
+
+## Is my test significant?
+- $\chi^2$ = `r x2`
+- Degrees of freedom = 3-1 = 2
+- $\alpha$ = 0.05
+
+## Is my test significant?
+
+```{r, echo=FALSE}
+ggplot(NULL, aes(x = c(-1,10))) +
+  stat_function(fun=dchisq,
+                geom = "line",
+                args = list(df=2)) +
+  stat_function(fun = dchisq, 
+                geom = "area",
+                xlim = c(qchisq(0.95, 2),10),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=2)) +
+  xlab("\n x2") +
+  ylab("") +
+  ggtitle("Chi-Square -distribution (df=2, alpha = 0.05)")
+```
+
+
+## Is my test significant?
+
+```{r}
+tibble(
+  CritValue = round(qchisq(0.95, 2),2),
+  Exactp = round(2*(1-pchisq(x2, 2)),5)
+)
+```
+
+## In R
+
+```{r}
+gof_res <- chisq.test(tab1$observed, p = c(0.3, 0.5, 0.2))
+gof_res
+```
+
+## Write up
+
+A $\chi^2$ goodness of fit test was conducted in order to investigate whether the distribution of students across Social, Developmental and Differential classes was equivalent in 2014- 15 and 2015-16. The goodness of fit test was significant ($\chi^2$(`r gof_res$parameter`) = `r round(gof_res$statistic,2)`, $p$<.05) and thus the null hypothesis was rejected. The distribution of student's across courses differs between the two academic years.
+
+## Example: Independence
+- I have conducted an experiment with three conditions (n=120, 40 per group)
+- I want to check whether my participants are equally distributed based on some demographic variables.
+  - Let's focus on whether English is participants first language
+- Recall from an experimental design perspective, I want such things to be randomized across my groups.
+  - So I would expect an even distribution.
+
+## Data
+
+```{r, echo=FALSE}
+set.seed(7284)
+exp <- tibble(
+  ID = paste("ID", 1:120, sep = ""),
+  condition = c(rep("control", 40), rep("group1", 40), rep("group2", 40)),
+  lang = c(sample(c("Yes", "No"), 40, replace = T, prob = c(0.5, 0.5)),
+           sample(c("Yes", "No"), 40, replace = T, prob = c(0.3, 0.7)),
+           sample(c("Yes", "No"), 40, replace = T, prob = c(0.6, 0.4)))
+)
+```
+
+```{r}
+head(exp)
+```
+
+- `ID` = Unique ID variable
+- `condition` = experimental conditions (control, group1, group2)
+- `lang` = binary Yes/No for English as first language
+
+## Tabular format
+
+- It can be very useful to display data for two categorical variables as a contingency table.
+
+```{r}
+tabs <- addmargins(table(exp$condition, exp$lang))
+tabs
+```
+
+## Visualizing Data: Mosaic Plot
+
+```{r}
+#install.packages("ggmosaic")
+#library(ggmosaic)
+
+ggplot(data = exp) +
+  geom_mosaic(aes(x = product(condition, lang), fill = condition)) +
+  labs(x = "\n First Language", y = "")
+```
+
+- We can also show the same data as a mosaic plot.
+
+## Hypotheses
+
+$$
+\begin{matrix}
+H_0: P_{11} = P_{12}, P_{21} = P_{22}, P_{31} = P_{32} \\
+H_1: P_{11} \neq P_{12} | P_{21} \neq P_{22} | P_{31} \neq P_{32}
+\end{matrix}
+$$
+
+- In words
+  - $H_0$ says the proportion of each cell in each row are equal.
+  - $H_1$ says at least one of these pairs are not equal.
+
+## Test statistic
+- The test statistic looks much the same as the statistic for the GoF test.
+
+$$
+\chi^2 = \sum_{i=1}^{r}\sum_{i=1}^{c} \frac{(\hat{E_{ij}} - O_{ij})^2}{\hat{E_{ij}}}
+$$
+
+- What is different?
+  - $\sum_{i=1}^{r}\sum_{i=1}^{c}$ simply means sum the quantities for all cells in all rows (r) and columns (c)
+  - But why $\hat{E_{ij}}$? Why the hat?
+
+## Expected frequencies
+- Remember in the GoF test we knew the expected frequencies because we had known proportions and known sample size.
+  - Here we do not have that.
+- So we have to estimate the expected frequencies from the data. 
+  - Hence we use $\hat{E}$ to show this is an estimate.
+  
+$$
+\hat{E_{ij}} = \frac{R_iC_j}{N}
+$$
+
+## Calculation: Controls-No
+
+```{r, echo=FALSE}
+tabs
+```
+
+$$
+\hat{E_{11}} = \frac{R_1C_1}{N} = \frac{40*65}{120} = \frac{2600}{120} = 21.67 \\
+$$
+
+$$
+\frac{(\hat{E_{11}} - O_{11})^2}{\hat{E_{11}}} = \frac{(21.67 - 19)^2}{21.67} = \frac{7.1289}{21.67} = 0.33 
+$$
+
+## Null Distribution
+- Again, we evaluate the $\chi^2$ test of independence statistic against the $\chi^2$-distribution.
+- Here:
+
+$$
+df = (r-1)(c-1)
+$$
+
+- Note, $r$ and $c$ are just the number of levels for each categorical variable.
+- In our example $(r-1)(c-1)=(3-1)(2-1)=2*1=2$
+  - Thus using the same $\alpha$=0.05, we would have the same critical value = 5.99
+
+## In R
+```{r}
+con <- table(exp$condition, exp$lang)
+ind_res <- chisq.test(con)
+ind_res
+```
+
+## Write up
+A $\chi^2$ test of independence was performed to examine whether the distribution of English first language speakers was consistent across experimental conditions (n=120). The relation between these variables was significant ($\chi^2$(`r ind_res$parameter`) = `r round(ind_res$statistic,2)`, p <.05). Therefore, we reject the null hypothesis.
+
+## Output
+- Here I want to make brief comment about analysis objects.
+- The object `ind_res` contains the output of our analysis.
+  - This has lots of elements to it.
+- We can view and work with these by using the $ sign
+
+```{r}
+names(ind_res)
+```
+
+## Residuals
+- For example, lets look at the residuals.
+- The Pearson residuals tell us which cells in the contingency table had the greatest differences.
+
+```{r}
+ind_res$residuals
+```
+
+## Assumptions
+- Sufficiently large N to approximate a normal sampling distribution
+  - We saw last semester this actually begins to happen pretty fast.
+- Expected and observed cell frequencies are sufficiently large.
+  - If either drop below 5, then there is not really enough data.
+- Each observation appears in only 1 cell.
+  - Data are independent.
+  - If data are dependent, we can use a McNemar test.
+
+## Yate's correction
+- An aside:
+  - Our chi-square test only approximates a chi-square sampling distribution.
+  - When we have a 2x2 table with df=1, it turns out this approximation is not very good.
+  - So for 2x2 tables we apply Yate’s continuity correction.
+  - This subtracts 0.5 from each cell deviation.
+  - It is the default in R when we have a 2x2 table.
+
+## Effect size
+- Three possibilities:
+  - Phi coefficient (for 2x2 tables)
+  - Odds ratios
+  - Cramer's V
+- We will not discuss these much this year as we will come back to odds ratios in year 2.
+  - Equations and code are shown in the full calculation additional slides.
+
+## Tasks for this week...
+1. Finish tasks from last week. 
+2. Quiz 19: All $t$-tests
+    - Today at 17:00.
+    - Close Monday 3rd at 17:00
+
+## Full calculations
+```{r}
+ind_res
+```
+
+- Let's do all the steps to calculate $\chi^2$ and the exact p-value.
+
+## Full calculations
+- Let's start with the expected values
+
+$$
+\hat{E_{ij}} = \frac{R_iC_j}{N}
+$$
+
+## Full calculations
+```{r, echo=FALSE}
+tabs
+```
+
+$$
+\hat{E_{11}} = \frac{R_1C_1}{N} = \frac{40*65}{120} = \frac{2600}{120} = 21.67 \\
+$$
+
+- As we have the same number of participants in each condition, this is also the expected value for $\hat{E_{21}}$ and $\hat{E_{31}}$
+
+
+## Full calculations
+```{r, echo=FALSE}
+tabs
+```
+
+$$
+\hat{E_{12}} = \frac{R_1C_2}{N} = \frac{40*55}{120} = \frac{2200}{120} = 18.33 \\
+$$
+
+- As we have the same number of participants in each condition, this is also the expected value for $\hat{E_{22}}$ and $\hat{E_{23}}$
+
+## Full calculations
+- We can check these against the information in the output to the R analysis
+
+```{r}
+ind_res$expected
+```
+
+## Full calculations
+- Now, the $\chi^2$
+
+```{r, echo=FALSE}
+tabs
+```
+
+$$
+\frac{(\hat{E_{11}} - O_{11})^2}{\hat{E_{11}}} = \frac{(21.67 - 19)^2}{21.67} = \frac{7.1289}{21.67} = 0.33 
+$$
+
+## Full calculations
+- Now, the $\chi^2$
+
+```{r, echo=FALSE}
+tabs
+```
+
+$$
+\frac{(\hat{E_{21}} - O_{21})^2}{\hat{E_{21}}} = \frac{(21.67 - 31)^2}{21.67} = \frac{87.05}{21.67} = 4.02 
+$$
+
+## Full calculations
+- Now, the $\chi^2$
+
+```{r, echo=FALSE}
+tabs
+```
+
+$$
+\frac{(\hat{E_{31}} - O_{31})^2}{\hat{E_{31}}} = \frac{(21.67 - 15)^2}{21.67} = \frac{44.49}{21.67} = 2.05 
+$$
+
+## Full calculations
+- Now, the $\chi^2$
+
+```{r, echo=FALSE}
+tabs
+```
+
+$$
+\frac{(\hat{E_{12}} - O_{12})^2}{\hat{E_{12}}} = \frac{(18.33 - 21)^2}{18.33} = \frac{7.1289}{18.33} = 0.39 
+$$
+
+## Full calculations
+- Now, the $\chi^2$
+
+```{r, echo=FALSE}
+tabs
+```
+
+$$
+\frac{(\hat{E_{22}} - O_{22})^2}{\hat{E_{22}}} = \frac{(18.33 - 9)^2}{18.33} = \frac{87.05}{18.33} = 4.75 
+$$
+
+## Full calculations
+- Now, the $\chi^2$
+
+```{r, echo=FALSE}
+tabs
+```
+
+$$
+\frac{(\hat{E_{32}} - O_{32})^2}{\hat{E_{32}}} = \frac{(18.33 - 25)^2}{18.33} = \frac{44.49}{18.33} = 2.43
+$$
+
+## Full calculations
+- Last step is to add them up:
+
+$$
+\chi^2 = \sum_{i=1}^{r}\sum_{i=1}^{c} \frac{(\hat{E_{ij}} - O_{ij})^2}{\hat{E_{ij}}}
+$$
+
+```{r}
+x2i <- 0.33 + 4.02 + 2.05 + 0.39 + 4.75 + 2.43
+x2i
+```
+
+## Full calculations
+- And check against the R results (tiny bit of rounding error)
+
+```{r}
+ind_res
+```
+
+## Full calculations
+- And the p-value
+
+```{r}
+1 - pchisq(13.964, 2)
+```
+
+## Full calculations
+- The Pearson's residuals are calculated as:
+
+$$
+Residual_{ij} = \frac{(E_{ij} - O_{ij})}{\sqrt{E_{ij}}}
+$$
+
+## Full calculations
+- So let's do one residual and then look at the output of our analysis:
+
+$$
+Residual_{11} = \frac{(E_{11} - O_{11})}{\sqrt{E_{1}}} = \frac{(21.67 - 19)}{\sqrt{21.67}} = \frac{2.67}{4.655105} = 0.57
+$$
+
+```{r}
+ind_res$residuals
+```
+
+## Full calculations
+- Hold on....why is our calculation positive, and the R results negative?
+- This is just an interpretation point.
+- In our calculation, we have used $E_{ij} - O_{ij}$
+- If instead we calculate $O_{ij} - E_{ij}$, then we would get the same absolute value but negative.
+- Why not try it.
+
+## Full calculations
+- So the last thing is to quickly show the equations for the effect size measures.
+
+$$
+Phi = \sqrt{\frac{\chi^2}{N}}
+$$
+
+
+$$
+CramerV = \sqrt{\frac{\chi^2}{N*min(r-1,c-1)}}
+$$
+
+- Cramer's V generalizes phi to larger contingency tables.

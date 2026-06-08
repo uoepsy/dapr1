@@ -1,0 +1,399 @@
+---
+title: "Lecture code: Hypothesis testing: critical values"
+author: "Umberto Noe"
+output: 
+  bookdown::html_document2:
+    theme: cosmo
+    number_sections: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE,
+                      fig.align = 'center',
+                      fig.height = 6, fig.width = 7,
+                      out.width = '70%')
+
+.FS <- 5
+.PH <- 280
+.QH <- -20
+```
+
+
+
+```{r}
+rm(list = ls())
+set.seed(1)
+
+library(tidyverse)
+library(ggridges)
+library(kableExtra)
+source('https://uoepsy.github.io/files/rep_sample_n.R')
+
+theme_set(theme_light(base_size = 15))
+
+data <- read_csv("https://uoepsy.github.io/data/stroopexpt2.csv")
+
+data %>%
+    head(n = 10) %>%
+    kable(digits = 2) %>%
+    kable_styling(full_width = FALSE)
+```
+
+Distribution of sample data
+```{r}
+ggplot(data) +
+  geom_histogram(aes(x = stroop_effect), binwidth = 1.5,
+                 color = 'palegreen3', fill = 'palegreen') +
+  labs(x = 'Stroop effect')
+```
+
+
+```{r}
+xbar_obs <- mean(data$stroop_effect)
+xbar_obs
+```
+
+
+
+# 0. Preliminaries
+
+```{r echo=FALSE, out.width='100%'}
+knitr::include_graphics("https://uoepsy.github.io/dapr1/labs/images/prob/normal_rule.png")
+```
+
+```{r echo=FALSE, out.width='40%'}
+knitr::include_graphics("https://uoepsy.github.io/dapr1/labs/images/prob/normal_quantile.png")
+```
+
+
+
+# A. Bootstrap distribution
+
+```{r}
+n <- nrow(data)
+
+boot_dist <- data %>%
+    rep_sample_n(n = n, samples = 5000, replace = TRUE) %>%
+    group_by(sample) %>%
+    summarise(xbar = mean(stroop_effect))
+```
+
+```{r}
+ggplot(boot_dist) +
+    geom_histogram(aes(x = xbar), color = 'lightblue3', fill = 'lightblue') +
+    geom_vline(xintercept = mean(data$stroop_effect), color = 'black', linetype = 2) +
+    labs(x = expr(bar(x)))
+```
+
+
+
+# B. Null distribution
+
+## Resampling approach
+
+```{r}
+data <- data %>%
+    mutate(
+        stroop_effect_shifted = stroop_effect - xbar_obs
+    )
+
+mean(data$stroop_effect_shifted)
+
+null_dist <- data %>%
+    rep_sample_n(n = n, samples = 5000, replace = TRUE) %>%
+    group_by(sample) %>%
+    summarise(xbar = mean(stroop_effect_shifted))
+```
+
+```{r}
+ggplot(null_dist) +
+    geom_histogram(aes(x = xbar), color = 'lightblue3', fill = 'lightblue') +
+    labs(x = expr(bar(x)~"(when H0 true)"))
+```
+
+```{r}
+pvalue <- mean(null_dist$xbar > xbar_obs)
+pvalue
+```
+
+```{r}
+ggplot(null_dist) +
+    geom_histogram(aes(x = xbar,
+                       fill = stat(x) > xbar_obs), color = 'lightblue3') +
+    scale_fill_manual(values = c('lightgray', 'red')) +
+    theme(legend.position = 'none') +
+    labs(x = expr(bar(x)~"(when H0 true)"))
+```
+
+
+Centre and spread
+```{r}
+# mean
+mu <- mean(null_dist$xbar)
+# standard error
+se <- sd(null_dist$xbar)
+
+tibble(mu, se) %>%
+    kable(digits = 3) %>%
+    kable_styling(full_width = FALSE)
+```
+
+
+## Theoretical approach
+
+```{r}
+mu_theory <- 0
+se_theory <- sd(data$stroop_effect) / sqrt(n)
+
+tibble(mu_theory, se_theory) %>%
+    kable(digits = 3) %>%
+    kable_styling(full_width = FALSE)
+```
+
+```{r}
+ggplot() +
+    xlim(mu_theory - 3.5 * se_theory, mu_theory + 3.5 * se_theory) + 
+    geom_function(fun = dnorm, 
+                  args = list(mean = mu_theory, sd = se_theory),
+                  color = 'darkorange', size = 1) +
+    labs(x = expr(bar(x)~"(when H0 true)"))
+```
+
+
+
+# C. Critical value
+
+## Resampling approach
+
+```{r}
+q0.95 <- quantile(null_dist$xbar, probs = 0.95)
+tibble(q0.95, xbar_obs, xbar_obs >= q0.95)
+
+null_dist %>%
+    ggplot() +
+    geom_histogram(aes(x = xbar, 
+                       fill = stat(x) >= q0.95), 
+                   color = 'lightblue3',
+                   binwidth = 0.1, 
+                   boundary = 0,
+                   alpha = 0.5) +
+    labs(x = expr(bar(x)~"(when H0 true)")) +
+    geom_vline(xintercept = xbar_obs, size = 1, linetype = 2, 
+               color = 'black') +
+    scale_fill_manual(values = c("lightgray", "red")) +
+    theme(legend.position = 'none') +
+    geom_text(aes(1, .PH, label = '0.05', hjust = 0), 
+              color = 'red', size = .FS, fontface = 'bold') +
+    geom_text(aes(0, .PH, label = '0.95'), 
+              color = 'darkgray', size = .FS, fontface = 'bold') +
+    geom_text(aes(q0.95, .QH, label = round(q0.95, 3), hjust = 1, size = .FS), 
+              color = 'red') +
+    geom_text(aes(xbar_obs + 0.05, .QH, label = round(xbar_obs, 3), hjust = 0, size = .FS),
+              color = 'black')
+```
+
+
+## Theoretical approach
+
+```{r}
+null_dist %>%
+    ggplot() +
+    geom_histogram(aes(x = xbar, y = ..density..), color = 'lightblue3', fill = 'lightblue', 
+                   alpha = 0.5) +
+    geom_function(fun = dnorm, args = list(mean = mu_theory, sd = se_theory), 
+                  color = 'darkorange', size = 2) +
+    geom_vline(xintercept = xbar_obs, size = 1, linetype = 2, color = 'black') + 
+    geom_area(stat = "function", fun = dnorm, args = list(mean = mu_theory, sd = se_theory),
+              fill = "red", alpha = 0.5, 
+              xlim = c(qnorm(p = 0.95, mu_theory, se_theory), 3.5 * se_theory)) +
+    geom_area(stat = "function", fun = dnorm, args = list(mean = mu_theory, sd = se_theory),
+              fill = "lightgray", alpha = 0.5, 
+              xlim = c(-3.5 * se_theory, qnorm(p = 0.95, mu_theory, se_theory))) +
+    geom_text(aes(1, 0.5, label = '0.05', hjust = 0), 
+              color = 'red', size = .FS, fontface = 'bold') +
+    geom_text(aes(0, 0.5, label = '0.95'), 
+              color = 'darkgray', size = .FS, fontface = 'bold') +
+    labs(x = expr(bar(x)~"(when H0 true)"))
+```
+
+```{r}
+# resampling
+quantile(null_dist$xbar, prob = 0.95)
+# theory
+qnorm(p = 0.95, mu_theory, se_theory)
+```
+
+
+
+# D. Critical value: two-sided
+
+## Resampling approach
+
+```{r}
+q <- quantile(null_dist$xbar, probs = c(0.025, 0.975))
+q
+
+q0.025 <- q[1]
+q0.975 <- q[2]
+
+null_dist %>%
+    ggplot() +
+    geom_histogram(aes(x = xbar, 
+                       fill = stat(x) >= q0.025 & stat(x) <= q0.975), 
+                   color = 'lightblue3',
+                   binwidth = 0.1, 
+                   boundary = 0,
+                   alpha = 0.5) +
+    labs(x = expr(bar(x)~"(when H0 true)")) +
+    geom_vline(xintercept = xbar_obs, size = 1, linetype = 2, color = 'black') +
+    scale_fill_manual(values = c("red", "lightgray")) +
+    theme(legend.position = 'none') +
+    geom_text(aes(-1.2, .PH, label = '0.025'), color = 'red', size = .FS, fontface = 'bold') +
+    geom_text(aes(1, .PH, label = '0.025', hjust = 0), color = 'red', size = .FS, fontface = 'bold') +
+    geom_text(aes(0, .PH, label = '0.95'), color = 'darkgray', size = .FS, fontface = 'bold') +
+    geom_text(aes(q0.025, .QH, label = round(q0.025, 3), hjust = 0), color = 'red', size = .FS) +
+    geom_text(aes(q0.975, .QH, label = round(q0.975, 3), hjust = 1), color = 'red', size = .FS) +
+    geom_text(aes(xbar_obs + 0.05, .QH, label = round(xbar_obs, 3), hjust = 0),
+              color = 'black', size = .FS)
+```
+
+
+## Theoretical approach
+
+```{r}
+null_dist %>%
+    ggplot() +
+    geom_histogram(aes(x = xbar, y = ..density..), color = 'lightblue3', fill = 'lightblue', 
+                   alpha = 0.5) +
+    geom_function(fun = dnorm, args = list(mean = mu_theory, sd = se_theory), 
+                  color = 'darkorange', size = 2) +
+    geom_vline(xintercept = xbar_obs, size = 1, linetype = 2, color = 'black') +
+    geom_area(stat = "function", fun = dnorm, args = list(mean = mu_theory, sd = se_theory),
+              fill = "red", alpha = 0.5, 
+              xlim = c(qnorm(p = 0.975, mu_theory, se_theory), 3.5 * se_theory)) +
+    geom_area(stat = "function", fun = dnorm, args = list(mean = mu_theory, sd = se_theory),
+              fill = "red", alpha = 0.5, 
+              xlim = c(-3.5 * se_theory, qnorm(p = 0.025, mu_theory, se_theory))) +
+    geom_area(stat = "function", fun = dnorm, args = list(mean = mu_theory, sd = se_theory),
+              fill = "lightgray", alpha = 0.5, 
+              xlim = c(qnorm(p = 0.025, mu_theory, se_theory), 
+                             qnorm(p = 0.975, mu_theory, se_theory))) +
+    geom_text(aes(1, 0.5, label = '0.025', hjust = 0), 
+              color = 'red', size = .FS, fontface = 'bold') +
+    geom_text(aes(-1, 0.5, label = '0.025', hjust = 1), 
+              color = 'red', size = .FS, fontface = 'bold') +
+    geom_text(aes(0, 0.5, label = '0.95'), 
+              color = 'darkgray', size = .FS, fontface = 'bold') +
+    labs(x = expr(bar(x)~"(when H0 true)"))
+```
+
+```{r}
+# resampling
+quantile(null_dist$xbar, prob = c(0.025, 0.975))
+# theory
+qnorm(p = c(0.025, 0.975), mean = mu_theory, sd = se_theory)
+```
+
+
+
+# E. Standardized statistics (a.k.a. z-scores)
+
+## Resampling approach
+
+```{r}
+hypothesised_value <- 0
+
+null_dist$z <- (null_dist$xbar - hypothesised_value) / sd(null_dist$xbar)
+
+z_obs <- (xbar_obs - hypothesised_value) / sd(null_dist$xbar)
+z_obs
+```
+
+```{r}
+# ggplot(null_dist) +
+#   geom_density(aes(x = z)) +
+#   geom_vline(xintercept = z_obs, size = 1, linetype = 2, color = 'dodgerblue') +
+#   labs(x = 'z-score')
+```
+
+```{r}
+ggplot(null_dist) +
+  stat_density_ridges(
+    aes(x = z, y = 0, fill = factor(stat(quantile))),
+    alpha = 0.5,
+    geom = "density_ridges_gradient",
+    calc_ecdf = TRUE,
+    quantiles = c(0.025, 0.975),
+    size = 1,
+    color = 'lightblue3'
+  ) +
+  scale_fill_manual(
+    values = c(alpha("red", 0.5), alpha("lightgray", 0.5), alpha("red", 0.5))
+    ) +
+  geom_vline(xintercept = z_obs, size = 1, linetype = 2, color = 'black') +
+  theme(legend.position = 'none') +
+  labs(x = 'z-score (when H0 true)', y = 'density')
+```
+
+```{r}
+quantile(null_dist$z, prob = c(0.025, 0.975))
+mean(null_dist$z >= -2 & null_dist$z <= 2)
+```
+
+
+## Theory-based approach
+
+```{r}
+null_dist %>%
+    ggplot() +
+    geom_density(aes(x = z), size = 1, color = 'lightblue3') +
+    geom_function(fun = dnorm, args = list(mean = 0, sd = 1), 
+                  color = 'darkorange', size = 1) +
+    geom_vline(xintercept = z_obs, size = 1, linetype = 2, color = 'black') +
+    geom_area(stat = "function", fun = dnorm, args = list(mean = 0, sd = 1),
+              fill = "red", alpha = 0.5,
+              xlim = c(qnorm(p = 0.975, 0, 1), 3.5 * 1)) +
+    geom_area(stat = "function", fun = dnorm, args = list(mean = 0, sd = 1),
+              fill = "red", alpha = 0.5,
+              xlim = c(-3.5 * 1, qnorm(p = 0.025, 0, 1))) +
+  geom_area(stat = "function", fun = dnorm, args = list(mean = 0, sd = 1),
+              fill = "lightgray", alpha = 0.5,
+              xlim = c(qnorm(p = 0.025, 0, 1), qnorm(p = 0.975, 0, 1))) +
+    labs(x = 'z-score (when H0 true)')
+```
+
+```{r}
+# resampling
+quantile(null_dist$z, prob = c(0.025, 0.975))
+# theory
+q <- qnorm(c(0.025, 0.975), mean = 0, sd = 1)
+q
+```
+
+Check the probability to the left of the theoretical quantiles:
+```{r}
+pnorm(q, mean = 0, sd = 1)
+pnorm(q)
+```
+
+# A rule without standardizing?
+
+$$
+z = \frac{\bar x - \text{hypothesised value}}{SE}
+$$
+
+Reject if $z >= 2$ because $2 \cdot P(Z > 2) = P(Z \leq -2) + P(Z > 2) = 0.05$.
+
+The 0.975-quantile is $z_0.975 = 2$ as $P(Z < 2) = 0.975$ and $P(Z > 2) = 1 - 0.975 = 0.025$
+
+```{r}
+qnorm(0.975)
+```
+
+$$
+\begin{aligned}
+\text{Reject } H_0 \text{ if } &\qquad z \geq 2 \\
+\text{Reject } H_0 \text{ if } &\qquad \frac{\bar x - \text{hypothesised value}}{SE} \geq 2 \\
+\text{Reject } H_0 \text{ if } &\qquad \bar x \geq \text{hypothesised value} + 2 \cdot SE
+\end{aligned}
+$$

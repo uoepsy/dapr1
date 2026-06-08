@@ -1,0 +1,597 @@
+---
+title: "<b>T-Test: Paired Samples</b>"
+subtitle: "<small>Data Analysis for Psychology in R 1<br>Semester 2, Week 8</small>"
+author: "<b>Dr Emma Waterston</b>"
+institute: "Department of Psychology<br/>The University of Edinburgh"
+date: ""
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: 
+      - un-xaringan-themer.css
+    nature:
+      ratio: '16:9'
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+
+options(htmltools.dir.version = FALSE)
+#options(digits = 4, scipen = 2)
+options(knitr.table.format = "html")
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE, message = FALSE,
+  cache = FALSE,
+  dev = "png",
+  fig.align = 'center',
+  fig.height = 5, fig.width = 6,
+  out.width = "80%",
+  dpi = 300
+)
+```
+
+```{r xaringan-panelset, echo=FALSE}
+xaringanExtra::use_panelset()
+```
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#0F4C81", # DAPR1
+  # base_color = "#BF1932", # DAPR2
+  # base_color = "#88B04B", # DAPR3 
+  # base_color = "#FCBB06", # USMR
+  # base_color = "#a41ae4", # MSMR
+  header_color = "#000000",
+  header_font_google = google_font("Source Sans Pro"),
+  header_font_weight = 400,
+  text_font_google = google_font("Source Sans Pro", "400", "400i", "600", "600i"),
+  code_font_google = google_font("Source Code Pro"),
+  outfile = "un-xaringan-themer.css"
+)
+```
+
+
+```{r preamble, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+library(moderndive)
+
+theme_set(
+    theme_classic(base_size = 15) +
+    theme(plot.title = element_text(hjust = 0.5))
+)
+```
+
+# Learning Objectives
+- Understand when to use an paired sample $t$-test
+- Understand the null hypothesis for an paired sample $t$-test
+- Understand how to calculate the test statistic
+- Know how to conduct the test in `R`
+
+---
+# Topics for Today
+- Conceptual background and introduction to our example
+- Calculations and `R`-functions
+- Assumptions and effect size
+
+---
+# Paired T-Test Purpose & Data
+- The paired sample $t$-test is used when we want to test the difference in mean scores for a sample comprising matched (or naturally related) pairs. 
+
+- Examples:
+	- Pre-test and post-test score with an intervention administered between the time points
+	- A participant experiences both experimental conditions (e.g., caffeine and placebo)
+
+- Data Requirements
+  - A continuously measured variable.
+  - A binary variable denoting pairing.
+
+---
+
+# t-statistic
+
+$$t = \frac{\overline{d} - \mu_{d_0}}{SE_\bar{d}} \qquad \text{where} \qquad {SE_{\bar d}} = \frac{s_d}{\sqrt n}$$
+
+- $\bar{d}$ = mean of the individual difference scores $(d_i)$ where $d_i = x_{i1} - x_{i2}$
+- $\mu_{d_0}$ is the hypothesised population mean difference in the null hypothesis (which is usually assumed to be 0)
+- $SE_\bar{d}$ = standard error of mean difference $(d_i)$
+  - $s_{d}$ = standard deviation of the difference scores $(d_i)$
+  - $n$ = sample size = number of matched pairs
+
+- Sampling distribution is a $t$-distribution with $n-1$ degrees of freedom
+
+- Note, this is just essentially a one sample test on the difference scores
+
+
+---
+# Hypotheses
+.pull-left[
+
+- Two-tailed:
+
+$$
+\begin{matrix}
+H_0: \mu_{d} = \mu_{d_0}\\
+H_1: \mu_{d} \neq \mu_{d_0}
+\end{matrix}
+$$
+
+- One-tailed
+
+$$
+\begin{matrix}
+H_0: \mu_{d} = \mu_{d_0} \\
+H_1: \mu_{d} < \mu_{d_0} \\
+H_1: \mu_{d} > \mu_{d_0}
+\end{matrix}
+$$
+]
+
+.pull-right[
+
+- Two-tailed:
+
+$$
+\begin{matrix}
+H_0: \mu_{d} - \mu_{d_0} = 0 \\
+H_1: \mu_{d} - \mu_{d_0} \neq 0
+\end{matrix}
+$$
+
+- One-tailed
+
+$$
+\begin{matrix}
+H_0: \mu_{d} - \mu_{d_0} = 0 \\
+H_1: \mu_{d} - \mu_{d_0} < 0 \\
+H_1: \mu_{d} - \mu_{d_0} > 0
+\end{matrix}
+$$
+]
+
+---
+class: center, middle
+# **Questions?**
+
+---
+# Example
+- I want to assess whether a time-management course influenced levels of exam stress in students. 
+
+- I ask 50 students to take a self-report stress measure during their winter exams. 
+
+- At the beginning of semester 2 they take a time management course. 
+
+- I then assess their self-report stress in the summer exam block.
+	- Let's assume for the sake of this example that I have been able to control the volume and difficulty of the exams the students take in each block.
+	
+---
+# Data
+
+```{r, echo = FALSE}
+set.seed(007)
+exam <- tibble(
+  ID = c(rep(paste("ID", 1:50, sep=""),2)),
+  stress = round(c(rnorm(50, 9.2, 2.2), rnorm(50, 7.5, 2.8))),
+  time = as_factor(c(rep("t1", 50), rep("t2", 50)))
+)
+```
+
+```{r, echo=FALSE}
+head(exam)
+```
+
+---
+
+# Hypotheses
+- I elect to use a two-tailed test with alpha $(\alpha)$ of .01
+
+- I want to be quite sure the intervention has worked and stress levels are different.
+
+- So my hypotheses are:
+
+$$
+\begin{matrix}
+H_0: \mu_{d} = \mu_{d_0}\\
+H_1: \mu_{d} \neq \mu_{d_0}\\
+\end{matrix}
+$$
+---
+class: center, middle
+
+# **Questions?**
+
+---
+# Calculation
+- Steps in my calculations:
+  - Calculate the difference scores for individuals $d_i$ 
+  - Calculate the mean of the difference scores $\bar{d}$
+  - Calculate the $s_{d}$ of the difference scores
+  - Check I know my $n$
+  - Calculate the standard error of mean difference $(SE_\bar{d})$
+  
+- Use all this to calculate $t$
+
+
+---
+# Data Organisation
+- Our data is currently in what is referred to as long format.
+  - All the scores are in one column, with two entries per participant.
+
+- To calculate the $d_i$ values, we will convert this to wide format.
+  - Where there are two columns representing the score at time 1 and time 2
+  - And a single row per person
+  
+---
+# Data Organisation
+```{r, echo = TRUE}
+exam_wide <- exam %>%
+  pivot_wider(id_cols =  ID, 
+              names_from = time, 
+              values_from = stress)
+head(exam_wide)
+```
+
+---
+# Calculation
+```{r, echo = TRUE}
+exam_wide %>%  
+  mutate(dif = t1 - t2) %>%
+  summarise(
+    dbar = mean(dif),
+    Sd = sd(dif),
+    mu_d0 = 0,
+    n = n()) %>%
+  mutate(
+    SEd = (Sd /sqrt(n)),
+    t = ((dbar-mu_d0)/SEd)
+    ) %>%
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
+```
+
+```{r, echo=FALSE}
+calc <- exam_wide %>%  
+  mutate(dif = t1 - t2) %>%
+  summarise(
+    dbar = mean(dif),
+    Sd = sd(dif),
+    mu_d0 = 0,
+    n = n()) %>%
+  mutate(
+    SEd = (Sd /sqrt(n)),
+    t = ((dbar-mu_d0)/SEd)
+    )
+```
+
+---
+# Calculation
+```{r, echo = FALSE}
+exam_wide %>%  
+  mutate(dif = t1 - t2) %>%
+  summarise(
+    dbar = mean(dif),
+    Sd = sd(dif),
+    mu_d0 = 0,
+    n = n()) %>%
+  mutate(
+    SEd = (Sd /sqrt(n)),
+    t = ((dbar-mu_d0)/SEd)
+    ) %>%
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
+```
+
+$$t = \frac{\bar{d} - \mu_{d_0}}{SE_\bar{d}} = \frac{2.1-0}{\frac{3.55}{\sqrt{50}}} = \frac{2.1}{0.5} = 4.20$$
+- So in our example $t= 4.20$
+- Note: When doing hand calculations there might be a small amount of rounding error when we compare to $t$ calculated in `R`.
+
+---
+# Is my test significant?
+- So we have all the pieces we need:
+	- $t = `r round(calc[[6]], 2)`$ 
+	- $df = n-1 = 50 - 1 = 49$
+	- Hypothesis to test (two-tailed)
+	- $\alpha = .01$
+
+- So now all we need is the critical value from the associated $t$-distribution in order to make our decision.
+---
+# Is my test significant?
+
+.pull-left[
+```{r, echo=FALSE}
+ggplot(tibble(x = c(-6,6)), aes(x = x)) +
+  stat_function(fun=dt,
+                geom = "line",
+                args = list(df=49)) +
+  stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(qt(0.005, 49), -6),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=49)) +
+    stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(qt(0.995, 49), 6),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=49)) +
+  geom_vline(xintercept = calc[[6]], col="red") +
+  xlab("\n t") +
+  ylab("") +
+  ggtitle("t-distribution (df=49)")
+```
+]
+
+.pull-right[
+```{r, echo = TRUE}
+tibble(
+  LowerCrit = round(qt(0.005, 49),2),
+  UpperCrit = round(qt(0.995, 49),2),
+  Exactp = round(2*(1-pt(calc[[6]], 49)),5)
+)
+```
+]
+
+---
+# Is my test significant?
+
+- So our critical value is 2.68
+	- Our $t$-statistic (`r round(calc[[6]], 2)`) is larger than this
+	- So we reject the null hypothesis
+---
+.pull-left[
+
+- Wide Format Data
+```{r, echo = TRUE}
+# two numeric columns
+res_wide <- t.test(exam_wide$t1, exam_wide$t2, 
+       paired = TRUE, 
+       mu = 0,
+       alternative = "two.sided",
+       conf.level = 0.99)
+res_wide
+```
+]
+
+.pull-right[
+
+- Long Format Data
+```{r, echo = TRUE,eval = FALSE}
+#one numeric column, one binary column
+res_long <- t.test(exam$stress ~ exam$time, 
+       paired = TRUE, 
+       mu = 0,
+       alternative = "two.sided",
+       conf.level = 0.99)
+res_long
+```
+]
+
+---
+# Write-up
+A paired-sample $t$-test was conducted in order to determine a if a statistically significant $(\alpha = .01)$ mean difference in self-report stress was present, pre- and post-time management intervention in a sample of 50 undergraduate students. The pre-intervention mean score was higher $(M=`r mean(exam_wide$t1)`, SD = `r round(sd(exam_wide$t1),2)`)$ than the post intervention score $(M = `r mean(exam_wide$t2)`, SD = `r round(sd(exam_wide$t2),2)`)$. The difference was statistically significant $(t(`r res_wide$parameter`)= `r round(res_wide$statistic,2)`, p < . 001, two-tailed)$. We are 99% confident that post-intervention scores were between 0.76 and 3.44 points lower than pre-intervention scores. Thus, we reject the null hypothesis of no difference.
+
+---
+class: center, middle
+# **Questions?**
+---
+
+# Assumption checks summary 
+
+```{r tbl7, echo = FALSE}
+tbl7 <- tibble::tribble(
+~` `, ~`Description`, ~`One-Sample  t-test`, ~`Independent Sample t-test`, ~`Paired Sample t-test`,
+"Normality","Continuous variable (and difference) is normally distributed.","Yes (Population)","Yes (Both groups/ Difference)","Yes (Both groups/ Difference)",
+"Tests:","Descriptive Statistics; Shapiro-Wilks Test; QQ-plot"," "," "," ",
+"Independence","Observations are sampled independently.","Yes","Yes (within and across groups)","Yes (within groups)",
+"Tests:","None. Design issue."," "," "," ",
+"Homogeneity of variance","Population level standard deviation is the same in both groups.","NA","Yes","NA",
+"Tests:","F-test"," "," "," ",
+"Matched Pairs in data","For paired sample, each observation must have matched pair.","NA","NA","Yes",
+"Tests:","None. Data structure issue."," "," "," "
+)
+
+
+kable(tbl7) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, font_size = 18)
+```
+
+---
+# Assumptions
+- Normality of the difference scores ( $d_i$ )
+- Independence of observations **within** group/time
+- Data are matched pairs (design)
+
+---
+# Adding the difference scores
+
+- Our assumptions concern the difference scores. 
+- We showed these earlier in our calculations.
+- Here we will add them to `exam_wide` for ease.
+
+```{r, echo = TRUE}
+exam_wide <- exam_wide %>%  
+  mutate(
+    dif = t1 - t2)
+```
+
+---
+# Normality: Skew
+
+```{r echo=FALSE}
+library(kableExtra)
+
+tribble(~"Verbal label", ~"Magnitude of skew in absolute value",
+       "Generally not problematic", "| Skew | < 1",
+       "Slight concern", " 1 > | Skew | < 2",
+       "Investigate impact", "| Skew | > 2") %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+```{r, echo = TRUE}
+library(psych)
+exam_wide %>%
+  summarise(
+    skew = round(skew(dif), 2)
+  )
+```
+
+- Skew is low (< 1), so we would conclude that it is not problematic. 
+
+---
+# Normality: Histograms
+
+.pull-left[
+```{r, eval=FALSE, echo = TRUE, out.width = '100%'}
+ggplot(exam_wide, aes(x=dif)) +
+  geom_histogram() + 
+  labs(title = "Histogram")
+```
+]
+
+
+.pull-right[
+```{r, echo=FALSE, out.width = '100%'}
+ggplot(exam_wide, aes(x=dif)) +
+  geom_histogram() + 
+  labs(title = "Histogram")
+```
+]
+
+---
+
+# Normality: Density
+
+.pull-left[
+```{r, eval=FALSE, echo = TRUE, out.width = '100%'}
+ggplot(exam_wide, aes(x=dif)) +
+  geom_density() + 
+  labs(title = "Density")
+```
+]
+
+.pull-right[
+```{r, echo=FALSE, out.width = '100%'}
+ggplot(exam_wide, aes(x=dif)) +
+  geom_density() + 
+  labs(title = "Density")
+```
+]
+
+---
+# Normality: QQ-plots
+
+.pull-left[
+```{r, eval=FALSE, echo = TRUE, out.width = '100%'}
+ggplot(exam_wide, aes(sample = dif)) +
+  geom_qq() +
+  geom_qq_line() +
+  labs(title="QQ-plot",
+       x = "Theoretical quantiles",
+       y = "Sample quantiles")
+```
+]
+
+.pull-right[
+```{r, echo=FALSE, out.width = '100%'}
+ggplot(exam_wide, aes(sample = dif)) +
+  geom_qq() +
+  geom_qq_line() +
+  labs(title="QQ-plot",
+       x = "Theoretical quantiles",
+       y = "Sample quantiles")
+```
+]
+
+---
+#  Normality: Shapiro-Wilks in R
+```{r, echo = TRUE}
+shapiro.test(exam_wide$dif)
+```
+
+- Fail to reject the null, $p$ = .264, which is > .05
+
+- Normality of the differences is met.
+
+---
+
+#  Cohen's D: Paired t-test
+- Paired-sample $t$-test:
+
+$$D = \frac{\bar{d} - \mu_{d_0}}{s_{d}}$$
+
+- $\bar{d}$ = mean of the difference scores ( $d_i$ )
+- $\mu_{d_0}$ is the hypothesised population difference in means in the null hypothesis
+- $s_{d}$ = standard deviation of the difference scores ( $d_i$ )
+
+- So in our example:
+  - $\bar{d}$ = 2.1
+  - $\mu_{d_0}$ = 0
+  - $s_{d}$ = 3.55
+
+$$D = \frac{2.1 - 0}{3.55} = 0.59$$
+
+---
+# Cohen's D in R
+.pull-left[
+
+- Wide Format Data
+```{r, warning=FALSE, echo = TRUE}
+library(effectsize)
+cohens_d(exam_wide$t1, exam_wide$t2, 
+       paired = TRUE, 
+       mu = 0,
+       alternative = "two.sided",
+       ci = 0.99)
+```
+
+]  
+
+.pull-right[
+
+- Long Format Data
+```{r, warning=FALSE, echo = TRUE}
+library(effectsize)
+cohens_d(exam$stress ~ exam$time, 
+       paired = TRUE, 
+       mu = 0,
+       alternative = "two.sided",
+       ci = 0.99)
+```
+
+]
+
+---
+# Write up: Assumptions 
+The DV of our study, Stress, was measured on a continuous scale. Independence of observations can be assumed based on the study design. Data comprised matched pairs of observations as participants were assessed twice, pre- and post- time management course. The assumption of normality was visually assessed (via histograms, density plots, and a QQplot) as well as statistically via a Shapiro-Wilks test. The QQplot did not show much deviation from the diagonal line, and the Shapiro-Wilks test suggested that the difference scores were normally distributed $(W = 0.97, p = .264)$. This was inline with the histogram and density plots, which suggested that the difference in scores between the two assessment times was normally distributed (and where $skew < 1$). The size of the effect was found to be medium-large $(D = 0.59~[0.19, 0.99])$.
+
+---
+# Summary
+- Today we have covered:
+  - Basic structure of the paired-sample $t$-test
+  - Calculations
+  - Interpretation
+  - Assumption checks
+  - Effect size measures
+
+---
+# Tasks 
+
++ Go to your lab and work on the assessed report  
++ Complete any assigned readings  
++ Go to office hours if you have questions  
+  + Emma's Office Hours = Tuesdays 10:30-11:30 in G15, 7 George Square  
++ Complete the weekly quiz  
+  + Opens Monday at 9am  
+  + Closes Sunday at 5pm  
+

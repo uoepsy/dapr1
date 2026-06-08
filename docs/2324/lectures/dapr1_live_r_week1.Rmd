@@ -1,0 +1,145 @@
+---
+title: "Notes for dapR1 Live R Session; Week 1, Semester1"
+output: pdf_document
+date: "2023-09-15"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Summary of this week's session
+
+In this week's session, we will have a look at some basic features of RStudio, and we will learn how to read in a data file. As a first step, please register for RStudio, following the instructions in the Week 1 folder on Learn. In the session, we will show the commands working in real time, on the data projector, but these notes are provided to help you to remember the main points.
+
+## Using R as a calculator
+
+
+Although R is a programming language, it can also be used in interactive mode, and it is sometimes convenient to use it as a calculator. Once you have opened RStudio, the default view should show a panel in the bottom left, with a tab laballed "Console" (you may need to click on this tab to select it).  The console can be used to type single line commands. The commands are written after the '>' prompt, followed by pressing Return on your keyboard. In this way, you can use R as a calculator. For example, try typing the following at the console:
+
+```{r}
+2*8
+```
+
+The system should respond with the answer. Or, you could try something slightly more complex, for exampleL
+```{r}
+2*(8+3)
+```
+You can save the result of a calculation in a variable that can be accessed again later. For example, the following code uses the assignment operator "<-" to save the result of the above calculation in a variable called "mynumber":
+```{r}
+mynumber <- 2*(8+3)
+```
+If you look in the environment panel, which is on the top right in RStudio by default, you will see that the variable mynumber has been listed, along with its value. We could then type the name of the variable in the console, and R will report its value:
+```{r}
+mynumber
+```
+We could also use the name of the variable in another calculation:
+```{r}
+mynumber/2
+```
+## Loading packages and reading in data
+
+When we use R, we often need to use special functions that are not included in the basic version, but need to be accessed by loading packages. If you look in the bottom right panel in R studio, you should see a tab labelled "Packages". If you click that, you will see a list of all the packages available, with a check mark in the ones that are currently loaded. In this course, we will often need to use a package called "tidyverse". In order to load this package you can type the following at the console:
+```{r,echo=TRUE,message=FALSE}
+library(tidyverse)
+```
+If you scroll down in the Packages panel, you should see a tick mark showing that "tidyverse" has been loaded. Now, let's read in some data. We will read in a simple dataset that was used in this week's lecture. The dataset is currently stored on a website associated with this course, and as long as the tidyverse package has been loaded, you should be able to read in the data with the following command:
+```{r, message=FALSE}
+mydata <- read_csv("https://uoepsy.github.io/data/lecture1_data.csv")
+```
+Notice that we use the assignment operator again, storing the data in a variable named "mydata". The remaining part of the command uses the function "read_csv()", because the data file is stored in a csv file. The argument of the function, written inside the parentheses, is the url where the csv file is located, enclosed in double quotes.
+
+## Looking at the data
+
+Now that we have read in the data, there are several different ways that we can look at it. 
+Perhaps the simplest thing we could do is just to type the name of the variable:
+```{r}
+mydata
+```
+The output shows the format of the dataset, which is called a "tibble", and its dimensions are given, showing that there are 5 rows and 9 columns. Then, each column has a variable name in the first row, with the type of each variable given directly below. For example some columns have the type of "chr", which stands for "character", meaning that the column contains information given as sequences of characters. Other columns have the type of "dbl", which is a way of describing numeric data. 
+
+An alternative way to examine the data is to use the "str()" command, which stands for structure:
+```{r}
+str(mydata)
+```
+In this case, the output has a different format, with each variable appearing as a separate row, showing "chr" for character variables and "num" for numeric variables.
+
+Another way of examining the data is to use the "glimpse()" command,  which gives a very similar output to the previous command:
+```{r}
+glimpse(mydata)
+```
+You will notice that, as mydata has been defined as a variable, it is listed in the "Environment" panel on the top right. If you click on the name of the variable, it will show the dataset in a tabular format. 
+
+How about if we only want to look at one column of the data. For example, we want to examine the contents of the "Hair_colour" column. Then we can use the dollar sign symbol as follows:
+```{r}
+mydata$Hair_colour
+```
+The above command gives the list of values in the "Hair_colour" column of mydata. 
+We could also do the same with another variable, for example:
+```{r}
+mydata$ReactionTime
+```
+How about if you want to look at the data in a specific cell? The following command will show the data in the cell occupying the third row and the fourth column:
+```{r}
+mydata[3,4]
+```
+If I want the whole of the third row, I could remove the column figure, like this (notice the comma remains):
+```{r}
+mydata[3,]
+```
+If I wanted the whole of the fourth column, I could delete the row figure, like this:
+```{r}
+mydata[,4]
+```
+There are also commands that report how many rows or how many columns are in the data set. First, the number of rows:
+```{r}
+nrow(mydata)
+```
+Now the number of columns:
+```{r}
+ncol(mydata)
+```
+Then, if we want to find the overall dimensions (number of rows and number of columns), we can use the "dim()" command:
+```{r}
+dim(mydata)
+```
+It is also possible to add a row or a column. Here, we will add a new column, showing the favourite animal of each person in the dataset. To do this, we will again use the dollar-sign operator, and the assignment operator. We will assign a list of five strings of characters as the value of the new column. The strings are enclosed in quotes:
+```{r}
+mydata$fav_animal <- c("cat","dog","horse","rabbit","donkey")
+```
+We should be able to see the new column if we look at the data set:
+```{r}
+mydata
+```
+Notice, in the above, we use the "c()" expression to write the list: c("cat","dog","horse","rabbit","donkey"). This is used very often to express a list in R. 
+
+
+## Declaring a factor
+
+For some statistical analyses that you will study in this course, it is necessary to declare a variable to be a *factor*.  Briefly, a factor is a variable that is interpreted as a set of  categories, which are called *levels*. For example, in our dataset, the "Degree" variable could be interpreted as a factor with two levels, namely "Yes" and "No". We can declare a column to be a factor using the following command:
+```{r}
+mydata$Degree <- factor(mydata$Degree)
+```
+Now, if you run the "str()" command, you can see that "mydata$Degree" is treated as a factor with two levels:
+```{r}
+str(mydata)
+```
+
+## Uploading, creating and exporting files 
+
+If you want to upload a file from your local computer onto the rstudio server, you can do it by clicking the "Upload" button on the Files panel. You choose the file on your disk, and also choose the destination folder on the Rstudio server.
+
+You can also save a dataset to the RStudio server. 
+In this case, we already have the dataset stored in the variable "mydata". What if we want to save this dataset as a csv file on the RStudio server? The following command will save it in a csv file called "mydata.csv". 
+```{r}
+write_csv(mydata,file="mydata.csv")
+```
+
+If you execute this command, the file "mydata.csv" should appear in the "files" tab of the bottom right panel in your RStudio session. 
+
+
+How about if you want to export this file to your local disk on your computer. To do this, select the check-box next to the file in the "Files" panel, and click "More" at the top of this panel, then select "Export".
+
+
+
+

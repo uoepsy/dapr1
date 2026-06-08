@@ -1,0 +1,730 @@
+---
+title: "<b>Week 3: Describing Continuous Data </b>"
+subtitle: "Data Analysis for Psychology in R 1<br><br> "
+author: "Patrick Sturt"
+institute: "Department of Psychology<br>The University of Edinburgh"
+date: ""
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    lib_dir: libs
+    css: xaringan-themer.css
+    nature:
+      ratio: '16:9'
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+```
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+style_mono_accent(
+    base_color = "#0F4C81", # DAPR1
+  # base_color = "#BF1932", # DAPR2
+  # base_color = "#88B04B", # DAPR3 
+  # base_color = "#FCBB06", # USMR
+  # base_color = "#a41ae4", # MSMR
+  header_color = "#000000",
+  header_font_google = google_font("Source Sans Pro"),
+  header_font_weight = 400,
+  text_font_google = google_font("Source Sans Pro", "400", "400i", "600", "600i"),
+  code_font_google = google_font("Source Code Pro")
+)
+knitr::opts_chunk$set(fig.asp=.9)
+library(tidyverse)
+library(kableExtra)
+library(sn)
+library(moments)
+```
+
+
+```{r, echo=FALSE}
+ex1 <- read_csv("./ex1.csv", col_types = "cfddd")
+```
+
+# Course Overview
+
+.pull-left[
+
+```{r echo = FALSE, results='asis'}
+block1_name = "Exploratory Data Analysis"
+block1_lecs = c("Research design and data",
+                "Describing categorical data",
+                "Describing continuous data",
+                "Describing relationships",
+                "Functions")
+block2_name = "Probability"
+block2_lecs = c("Probability theory",
+                "Probability rules",
+                "Random variables (discrete)",
+                "Random variables (continuous)",
+                "Sampling")
+
+source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+course_table(block1_name,block2_name,block1_lecs,block2_lecs,week=3)
+```
+
+
+]
+
+.pull-right[
+
+
+```{r echo = FALSE, results='asis'}
+block3_name = "Foundations of inference"
+block3_lecs = c("Confidence intervals",
+                "Hypothesis testing (p-values)",
+                "Hypothesis testing (critical values)",
+                "Hypothesis testing and confidence intervals",
+                "Errors, power, effect size, assumptions")
+block4_name = "Common hypothesis tests"
+block4_lecs = c("One sample t-test",
+                "Independent samples t-test",
+                "Paired samples t-test",
+                "Chi-square tests",
+                "Correlation")
+
+source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=0)
+```
+
+]
+
+---
+
+
+# Weeks Learning Objectives
+1. Understand the appropriate visualization for the distribution of numeric data.
+
+2. Understand methods to calculate the spread for the distribution of numeric data.
+
+3. Understand methods to calculate central tendency for the distribution of numeric data.
+
+---
+# Topics for today
++ Histograms
+
++ Mean
+
++ Variance and standard deviation
+
+???
++Points to mention
++ continuing on how we describe data
++ focus on continuous numeric data
++ will consider visualizations, central tendency and dispersion
+
+---
+# Recap: Continuous data
++ Continuous (numeric) data is typically classed as interval or ratio
+
++ That means:
+
+  + The numeric values are meaningful as numbers.
+
+  + We are able to apply mathematical operations to the values.
+
+---
+# Visualization
+
+.pull-left[
+
++ Last lecture we discussed bar plots for frequency distributions of categorical variables.
+
++ For continuous data, we visualize the distribution using a histogram.
+
+**Example histogram on the height of a class**
+
+]
+
+.pull-right[
+```{r, echo=FALSE}
+set.seed(1984)
+df2 <- tibble(
+    dat = rnorm(225, 155, 15)
+)
+hp <- df2 |>
+    ggplot( aes(x=dat)) +
+    geom_histogram(bins = 20, color = "white", fill = "steelblue4") +
+    labs(x = "Height (cm)", y = "Count") +
+    scale_x_continuous(breaks = c(120, 130, 140, 150, 160, 170, 180, 190, 200))
+
+hp
+```
+
+]
+
+
+---
+# Histogram
+
+.pull-left[
+
++ Properties of a historgram: 
+
+  + X-axis: possible values of some variable. 
+    + Commonly presented in "bins" 
+    + A bin represents a range of scores (plot can look very different dependent on the bins)
+      + Scale = dependent on the form of measurement, here centimetres 
+
+  + Y-axis: frequency of a given value or values within "bins"
+
++ Here our data is heights of the class
+  + X-Axis values are the possible heights in bins of 4cm. 
+  + Y=Axis values are the counts of number of students in each bin. 
+
+]
+
+.pull-right[
+
+```{r, echo=FALSE}
+hp
+```
+
+
+]
+
+
+---
+# Pause for thought?
+
+**Why have we used bins for ranges of values and not individual values?**
+
+???
++ In recording, literally invite them to pause and write down thoughts
++ then do verbal explanation.
+
+
+---
+# Impact of bins
+
+.pull-left[
+```{r, echo=FALSE}
+df2 |>
+    ggplot( aes(x=dat)) +
+    geom_histogram(bins = 5, color = "white", fill = "steelblue4") +
+    labs(x = "Height (cm)", y = "Count") +
+    scale_x_continuous(breaks = c(120, 130, 140, 150, 160, 170, 180, 190, 200))
+```
+
+]
+
+
+.pull-right[
+```{r, echo=FALSE}
+df2 |>
+    ggplot(aes(x=dat)) +
+    geom_histogram(bins = 25, color = "white", fill = "steelblue4") +
+    labs(x = "Height (cm)", y = "Count") +
+    scale_x_continuous(breaks = c(120, 130, 140, 150, 160, 170, 180, 190, 200))
+```
+]
+
+---
+# Stats summer school example: test score
+
+.pull-left[
+
+```{r, echo=FALSE}
+kable(ex1[1:10,])
+```
+
+
+]
+
+
+.pull-right[
+
+```{r, echo=FALSE}
+
+  ggplot(data = ex1, aes(x=Score1)) +
+  geom_histogram(bins = 15, color = "white", fill = "steelblue4")+
+  xlab("Pre- Statistics Test Score") +
+  ylab("Count \n")
+```
+
+]
+
+
+---
+# Stats summer school example: test score
+
+.pull-left[
+
+```{r, eval=FALSE}
+  ggplot(data = ex1, aes(x=Score1)) +
+  geom_histogram(bins = 15, #<<
+                 color = "white", #<< 
+                 fill = "steelblue4")+ #<<
+  xlab("Pre- Statistics Test Score") +
+  ylab("Count \n")
+```
+
++ New bits of code:
+  + `geom_histogram` is used to make histograms
+  + `bins` is the number of columns we want
+  + `color` provides the colour for the outline of the column
+  + `fill` provides the main colour
+
+]
+
+
+.pull-right[
+
+```{r, echo=FALSE}
+
+  ggplot(data = ex1, aes(x=Score1)) +
+  geom_histogram(bins = 15, color = "white", fill = "steelblue4")+
+  xlab("Pre- Statistics Test Score") +
+  ylab("Count \n")
+```
+
+]
+
+
+---
+#  Central Tendency: Mean 
+
+.pull-left[
++ Last lecture we looked at the mode and median.
+
++ Both can be used for continuous data, but the optimal measure is the **arithmetic mean.**
+
++ **Mean:** is the sum of all values, divided by the total number of observations.
+  + I.e. this is the average as most people think about the average.
+]
+
+.pull-right[
+
+$$
+\bar{x} = \frac{\sum_{i=1}^{n}{x_i}}{n}
+$$
+
++ $\bar{x}$ = estimate of mean of variable $x$
++ $x_i$ = individual values of $x$
++ $n$ = sample size
+
+]
+
+---
+# Hand calculation
+
+$$
+\bar{x} = \frac{\sum_{i=1}^{n}{x_i}}{n}
+$$
+
++ Our data:
+
+$$x=[10,40,30,25,15,6]$$
+
+
++ Worked calculation
+
+$$\frac{\sum_{i=1}^{n}(10+40+30+25+15+6)}{6} = \frac{126}{6} = 21$$
+
+---
+#  Arithmetic Mean: Test score 
+
+
+.pull-left[
+
+**Following hand-calculation in `R`**
+
+```{r}
+sum(ex1$Score1)/length(ex1$Score1)
+```
+
+**Short way in `R`**
+```{r}
+mean(ex1$Score1)
+```
+
+]
+
+
+.pull-right[
+
+**Working with `tidyverse`**
+
+```{r}
+ex1 |>
+    summarise(
+        mean = mean(Score1)
+    )
+```
+
++ We will work with `tidyverse` and summarise as we can build up summary tables for our data sets.
+
+
+]
+
+???
++ In this particular case the tidyverse is overkill, but we're using it becuase it allows us to build up summary tables very cleanly, which will come in handy as we get more statistics we'd like to summarise. 
+
+---
+# Variation around the mean
+
+```{r, echo=FALSE}
+mean_vec <- rep(mean(ex1$Score1), 150)
+x <- 1:150
+dev <- ex1 |>
+  ggplot(aes(x=factor(ID), y=Score1)) +
+  geom_point(size=1.5, color = "steelblue4") + 
+  xlab("ID") +
+  ylab("Pre- Statistics Score \n") +
+  theme(axis.text.x = element_blank(), 
+        axis.ticks.x=element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())
+
+dev
+```
+
+
+---
+# Variation around the mean
+
+```{r, echo=FALSE, warning=FALSE}
+dev +
+  geom_hline(yintercept = mean(ex1$Score1), size = 1, col = "steelblue4") +
+  geom_segment(x = x, y = ex1$Score1, xend = x, yend = mean_vec, linetype = "dashed")
+
+```
+
+
+---
+# Sum of deviations 
++ We could just add up the amount by which each observation differs from the mean.
+
++ This is called the **sum of deviations.**
+
+$$
+SumDev = \sum_{i=1}^{n}{(x_i - \bar{x})}
+$$
+
++ $x_i$ = individual observations
+
++ $\bar{x}$ = mean of $x$
+
+---
+# Calculation: First 10 rows
+
+```{r, echo=FALSE}
+ex1 |>
+  select(ID, Score1) |>
+  slice( 1:10) |>
+  mutate(
+    Score = Score1,
+    Mean = rep(mean(Score1), 10),
+    Deviance = Score1 - mean(Score1)
+  ) |>
+  kable() |>
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+---
+#  Problem: Sum of deviations 
+
+```{r, eval=FALSE}
+ex1 |>
+  summarise(
+    Variable = "Statistics Test Score",
+    "Sum Deviation" = round(sum(Score1 - mean(Score1)),2) #<<
+  )
+```
+
+
+```{r, echo=FALSE}
+ex1 |>
+  summarise(
+    Variable = "Statistics Test Score",
+    "Sum Deviation" = round(sum(Score1 - mean(Score1)),2)
+  ) |>
+  kable()
+```
+
+
++ Uh oh! The positive and negative values cancel.
+
++ That means the sum of deviations from the mean will always be 0.
+
+
+---
+#  Variance 
++ In order to remove the effect of sign, we can square each of the deviations.
+
++ This is called the ***variance*** .
+
+$$
+s^2 = \frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}
+$$
+
++ Variance is the average squared deviation from the mean.
+
++ $s^2$ = sample variance 
+
+
+---
+# Calculation
+
+```{r, echo=FALSE}
+ex1 |>
+  select(ID, Score1) |>
+  slice( 1:10) |>
+  mutate(
+    Score = Score1,
+    Mean = rep(mean(Score1), 10),
+    Deviance = Score1 - mean(Score1),
+    Deviance_sq = Deviance^2
+  ) |>
+  kable() |>
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+---
+#  Variance 
+
+```{r, eval=FALSE}
+ex1 |>
+  summarise(
+    Variable = "Statistics Test Score",
+    "Sum Deviation" = round(sum(Score1 - mean(Score1)),2),
+    Variance = round((sum((Score1 - mean(Score1))^2))/(length(Score1)-1),2) #<<
+  )
+```
+
+```{r, echo=FALSE}
+ex1 |>
+  summarise(
+    Variable = "Statistics Test Score",
+    "Sum Deviation" = round(sum(Score1 - mean(Score1)),2),
+    Variance = round((sum((Score1 - mean(Score1))^2))/(length(Score1)-1),2)
+  ) |>
+  kable()
+```
+
++ N.B.: 
+  + Variance is not on the same scale as the data.
+  + Variance is the mean **squared** deviation from the mean.
+
+---
+#  Standard deviation 
++ What about a measure of variation in the same units as the mean/variable?
+
++ The ***standard deviation.***
+
++ The standard deviation is the square root of the variance.
+  + Taking the square root undoes (or fixes) the squaring of deviations that we did to get variance.
+
+$$
+s = \sqrt{\frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}}
+$$
++ $s$ = sample standard deviation 
+---
+#  Standard deviation 
+
+```{r}
+ex1 |>
+  summarise(
+    Variable = "Statistics Test Score",
+    Variance = round(sum((Score1 - mean(Score1))^2)/(length(Score1)-1),2),
+    SD = round(sqrt(sum((Score1 - mean(Score1))^2)/(length(Score1)-1)),2)
+  ) 
+```
+
+---
+#  Standard deviation 
+
++ Easier `R` calculation
+
+```{r}
+ex1 |>
+  summarise(
+    Variable = "Statistics Test Score",
+    "Sum Deviation" = round(sum(Score1 - mean(Score1)),2),
+    Variance = round(var(Score1),2), #<<
+    SD = round(sd(Score1),2) #<<
+  )
+```
+
+
+---
+# Population vs. Sample statistics
+
+.pull-left[
+
+**Population Variance**
+$$
+\sigma^2 = \frac{\sum_{i=1}^{N}{(x_i - \mu)}^2}{N}
+$$
+
+**Population SD**
+$$
+\sigma = \sqrt{\frac{\sum_{i=1}^{N}{(x_i - \mu)}^2}{N}}
+$$
+
+
+]
+
+
+.pull-right[
+
+**Sample Variance**
+$$
+s^2 = \frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}
+$$
+
+
+**Sample SD**
+$$
+s = \sqrt{\frac{\sum_{i=1}^{n}{(x_i - \bar{x})}^2}{n-1}}
+$$
+
+
+]
+
+--
+
+
++ $\mu$ = population mean; $\bar{x}$ = sample mean
++ $\sigma^2$ = population variance; $s^2$ = sample variance
++ $\sigma$ = population standard deviation; $s$ = sample standard deviation
++ N = population size; n = sample size
++ NOTE: R defaults to sample values. 
+
+???
+Make the point that we will come back to this in more detail, but for now it is just important to note that the R defaults to sample.
+
+
+
+---
+#  Which measure should we use? 
+
+```{r tbl23, echo = FALSE}
+tbl23 <- tibble::tribble(
+~`Variable Type`, ~`Central Tendency`, ~`Dispersion`,
+"Categorical (Nominal)","Mode","Frequency Table",
+"Categorical (Ordered)","Mode/Median","Range/IQR",
+"Continuous","Mean/Median","Variance & Standard Deviation",
+"Count","Mode/Mean","Range (Variance & SD)"
+)
+
+kableExtra::kable_styling(knitr::kable(tbl23), font_size = 22)
+```
+
++ Depends on the level of measurement.
+
+---
+#  A few extra bits?
++ You may come across the mathematical language of *moments.*
+
++ Moments describe the shape of a set of points
+  + Mean
+  + Variance
+  + Skew
+  + Kurtosis
+
+---
+# Skew 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+tibble(
+  Value = c(rbeta(10000, 5, 2), rbeta(10000, 5, 5), rbeta(10000, 2,5)),
+  Skew = c(rep("Negative", 10000), rep("None",10000), rep("Positive",10000))
+) |>
+  ggplot(aes(x=Value, fill = Skew, color = Skew)) +
+  geom_density(alpha = .5) +
+  ylab("Density \n")
+```
+
++ Is a measure of asymmetry of a distribution.
+
+---
+#  Kurtosis
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+tibble(
+  Value = c(rnorm(10000, 0, 0.5), rnorm(10000, 0, 1), rnorm(10000, 0, 2)),
+  Kurtosis = c(rep("Leptokurtic", 10000), rep("None",10000), rep("Platykurtic",10000))
+) |>
+  ggplot( aes(x=Value, fill = Kurtosis, color = Kurtosis)) +
+  geom_density(alpha = .5) +
+  ylab("Density \n")
+```
+
++ Kurtosis is a measure of the flatness of the peak and the fatness of the tails of the distribution.
+
+
+---
+#  Do they matter? 
+
+.pull-left[
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+set.seed(07021984)
+df <- tibble(Data = rsn(1000, 5, 2, 5)) 
+
+df |>
+  ggplot( aes(x=Data)) +
+  geom_histogram(colour = "darkgrey", fill = "white") +
+  geom_vline(xintercept = mean(df$Data), col = "red", size = 2) +
+  geom_vline(xintercept = median(df$Data), col = "blue", size = 2) +
+  geom_vline(xintercept = 5.85, col = "green", size = 2) +
+  ylab("Count \n")
+```
+]
+
+.pull-right[
++ It can make a difference in how we describe data.
+
++ Both skew and kurtosis impact the **normality** of the distribution of the data.
+]
+
+---
+# Summary of today
++ Continuous variables are...
+  + Visualized with histogram
+  + summarised with mean and standard deviation
+  
++ We can describe the shape of the distribution with skew and kurtosis
+
+---
+# This week
+
+<script src="https://cdn.jsdelivr.net/npm/iconify-icon@2.1.0/dist/iconify-icon.min.js"></script>
+
+.pull-left[
+<iconify-icon icon="clarity:tasks-solid" width="64" height="64"  style="color: #0F4C81"></iconify-icon>
+
+## Tasks
+
+- Attend both lectures
+
+- Attend your lab and work together on the lab tasks
+
+- Complete the weekly assessed quiz
+    + Opens Monday at 9am
+    + Closes Sunday at 5pm
+    
+<!-- - Submit Formative Report A by 12 noon on Friday the 18th of October 2024 -->
+<!-- - Submit Formative Report B by 12 noon on Friday the 29th of November 2024 -->
+<!-- - Submit Formative Report C by 12 noon on Friday the 14th of February 2025 -->
+<!-- - Submit the Assessed Report by 12 noon on Friday the 28th of March 2025 -->
+]
+
+
+.pull-right[
+<iconify-icon icon="raphael:help" width="64" height="64"  style="color: #0F4C81"></iconify-icon>
+
+## Support
+
+- **Office hours**: for one-to-one support on course materials or assessments<br>(see LEARN > Course information > Course contacts)
+
+- **Piazza**: help each other on this peer-to-peer discussion forum
+
+- **Student Adviser**: for general support while you are at university<br>(find your student adviser on MyEd/Euclid)
+]
+

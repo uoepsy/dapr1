@@ -1,0 +1,155 @@
+---
+class: inverse, center, middle
+
+---
+class: inverse, center, middle
+
+# Part B
+## Recap
+
+
+---
+# Standardisation
+
+- Population data $X$ with mean $\mu$ and SD = $\sigma$
+
+--
+
+- Standardised/z-scored data $Z$ with mean 0 and SD = 1
+
+$$Z = \frac{X - \mu}{\sigma}$$
+
+--
+
+- The distribution of $Z$ depends on the distribution of $X$. Standardisation only changes the mean and SD of the data, not the shape of the distribution.
+
+
+---
+# Sample mean
+
+- The sample mean follows a normal distribution (when? next slide...)
+
+$$\bar X \sim N(\mu, \frac{\sigma}{\sqrt{n}})$$
+
+- If we standardise it, we obtain a standard normal distribution
+
+$$Z_\bar{X} = \frac{\bar X - \mu}{\frac{\sigma}{\sqrt{n}}} \sim N(0, 1)$$
+
+- When we only have one sample, and not the entire population data, we don't know the population SD $\sigma$, so we estimate it
+
+$$T_{\bar X} = \frac{\bar X - \mu}{\frac{s}{\sqrt{n}}} \sim t(n-1)$$
+
+
+---
+# When does this work?
+
+
+
+---
+# Sample mean
+
+- The sample mean tends to follow a normal distribution when the sample size is large enough, regardless of the distribution of the population data $X$.
+
+--
+
+- But what is __large enough__?
+
+--
+
+- That depends on the distribution of the population data itself!
+    
+---
+# Population data are not normal
+
+```{r, out.width ='90%'}
+knitr::include_graphics('images/2_02_hyptest_pvalues/clt-chisq.png')
+```
+
+---
+# Population data are normal
+
+```{r, out.width ='90%'}
+knitr::include_graphics('images/2_02_hyptest_pvalues/clt-norm-n.png')
+```
+
+---
+# Population data are normal, cont'd
+
+```{r, out.width ='45%'}
+knitr::include_graphics('images/2_02_hyptest_pvalues/clt-norm-1.png')
+```
+
+---
+# What if?
+
+- But what if the population is not normal, and the sample size is small?
+
+--
+
+- You would use more sophisticated methods not covered in this course, wait for DAPR2.
+
+---
+# In practice
+
+- Check this condition by making a histogram or a qqplot.
+
+```{r, out.width = "100%", fig.width=12, fig.height=4}
+par(mfrow = c(1,4))
+x = rnorm(100)
+hist(x, xlab = "", ylab = "", breaks = 'FD')
+qqnorm(x)
+qqline(x)
+
+x = rchisq(100, 5)
+hist(x, xlab = "", ylab = "", breaks = 'FD')
+qqnorm(x)
+qqline(x)
+```
+
+
+---
+# In practice
+
+- Normality is less important for larger sample sizes. 
+
+- Normality matters most when it's hardest to check. 
+
+    + For very small samples ( $n < 15$ or so ), the data should follow a Normal model pretty closely. Of course, with so little data, it can be hard to tell. But if you do find outliers or strong skewness, don’t use these methods.
+    
+    + For moderate sample sizes (n between 15 and 40 or so), the t methods will work well as long as the data are unimodal and reasonably symmetric. Make a histogram.
+    
+    + When the sample size is larger than 40 or 50, the t methods are safe to use unless the data are extremely skewed. Be sure to make a histogram. If you find outliers in the data, it’s always a good idea to perform the analysis twice, once with and once without the outliers, even for large samples.
+    
+
+
+---
+# Why standardise the mean?
+
+.pull-left[
+```{r}
+#| out.width = '80%'
+knitr::include_graphics('images/2_02_hyptest_pvalues/x-to-z-SEs.png')
+```
+]
+
+.pull-right[
+
+- Is 12.2 in the tails? Hard to say if we don't know the mean and SD.
+
+- Is the z-scored value 3.43 in the tails? Very likely yes! The critical values are roughly similar to -2 and 2.
+
+- Because we can easily tell when a value is surprising, i.e. it falls in the tails of the distribution!
+
+- For a $N(0,1)$, values beyond:
+
+```{r}
+qnorm(c(0.025, 0.975))
+```
+
+- For a $t(19)$ values beyond:
+
+```{r}
+qt(c(0.025, 0.975), df = 19)
+```
+
+]

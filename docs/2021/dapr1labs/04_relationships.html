@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Visualising and describing relationships</title>
+
+<script src="site_libs/header-attrs-2.8/header-attrs.js"></script>
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+<script>
+function toggle_visibility(id1, id2) {
+var e = document.getElementById(id1);
+var f = document.getElementById(id2);
+e.style.display = ((e.style.display!='none') ? 'none' : 'block');
+if(f.classList.contains('fa-plus')) {
+    f.classList.add('fa-minus')
+    f.classList.remove('fa-plus')
+} else {
+    f.classList.add('fa-plus')
+    f.classList.remove('fa-minus')
+}
+}
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+<link rel="stylesheet" href="assets/style-labs.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"><strong>DAPR1</strong></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">
+    <span class="fas fa-home"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="intro_r_rstudio_year1.html">DAPR1 starts here</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Intro to data and R
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="01_data_types.html">1/1: Collecting data</a>
+    </li>
+    <li>
+      <a href="02_categorical.html">1/2: Categorical data</a>
+    </li>
+    <li>
+      <a href="03_numerical.html">1/3: Numerical data</a>
+    </li>
+    <li>
+      <a href="04_relationships.html">1/4: Relationships</a>
+    </li>
+    <li>
+      <a href="05_functions.html">1/5: Types of relations</a>
+    </li>
+    <li class="dropdown-header">1/6: Break week!</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Probability &amp; sampling
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="07_probability_basics.html">1/7: Probability basics</a>
+    </li>
+    <li>
+      <a href="08_probability_rules.html">1/8: Probability rules!</a>
+    </li>
+    <li>
+      <a href="09_discrete_distributions.html">1/9: Discrete random variables</a>
+    </li>
+    <li>
+      <a href="10_continuous_distributions.html">1/10: Continuous random variables</a>
+    </li>
+    <li>
+      <a href="11_sampling_distributions.html">1/11: Sampling distributions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Hypothesis testing
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="12_bootstrap_cis.html">2/1: Bootstrap &amp; CIs</a>
+    </li>
+    <li>
+      <a href="13_hypothesis_testing.html">2/2: Hypothesis testing: p-values</a>
+    </li>
+    <li>
+      <a href="14_critical_values.html">2/3: Hypothesis testing: critical values</a>
+    </li>
+    <li>
+      <a href="15_connecting_ci_ht.html">2/4: Hypothesis testing &amp; CIs</a>
+    </li>
+    <li>
+      <a href="16_ht_errors.html">2/5: Making decisions</a>
+    </li>
+    <li class="dropdown-header">2/6: Break week</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Basic tests
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="17_one_sample_mean.html">2/7: Test for one mean</a>
+    </li>
+    <li>
+      <a href="18_two_sample_means.html">2/8: Test for two means</a>
+    </li>
+    <li>
+      <a href="19_paired_t_test.html">2/9: Test for paired samples</a>
+    </li>
+    <li>
+      <a href="20_chi_square.html">2/10: Chi-square</a>
+    </li>
+    <li>
+      <a href="21_covcor.html">2/11: Covariance and correlation</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Visualising and describing relationships</h1>
+
+</div>
+
+
+<div class="green">
+<p>Be sure to check the <a href="03_numerical.html"><strong>solutions to last week’s exercises</strong></a>.<br>You can still ask any questions about previous weeks’ materials if things aren’t clear!</p>
+</div>
+<!-- # Visualising and describing relationships {#chap-relationships} -->
+<div class="lo">
+<p><strong>LEARNING OBJECTIVES</strong></p>
+<ul>
+<li>LO1: Understand the relation between X-Y (explanatory/outcome) specification and practical research questions.</li>
+<li>L02: Understand how to summarise and visualize numeric-categorical relationships.</li>
+<li>LO3: Understand how to summarise and visualize numeric-numeric relationships.</li>
+</ul>
+</div>
+<div id="outcome-vs-explanatory" class="section level1">
+<h1>Outcome vs Explanatory</h1>
+<p>In the previous couple of labs, we looked at how to handle different types of data, and how to describe and visualise categorical and numeric distributions.
+More often than not, research involves investigating <em>relationships</em> between variables, rather than studying variables in isolation.</p>
+<div class="yellow">
+<p>If we are using one variable to help us understand or predict values of another variable, we call the former the <strong>explanatory variable</strong> and the latter the <strong>outcome variable</strong>.</p>
+<div style="margin-left: 2em;">
+<p><em><strong>Other names</strong></em></p>
+<ul>
+<li><em>outcome variable = dependent variable = response variable = Y</em></li>
+<li><em>explanatory variable = independent variable = predictor variable = X</em></li>
+</ul>
+<p>(referring to outcome/explanatory variables as <em>Y</em> and <em>X</em> respectively matches up with how we often want to plot them - the outcome variable on the y-axis, and the explanatory variable on the x-axis)</p>
+</div>
+</div>
+<p>The distinction between explanatory and outcome variables is borne out in how we design <strong>experimental studies</strong> - the researcher manipulates the explanatory variable for each unit <em>before</em> the response variable is measured (for instance, we might randomly allocate participants to one of two conditions).
+This contrasts with <strong>observational studies</strong> in which the researcher does not control the value of any variable, but simply observes the values as they naturally exist.</p>
+<p>We’re going to pick up again with the data collected on the Stroop task from the previous lab.</p>
+<pre class="r"><code>library(tidyverse)
+stroopdata &lt;- read_csv(&quot;https://uoepsy.github.io/data/strooptask.csv&quot;)
+
+# calculate the &quot;stroop effect&quot; - the difference in time taken to complete
+# the matching vs mismatching sets 
+stroopdata &lt;- 
+    stroopdata %&gt;% 
+        mutate(
+            stroop_effect = mismatching - matching
+        )</code></pre>
+<p>The data is experimental - researchers controlled the presentation of the stimuli (coloured words) and the assignment of whether or not participants received practice.</p>
+<p>The researchers are interested in two relationships:</p>
+<ol style="list-style-type: decimal">
+<li>the relationship between receiving practice (<em>categorical</em>) and the stroop-effect (<em>numeric</em>)</li>
+<li>the relationship between age (<em>numeric</em>) and the stroop-effect (<em>numeric</em>)</li>
+</ol>
+</div>
+<div id="numeric-and-categorical" class="section level1">
+<h1>Numeric and Categorical</h1>
+<p>Recall that the “stroop-effect” is the difference (in seconds) between participants’ times on the mismatching set of words vs the matching set. We know how to describe a numeric variable such as the stroop-effect, for instance by calculating the mean and standard deviation, or median and IQR. We saw how to produce visualisations of numeric variables in the form of density curves, histogram, and boxplots.</p>
+<pre class="r"><code># take the &quot;stroopdata&quot; dataframe %&gt;%
+# summarise() it, such that there is a value called &quot;mean_stroop&quot;, which
+# is the mean() of the &quot;stroop_effect&quot; variable, and a value called &quot;sd_stroop&quot;, which
+# is the standard deviation of the &quot;stroop_effect&quot; variable.
+stroopdata %&gt;% 
+  summarise(
+    mean_stroop = mean(stroop_effect),
+    sd_stroop = sd(stroop_effect)
+  )</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##   mean_stroop sd_stroop
+##         &lt;dbl&gt;     &lt;dbl&gt;
+## 1        2.40      5.02</code></pre>
+<pre class="r"><code>ggplot(data = stroopdata, aes(x = stroop_effect)) + 
+  geom_histogram()</code></pre>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>To understand the relationship between <em>categorical</em> (practice) and the <em>numeric</em> (stroop effect), for now we will simply calculate these summary statistics for the numeric variable when it is split by the different levels in the categorical variable.</p>
+<p>In other words, we want to calculate the mean and standard deviation of the <em>stroop_effect</em> variable separately for those observations where <em>practice</em> is “no”, and for those where <em>practice</em> is “yes”:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">practice</th>
+<th align="left">stroop_effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">no</td>
+<td align="left">9.69</td>
+</tr>
+<tr class="even">
+<td align="left">no</td>
+<td align="left">10.07</td>
+</tr>
+<tr class="odd">
+<td align="left">yes</td>
+<td align="left">-2.97</td>
+</tr>
+<tr class="even">
+<td align="left">yes</td>
+<td align="left">-0.23</td>
+</tr>
+<tr class="odd">
+<td align="left">yes</td>
+<td align="left">-5.59</td>
+</tr>
+<tr class="even">
+<td align="left">no</td>
+<td align="left">3.67</td>
+</tr>
+<tr class="odd">
+<td align="left">yes</td>
+<td align="left">1.41</td>
+</tr>
+<tr class="even">
+<td align="left">yes</td>
+<td align="left">2.1</td>
+</tr>
+<tr class="odd">
+<td align="left">yes</td>
+<td align="left">-0.33</td>
+</tr>
+<tr class="even">
+<td align="left">…</td>
+<td align="left">…</td>
+</tr>
+</tbody>
+</table>
+<p><br>
+We can do this using the <code>group_by()</code> function.</p>
+<div class="yellow">
+<p><strong>group_by()</strong></p>
+<p>The <code>group_by()</code> function creates a <em>grouping</em> in the dataframe, so that subsequent functions will be computed <em>on each group.</em></p>
+<p>It is most useful in combination with <code>summarise()</code>, to reduce a variable into a summary value <em>for each group in a grouping variable</em>:</p>
+<pre class="r"><code># take the data %&gt;%
+# make it grouped by each unique value in the &quot;grouping_variable&quot; %&gt;%
+# summarise() it FOR EACH GROUP, creating a value called &quot;summary_value&quot; ()
+data %&gt;% 
+  group_by(grouping_variable) %&gt;%
+  summarise(
+    summary_value = ...
+  )</code></pre>
+</div>
+<p>Let’s do this for the Stroop Task data - we will <code>summarise()</code> the <em>stroop_effect</em> variable, <strong>after</strong> grouping the data by the <em>practice</em> variable:</p>
+<pre class="r"><code># take the &quot;stroopdata&quot; %&gt;%
+# and group it by each unique value in the &quot;practice&quot; variable (yes/no) %&gt;%
+# then summarise() it FOR EACH GROUP, creating summary values called 
+# &quot;mean_stroop&quot; and &quot;sd_stroop&quot; which are the means and standard deviations of 
+# the &quot;stroop_effect&quot; variable entries for each group of &quot;practice&quot;.
+stroopdata %&gt;%
+  group_by(practice) %&gt;%
+  summarise(
+    mean_stroop = mean(stroop_effect),
+    sd_stroop = sd(stroop_effect)
+  )</code></pre>
+<pre><code>## # A tibble: 2 x 3
+##   practice mean_stroop sd_stroop
+##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;
+## 1 no            4.54        4.25
+## 2 yes           0.0229      4.75</code></pre>
+<div id="visualising---colours" class="section level2 unnumbered">
+<h2>Visualising - Colours</h2>
+<div class="question-begin">
+Question
+</div>
+<div class="question-body">
+<p>Given the output above, which of the following visualisations is most representative of these statistics?
+<img src="04_relationships_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Answer<span id="sol-start-37" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-37&#39;, &#39;sol-start-37&#39;)"></span>
+</div>
+<div id="sol-body-37" class="solution-body" style="display: none;">
+<p>We know that the stroop effect for those <em>with</em> practice (blue line) was on average less than those <em>without</em> practice (red line). Both figures A and C don’t fit with this.</p>
+<p>In <em>both</em> of the figures B and D, the blue (with practice) distribution peaks at about 0, and the red (without practice) distribution peaks at about 5. However, in the figure D, the red distribution is much flatter and wider. It has a larger standard deviation than the blue distribution. In our calculations above, the distributions have very similar standard deviations.<br />
+<br>
+So the best visualisation of the two means and standard deviations we calculated is figure B.</p>
+</div>
+<p class="solution-end">
+</p>
+<p>We can visualise the data using the same code we had before, but with one small addition - we tell ggplot to <em>colour</em> the data according to the different values in the <em>practice</em> variable.<br />
+<small>
+<strong>Note</strong> we add this inside the <code>aes()</code> mappings, because we are mapping something on the plot (the colour) to something in the data (the <em>practice</em> variable). If we just wanted to make the line blue, we could put <code>col = "blue"</code> <em>outside</em> the <code>aes()</code>.
+</small></p>
+<pre class="r"><code>ggplot(data = stroopdata, aes(x = stroop_effect, col = practice)) +
+  geom_density()</code></pre>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="visualising---facets" class="section level2 unnumbered">
+<h2>Visualising - Facets</h2>
+<p>Interpreting two density curves on top of one another works well, but overlaying two histograms on top of one another doesn’t. Instead, we might want to create separate histograms for each set of values (the <em>stroop_effect</em> variable values for each of practice/no practice groups).</p>
+<p><code>facet_wrap()</code> is a handy part of <code>ggplot</code> which allows us to easily split one plot into many:</p>
+<pre class="r"><code>ggplot(data = stroopdata, aes(x = stroop_effect)) +
+  geom_histogram() +
+  facet_wrap(~practice)</code></pre>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+</div>
+</div>
+<div id="numeric-and-numeric" class="section level1">
+<h1>Numeric and Numeric</h1>
+<p>When we are interested in the relationship between two <em>numeric</em> variables, such as the one we have between age and the stroop-effect, the most easily interpreted visualisation of this relationship is in the form of a scatterplot:</p>
+<pre class="r"><code># make a ggplot with the stroopdata
+# put the possible values of the &quot;age&quot; variable on the x axis,
+# and put the possible values of the &quot;stroop_effect&quot; variable on the y axis.
+# for each entry in the data, add a &quot;tomato1&quot; coloured geom_point() to the plot, 
+ggplot(data = stroopdata, aes(x = age, y = stroop_effect)) +
+  geom_point(col=&quot;tomato1&quot;)</code></pre>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+The visual pattern that these points make on the plot tells us something about the data - it looks like the older participants tended to have a greater stroop-effect.<br />
+But we can also have relationships between two numeric variables that look the opposite, or have no obvious pattern, or have a more consistent patterning (see Figure <a href="#fig:numnumrels">1</a>)
+<div class="figure"><span id="fig:numnumrels"></span>
+<img src="04_relationships_files/figure-html/numnumrels-1.png" alt="Relationships between two numeric variables can look very different" width="672" />
+<p class="caption">
+Figure 1: Relationships between two numeric variables can look very different
+</p>
+</div>
+<p>As a means of summarising these different types of relationships, we can calculate the <strong>covariance</strong> to describe in what direction, and how strong (i.e., how clear and consistent) the pattern is.</p>
+<div id="covariance" class="section level2 unnumbered">
+<h2>Covariance</h2>
+<p>We know that <strong>variance</strong> is the measure of how much a <em>single numeric variable</em> varies around its mean.<br />
+<strong>Covariance</strong> is a measure of how <em>two numeric variables</em> vary together, and can express the directional relationship between them.</p>
+<div class="yellow">
+<p><strong>Covariance</strong> is the measure of how two variables vary together.<br />
+For samples, covariance is calculated using the following formula:</p>
+<p><span class="math display">\[\mathrm{cov}(x,y)=\frac{1}{n-1}\sum_{i=1}^n (x_{i}-\bar{x})(y_{i}-\bar{y})\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> are two variables;</li>
+<li><span class="math inline">\(i\)</span> denotes the observational unit, such that <span class="math inline">\(x_i\)</span> is value that the <span class="math inline">\(x\)</span> variable takes on the <span class="math inline">\(i\)</span>th observational unit, and similarly for <span class="math inline">\(y_i\)</span>;</li>
+<li><span class="math inline">\(n\)</span> is the sample size.</li>
+</ul>
+</div>
+<p>It often helps to understand <strong>covariance</strong> by working through a visual explanation.<br />
+<br>
+Consider the following scatterplot:<br />
+<img src="04_relationships_files/figure-html/unnamed-chunk-13-1.png" width="672" />
+<br>
+Now let’s superimpose a vertical dashed line at the mean of <span class="math inline">\(x\)</span> (<span class="math inline">\(\bar{x}\)</span>) and a horizontal dashed line at the mean of <span class="math inline">\(y\)</span> (<span class="math inline">\(\bar{y}\)</span>):
+<img src="04_relationships_files/figure-html/unnamed-chunk-14-1.png" width="672" />
+<br>
+Now let’s pick one of the points, call it <span class="math inline">\(x_i\)</span>, and show <span class="math inline">\((x_{i}-\bar{x})\)</span> and <span class="math inline">\((y_{i}-\bar{y})\)</span>.<br />
+Notice that this makes a rectangle.<br />
+As <span class="math inline">\((x_{i}-\bar{x})\)</span> and <span class="math inline">\((y_{i}-\bar{y})\)</span> are both positive values, their product - <span class="math inline">\((x_{i}-\bar{x})(y_{i}-\bar{y})\)</span> - is positive.</p>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-15-1.png" width="672" />
+<br>
+In fact, for all these points in red, the product <span class="math inline">\((x_{i}-\bar{x})(y_{i}-\bar{y})\)</span> is positive (remember that a negative multiplied by a negative gives a positive):
+<img src="04_relationships_files/figure-html/unnamed-chunk-16-1.png" width="672" />
+<br>
+And for these points in blue, the product <span class="math inline">\((x_{i}-\bar{x})(y_{i}-\bar{y})\)</span> is negative:<br />
+<img src="04_relationships_files/figure-html/unnamed-chunk-17-1.png" width="672" />
+<br>
+Now take another look at the formula for covariance:</p>
+<p><span class="math display">\[\mathrm{cov}(x,y)=\frac{\sum_{i=1}^n (x_{i}-\bar{x})(y_{i}-\bar{y})}{n-1}\]</span></p>
+<p>It is the sum of all these products divided by <span class="math inline">\(n-1\)</span>. It is the average of the products!<br />
+<br>
+We can easily calculate the covariance between variables in R using the <code>cov()</code> function.
+<code>cov()</code> takes two variables <code>cov(x = , y = )</code>.<br />
+We can either use the <code>$</code> to pull out the variables from the datset:</p>
+<pre class="r"><code>cov(stroopdata$age, stroopdata$stroop_effect)</code></pre>
+<pre><code>## [1] 23.9597</code></pre>
+<p>Or we can specify the dataframe, use the <code>%&gt;%</code> symbol, and call <code>cov()</code> inside <code>summarise()</code>:</p>
+<pre class="r"><code>stroopdata %&gt;%
+  summarise(
+    mean_age = mean(age),
+    mean_stroop = mean(stroop_effect),
+    cov_agestroop = cov(age, stroop_effect)
+  )</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##   mean_age mean_stroop cov_agestroop
+##      &lt;dbl&gt;       &lt;dbl&gt;         &lt;dbl&gt;
+## 1     42.8        2.40          24.0</code></pre>
+</div>
+</div>
+<div id="categorical-and-categorical" class="section level1">
+<h1>Categorical and Categorical</h1>
+<p>What if we are interested in the relationship between two variables that are both categorical?</p>
+<p>As a quick example, let’s read in a dataset containing information on passengers from the Titanic.
+We can see from the first few rows of the dataset that there are quite a few categorical variables here:</p>
+<pre class="r"><code>titanic &lt;- read_csv(&quot;https://uoepsy.github.io/data/titanic.csv&quot;)
+head(titanic)</code></pre>
+<pre><code>## # A tibble: 6 x 5
+##      X1 class     age    sex   survived
+##   &lt;dbl&gt; &lt;chr&gt;     &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt;   
+## 1     1 1st class adults man   yes     
+## 2     2 1st class adults man   yes     
+## 3     3 1st class adults man   yes     
+## 4     4 1st class adults man   yes     
+## 5     5 1st class adults man   yes     
+## 6     6 1st class adults man   yes</code></pre>
+<p>Recall that we summarised one categorical variable using a <strong>frequency table</strong>:</p>
+<pre class="r"><code>titanic %&gt;%
+  count(survived)</code></pre>
+<pre><code>## # A tibble: 2 x 2
+##   survived     n
+##   &lt;chr&gt;    &lt;int&gt;
+## 1 no         817
+## 2 yes        499</code></pre>
+<p>We can also achieve this using the <code>table()</code> function:</p>
+<pre class="r"><code>#thes two lines of code do exactly the same thing!
+table(titanic$survived)
+titanic %&gt;% select(survived) %&gt;% table()</code></pre>
+<pre><code>## 
+##  no yes 
+## 817 499</code></pre>
+<div id="contingency-tables" class="section level2">
+<h2>Contingency Tables</h2>
+<p>Let’s suppose we are interested in how the Class of passengers’ tickets (1st Class, 2nd Class, 3rd Class) can be used to understand their survival.<br />
+We can create <strong>two-way</strong> table, where we have each variable on either dimension of the table:</p>
+<pre class="r"><code>#Either this:
+table(titanic$class, titanic$survived)
+# or this:
+titanic %&gt;% select(class, survived) %&gt;% table()</code></pre>
+<pre><code>##            
+##              no yes
+##   1st class 122 203
+##   2nd class 167 118
+##   3rd class 528 178</code></pre>
+<p>And we can pass this to <code>prop.table()</code> to turn these into proportions.<br />
+We can turn them into:</p>
+<ol style="list-style-type: decimal">
+<li><p>proportions of the total:</p>
+<pre class="r"><code>titanic %&gt;% 
+  select(class, survived) %&gt;% 
+  table() %&gt;%
+  prop.table()</code></pre>
+<pre><code>##            survived
+## class               no        yes
+##   1st class 0.09270517 0.15425532
+##   2nd class 0.12689970 0.08966565
+##   3rd class 0.40121581 0.13525836</code></pre></li>
+<li><p>proportions of each row:</p>
+<pre class="r"><code>titanic %&gt;% 
+  select(class, survived) %&gt;% 
+  table() %&gt;%
+  prop.table(margin = 1)</code></pre>
+<pre><code>##            survived
+## class              no       yes
+##   1st class 0.3753846 0.6246154
+##   2nd class 0.5859649 0.4140351
+##   3rd class 0.7478754 0.2521246</code></pre></li>
+<li><p>proportions of each column:</p>
+<pre class="r"><code>titanic %&gt;% 
+  select(class, survived) %&gt;% 
+  table() %&gt;%
+  prop.table(margin = 2)</code></pre>
+<pre><code>##            survived
+## class              no       yes
+##   1st class 0.1493268 0.4068136
+##   2nd class 0.2044064 0.2364729
+##   3rd class 0.6462668 0.3567134</code></pre></li>
+</ol>
+</div>
+<div id="mosaic-plots" class="section level2">
+<h2>Mosaic Plots</h2>
+<p>The equivalent way to visualise a contingency table is in the form of a <strong>mosaic plot</strong>.</p>
+<pre class="r"><code>titanic %&gt;% 
+  select(class, survived) %&gt;% 
+  table() %&gt;%
+  plot()</code></pre>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-29-1.png" width="672" /></p>
+<p>You can think of the <code>prop.table(margin = )</code> as scaling the areas of one of the variables to be equal:</p>
+<pre class="r"><code>titanic %&gt;% 
+  select(class, survived) %&gt;% 
+  table() %&gt;%
+  prop.table(margin = 1)</code></pre>
+<pre><code>##            survived
+## class              no       yes
+##   1st class 0.3753846 0.6246154
+##   2nd class 0.5859649 0.4140351
+##   3rd class 0.7478754 0.2521246</code></pre>
+<p>In the table above, each row (representing each level of the “Class” variable) sums to 1.
+The equivalent plot would make each of level of the “Class” variable as the same area:</p>
+<pre class="r"><code>titanic %&gt;% 
+  select(class, survived) %&gt;% 
+  table() %&gt;%
+  prop.table(margin = 1) %&gt;%
+  plot()</code></pre>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-31-1.png" width="672" /></p>
+<hr />
+</div>
+</div>
+<div id="glossary" class="section level1">
+<h1>Glossary</h1>
+<ul>
+<li><strong>Explanatory variable:</strong> A variable used to understand or predict values of an outcome variable.</li>
+<li><strong>Outcome variable:</strong> A variable which we are aiming to understand or predict via some explanatory variable(s).</li>
+<li><strong>Scatterplot:</strong> A plot in which the values of two variables are plotted along the two axes, the pattern of the resulting points revealing any relationship which is present.</li>
+<li><strong>Covariance:</strong> A measure of the extent to which two variables vary together.
+<br><br></li>
+<li><code>cov()</code> To calculate the covariance between two variables.</li>
+<li><code>group_by()</code> To apply a grouping in a dataframe for each level of a given variable. Grouped dataframes will retain their grouping, so that if we use <code>summarise()</code> it will provide a summary calculation <em>for each group</em>.</li>
+<li><code>geom_point()</code> To add points/dots to a ggplot.</li>
+<li><code>facet_wrap()</code> To split a ggplot into multiple plots (facets) for each level of a given variable.</li>
+<li><strong>Inline R code</strong> <em>(introduced in the exercises below)</em>: R code which is written in-text, rather than inside a code-chunk. When a document with inline R code is rendered, the calculations are performed and resulting output is placed within the written text.</li>
+</ul>
+<hr />
+</div>
+<div id="exercises" class="section level1">
+<h1>Exercises</h1>
+<div class="question-begin">
+Question 1
+</div>
+<div class="question-body">
+<ol style="list-style-type: decimal">
+<li>Open a new Rmarkdown file, and give it an appropriate title for this set of exercises.<br />
+</li>
+<li>In a new code-chunk, load the tidyverse package.<br />
+</li>
+<li>Now create a new heading of “Stroop task data”.
+<ul>
+<li><strong>Hint:</strong> remember that we specify headings and subheadings using #, ##, ### etc.</li>
+</ul></li>
+<li>In a new code-chunk, read in the Stroop task data from <a href="https://uoepsy.github.io/data/strooptask.csv" class="uri">https://uoepsy.github.io/data/strooptask.csv</a>.<br />
+</li>
+<li>Add a new variable to the data which is the “stroop-effect” for each observation (the difference in times taken to complete the matching and mismatchings sets of coloured words)</li>
+</ol>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-38" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-38&#39;, &#39;sol-start-38&#39;)"></span>
+</div>
+<div id="sol-body-38" class="solution-body" style="display: none;">
+<p>It should look something like the below:</p>
+<p><img src="images/relationships/initrmd.png" /></p>
+</div>
+<p class="solution-end">
+</p>
+<hr />
+<div class="question-begin">
+Question 2
+</div>
+<div class="question-body">
+<p>Recall that above we visualised the relationship between practice (<em>categorical</em>) and Stroop-effect (<em>numeric</em>) by plotting two density curves overlayed on one another, or two histograms side-by-side.<br />
+<br>
+What other way might we visualise this relationship?<br />
+<strong>Hint:</strong></p>
+<pre class="r"><code>ggplot(data = stroopdata, aes(x = practice, y = stroop_effect)) + 
+geom_?????</code></pre>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-39" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-39&#39;, &#39;sol-start-39&#39;)"></span>
+</div>
+<div id="sol-body-39" class="solution-body" style="display: none;">
+<p>Take a moment to think - we have visualised numeric variables in a variety of ways: histograms, density curves, and boxplots.<br />
+Both histograms and density curves already have values on the y-axis (histograms have “count” on the y, and density curves have “density”).</p>
+<pre class="r"><code>ggplot(data = stroopdata, aes(x = practice, y = stroop_effect)) +
+  geom_boxplot()</code></pre>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
+</div>
+<p class="solution-end">
+</p>
+<hr />
+<div class="question-begin">
+Question 3
+</div>
+<div class="question-body">
+<p>Check what other variables there are in the data - use the function <code>names()</code>, and give it your dataframe:</p>
+<pre class="r"><code>names(stroopdata)</code></pre>
+<pre><code>## [1] &quot;id&quot;            &quot;age&quot;           &quot;practice&quot;      &quot;matching&quot;     
+## [5] &quot;mismatching&quot;   &quot;height&quot;        &quot;stroop_effect&quot;</code></pre>
+<p>We also have information recorded on the participants’ heights (measured in cm).<br />
+Produce a visualisation of the relationship between height and the Stroop-effect. Before you do so, think about what you expect to see?<br />
+Calculate the covariance.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-40" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-40&#39;, &#39;sol-start-40&#39;)"></span>
+</div>
+<div id="sol-body-40" class="solution-body" style="display: none;">
+<p>We wouldn’t really expect height to influence the Stroop-effect. We can look at the relationship in a scatterplot:</p>
+<pre class="r"><code>ggplot(data = stroopdata, aes(x = height, y = stroop_effect)) +
+  geom_point()</code></pre>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-35-1.png" width="672" /></p>
+<p>And the covariance is small (in comparison to the relationship we saw previous between the stroop effect and age):</p>
+<pre class="r"><code>cov(stroopdata$height, stroopdata$stroop_effect)</code></pre>
+<pre><code>## [1] -3.024087</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<hr />
+<div class="question-begin">
+Question 4
+</div>
+<div class="question-body">
+<p>We’re going to move to a different dataset now, using data from Edinburgh City Council, and from the Scottish Environment Protection Agency.<br />
+<br>
+Create a new heading in your Rmardkown for “Edinburgh Cyclists”.<br />
+<br>
+The first dataset we are going to use is the from the Bicycle Counters on Middle Meadow Walk (see Figure <a href="#fig:mmwalk">2</a>).</p>
+<div class="figure"><span id="fig:mmwalk"></span>
+<img src="images/relationships/mmwalk.jpeg" alt="Photo from \@SustransScot on Twitter, 2017" width="1612" />
+<p class="caption">
+Figure 2: Photo from @SustransScot on Twitter, 2017
+</p>
+</div>
+<p>Read in the data <a href="https://uoepsy.github.io/data/cycling_mmwalk.csv" class="uri">https://uoepsy.github.io/data/cycling_mmwalk.csv</a> and assign it a name of your choice.</p>
+<table>
+<colgroup>
+<col width="42%" />
+<col width="57%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>month</td>
+<td>Month (first three letters)</td>
+</tr>
+<tr class="even">
+<td>day</td>
+<td>Day of the month (1 - 31)</td>
+</tr>
+<tr class="odd">
+<td>hour</td>
+<td>Hour of the dat (0 - 24)</td>
+</tr>
+<tr class="even">
+<td>cyclists</td>
+<td>Number of cyclists recorded by the bike counters (in either direction) on Middle Meadow Walk, Edinburgh</td>
+</tr>
+</tbody>
+</table>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-41" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-41&#39;, &#39;sol-start-41&#39;)"></span>
+</div>
+<div id="sol-body-41" class="solution-body" style="display: none;">
+<p>We’re going to assign it the name “mm_walk”.</p>
+<pre class="r"><code>mm_walk &lt;- read_csv(&quot;https://uoepsy.github.io/data/cycling_mmwalk.csv&quot;)</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<hr />
+<div class="question-begin">
+Question 5
+</div>
+<div class="question-body">
+<p>The data contains information on the total number of cyclists travelling in either direction on Middle Meadow Walk for each hour of each day in 2012.</p>
+<p>Plot the relationship between hour of day and the number of cyclists.<br />
+<strong>Tip:</strong> You will want to make the hour of day a <strong>factor</strong> first, so that R treats it as different levels.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-42" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-42&#39;, &#39;sol-start-42&#39;)"></span>
+</div>
+<div id="sol-body-42" class="solution-body" style="display: none;">
+<p>Currently, the <em>hour</em> variable is numeric, and R won’t know that we want a separate boxplot for each hour:</p>
+<pre class="r"><code>ggplot(data = mm_walk, aes(x = hour, y = cyclists)) + 
+  geom_boxplot()</code></pre>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-38-1.png" width="672" /></p>
+<p>What we need to do is make the <em>hour</em> variable a factor:</p>
+<pre class="r"><code>mm_walk$hour &lt;- factor(mm_walk$hour)</code></pre>
+<p>OR</p>
+<pre class="r"><code>mm_walk &lt;- 
+  mm_walk %&gt;% 
+  mutate(
+    hour = factor(hour)
+  )</code></pre>
+<p>and then plot it. Note that ggplot now knows to create a separate boxplot for each hour:</p>
+<pre class="r"><code>ggplot(data = mm_walk, aes(x = hour, y = cyclists)) + 
+  geom_boxplot()</code></pre>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-41-1.png" width="672" /></p>
+</div>
+<p class="solution-end">
+</p>
+<hr />
+<div class="question-begin">
+Question 6
+</div>
+<div class="question-body">
+<p>Using <code>group_by()</code> and <code>summarise()</code>, you can <em>aggregate</em> the data in to grouped averages (using <code>mean()</code>), or grouped totals (using <code>sum()</code>).</p>
+<ol style="list-style-type: decimal">
+<li>Which month had the highest total number of cyclists?<br />
+</li>
+<li>Which hour of the day had the highest average number of cyclists?</li>
+</ol>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-43" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-43&#39;, &#39;sol-start-43&#39;)"></span>
+</div>
+<div id="sol-body-43" class="solution-body" style="display: none;">
+<p>To calculate the total number of cyclists in each month, we want to:
+1. group by the month<br />
+2. add together (<em>sum</em>) all the numbers of cyclists in that month</p>
+<pre class="r"><code>mm_walk %&gt;%
+  group_by(month) %&gt;%
+  summarise(
+    monthly_cyclists = sum(cyclists)
+  )</code></pre>
+<pre><code>## # A tibble: 12 x 2
+##    month monthly_cyclists
+##    &lt;chr&gt;            &lt;dbl&gt;
+##  1 Apr              37707
+##  2 Aug              55165
+##  3 Dec              23507
+##  4 Feb              38781
+##  5 Jan              33517
+##  6 Jul              36707
+##  7 Jun              39379
+##  8 Mar              50997
+##  9 May              46364
+## 10 Nov              43962
+## 11 Oct              49160
+## 12 Sep              44351</code></pre>
+<p>August had the most cyclists, with 55,165. August tends to be the busiest month in Edinburgh because of the festival.</p>
+<p>To calculate the average number of cyclists in each hour of the day, we want to:
+1. group by the hour of the day
+2. calculate the average of the numbers of cyclists for each hour</p>
+<p><strong>Tip:</strong> we can use <code>arrange(somevariable)</code> order our data from smallest to largest according to “somevariable”, and by adding in <code>desc()</code> too, we can go from largest to smallest!</p>
+<pre class="r"><code>mm_walk %&gt;%
+  group_by(hour) %&gt;%
+  summarise(
+    avg_cyclists = mean(cyclists)
+  ) %&gt;%
+  arrange(desc(avg_cyclists))</code></pre>
+<pre><code>## # A tibble: 24 x 2
+##    hour  avg_cyclists
+##    &lt;fct&gt;        &lt;dbl&gt;
+##  1 17           144. 
+##  2 8            139. 
+##  3 18           113. 
+##  4 16           108. 
+##  5 9            104. 
+##  6 15            84.2
+##  7 13            76.6
+##  8 14            76.0
+##  9 19            71.0
+## 10 12            69.2
+## # … with 14 more rows</code></pre>
+<p>Matching the plot we made in the previous question, there are two peak hours - 8am and 5pm. 5pm has a slightly higher <em>mean</em> number of cyclists, with 143.</p>
+</div>
+<p class="solution-end">
+</p>
+<hr />
+<div class="question-begin">
+Question 7
+</div>
+<div class="question-body">
+<p>Another dataset, available at <a href="https://uoepsy.github.io/data/cycling_invrow.csv" class="uri">https://uoepsy.github.io/data/cycling_invrow.csv</a>, contains information on the total number of cyclists each month from 2014 to 2016 on Inverleith Row, Edinburgh. It also contains data on the monthly rainfall (in millimetres) measured at the nearby Royal Botanic Gardens.</p>
+<p>Read the data into R, and produce a visualisation of the relationship between monthly rainfall and monthly cyclists.</p>
+<table>
+<colgroup>
+<col width="42%" />
+<col width="57%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>year</td>
+<td>Year (2014 - 2016)</td>
+</tr>
+<tr class="even">
+<td>month</td>
+<td>Month (first three letters)</td>
+</tr>
+<tr class="odd">
+<td>cyclists</td>
+<td>Number of cyclists recorded by the bike counters (in either direction) on Inverleith Row, Edinburgh</td>
+</tr>
+<tr class="even">
+<td>rainfall_mm</td>
+<td>Rainfall (in millimetres) recorded at the Royal Botanic Gardens, Edinburgh</td>
+</tr>
+</tbody>
+</table>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-44" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-44&#39;, &#39;sol-start-44&#39;)"></span>
+</div>
+<div id="sol-body-44" class="solution-body" style="display: none;">
+<pre class="r"><code>inv_row &lt;- read_csv(&quot;https://uoepsy.github.io/data/cycling_invrow.csv&quot;)
+
+ggplot(data = inv_row, aes(x = rainfall_mm, y = cyclists))+
+  geom_point()</code></pre>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-44-1.png" width="672" /></p>
+</div>
+<p class="solution-end">
+</p>
+<hr />
+<div class="question-begin">
+Question 8 - Harder
+</div>
+<div class="question-body">
+<p>Make a new heading of “Pulse rate and exercise”.<br />
+Read in a new dataset from <a href="https://uoepsy.github.io/data/pulse.csv" class="uri">https://uoepsy.github.io/data/pulse.csv</a>.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Variable</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">active</td>
+<td align="right">Pulse rate (beats per minute) after exercise</td>
+</tr>
+<tr class="even">
+<td align="right">rest</td>
+<td align="right">Resting pulse rate (beats per minute)</td>
+</tr>
+<tr class="odd">
+<td align="right">smoke</td>
+<td align="right">“Y” = Smoker or “N” = Nonsmoker</td>
+</tr>
+<tr class="even">
+<td align="right">sex</td>
+<td align="right">“F” = Female or “M” = Male</td>
+</tr>
+<tr class="odd">
+<td align="right">exercise</td>
+<td align="right">Typical hours of exercise (per week)</td>
+</tr>
+<tr class="even">
+<td align="right">hgt</td>
+<td align="right">Height (in inches)</td>
+</tr>
+<tr class="odd">
+<td align="right">wgt</td>
+<td align="right">Weight (in pounds)</td>
+</tr>
+</tbody>
+</table>
+<p>Explore <em>visually</em> the relationship between active and resting pulse rate and the variables which influence resting pulse rate.<br />
+For each plot you make:</p>
+<ul>
+<li>Think about what variable we are assuming to influence another. Which should be on the x-axis, and which on the y?<br />
+</li>
+<li>Think about what type of measurement each variable is - e.g., numeric, categorical. How is it best to visualise each relationship?<br />
+</li>
+<li>Try to make your plots easily interpretable (for instance, add useful axes and titles using <code>labs(title = "---", x = "---", y = "---")</code>), and aesthetically pleasing (try out some of the different <a href="https://www.datanovia.com/en/blog/ggplot-themes-gallery/">themes</a>).</li>
+</ul>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-45" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-45&#39;, &#39;sol-start-45&#39;)"></span>
+</div>
+<div id="sol-body-45" class="solution-body" style="display: none;">
+<p>Read in the data:</p>
+<pre class="r"><code>pulse &lt;- read_csv(&quot;https://uoepsy.github.io/data/pulse.csv&quot;)</code></pre>
+<p>Visualise the relationship between resting and active pulse rate. This should just be a scatterplot:</p>
+<pre class="r"><code>ggplot(data = pulse, aes(x = rest, y = active)) + 
+  geom_point(col=&quot;red&quot;)+
+  labs(title = &quot;Relationship between resting and active pulse rate&quot;,x = &quot;Resting pulse&quot;, y = &quot;Pulse after exercise&quot;)+
+  theme_minimal()</code></pre>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-46-1.png" width="672" /></p>
+<p>For a visual exploration, we now want to create similar plots between each variable and the <em>rest</em> variable, to see which ones we see patterns in.</p>
+<pre class="r"><code>ggplot(data = pulse, aes(x = sex, y = rest)) + 
+  geom_boxplot()</code></pre>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-47-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(data = pulse, aes(x = smoke, y = rest)) + 
+  geom_boxplot()</code></pre>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-47-2.png" width="672" /></p>
+<p>When you look at the data, you’ll notice that because the exercise per week is rounded to the nearest hour, there are actually only three different distinct values (1, 2, or 3). A scatterplot might have initially seemed the best choice (because we think of hours per week as <em>numeric</em>). However, a boxplot might be more convenient.<br />
+Note that we have <code>x = factor(exercise)</code> in the code below. This temporarily makes the <em>exercise</em> variable a factor (for the plot <em>only</em>, and making no permanent changes to the dataframe itself).</p>
+<pre class="r"><code>ggplot(data = pulse, aes(x = factor(exercise), y = rest)) + 
+  geom_boxplot()</code></pre>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-48-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(data = pulse, aes(x = hgt, y = rest)) + 
+  geom_point()</code></pre>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-49-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(data = pulse, aes(x = wgt, y = rest)) + 
+  geom_point()</code></pre>
+<p><img src="04_relationships_files/figure-html/unnamed-chunk-49-2.png" width="672" /></p>
+</div>
+<p class="solution-end">
+</p>
+<hr />
+<div class="question-begin">
+Question 9
+</div>
+<div class="question-body">
+<p>Create a two-way contingency table to assess the relationship between Smoker/Non-Smoker and Male/Female.<br />
+What percentage of Males are Smokers?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-46" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-46&#39;, &#39;sol-start-46&#39;)"></span>
+</div>
+<div id="sol-body-46" class="solution-body" style="display: none;">
+<pre class="r"><code>pulse %&gt;%
+  select(sex, smoke) %&gt;%
+  table()</code></pre>
+<pre><code>##    smoke
+## sex   N   Y
+##   F 101   9
+##   M 105  17</code></pre>
+<pre class="r"><code>pulse %&gt;%
+  select(sex, smoke) %&gt;%
+  table() %&gt;% 
+  prop.table(margin=1)</code></pre>
+<pre><code>##    smoke
+## sex          N          Y
+##   F 0.91818182 0.08181818
+##   M 0.86065574 0.13934426</code></pre>
+<p>14% of Males are smokers.</p>
+</div>
+<p class="solution-end">
+</p>
+<hr />
+<div class="question-begin">
+Question 10
+</div>
+<div class="question-body">
+<p>We’re going to now learn about how to write a paragraph of text with embedded calculations. Each time we render the document, the calculations get performed and the ouput gets created. This is really useful as it means we can write a report which we can really easily update if we change our analysis, or include more data.</p>
+Instead of writing in code-chunks, as we have been, we can also write <strong>inline R code</strong>, which we specify as shown in Figure <a href="#fig:inlinepng">3</a>.<br />
+
+<div class="figure"><span id="fig:inlinepng"></span>
+<img src="images/relationships/inline.png" alt="Writing Inline R code. The code on the left gets compiled to look like what is shown on the right (source: https://rmarkdown.rstudio.com/authoring_quick_tour.html)" width="701" />
+<p class="caption">
+Figure 3: Writing Inline R code. The code on the left gets compiled to look like what is shown on the right (source: <a href="https://rmarkdown.rstudio.com/authoring_quick_tour.html" class="uri">https://rmarkdown.rstudio.com/authoring_quick_tour.html</a>)
+</p>
+</div>
+Write the paragraph below, and fill in the blanks with inline R code.<br />
+<br>
+<center>
+The average resting pulse was <strong>????</strong>, with a standard deviation of <strong>????</strong>. Heights of participants in the study ranged from <strong>????</strong> to <strong>????</strong>, with a median of <strong>????</strong> and an IQR of <strong>????</strong>.
+</center>
+<p><br>
+<small>
+<strong>Tip:</strong> for writing inline code, often using code like <code>mean(data$variable)</code> is easier, because it is more compact than <code>data %&gt;% summarise(mean = mean(variable)) %&gt;% pull(mean)</code>.<br />
+</small></p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-47" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-47&#39;, &#39;sol-start-47&#39;)"></span>
+</div>
+<div id="sol-body-47" class="solution-body" style="display: none;">
+<p>Note that we have also used <code>round(2)</code> every now and then, to round the results to 2 decimal places.
+<img src="images/relationships/inline2.png" width="522" /></p>
+</div>
+<p class="solution-end">
+</p>
+<hr />
+<div class="question-begin">
+Question 11
+</div>
+<div class="question-body">
+<p>Final task for this set of exercises!</p>
+<p>Compile your Rmarkdown document into an html. Remember that you can do this using the “Knit” button at the top.<br />
+<br>
+You’ll notice that as the <strong>.html</strong> file shows up in the files tab in the bottom-right of Rstudio.<br />
+Make sure that your inline R code is displaying correctly.<br />
+<br>
+Upload your <em>.html</em> to the discussion board, so we can all admire each other’s lovely ggplots!</p>
+<p class="question-end">
+</p>
+</div>
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;">
+
+</div>
+</div>
+
+<link rel="stylesheet" href="https://uoepsy.github.io/assets/css/ccfooter.css" />
+<div class="ccfooter"></div>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

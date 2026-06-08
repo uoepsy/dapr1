@@ -1,0 +1,125 @@
+---
+title: 'dapR1: Hypothesis testing and confidence intervals task'
+date: "AY 2020-2021"
+output:
+  html_document:
+    theme: flatly
+---
+
+```{r echo=FALSE}
+knitr::opts_chunk$set(out.width = '70%', fig.height = 5, fig.width = 6,
+                      fig.align = 'center')
+```
+
+---
+
+**NOTE**
+
+All of the following use as significance level $\alpha = 0.01$ and a two-sided alternative hypothesis.
+
+---
+
+**Question 1**
+
+If the observed statistic falls within the middle 99% of the values in a null distribution, then the value specified in the null hypothesis is a plausible value for the population parameter. Furthermore, the value in the null hypothesis will also fall within a 99% confidence interval.
+
+TRUE or FALSE?
+
+
+**Question 2**
+
+If the null parameter is not contained in the 99% confidence interval, then we would reject the null hypothesis as the 0.01 significance level.
+
+TRUE or FALSE?
+
+
+**Question 3**
+
+If I perform 100 hypothesis tests and I find some significant results, then I should definitely write a paper reporting that these striking effects hold in the population.
+
+TRUE or FALSE?
+
+
+**Question 4**
+
+If I find a significant result, I won't have a way of knowing for sure whether the alternative hypothesis is actually true or whether we rejected a true null hypothesis.
+To safeguard against potentially dangerous conclusions, such as authorising a potential new drug which was shown more effective than a previous treatment, I might want to perform a replication study. The second study can then either (a) reject $H_0$, providing further evidence in favour of $H_1$, or (b) fail to reject $H_0$, suggesting that the first study may have rejected a true null hypothesis because of chance only.
+
+TRUE or FALSE?
+
+
+---
+
+*Scroll down to find some thinking points.. and the answers!*
+
+---
+
+<div style="margin-bottom:750px;"></div>
+
+
+**Question 1**: The correct answer is TRUE. 
+
+The values of the sample statistics between the two vertical red bars correspond to the statistics that mean the null value of the parameter is plausible. If we observe a sample statistic within the red bars, we do not reject the null hypothesis.
+
+The observed statistic is the green vertical line. You can see that it falls within the 99% middle values in the null distribution. Similarly, you can see that the null value of the parameter falls within the middle 99% of the values in a confidence interval.
+
+```{r echo=FALSE}
+n = 1000
+boot = rnorm(n, 2.1, 1)
+h = hist(boot, breaks = 'FD', plot = FALSE)
+boot = rep(h$mids, h$counts)
+null = boot - 2.1
+type = rep(c('bootstrap', 'null'), each = n)
+df = data.frame(type = type, 
+                vals = c(boot, null))
+
+qb = quantile(boot, probs = c(0.005, 0.995))
+qn = quantile(null, probs = c(0.005, 0.995))
+
+stripchart(vals ~ type, data = df, method = 'stack', 
+           pch = 1, cex = 0.5, offset = 0.1, col = 'lightblue',
+           xlab = "statistic")
+lines(c(qb[1], qb[1]), c(0.9, 1.5), col = 'red', lty = 2)
+lines(c(qb[2], qb[2]), c(0.9, 1.5), col = 'red', lty = 2)
+lines(2.1 * c(1, 1), c(0.9, 1.5), col = 'darkolivegreen4', lty = 1, lwd = 2)
+lines(c(qn[1], qn[1]), c(1.9, 2.5), col = 'red', lty = 2)
+lines(c(qn[2], qn[2]), c(1.9, 2.5), col = 'red', lty = 2)
+lines(c(0, 0), c(1.9, 2.5), col = 'black', lty = 1, lwd = 2)
+```
+
+
+**Question 2** The correct answer is TRUE.
+
+If the null parameter is not included within the 99% confidence interval, we reject the null. This is equivalent to saying that the observed statistic falls in the tails of the null distribution, i.e. it is not in the middle 99% of the values in the null distribution.
+
+```{r echo=FALSE}
+n = 1000
+boot = rnorm(n, 3, 1)
+h = hist(boot, breaks = 'FD', plot = FALSE)
+boot = rep(h$mids, h$counts)
+null = boot - 3
+type = rep(c('bootstrap', 'null'), each = n)
+df = data.frame(type = type, 
+                vals = c(boot, null))
+
+qb = quantile(boot, probs = c(0.005, 0.995))
+qn = quantile(null, probs = c(0.005, 0.995))
+
+stripchart(vals ~ type, data = df, method = 'stack', 
+           pch = 1, cex = 0.5, offset = 0.1, col = 'lightblue',
+           xlab = "statistic")
+lines(c(qb[1], qb[1]), c(0.9, 1.5), col = 'red', lty = 2)
+lines(c(qb[2], qb[2]), c(0.9, 1.5), col = 'red', lty = 2)
+lines(3 * c(1, 1), c(0.9, 1.5), col = 'darkolivegreen4', lty = 1, lwd = 2)
+lines(c(qn[1], qn[1]), c(1.9, 2.5), col = 'red', lty = 2)
+lines(c(qn[2], qn[2]), c(1.9, 2.5), col = 'red', lty = 2)
+lines(c(0, 0), c(1.9, 2.5), col = 'black', lty = 1, lwd = 2)
+```
+
+**Question 3** The correct answer is FALSE.
+
+Some of the effects found might be due to random chance only. If all 100 tests had in reality a true null hypothesis, we would still reject 5 nulls just because of sampling variation.
+
+
+**Question 4** The correct answer is TRUE.
+

@@ -1,0 +1,1142 @@
+```{r, echo=FALSE}
+HIDDEN_SOLS=FALSE
+TOGGLE=TRUE
+set.seed(15732)
+ggplot2::theme_set(ggplot2::theme_gray(base_size=15))
+```
+
+```{r}
+knitr::opts_chunk$set(fig.align = 'center', out.width = '70%')
+```
+
+
+
+# Comparing two means (independent samples) {#two-indep-samples}
+
+<div class="lo">
+#### Instructions {-}
+  
+- In this two-hour lab we will go through worked examples in the first hour, and you will attempt to answer some questions in the second hour.
+- The Rmarkdown file for this week is [here](https://uoe-psychology.github.io/uoe_psystats/dapr1/labsheets/week_17_practice.Rmd).
+
+
+#### Learning outcomes {-}
+
+**LO1.** Understand how to perform a two-sample $t$-test and interpret the results.
+
+**LO2.** Understand how to calculate a two-sample $t$-interval and interpret the results.
+
+**LO3.** Being able to check the assumptions of $t$-procedures.
+</div>
+
+
+## Recap
+
+Last week you explored how to draw conclusions about population parameters on the basis of sample statistics.
+In particular, given a random sample of size $n$ from a population, you tested if the population mean was equal to some hypothesized value.
+
+Let the sample mean be $\bar{x}$. We test if the sample was taken from a population with mean $\mu_0$ by comparing the observed $t$-statistic
+<center>
+$$
+t = \frac{\bar{x} - \mu_0}{s/\sqrt{n}}
+$$
+</center>
+with:
+
+- __for one-sided hypotheses__, the critical value of level $\alpha$ from a $t$-distribution with $n-1$ degrees of freedom
+<center>
+$$
+t^*_\textrm{df} = \texttt{qt(p = 1 - alpha, df = n - 1)}
+$$
+</center>
+
+- __for two-sided hypotheses__, the critical value of level $\frac{\alpha}{2}$ from a $t$-distribution with $n-1$ degrees of freedom
+<center>
+$$
+t^*_\textrm{df} = \texttt{qt(p = 1 - alpha/2, df = n - 1)}
+$$
+</center>
+
+We reject the null hypothesis if the observed $t$-statistic is, __in absolute value__, as extreme or more extreme than the critical value:
+
+<center>
+__Reject $H_0$ if__ $|t| \geq t^*_\textrm{df}$
+</center>
+<br>
+
+
+The above procedure applies when testing a single parameter (a proportion or a mean) from a single population.
+
+Today you will explore and apply inference procedures for comparing parameters between two populations or treatment groups.
+
+
+
+
+## Key terminology
+
+<div class="def">
+#### Units and variables {-}
+
+The individual entities on which data are collected are called __observational units__ or __cases__.
+
+The number of observational units in the study is known as the __sample size__, and is typically denoted by $n$.
+
+A __variable__ is any characteristic that varies from observational unit to observational unit.
+
+
+#### Categorical and quantitative variables {-}
+
+Variables are either __categorical__ or __quantitative__:
+
+- A __categorical variable__ divides the units into groups, placing each unit into exactly one of two or more categories. 
+_Technology tip: In R, a categorical variable should be a `factor`._
+
+- A __quantitative variable__ measures a numerical quantity for each case.
+Numerical operations like adding and averaging make sense only for quantitative variables.
+
+A special kind of categorical variable is a __binary variable__, for which only two possible categories exist.
+
+_Note: One simple way to distinguish between categorical and quantitative variables is to ask yourself if it makes sense to take an average of the values._
+
+
+#### Explanatory and response variables {-}
+
+If we are using one variable to help us understand or predict values of another variable, we call the former the __explanatory variable__ and the latter the __response variable__. 
+
+<div style="margin-left: 2em;">
+_**Other names**_
+
++ _explanatory variable = independent variable = predictor variable_   
++ _response variable = dependent variable = outcome variable_
+</div>
+
+#### Observational studies vs randomized experiments {-}
+
+An __observational study__ is a study in which the researcher does not manipulate the value of any variable, but simply observes the values as they naturally	exist.
+
+A __randomized experiment__ is a study in which the researcher determines __at random__ the explanatory variable for each unit, before the response variable is measured.
+
+
+<!-- #### Long vs wide data format {-} -->
+
+<!-- Data are in **long** format if each column represents a different variable (e.g., year, sex or assigned task). -->
+
+<!-- Data are in **wide** format if each column represents a different group (e.g., task 1 and task 2). -->
+</div>
+
+
+## Walkthrough: Got a friend?
+
+In today's in-class activity we will use data from the General Social Survey conducted in the US in 2004.
+One of the questions asked to a random sample of adult Americans in the 2004 General Social Survey (GSS) was:
+
+> "From time to time, most people discuss important matters with other people. Looking back over the last six months --- who are the people with whom you discussed matters important to you? Just tell me their first names or initials."
+
+The interviewer was asked to record how many names were mentioned, along with the person's sex. For more details, see the [GSS webpage](https://gssdataexplorer.norc.org/variables/848/vshow).
+
+<br>
+<font size="2">
+_**Note**: This survey was conducted in the US in the year 2004, at which point US officials recorded sex on a binary scale. We are merely analysing the data that were collected in that survey as it is an extensive and open-source dataset. The fact that we are presenting this study as an in-class example is not an endorsement to the view that gender is a binary variable._
+</font>
+<br><br>
+
+- How many names would you mention if you had to answer this question?
+- How do you expect the responses to differ between men and women? 
+- Do you expect women to mention more names than men, or vice-versa, or perhaps the number of names to be similar between men and women?
+
+In today's walkthrough, we will explore whether men and women differ with regard to the number of names they tend to mention when answering this question.
+For simplicity, we will refer to the people with whom you talk about important personal matters as "close friends".
+
+The survey data are stored in the file [`close_friends.txt`](https://edin.ac/2vQrCBi) which has short url `https://edin.ac/2vQrCBi`.
+
+Before learning a new test procedure to assess a potential difference in the centre of a quantitative variable between two independent groups, it is good practice to display, explore and summarise the data. 
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.1")`
+Identify the observational units in this study.  
+`r msmbstyle::question_end()`
+
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+The observational units are the sampled adult Americans taking part in the 2004 General Social Survey (GSS).  
+`r msmbstyle::solution_end()`
+
+---
+
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.2")`
+- Identify the recorded variables in this study.
+- Classify each variable either as categorical (also binary) or quantitative.
+- Identify each variable's role: explanatory or response.
+
+
+| Variable's name | Type            | Role            |
+|:----------------|:----------------|:----------------|
+| ?               | ?               | ?               |
+| ?               | ?               | ?               |
+
+
+`r msmbstyle::question_end()`
+
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+The recorded variables are the sex of the participant and the number of names given by the participant. 
+The former is categorical and binary, while the latter is a numerical value that varies from participant to participant. 
+We are interested in how the number of mentioned names tends to vary with the sex of the participant. 
+For this reason, sex is the explanatory variable, while number of close friends in the response variable.
+
+| Variable's name         | Type                       | Role            |
+|:------------------------|:---------------------------|:----------------|
+| Sex                     | Categorical and binary     | Explanatory     |
+| Number of close friends | Quantitative               | Response        |
+
+`r msmbstyle::solution_end()`
+
+
+---
+
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.3")`
+Did the study make use of random assignment, random sampling, both or neither?
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+This study only involved random sampling of the observational units from the population of adult Americans in 2004.
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.4")`
+Is this an observational study or an experiment? Explain why.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+This is an observational study as the researchers limited themselves to record the values that naturally occur.
+The researchers did not perform any manipulation of the variables, such as random assignment of observational units to groups. If this were the case, we would be analysing data from a randomised experiment.
+`r msmbstyle::solution_end()`
+
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.5")`
+State, in words, the null and alternative hypotheses to test whether the sample data provide evidence that American males and females tend to differ with regard to the average number of close friends they mention.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+The null hypothesis is that the population mean number of close friends is the same for adult American males as for females.
+In other words, the null hypothesis states that there is no difference in the population mean number of close friends between males and females.
+
+The alternative hypothesis is that the population mean number of close friends is not the same for males as for females. 
+In other words, the alternative hypothesis states that there is a difference in the population mean number of close friends between males and females.
+`r msmbstyle::solution_end()`
+
+---
+
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.6")`
+Define the parameters of interest in this study, and identify appropriate symbols for them.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+- $\mu_f$: population mean number of close friends mentioned by adult American females
+- $\mu_m$: population mean number of close friends mentioned by adult American males
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.7")`
+State the null and alternative hypotheses in symbols.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+$$
+H_0 : \mu_f = \mu_m      \qquad \textrm{OR} \qquad     H_0 : \mu_f - \mu_m = 0\\
+H_1 : \mu_f \neq \mu_m   \qquad \textrm{OR} \qquad     H_1 : \mu_f - \mu_m \neq 0
+$$
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.8")`
+Explain why the one-sample $t$-test is not appropriate to answer the research question of this study.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+The one-sample $t$-test introduced in [Week 16](#chap-one-mean-test) tests if the population that the observed sample came from has a hypothesized mean. 
+Here, instead, we want to compare the means of two populations (or, if it were a randomized experiment, between two treatment groups).
+`r msmbstyle::solution_end()`
+
+
+---
+
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.9")`
+Load the data into R and inspect it. 
+
+Pay particular attention to:
+
+- the variable names;
+- the dimensions of the tibble;
+- the format of the data (i.e., make sure that variables are correctly encoded).
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+Load the data:
+```{r, message=FALSE}
+library(tidyverse)
+
+gss <- read_tsv('https://edin.ac/2vQrCBi', col_names = TRUE)
+```
+
+Inspect the names of the variables and the first six rows:
+```{r}
+head(gss)
+```
+
+Check the number of observational units and variables:
+```{r}
+dim(gss)
+```
+
+The tibble says that Sex is of class `chr` (character). As Sex is a categorical variable, we will encode it as a factor:
+```{r}
+gss <- gss %>%
+  mutate(Sex = factor(Sex))
+
+# check encoding
+head(gss)
+```
+`r msmbstyle::solution_end()`
+
+
+<!-- <div class="def"> -->
+<!-- #### Long vs wide format {-} -->
+
+<!-- Data are in **long** format if each column represents a different variable (e.g., year, sex or assigned task) and they are in **wide** format if each column represents a different group (e.g., task 1 and task 2). -->
+<!-- </div> -->
+
+<!-- `r msmbstyle::question_begin()` -->
+<!-- Are the data in wide or long format? -->
+<!-- `r msmbstyle::question_end()` -->
+
+
+<!-- We will now convert the data from wide to long format. -->
+
+<!-- The relevant function is: -->
+<!-- ``` -->
+<!-- pivot_longer(DATA NAME,  -->
+<!--              GROUP COLUMNS,  -->
+<!--              names_to = "NAME OF COLUMN REPRESENTING GROUPS",  -->
+<!--              values_to = "NAME OF VALUES COLUMN") -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- gss_data <- pivot_longer(gss,  -->
+<!--                          1:2, -->
+<!--                          names_to = 'sex', -->
+<!--                          values_to = 'number_close_friends') -->
+<!-- head(gss_data) -->
+
+<!-- gss_data <- gss_data %>% -->
+<!--   mutate(sex = str_replace(sex, 'CloseFriendsMen', 'male'), -->
+<!--          sex = str_replace(sex, 'CloseFriendsWomen', 'female')) -->
+<!-- head(gss_data) -->
+<!-- ``` -->
+
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.10")`
+Summarise the survey responses by showing the counts of the number of close friends by sex.
+
+Try sketching by hand histograms showing, for each sex, the frequency of each reported number of close friends.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+Create a two-way frequency table of the participants' responses by sex:
+```{r}
+tally <- xtabs(~ Sex + NumberCloseFriends, data = gss)
+tally
+```
+
+Add the totals for each sex:
+```{r}
+tally <- addmargins(tally, margin = 2)
+tally
+```
+
+Here, `margin = 1` calculates the totals over the rows, while `margin = 2` calculates the totals over the columns.
+
+
+
+The sketch should look something like this:
+```{r, fig.width=9, echo=FALSE, out.width = '80%'}
+ggplot(gss, aes(x = NumberCloseFriends)) +
+  geom_histogram(binwidth = 1, color = 'black', fill = 'white') +
+  facet_grid(cols = vars(Sex)) +
+  theme_classic(base_size = 15)
+```
+
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.11")`
+Report a table of descriptive summaries by sex.
+
+Include the sample size, mean, SD, minimum, lower quartile, median, upper quartile, and maximum for each sex.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+When comparing a quantitative response variable between two independent groups, encoded in a categorical variable, we could report:
+
+- sample size
+- mean
+- SD
+- minimum
+- lower quartile
+- median
+- upper quartile
+- maximum
+
+The __median__ is the value such that 50% of the data lies below and 50% of the data lies above that value.
+The median cuts the data into two parts: the part to the left of the median and part to the right of the median. 
+
+The median of left part is known as the __lower quartile__, and represents the value for which 25% of the data lie below that value.
+
+The median of right part is known as the __upper quartile__, and represents the value for which 25% of the data lie above that value.
+
+The __interquartile range__ (IQR) is simply the difference between the upper quartile and the lower quartile, and represents the width of the interval containing the middle 50% of all observations.
+
+The minimum, lower quartile, median, upper quartile, and maximum jointly form the so-called __five-number summary__ of the distribution of a quantitative variable.
+
+```{r}
+descr_stats <- gss %>%
+  group_by(Sex) %>%
+  summarise(
+    SampleSize = n(),
+    Mean = mean(NumberCloseFriends),
+    SD = sd(NumberCloseFriends), 
+    Minimum = min(NumberCloseFriends),
+    LowerQuartile = quantile(NumberCloseFriends, p = 0.25),
+    Median = median(NumberCloseFriends),
+    UpperQuartile = quantile(NumberCloseFriends, p = 0.75),
+    Maximum = max(NumberCloseFriends)
+  )
+descr_stats
+```
+
+
+To format the above tibble as a nice HTML table, you can use the function `kable` from the package `knitr`:
+```{r}
+knitr::kable(descr_stats, "html", digits = 2)
+```
+
+```{r echo=FALSE}
+# knitr::kable(descr_stats, "html", digits = 2) %>%
+#   kableExtra::kable_styling(font_size = 12, full_width=TRUE)
+```
+
+
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.12")`
+Are the descriptive summaries from the previous question parameters or statistics? Explain why.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+The values in the above table are statistics. They are numerical summaries computed on observational units which represent a random sample from the population of adult Americans in 2004.
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.13")`
+Produce a visual display of the five-number summaries by sex.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+A visual display of the five-number summary is called a __boxplot__. This is typically a very good visualisation when your data involve a quantitative response variable and a categorical explanatory variable.
+
+```{r fig.height=4}
+ggplot(gss, aes(x = Sex, y = NumberCloseFriends)) +
+  geom_boxplot(color = 'darkorange') +
+  theme_classic(base_size = 15) +
+  coord_flip()
+```
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.14")`
+Visualise the distribution of the number of close friends by sex.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+Separate plots:
+```{r, fig.heigh = 5, fig.width = 9, out.width = '90%'}
+ggplot(gss, aes(x = NumberCloseFriends, fill = Sex)) +
+  geom_histogram(binwidth = 1, color = 'white') +
+  facet_grid(cols = vars(Sex))
+```
+
+Unique plot:
+```{r}
+ggplot(gss, aes(x = NumberCloseFriends, fill = Sex)) +
+  geom_histogram(binwidth = 0.5, color = 'white', position = 'dodge')
+```
+
+<!-- Proportions: -->
+<!-- ```{r} -->
+<!-- ggplot(gss, aes(x = NumberCloseFriends, fill = Sex)) + -->
+<!--   geom_histogram(binwidth = 1, color = 'white', position = 'fill') + -->
+<!--   labs(y = 'proportion') -->
+<!-- ``` -->
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.15")`
+Comment on what the histograms reveal about the shapes of the distributions.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+The distribution of number of close friends for both males and females appears to be skewed to the right.
+
+The variability in the number of close friends seems to be similar across males and females.
+
+The sample mean number of close friends seems to be slightly higher for females than males.
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.16")`
+Report the sample mean and sample standard deviation of the number of close friends for each sex using appropriate symbols.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+The sample mean number of close friends for females is $\bar{x}_f$ = `r descr_stats %>% filter(Sex == 'female') %>% select(Mean) %>% pull() %>% round(2)`, with standard deviation $s_f$ = `r descr_stats %>% filter(Sex == 'female') %>% select(SD) %>% pull() %>% round(2)` friends.
+
+For males, the sample mean number of close friends is $\bar{x}_m$ = `r descr_stats %>% filter(Sex == 'male') %>% select(Mean) %>% pull() %>% round(2)`, with standard deviation $s_m$ = `r descr_stats %>% filter(Sex == 'male') %>% select(SD) %>% pull() %>% round(2)` friends.
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.17")`
+Compute the difference in the sample mean number of close friends between females and males.
+
+Do you think it could be possible to obtain sample means this far apart even if the population means were actually equal? Explain why.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+
+The difference in sample means is $\bar{x}_f - \bar{x}_m$ = `r (descr_stats %>% filter(Sex == 'female') %>% select(Mean) %>% pull() - descr_stats %>% filter(Sex == 'male') %>% select(Mean) %>% pull()) %>% round(2)`.
+
+
+Due to sampling variability, we can not conclude that, because the sample means differ, the means of the two populations must differ too.
+
+We must resort to a principled framework to test this, and we have already learned to use statistical hypothesis testing in order to assess if sample results (in our case, the observed difference in sample mean number of close friends) are significant in the sense of being unlikely to have occurred by chance (from random sampling) alone.
+
+__Estimating the magnitude of the difference in population means.__
+
+How can we estimate the magnitude of the difference in population means? By using a confidence interval for the difference in means!
+
+`r msmbstyle::solution_end()`
+
+---
+
+<div class="red">
+#### Comparing the means of two independent groups {-}
+
+Suppose you wish to test for the significance of the difference between two population means denoted $\mu_1$ and $\mu_2$ and, if the difference is significant, you wish to quantify the magnitude of the difference using a confidence interval.
+
+##### Test of significance  {-}
+
+_Null hypothesis:_ 
+
+$H_0: \mu_1 = \mu_2$ $\quad$ or $\quad$ $H_0: \mu_1 - \mu_2 = 0$
+
+
+_Alternative hypothesis:_
+
+i. $H_1: \mu_1 < \mu_2$ $\quad$ or $\quad$ $H_1: \mu_1 - \mu_2 < 0$
+ii. $H_1: \mu_1 > \mu_2$ $\quad$ or $\quad$ $H_1: \mu_1 - \mu_2 > 0$
+iii. $H_1: \mu_1 \neq \mu_2$ $\quad$ or $\quad$ $H_1: \mu_1 - \mu_2 \neq 0$
+
+
+_Test statistic:_
+<center>
+$$
+t = \frac{\bar x_1 - \bar x_2}{SE(\bar x_1 - \bar x_2)}
+$$
+</center>
+
+
+_$p$-value:_
+
+i. $\mathrm{Pr}(T_\textrm{df} \leq t)$
+ii. $\mathrm{Pr}(T_\textrm{df} \geq t)$
+iii. $2 \times \mathrm{Pr}(T_\textrm{df} \geq |t|)$
+
+where $T_\textrm{df}$ denotes a $t$-distribution with $\textrm{df}$ degrees of freedom.
+
+
+_SE and df:_
+
+1. Population variances unknown and _not equal_:
+  + Very difficult degrees of freedom, let the R function `t.test` calculate them.
+  + The standard error of the difference in means is
+<center>
+$$
+SE(\bar x_1 - \bar x_2) = \sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}
+$$
+</center>
+
+2. Population variances unknown and _equal_:
+  + Degrees of freedom $\textrm{df} = (n_1 - 1) + (n_2 - 1) = n_1 + n_2 - 2$.
+  + The standard error of the difference in means is
+
+$$
+\qquad \qquad 
+SE(\bar x_1 - \bar x_2) = s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}, \quad \textrm{where} \quad
+s_p = \sqrt{\frac{(n_1 - 1) s_1^2 + (n_2 - 1) s_2^2}{n_1 + n_2 - 2}}
+$$
+
+
+
+##### Confidence interval for $\mu_1 - \mu_2$ {-}
+
+<center>
+$$
+(\bar x_1 - \bar x_2) \pm t^*_\textrm{df} \times SE(\bar x_1 - \bar x_2)
+$$
+</center>
+where $t^*_\textrm{df}$ denotes the critical value corresponding to a desired $\alpha$ level for a $t$-distribution with $\textrm{df}$ degrees of freedom.
+
+
+##### Validity conditions (assumptions) {-}
+
+These above procedures are considered valid if:
+
+- The sample data arise from independent random samples from two populations OR from random assignment of the units to treatment groups.
+- Either the quantitative variable of interest is normally distributed in both populations OR both sample sizes are large (as a convention, $n_1 \geq 20$ and $n_2 \geq 20$) and the sample distributions should not be strongly skewed.
+</div>
+
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.18")`
+Use the summary statistics computed in Question A.11 to calculate the value of the $t$-statistic for testing the hypotheses stated in Question A.7.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+Let's extract the relevant statistics from the table of descriptive summaries:
+```{r}
+n_f <- descr_stats %>% filter(Sex == 'female') %>% pull(SampleSize)
+n_m <- descr_stats %>% filter(Sex == 'male') %>% pull(SampleSize)
+
+xbar_f <- descr_stats %>% filter(Sex == 'female') %>% pull(Mean)
+xbar_m <- descr_stats %>% filter(Sex == 'male') %>% pull(Mean)
+
+s_f <- descr_stats %>% filter(Sex == 'female') %>% pull(SD)
+s_m <- descr_stats %>% filter(Sex == 'male') %>% pull(SD)
+```
+
+__Step 1.__ Can the population variances be assumed equal? Test the following hypotheses:
+
+$$
+H_0 : \sigma_f^2 = \sigma_m^2 \\
+H_1 : \sigma_f^2 \neq \sigma_m^2
+$$
+
+or, equivalently,
+$$
+H_0 : \frac{\sigma_f^2}{\sigma_m^2} = 1 \\
+H_1 : \frac{\sigma_f^2}{\sigma_m^2} \neq 1
+$$
+
+Use the F-test to test for equality of the population variances:
+```{r}
+var.test(NumberCloseFriends ~ Sex, data = gss)
+```
+
+At a significance level of 0.05, the $p$-value = 0.79 leads us to not rejecting the null hypothesis of equal variances across the two populations. 
+
+
+__Step 2.__ We can now perform the $t$-test calculations using the appropriate formula for the standard error of the difference in means. As the population variances are assumed equal, we use the formula involving the pooled standard deviation:
+
+```{r}
+# Pooled SD
+s_p <- sqrt(
+  ((n_f - 1) * s_f^2 + (n_m - 1) * s_m^2) / (n_f + n_m - 2)
+)
+
+SE <- s_p * sqrt(1/n_f + 1/n_m)
+
+t_stat <- (xbar_f - xbar_m) / SE
+t_stat
+```
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.19")`
+Compare the $t$-statistic with the appropriate 5% critical value from a $t$-distribution. 
+
+Compute the $p$-value and interpret the results.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+Critical value:
+```{r}
+t_crit <- qt(0.975, n_f + n_m - 2)
+t_crit
+```
+
+$p$-value:
+```{r}
+p_value <- 2 * (1 - pt(abs(t_stat), n_f + n_m - 2))
+p_value
+```
+
+At a 5% significance level, the observed difference in mean number of close friends between adult American females and males is significantly different from 0 ($t(1465) = 2.45$, $p$-value $<.05$, two-tailed).
+
+In other words, an observed difference in sample mean number of close friends of `r (xbar_f - xbar_m) %>% round(2)` is highly unlikely to occur by chance alone.
+
+The sample data provide very strong evidence that, on average, adult American females and males tend to not have the same number of close friends.
+
+`r msmbstyle::solution_end()`
+
+---
+
+<div class="lo">
+#### Technology detour: two-sample $t$-test with built-in functions {-}
+
+In R, we perform a two-sample $t$-test with the function `t.test`. This is the same function you saw to perform a one-sample mean test.
+
+Before applying it though, we need to check with `var.test` whether to assume the population variances to be different or equal.
+
+<br>
+Both R functions require a __formula__ as first argument:
+<center>
+__goal( y ~ x )__
+</center>
+
+where
+
+- __y__ is the response variable
+- __x__ is the explanatory variable
+<br><br>
+
+__Step 1.__ Test for equality of the population variances:
+```{r eval=FALSE}
+var.test(NumberCloseFriends ~ Sex, data = gss)
+```
+
+__Step 2.__ According to the previous test, use the appropriate $t$-test using either one of the following code chunks.
+
+i. If you can not reject the null hypothesis of equal population variances, use a $t$-distribution with $n_1 + n_2 - 2$ degrees of freedom:
+```{r eval=FALSE}
+t.test(NumberCloseFriends ~ Sex, data = gss, var.equal = TRUE)
+```
+
+ii. If the population variances were not equal, we would have used the Welch-Satterthwaite approximation to the degrees of freedom:
+```{r eval=FALSE}
+# Welch-Satterthwaite approximation
+t.test(NumberCloseFriends ~ Sex, data = gss, var.equal = FALSE)
+
+# If not provided, var.equal = FALSE by default
+t.test(NumberCloseFriends ~ Sex, data = gss)
+```
+</div>
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.20")`
+Verify your results using the built-in R function `t.test`. 
+
+Before applying it though, you need to check with `var.test` whether the population variances are different or can be assumed to be equal.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+We have already tested before for equality of the population variances:
+```{r}
+var.test(NumberCloseFriends ~ Sex, data = gss)
+```
+
+As we can not reject the null hypothesis of equal variances across the two populations, we use a $t$-test with $\textrm{df} = n_1 + n_2 - 2$:
+```{r}
+t.test(NumberCloseFriends ~ Sex, data = gss, var.equal = TRUE)
+```
+`r msmbstyle::solution_end()`
+
+
+
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.21")`
+State the assumptions of the two-sample $t$-test.
+
+Should the strong skewness in the sample distributions cause you any concerns about the validity of your results?
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+
+Assumptions:
+
+- The sample data arise from independent random samples from two populations OR from random assignment of the units to treatment groups.
+- Either the quantitative variable of interest is normally distributed in both populations OR both sample sizes are large (as a convention, $n_1 \geq 20$ and $n_2 \geq 20$) and the sample distributions should not be strongly skewed.
+
+Checks:
+
+- The data were collected from a random sample of adult Americans.
+- Even though the distribution of the number of close friends is clearly skewed, the sample sizes (813 and 654) are quite large.  
+
+Hence, the conditions required for the two-sample $t$-test results to be valid are satisfied.
+
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.22")`
+Now that we have established that there is significant evidence of a difference in the population mean number of close friends between females and males, what is the magnitude of this difference in the population means?
+
+Construct and interpret a 95% confidence interval for the difference in population mean number of close friends between females and males.
+
+Pay particular attention on whether the interval is negative, positive, or contains zero.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+In order to estimate the magnitude of the difference in the population means we can use a confidence interval for the difference in means.
+
+```{r}
+ci <- tibble(
+  Lower = (xbar_f - xbar_m) - t_crit * SE,
+  Upper = (xbar_f - xbar_m) + t_crit * SE)
+ci
+```
+
+A 95% confidence interval for the difference in the mean number of close friends between females and males is [0.046, 0.41]. 
+
+The confidence interval is entirely positive, supporting our conclusion that females and males tend to differ with regard to the average number of close friends.  
+We are 95% confident that American females have between 0.046 and 0.41 more close friends, on average, than American males do.
+<!-- We are 95% confident that the interval of 0.046 to 0.41 contains the true difference between the number of close friends American females have relative to American males. -->
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.23")`
+_Causation:_ Do the data provide evidence that how many close friends one has is _caused_ by ones' sex? Explain why.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+No, we can not conclude that the person's sex was responsible for the number of close friends.
+This data was collected as part of an observational study, hence the explanatory variable sex was simply observed in the observational units.
+
+<!-- We could have considered a causal link if the observational units were randomly assigned to the groups, but clearly this is not feasible as you can not assign a person to be female or male as part of a survey. -->
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.24")`
+_Generalisation:_ To which population can the results of this study be applied to? Explain why.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+Because the observational units are a random sample from the population of adult Americans in year 2004, we might apply our results to adult American men and women in that year.
+
+We might hesitate in generalising the results to all Americans and to a different year, as younger people were not included in the survey, and because the trend could have changed over time.
+`r msmbstyle::solution_end()`
+
+
+
+
+
+
+
+
+
+
+
+## Lab: Does name increase tips?
+
+- Can a waitress earn higher tips simply by introducing herself by name when greeting customers?
+- How can she investigate this?
+- After data are collected, how can she decide if the results provide convincing evidence that giving her name does really lead to higher tips?
+- And if she decides that introducing herself by name really helps, how can she estimate how much higher will the tips be, on average, when introducing herself by name?
+
+
+Researchers [Garrity and Degelman (1990)](https://doi.org/10.1111/j.1559-1816.1990.tb00405.x) investigated the effect of a server introducing herself by name on restaurant tipping.
+The study involved forty, 2-person parties eating a \$23.21 fixed-price buffet Sunday brunch at Charley Brown's Restaurant in Huntington Beach, California, on April 10 and 17, 1988.
+Each two-person party was randomly assigned by the waitress to either a name or a no name introduction condition using a random mechanism. The waitress kept track of the two-person party condition and how much the party tipped at the end of the meal.
+
+The sample mean tip for the 20 parties in the name condition was $\bar x_{name}= \$5.44$, with a standard deviation $s_{name} = \$1.75$.
+
+For the 20 parties in the no name condition, the sample mean tip was $\bar x_{no\ name}= \$3.49$, with a standard deviation $s_{no\ name} = \$1.13$.
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.1")`
+Identify the observational units in this study.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+The observational units are the 2-person parties eating Sunday brunch in that restaurant on April 10 and 17, 1988.
+
+We can also refer to the observational units as __experimental units__ because, as we will see later, they are part of an experiment. 
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.2")`
+Is this an observational study or a randomized experiment? Explain why.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+This study is a randomized experiment. The waitress uses a random mechanism to assign the experimental units (the two-person parties) either to a name or no name condition.
+
+We also need to keep in mind that the waitress was not blind to which condition each party was assigned to and might have inadvertently provided better service to the parties she expected to give her a larger tip.
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.3")`
+What are the explanatory and response variables in this study?
+
+Classify them as either categorical (also binary) or quantitative.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+Explanatory variable: condition (name or no name). $\qquad$ Type: categorical and binary.
+
+
+Response variable: tipping amount. $\qquad \qquad \qquad \qquad$ Type: quantitative.
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.4")`
+State, in words and in symbols, the waitress' null and alternative hypotheses.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+The null hypothesis is that there is no effect on the tipping amount from the waitress giving her name as part of her greeting to the customers.
+
+Equivalently, the null hypothesis states that the population mean tip amount is the same whether the waitress introduces herself by name or not.
+
+<br>
+The alternative hypothesis is that there is a positive effect on the tipping amount from the waitress giving her name as part of her greeting to the customers.
+
+Equivalently, the alternative hypothesis states that the population mean tip amount is greater when the waitress introduces herself by name than when she does not.
+
+<br>
+In symbols,
+$$
+H_0 : \mu_{name} = \mu_{no\ name} \\
+H_1 : \mu_{name} > \mu_{no\ name}
+$$
+
+
+
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.5")`
+Comment on what a Type I error and a Type II error would mean in this particular study.
+
+Would you consider one of these two errors to be more worrying than the other? Explain why.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+A Type I error is committed when the waitress decides that introducing herself by name helps when, in reality, it does not.
+
+A Type II error is committed when the waitress decides that introducing herself by name is not helpful when, in reality, it actually is.
+
+A Type I error means that the waitress will spend just a tiny amount of time longer as part of her greeting without getting any extra benefit from it.
+
+A Type II error means that the waitress will not bother giving customers her name and thus would lose out on a higher tip.
+
+Clearly, as the burden of adding the name to the introduction is minimal, we consider as more worrying (or worst error) losing out on potential tips. So, in this specific study, a Type II error is of higher concern.
+`r msmbstyle::solution_end()`
+
+---
+
+
+```{r echo=FALSE}
+n_name <- 20
+xbar_name <- 5.44
+s_name <- 1.75
+
+n_no <- 20
+xbar_no <- 3.49
+s_no <- 1.13
+
+se1 <- s_name / sqrt(n_name)
+se2 <- s_no / sqrt(n_no)
+welch_df <- (se1^2 + se2^2)^2 / (se1^4 / (n_name - 1) + se2^4 / (n_no - 1))
+welch_df <- round(welch_df, 2)
+```
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.6")`
+Assuming that the population variances are __not__ equal, calculate the test statistic and the $p$-value.
+
+For your convenience, we have already calculated the degrees of freedom, which are $\textrm{df} =$ `r welch_df`.
+
+_**Hint:** As you do not have the party-by-party tipping amounts, but only summary statistics, you can not use the `t.test()` function, which requires the data at the finest level (the observational units)._
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+The two-sample $t$-test in the case of unequal population variances involves the Welch-Satterthwaite approximation to the degrees of freedom.
+
+The $t$-statistic is:
+
+```{r}
+n_name <- 20
+xbar_name <- 5.44
+s_name <- 1.75
+
+n_no <- 20
+xbar_no <- 3.49
+s_no <- 1.13
+
+SE <- sqrt(s_name^2 / n_name + s_no^2 / n_no)
+t_stat <- (xbar_name - xbar_no) / SE
+t_stat
+```
+
+The question provides us the degrees of freedom calculated using Welch's formula: $\textrm{df} = 32.5$.
+```{r}
+df <- 32.5
+```
+
+Critical value:
+```{r}
+qt(0.95, df = df)
+```
+
+$p$-value:
+```{r}
+1 - pt(t_stat, df = df)
+```
+
+The $p$-value is <.0005.
+`r msmbstyle::solution_end()`
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.7")`
+At the significance level $\alpha = 0.05$, what would you conclude?
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+As the $p$-value $<.05$, we reject the null hypothesis that there is no effect of giving her name on the tipping amount.
+
+The sample results provide strong evidence that including her name as part of the customer's greeting tends to lead to higher tips on average.
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.8")`
+The paper only reports the sample mean tips and standard deviations for the name and no name conditions.
+
+Does the paper provide enough information to check whether the validity conditions of the two-sample $t$-test are satisfied? 
+
+If yes, check that the conditions are met. If not, explain which additional information you would need.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+We do not have enough information to check whether the validity conditions are met.
+
+We are told that the two-person parties were randomly assigned either to the name or no name condition, but the two sample sizes (20 and 20) are not very large, so we should check whether the data came from normal distributions.
+
+However, we only have summary statistics and not the actual tip amounts for each party (experimental unit). We would ask the waitress to provide us the party-by-party tipping amounts in order to check if the populations the samples came from can be assumed to be normal.
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.9")`
+Calculate a 95% confidence interval for the difference in population mean tipping amount between the name and no name conditions.
+
+Write a sentence or two interpreting what the interval reveals. 
+
+_**Hint**: The degrees of freedom were given in Question B.6._
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+First, we must find the appropriate critical value $t^*_\textrm{df}$ (for the desired confidence level) from a $t$-distribution with degrees of freedom given by Welch's method (see Question B.6 for the value).
+
+The critical value for a 95% confidence level is:
+```{r}
+t_crit_ci <- qt(0.975, df)
+t_crit_ci
+```
+
+
+We compute a 95% confidence interval for the difference in population means, $\mu_{name} - \mu_{no\ name}$, as follows:
+<center>
+$$
+(\bar x_{name} - \bar x_{no\ name}) \pm t^*_\textrm{df} \sqrt{\frac{s_{name}^2}{n_{name}} + \frac{s_{no\ name}^2}{n_{no\ name}}} \\
+(5.44 - 3.49) \pm 2.036 \sqrt{\frac{1.75^2}{20} + \frac{1.13^2}{20}}
+$$
+</center>
+
+```{r}
+ci <- tibble(
+  Lower = (xbar_name - xbar_no) - t_crit_ci * sqrt(s_name^2 / 20 + s_no^2 / 20),
+  Upper = (xbar_name - xbar_no) + t_crit_ci * sqrt(s_name^2 / 20 + s_no^2 / 20)
+)
+ci
+```
+
+The 95% confidence interval is [`r ci %>% round(2)`].
+
+We are 95% confident that the waitress would earn, on average, between \$1 and \$2.9 more per party with a \$23.21 bill, by including her name as part of the greeting.
+<!-- We are 95% confident that the interval between \$1 and \$2.9 contains the true amount the waitress would earn, on average, per party with a \$23.21 bill, by including her name as part of the greeting. -->
+`r msmbstyle::solution_end()`
+
+---
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.10")`
+Regardless of whether the validity conditions of the $t$-test are met, summarise your conclusions from this test.
+
+Make sure to also comment on causation and generalisability of your results.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+The study involved random assignment of the experimental units to the groups, so the only difference between the groups was whether the party was given the waitress' name or not.
+As the parties in the name condition tend to give significantly higher tips on average than those in the no name condition ($t(32.5)$ = `r t_stat %>% round(2)`, $p$-value < .0005, one-sided), we can attribute this difference in means to being told the waitress' name as part of the greeting.
+In other words, we can conclude a causal link between being given the name as part of the greeting and receiving higher tips on average.
+
+However, as the waitress was not blind to the treatment condition, we must be wary to the fact that the waitress could have given better service to the parties who she gave her name to. So, the results hold unless the waitress gave better service to the name condition.
+
+Having established that there is a significant difference in means between the two groups, a confidence intervals lets us now to estimate, on average, how much higher the tips will be when giving her name.
+Including her name as part of the greeting to customers increases the waitress' tips, on average, by \$`r ci %>% round(2) %>% pull(Lower)` to \$`r ci %>% round(2) %>% pull(Upper)` per party.
+
+We must be careful when generalising these results to the population. As only one particular waitress participated in the study, we don't want to generalise these results to other waitresses.
+Furthermore, we might also avoid generalising these results to customers different from those who eat Sunday brunch at Charley Brown's Restaurant in Huntington Beach, California.
+
+Finally, the $p$-values and confidence interval are valid only if the response variable "tipping amount" is normally distributed in the two populations.
+`r msmbstyle::solution_end()`
+
+
+
+## Glossary
+
+- _Boxplot._ Visual display of the five-number summary for a quantitative variable.
+- _Five-number summary_. Minimum, lower quartile, median, upper quartile, maximum.
+- _Lower quartile_. The value in the data such that 25% of the data lie below that value.
+- _Upper quartile_. The value in the data such that 25% of the data lie above that value.
+- _Assumptions of the two-sample $t$-test_. The data should arise from random sampling from two populations and either the variable is normally distributed in both populations or both sample sizes are large ($n_1 \geq 20$ and $n_2 \geq 20$) and the sample distributions should not be strongly skewed.
+
+
+## References {#w17-references}
+
+- Garrity, K., & Degelman, D. (1990). Effect of server introduction on restaurant tipping. _Journal of Applied Social Psychology, 20_(2), 168-172.
+- Tintle, N., Chance, B. L., Cobb, G. W., Rossman, A. J., Roy, S., Swanson, T., & VanderStoep, J. (2015). _Introduction to statistical investigations._ New York: Wiley.
+
+Material adapted from:
+
+- Rossman, A. J., & Chance, B. L. (2011). _Workshop statistics: discovery with data._ John Wiley & Sons.

@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Making decisions: errors, power, and effect size</title>
+
+<script src="site_libs/header-attrs-2.8/header-attrs.js"></script>
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+<script>
+function toggle_visibility(id1, id2) {
+var e = document.getElementById(id1);
+var f = document.getElementById(id2);
+e.style.display = ((e.style.display!='none') ? 'none' : 'block');
+if(f.classList.contains('fa-plus')) {
+    f.classList.add('fa-minus')
+    f.classList.remove('fa-plus')
+} else {
+    f.classList.add('fa-plus')
+    f.classList.remove('fa-minus')
+}
+}
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+<link rel="stylesheet" href="assets/style-labs.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"><strong>DAPR1</strong></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">
+    <span class="fas fa-home"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="intro_r_rstudio_year1.html">DAPR1 starts here</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Intro to data and R
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="01_data_types.html">1/1: Collecting data</a>
+    </li>
+    <li>
+      <a href="02_categorical.html">1/2: Categorical data</a>
+    </li>
+    <li>
+      <a href="03_numerical.html">1/3: Numerical data</a>
+    </li>
+    <li>
+      <a href="04_relationships.html">1/4: Relationships</a>
+    </li>
+    <li>
+      <a href="05_functions.html">1/5: Types of relations</a>
+    </li>
+    <li class="dropdown-header">1/6: Break week!</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Probability &amp; sampling
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="07_probability_basics.html">1/7: Probability basics</a>
+    </li>
+    <li>
+      <a href="08_probability_rules.html">1/8: Probability rules!</a>
+    </li>
+    <li>
+      <a href="09_discrete_distributions.html">1/9: Discrete random variables</a>
+    </li>
+    <li>
+      <a href="10_continuous_distributions.html">1/10: Continuous random variables</a>
+    </li>
+    <li>
+      <a href="11_sampling_distributions.html">1/11: Sampling distributions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Hypothesis testing
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="12_bootstrap_cis.html">2/1: Bootstrap &amp; CIs</a>
+    </li>
+    <li>
+      <a href="13_hypothesis_testing.html">2/2: Hypothesis testing: p-values</a>
+    </li>
+    <li>
+      <a href="14_critical_values.html">2/3: Hypothesis testing: critical values</a>
+    </li>
+    <li>
+      <a href="15_connecting_ci_ht.html">2/4: Hypothesis testing &amp; CIs</a>
+    </li>
+    <li>
+      <a href="16_ht_errors.html">2/5: Making decisions</a>
+    </li>
+    <li class="dropdown-header">2/6: Break week</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Basic tests
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="17_one_sample_mean.html">2/7: Test for one mean</a>
+    </li>
+    <li>
+      <a href="18_two_sample_means.html">2/8: Test for two means</a>
+    </li>
+    <li>
+      <a href="19_paired_t_test.html">2/9: Test for paired samples</a>
+    </li>
+    <li>
+      <a href="20_chi_square.html">2/10: Chi-square</a>
+    </li>
+    <li>
+      <a href="21_covcor.html">2/11: Covariance and correlation</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Making decisions: errors, power, and effect size</h1>
+
+</div>
+
+
+<div class="lo">
+<ol style="list-style-type: decimal">
+<li>Be able to interpret type I and type II errors in hypothesis tests.</li>
+<li>Recognising the significance level as measuring the tolerable chance of committing a type I error.</li>
+<li>Understand that statistical significance is not always the same as practical
+significance.</li>
+<li>Recognise that larger sample sizes make it easier to achieve statistical significance if the alternative hypothesis is true.</li>
+</ol>
+</div>
+<div id="research-question-and-data" class="section level1">
+<h1>Research question and data</h1>
+<blockquote>
+<p>Has the average body temperature for healthy humans changed from the long-thought 37 °C?</p>
+</blockquote>
+<p>In today’s lab we will investigate the average body temperature for healthy humans.
+You might probably be thinking that the average is about 37 °C, and this is what most people would answer as this has been taken as granted for many years.
+However, could it be possible that the average body temperature for healthy humans has changed over time? Perhaps this could be due to the climate change?</p>
+<p>We will use data<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> comprising measurements on body temperature and pulse rate for a sample of <span class="math inline">\(n = 50\)</span> healthy subjects. The data are stored at the following address: <a href="https://uoepsy.github.io/data/BodyTemp.csv" class="uri">https://uoepsy.github.io/data/BodyTemp.csv</a></p>
+<p>Using the concepts from hypothesis testing that we learned in the previous weeks, the research question means:
+<em>do the sample data provide significant evidence (at the 5% level) that the average body temperature is really different from the long-thought 37 °C?</em></p>
+<p>This can be translated into null and alternative hypotheses:
+<span class="math display">\[
+H_0 : \mu = 37 °C \\
+H_1 : \mu \neq 37 °C
+\]</span></p>
+<p>First, we read the data into R:</p>
+<pre class="r"><code>library(tidyverse)
+bodytmp &lt;- read_csv(&#39;https://uoepsy.github.io/data/BodyTemp.csv&#39;)
+dim(bodytmp)</code></pre>
+<pre><code>## [1] 50  2</code></pre>
+<pre class="r"><code>head(bodytmp)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   BodyTemp Pulse
+##      &lt;dbl&gt; &lt;dbl&gt;
+## 1     36.4    69
+## 2     37.4    77
+## 3     37.2    75
+## 4     37.1    84
+## 5     36.7    71
+## 6     37.2    76</code></pre>
+<p>We have measurements of the body temperature (in Celsius) and pulse rate for a sample of 50 healthy individuals.</p>
+<p>The average body temperature in the sample is:</p>
+<pre class="r"><code>xbar_obs &lt;- mean(bodytmp$BodyTemp)
+xbar_obs</code></pre>
+<pre><code>## [1] 36.81111</code></pre>
+<p><span class="math display">\[
+\bar{x}_{obs} = 36.81 °C
+\]</span></p>
+</div>
+<div id="hypothesis-test" class="section level1">
+<h1>Hypothesis test</h1>
+<p>Let’s construct the null distribution. We do this by computing the sample mean for many samples (10,000 say) each of size <span class="math inline">\(n = 50\)</span>, sampled with replacement from a shifted version of the original body temperature data so that they have a mean of 37 (the value specified in the null hypothesis):</p>
+<pre class="r"><code>bodytmp &lt;- bodytmp %&gt;%
+    mutate(BodyTemp_shifted = BodyTemp - mean(BodyTemp) + 37)</code></pre>
+<p>Next, we load the <code>rep_sample_n()</code> function:</p>
+<pre class="r"><code>source(&quot;https://uoepsy.github.io/files/rep_sample_n.R&quot;)</code></pre>
+<p>Set the seed, for reproducibility, you can use any other seed but you’ll get slightly different results:</p>
+<pre class="r"><code>set.seed(1)</code></pre>
+<p>Compute the null distribution:</p>
+<pre class="r"><code>null_dist &lt;- bodytmp %&gt;%
+    rep_sample_n(n = 50, samples = 10000, replace = TRUE) %&gt;%
+    group_by(sample) %&gt;%
+    summarise(xbar = mean(BodyTemp_shifted))</code></pre>
+<p>We can plot the null distribution an locate the observed mean body temperature in the null distribution:</p>
+<pre class="r"><code>ggplot(null_dist, aes(x = xbar)) +
+    geom_histogram(color = &#39;white&#39;, binwidth = 0.01) +
+    geom_vline(xintercept = xbar_obs, color = &#39;darkolivegreen4&#39;) +
+    labs(x = &quot;Sample means (when H0 true)&quot;)</code></pre>
+<p><img src="16_ht_errors_files/figure-html/unnamed-chunk-8-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p>The p-value is the proportion of sample means in the null distribution that are as extreme as, or more extreme than, the observed mean.</p>
+<p>“Extreme” is interpreted as <strong>in the direction specified by the alternative hypothesis</strong>. In this case, we evidence against a population mean of 37 °C either when the sample mean is “too large” or “too small” than the hypothesised 37 °C.</p>
+<p>In this case, we have an observed mean of 36.81, which is smaller than the hypothesised 37 °C. To compute the p-value we find the proportion to its left, and multiply it by two.
+This accounts for extreme values in both tails, and is then compared to the 5% threshold (which also covers both tails).</p>
+<pre class="r"><code>pvalue &lt;- 2 * sum(null_dist$xbar &lt;= xbar_obs) / 10000
+pvalue</code></pre>
+<pre><code>## [1] 0.0022</code></pre>
+<div class="yellow">
+<p>In a two-sided hypothesis test, we double the proportion in one tail as we compare the p-value with <span class="math inline">\(\alpha\)</span>, which specifies “extreme statistics” in both tails.</p>
+<p>If you don’t double the proportion in one tail, you need to compare it with half <span class="math inline">\(\alpha\)</span>!</p>
+<p>Is:
+<span class="math display">\[
+2 * \text{proportion to the left of 36.81} \leq \alpha \ ? \\
+\text{proportion to the left of 36.81} \leq \frac{\alpha}{2} \ ?
+\]</span></p>
+</div>
+<p>The probability of observing a sample mean body temperature as extreme as, or more extreme than 36.81, when the population mean body temperature is in fact 37 °C, is <span class="math inline">\(p &lt; .001\)</span>.
+The sample results provide very strong evidence that the population mean body temperature for healthy individuals is 36.8 °C.</p>
+<p><br></p>
+<p>The same conclusion would have been reached by comparing the observed sample mean with the two critical values.
+In the figure below you can see on the observed sample mean (vertical solid green line), and the lower and upper critical values (vertical red lines) corresponding to an <span class="math inline">\(\alpha = 0.05\)</span>.</p>
+<p>The observed mean is smaller than the lower critical value, i.e. it falls in the rejection region. For this reason, we have evidence against the null hypothesis.
+<img src="16_ht_errors_files/figure-html/unnamed-chunk-10-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<div class="yellow">
+<p><strong>Statistical significance vs practical significance</strong></p>
+<p>As you can see, the results are statistically significant at the 5% significance level, as the p-value is smaller than <span class="math inline">\(\alpha = 0.05\)</span>.</p>
+<p>In turn, this means we have very strong evidence that the population mean body temperature for healthy individuals in reality is 36.8 °C rather than 37 °C.</p>
+<p>However, is that a difference of practical concern? If you said no, I shall agree.
+It won’t make much of a difference to decision makers whether it’s 36.8 °C or 37 °C.</p>
+<p>The lesson is that: while some small differences may be important and large samples can help reveal the true effects, we should not make the mistake of automatically assuming that anything that is statistically significant is practically significant.</p>
+<p>Also, remember that by increasing the sample size, you make it easier to reject the null hypothesis as the null distribution is less variable!</p>
+</div>
+</div>
+<div id="confidence-interval" class="section level1">
+<h1>Confidence interval</h1>
+<p>We have now found a significant result, meaning that there is strong evidence that the population mean body temperature for healthy individuals is not 37 °C.</p>
+<p>It is good practice to follow up a significant hypothesis test with a confidence interval.</p>
+<div class="question-begin">
+Question 1
+</div>
+<div class="question-body">
+<p>Using the formula <span class="math display">\[\text{Statistic} \pm 1.96 * SE\]</span> provide a 95% confidence interval for the population mean body temperature.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-163" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-163&#39;, &#39;sol-start-163&#39;)"></span>
+</div>
+<div id="sol-body-163" class="solution-body" style="display: none;">
+<pre class="r"><code>upperci &lt;- xbar_obs + 1.96 * sd(null_dist$xbar)
+upperci</code></pre>
+<pre><code>## [1] 36.92945</code></pre>
+<pre class="r"><code>lowerci &lt;- xbar_obs - 1.96 * sd(null_dist$xbar)
+lowerci</code></pre>
+<pre><code>## [1] 36.69277</code></pre>
+<p>We are 95% confident that the population mean body temperature is between 36.69 °C and 36.93 °C.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 2
+</div>
+<div class="question-body">
+<p>Imagine you didn’t perform a hypothesis test and immediately calculated the confidence interval. Does the 95% confidence interval lead to the same conclusion of the two-sided hypothesis test?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-164" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-164&#39;, &#39;sol-start-164&#39;)"></span>
+</div>
+<div id="sol-body-164" class="solution-body" style="display: none;">
+<p>Yes, the 95% confidence interval does not list the value 37 °C among the plausible values for the population mean body temperature for healthy individuals.</p>
+<p>Hence, we would still reject the null hypothesis.</p>
+</div>
+<p class="solution-end">
+</p>
+<!-- # Errors and power -->
+<!-- ## A. One-sided alternative -->
+<!-- - Shared red area = P(type I error) -->
+<!-- - Shared blue area = P(type II error) -->
+<!-- - Shared green area = power = P(rejecting the null when it is false) -->
+<!-- ```{r echo=FALSE, out.width = '95%'} -->
+<!-- knitr::include_graphics('images/hyp_test/power-one-sided.png') -->
+<!-- knitr::include_graphics('images/hyp_test/power-one-sided-2.png') -->
+<!-- ``` -->
+<!-- ## B. Two-sided alternative -->
+<!-- - Shared red area = P(type I error) -->
+<!-- - Shared blue area = P(type II error) -->
+<!-- - Shared green area = power = P(rejecting the null when it is false -->
+<!-- ```{r echo=FALSE, out.width = '95%'} -->
+<!-- knitr::include_graphics('images/hyp_test/power-two-sided.png') -->
+<!-- knitr::include_graphics('images/hyp_test/power-two-sided-2.png') -->
+<!-- ``` -->
+<!-- ## Exercises -->
+<div class="question-begin">
+Question 3
+</div>
+<div class="question-body">
+<p>What is the definition of a type I error?</p>
+<p>What is the probability of a type I error in the body temperature example?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-165" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-165&#39;, &#39;sol-start-165&#39;)"></span>
+</div>
+<div id="sol-body-165" class="solution-body" style="display: none;">
+<p>A type I error occurs when we reject a true null hypothesis.</p>
+<p>The probability of a type I error is the significance level, <span class="math inline">\(\alpha\)</span>, in this case 0.05.
+In other words, the significance level represents the tolerable probability of committing a type I error.</p>
+</div>
+<p class="solution-end">
+</p>
+<p><br></p>
+<p>To compute type II errors and power, I need to tell you the distribution under the alternative hypothesis.</p>
+<p>Assume that, when <span class="math inline">\(H_1\)</span> is true, the distribution of body temperatures is centred at 36.8 (i.e. it has mean 36.8), with the same standard error as the null distribution.</p>
+<p>You can think of it as a shifted version of the null distribution:</p>
+<pre class="r"><code>alt_dist &lt;- null_dist %&gt;%
+    mutate(xbar = xbar - mean(xbar) + 36.8)
+
+mean(alt_dist$xbar)</code></pre>
+<pre><code>## [1] 36.8</code></pre>
+<p>Then, you also need the critical values, to compute the probability of correctly rejecting a false null hypothesis:</p>
+<pre class="r"><code>crit_vals &lt;- quantile(null_dist$xbar, c(0.025, 0.975))
+crit_vals</code></pre>
+<pre><code>##     2.5%    97.5% 
+## 36.88222 37.11778</code></pre>
+<p>We reject the null when the observed mean body temperature is smaller than the lower critical value (36.88) or larger than the upper critical value (37.12).</p>
+<p><img src="16_ht_errors_files/figure-html/unnamed-chunk-14-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<div class="question-begin">
+Question 4
+</div>
+<div class="question-body">
+<p>What is the definition of a type II error?</p>
+<p>What is the probability of a type II error in the body temperature example?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-166" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-166&#39;, &#39;sol-start-166&#39;)"></span>
+</div>
+<div id="sol-body-166" class="solution-body" style="display: none;">
+<p>A type II error occurs when we fail to reject a false null hypothesis.</p>
+<p>The probability of a type II error, denoted <span class="math inline">\(\beta\)</span>, is the “blue” shaded area, and can be computed as the proportion of means in the alternative distribution which are larger than the lower critical value:</p>
+<pre class="r"><code>sum(alt_dist$xbar &gt;= crit_vals[1]) / nrow(alt_dist)</code></pre>
+<pre><code>## [1] 0.0898</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 5
+</div>
+<div class="question-body">
+<p>What is the definition of power?</p>
+<p>What is the power in the body temperature example?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-167" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-167&#39;, &#39;sol-start-167&#39;)"></span>
+</div>
+<div id="sol-body-167" class="solution-body" style="display: none;">
+<p>The power is the probability that the test correctly rejects a false null hypothesis. In other words, it’s the probability that the test finds an effect when it really exists.</p>
+<p>The power of the body temperature test, which we denote <span class="math inline">\(1 - \beta\)</span>, is the “green” shaded area, and can be computed as the proportion of means in the alternative distribution which are smaller than the lower critical value:</p>
+<pre class="r"><code>sum(alt_dist$xbar &lt;= crit_vals[1]) / nrow(alt_dist)</code></pre>
+<pre><code>## [1] 0.9102</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 6
+</div>
+<div class="question-body">
+<p>What is the “effect size” for the body temperature example?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-168" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-168&#39;, &#39;sol-start-168&#39;)"></span>
+</div>
+<div id="sol-body-168" class="solution-body" style="display: none;">
+<p>We are told that when <span class="math inline">\(H_1\)</span> is true, the distribution of body temperatures is centred at 36.8 (i.e. it has mean 36.8).</p>
+<p>The effect size is the absolute value of the difference in the centres of the null and alternative distributions:</p>
+<pre class="r"><code>eff &lt;- abs(36.8 - 37)
+eff</code></pre>
+<pre><code>## [1] 0.2</code></pre>
+<p>The effect size is 0.2.</p>
+</div>
+<p class="solution-end">
+</p>
+<!-- Formatting -->
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;">
+
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Shoemaker, A. L. (1996). <em>What’s Normal: Temperature, Gender and Heartrate. Journal of Statistics Education, 4</em>(2), 4.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+
+<link rel="stylesheet" href="https://uoepsy.github.io/assets/css/ccfooter.css" />
+<div class="ccfooter"></div>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

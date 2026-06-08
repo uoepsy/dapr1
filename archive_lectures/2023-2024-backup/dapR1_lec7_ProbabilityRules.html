@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Week 8: Probability Rules and Conditional Probabilities </title>
+    <meta charset="utf-8" />
+    <meta name="author" content="DapR1 Team" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# <b>Week 8: Probability Rules and Conditional Probabilities </b>
+]
+.subtitle[
+## Data Analysis for Psychology in R 1<br><br>
+]
+.author[
+### DapR1 Team
+]
+.institute[
+### Department of Psychology<br>The University of Edinburgh
+]
+
+---
+
+
+
+
+
+
+
+
+## Learning objectives
+- Understand the use of probability rules 
+- Understand the basics of and how to use Bayes's equation
+- Understand use of probability to test independence
+- Understand how sampling without replacement affects probability
+- Apply probability rules and compute probability using R
+
+---
+class: center, inverse, middle
+
+# Recap
+
+---
+## Joint Probability
+- Probability of A **and** B = `\(P(A \bigcap B)\)`
+    - Joint event or *intersection* of A and B
+
+--
+
+- Probability of A **or** B = `\(P(A \bigcup B)\)`
+    - *Union* of A and B
+
+--
+
+- Probability of **not** A = `\(P(\sim A)\)`
+    - We describe the event not A as the *complement* of A.
+
+---
+## Relations between events
+- **Mutually exclusive** events: If A occurs, B can not occur.
+- **Independent** events: The occurence of event A does not impact event B.
+- **Dependent** events: The occurence of event A **does** impact event B.
+    - Impact means that A changes in the probability of B.
+
+---
+class: center, inverse, middle
+
+# Rules of Probability
+
+---
+## Rules of probability
+
+| Rule                               | Formula                                            |
+|------------------------------------|----------------------------------------------------|
+|  **1.  Range**                     | `\(0 \leq P(A) \leq 1\)`                               |
+|  **2.  Sum of Outcomes**           | `\(P(A_1) + P(A_2) + ... P(A_i) = 1\)`                 |
+|  **3.  Complement Rule**           | `\(P(\sim A) = 1 - P(A)\)`                             |
+|  **4a. Simple Addition Rule**      | `\(P(A \bigcup B) = P(A) + P(B)\)`                     |
+|  **4b. General Addition Rule**     | `\(P(A \bigcup B) = P(A) + P(B) - P(A \bigcap B)\)`    |
+|  **5.  Multiplication Rule**       | `\(P(A \bigcap B) = P(A)P(B)\)`                        |
+|  **6.  Conditional Probability**   | `\(P(B\mid A)= \frac{P(A \bigcap B)}{P(A)}\)`          |
+
++ As we discuss these rules in more depth, imagine that our random experiment is *drawing a single card from a fair deck*
+
+---
+
+## Rules of probability
+
+.pull-left[
+
+**1. The probability of any event will fall between 0 and 1**
+`$$0 \leq P(A) \leq 1$$`
+
++ As `\(P(A)\)` approaches 1, `\(A\)` becomes more likely to occur 
+
++ `\(P(A)=0\)` indicates that event `\(A\)` is impossible
+
++ `\(P(A)=1\)` indicates that event `\(A\)` will absolutely occur
+]
+
+---
+## Rules of probability
+
+.pull-left[
+
+**2. The sum of the probabilities of all possible outcomes = 1**
+`$$P(a_1) + P(a_2) + ... P(a_i) = 1$$` 
++ Because the sample space includes *all possible* outcomes of an experiment, one of these outcomes *must occur*
+
++ `\(P=1\)` indicates an event will certainly occur.
+
++ Therefore, the probability of all events within the sample space will sum to 1.
+
+]
+
+.pull-right[
+
+![](figures/cards.jpg)&lt;!-- --&gt;
+
+`$$P(black)+P(red) = 1$$`
+`$$\frac{26}{52}+\frac{26}{52} = 1$$`
+
+]
+
+---
+## Rules of probability
+
+.pull-left[
+
+**3. Complement Rule**
+
+`$$P(\sim A) = 1 - P(A)$$`
+
++ The probability of `\(A^c\)` (Not A) is equal to 1 - the probability of `\(A\)`
++ Notice how this is connected to Rule 2.
+
+]
+
+.pull-right[
+
+![](figures/cards2.png)&lt;!-- --&gt;
+
+`$$P(\sim red) = 1 - P(red)$$`
+`$$P(\sim red) = 1 - \frac{26}{52}$$`
+]
+
+---
+## Rules of probability
+
+
+.pull-left[
+
+**4a. Simple Addition Rule**
+
+`$$P(A \bigcup B) = P(A) + P(B)$$` 
+
++ The probability that one or both events occur
+
++ This rule can only be used for mutually exclusive events.
+]
+
+.pull-right[
+
+![](figures/cards3.png)&lt;!-- --&gt;
+
+`$$P(spade \bigcup heart) = \frac{13}{52} + \frac{13}{52}$$`
+`$$P(spade \bigcup heart) = \frac{1}{2}$$`
+]
+---
+## Rules of probability
+
+.pull-left[
+
+**4b. General Addition Rule**
+`$$P(A \bigcup B) = P(A) + P(B) - P(A \bigcap B)$$`
+
++ The probability that one or both events occur when events *are not* mutually exclusive. 
+
++ However, it could also be used when events are mutually exclusive, as `\(P(A \bigcap B)=0\)`
+]
+
+.pull-right[
+![](figures/cards4.png)&lt;!-- --&gt;
+`$$P(club \bigcup queen) = \frac{13}{52} + \frac{4}{52} - \frac{1}{52}$$`
+`$$P(club \bigcup queen) = \frac{16}{52} = \frac{4}{13}$$`
+]
+
+---
+## Rules of probability
+.pull-left[
+
+**5. Multiplication Rule**
+`$$P(A \bigcap B) = P(A)P(B)$$`
+
++ The probability of the co-occurrence of A and B *if* they are independent events
+
++ The probability of A and B will always be less than or equal to the probability of either single event.
+
+]
+
+.pull-right[
+
+![](figures/cards5.png)&lt;!-- --&gt;
+
+`$$P(club \bigcap queen) = \frac{13}{52}\times \frac{4}{52}$$`
+`$$P(club \bigcap queen) = \frac{1}{52}$$`
+]
+
+
+---
+## Question 
++ Why is the probability of A and B always less than or equal to the probability of either single event?
+
+--
+
++ Because the probability of A and B is reflective of the intersection of these events, and this intersection will never be larger than the probability of the least likely event. 
+
++ But lets think about it in a another way...
+
+---
+## (Hopefully) an intuitive answer
+- Suppose we have two events.
+  - Event A occurs `\(\frac{1}{4}\)` of the time
+  - Event B occurs `\(\frac{1}{2}\)` of the time
+  
+- If the events are independent (the probability of one does not impact the probability of the other), then event B will happen with equal probability when both A and not A.
+  - So, of the total number of times A occurs, B will occur half the time.
+  - And of the total number of times A does not occur, B will occur half the time.
+
+---
+## (Hopefully) an intuitive answer
+
+|   |   |   |   |   |   |   |   |
+|---|---|---|---|---|---|---|---|
+| o | o | o | o | o | o | o | o |
+| o | o | o | o | o | o | o | o |
+| o | o | o | o | o | o | o | o |
+| o | o | o | o | o | o | o | o |
+
+- Each **o** represents a single possible outcome in a sample space (32 in total).
+
+---
+## (Hopefully) an intuitive answer
+
+|   |   |   |   |   |   |   |   |
+|---|---|---|---|---|---|---|---|
+| A | A | o | o | o | o | o | o |
+| A | A | o | o | o | o | o | o |
+| A | A | o | o | o | o | o | o |
+| A | A | o | o | o | o | o | o |
+
+
+- Event A occurs `\(\frac{1}{4}\)` of the time (8 times)
+
+---
+## (Hopefully) an intuitive answer
+
+|   |   |   |   |   |   |   |   |
+|---|---|---|---|---|---|---|---|
+| o | o | o | o | o | o | o | o |
+| o | o | o | o | o | o | o | o |
+| B | B | B | B | B | B | B | B |
+| B | B | B | B | B | B | B | B |
+
+
+- Event B occurs `\(\frac{1}{2}\)` of the time (16 times)
+
+---
+## (Hopefully) an intuitive answer
+
+|   |   |   |   |   |   |   |   |
+|---|---|---|---|---|---|---|---|
+| A | A | o | o | o | o | o | o |
+| A | A | o | o | o | o | o | o |
+| AB | AB | B | B | B | B | B | B |
+| AB | AB | B | B | B | B | B | B |
+
+
+- Events A and B occur together (or intersect) on 4 occasions.
+  - `\(\frac{4}{32} = \frac{1}{8}\)`
+  
+  - `\(\frac{1}{2}\times\frac{1}{4} = \frac{1}{8}\)`
+
+---
+## Rules of probability
+
+**7. General multiplication rule**
+
+`$$P(A \bigcap B) = P(A)P(B|A)$$` 
+
++ The probability of the co-occurrence of A and B when they are not necessarily independent events
+
++ Note that *and* is commutative (i.e., `\(a \bigcap b = b \bigcap a\)`). 
+  + Probability of rain and Tuesday can't be different from the probability of Tuesday and rain, right? 
+
+--
+
++ But what is `\(P(B|A)\)`?
+
+---
+## Conditional probability
+
++  `\(P(B|A):\)` Probability of B **given** A
+
++ This is referred to as **conditional probability** 
+
+  + When events are dependent, the likelihood of one event changes based on the outcome of the other.
+
++ Note that when `\(P(A)\)` and `\(P(B)\)` are independent, then the `\(P(B|A) = P(B)\)` , hence the simple multiplication rule for independent events.
+
+--
+
++ We can calculate conditional probability as:
+
+`$$P(B|A) = \frac{P(A \bigcap B)}{P(A)}$$`
+
++ or the inverse: 
+
+`$$P(A|B) = \frac{P(A \bigcap B)}{P(B)}$$`
+
+
+
+
+---
+## Conditional probability: an example
+
+.pull-left[
++ Let's imagine we have data on the handedness of boys and girls in a P3 class
+
++ Just by looking at our data, the likelihood of being left-handed changes depending on whether the student is a boy or a girl. 
+
++ Specifically, if a student is a boy, they are more likely to be left-handed than if they are a girl
+
+]
+
+
+.pull-right[
+
+|          | Left   | Right   | Marginal |
+|----------|--------|---------|----------|
+| Boys     | 25     | 24      | 49       |
+| Girls    | 10     | 41      | 51       |
+| Marginal | 35     | 65      | 100      |
+
+]
+
+--
+
++ **If we select one girl from the class, what is the probability that they are left handed?**
+
+---
+
+## Conditional probability: an example
+
+.pull-left[
+
+`$$P(left | girl) = \frac{P(Left \bigcap Girl)}{P(Girl)}$$`
+
+]
+
+.pull-right[
+
+|          | Left   | Right   | Marginal |
+|----------|--------|---------|----------|
+| Boys     | 25     | 24      | 49       |
+| Girls    | 10     | 41      | 51       |
+| Marginal | 35     | 65      | 100      |
+
+]
+
+---
+count: false
+
+## Conditional probability: an example
+
+.pull-left[
+
+`$$P(left | girl) = \frac{P(Left \bigcap Girl)}{P(Girl)}$$`
+
+`$$P(Left|Girl) = \frac{\frac{10}{100}}{\frac{51}{100}}$$`
+`$$P(Left|Girl) = \frac{0.10}{0.51} = .196$$`
+]
+
+.pull-right[
+
+|          | Left   | Right   | Marginal |
+|----------|--------|---------|----------|
+| Boys     | 25     | 24      | 49       |
+| **Girls**| **10** | **41**  | **51**   |
+| Marginal | 35     | 65      | 100      |
+
+]
+
+--
+
+&gt; An important note: while `\(P(A \bigcap B)\)` is equal to `\(P(B \bigcap A)\)`, `\(P(A|B)\)` is not equal to `\(P(B|A)\)`
+
+&gt;  + `\(P(left|girl) = \frac{.10}{.51} = .196\)`
+  
+&gt;  + `\(P(girl|left) = \frac{.10}{.35} = .286\)`
+
+--
+
+&gt; + Another way to think about it: You draw a single card from a fair deck. Is the probability it's red given that it's a diamond equal to the probability that it's a diamond given that it's red?
+    
+---
+class: center, middle
+
+# Questions?
+
+---
+class: center, inverse, middle
+
+# Bayes' Equation
+
+---
+## Bayes' rule
+
++ Bayes' rule follows from the idea of conditional probability
+
++ In a basic sense, it allows you to update your assessment of probability as you gather more evidence.
+
+- If 
+`\(P(B|A) = \frac{P(A \bigcap B)}{P(A)}\)` and `\(P(A \bigcap B) = P(B \bigcap A)\)`
+
+--
+
++ and 
+`$$P(B \bigcap A) = P(B)P(A|B)$$`
+--
+
++ Then: 
+`$$P(B|A) = \frac{P(B)P(A|B)}{P(A)}$$`
+--
+
++ Rearrange this to get Bayes' rule:
+
+** `$$P(B|A) = \frac{P(A|B)}{P(A)}P(B)$$` **
+
+
+---
+## Who cares? 
++ Turns out to be a big deal in psychology and statistics
+  
+  + Many psychological models based on Bayes' rule
+  + Bayesian statistics are becoming more prominent
+  
+--
+
++ Can be really useful for calculating conditional probabilities when you don't know things like `\(P(A \bigcap B)\)` 
+
++ Can also be useful if you know `\(P(B|A)\)` but not `\(P(A|B)\)`, or vice versa.
+
+  + E.g., `\(P(clouds|rain)\)` is much easier to calculate than `\(P(rain|clouds)\)`
+  
+--
+
++ Let's apply the equation to our previous handedness example.
+
+---
+## Conditional probability: Bayes' equation
+`$$P(Left|Girl) = \frac{P(Girl|Left)}{P(Girl)}P(Left)$$`
+
+|          | Left   | Right   | Marginal |
+|----------|--------|---------|----------|
+| Boys     | **25** | 24      | 49       |
+| Girls    | **10** | 41      | 51       |
+| Marginal | **35** | 65      | 100      |
+
+`$$P(Girl|Left) = \frac{10}{35} = .2857$$`
+`$$P(Left|Girl) = \frac{0.2857}{.51}\times.35 = .196$$`
+
+---
+class: center, middle
+
+# Questions?
+
+---
+class: center, inverse, middle
+
+# Assessing Independence of Events
+
+---
+## Are events independent?
+- The multiplication rule, and the use of contingency tables, provides a way to assess if events are independent.
+
+- **Example**: Consider we have a sample of 200 students and faculty members at the university 
+  - 110 students and 90 faculty members
+  - Suppose we ask whether they live within one mile of campus. 140 say yes, 60 say no.
+  
+- We can tabulate the proportions and think about the probabilities.
+
+---
+## Are events independent?
+
+.pull-left[
+
++ Notice that we're not using raw frequencies as in the handedness example, but relative frequencies.
+
++ E.g. 110 students out of our sample of 200 = 55%
+
++ 70% of our sample live within a mile of campus (`Yes`), while 30% live further away (`No`).
+
+]
+
+.pull-right[
+
+|          | Yes                       | No                | Marginal|
+|----------|---------------------------|-------------------|---------|
+| Students | `\(P(Student, Yes)\)`         | `\(P(Student, No)\)`  | .55     |
+| Faculty  | `\(P(Faculty, Yes)\)`         | `\(P(Faculty, No)\)`  | .45     |
+| Marginal | .70                       |  .30              | 1.00    |
+
+]
+
+
+---
+## Are events independent?
+
+.pull-left[
+
++ **If role and distance are independent,** then the probability of living near campus should be 70% whether someone is a student or a faculty member.
+
++ With independent events, we can use the *multiplication rule* to compute the probability of each outcome:
+
+  + `\(P(yes \bigcap student) = P(yes)P(student) = .70 \times .55 = .385\)`
+]
+
+
+.pull-right[
+
+|          | Yes           | No            | Marginal |
+|----------|---------------|---------------|----------|
+| Students | 0.385         | 0.165         | 0.55     |
+| Faculty  | 0.315         | 0.135         | 0.45     |
+| Marginal | 0.70          | 0.30          | 1.00     |
+
+]
+
+--
+
++ The values within each cell are the proportions we would expect *if* role and distance are absolutely independent.
+  
+  + E.g. we would expect ~32% of our sample to be faculty members who live within a mile of campus.
+
+---
+## Are events independent?
+
+.pull-left[
++ But what if, when we looked within our data, we actually observed the proportions in **this**?
+
++ Given this outcome, our conditional probabilities are actually:
+
+  + `\(P(yes|student) = \frac{.45}{.55} = .82\)`
+  + `\(P(yes|faculty) = \frac{.25}{.45} = .56\)`
+
++ Using Bayes:
+
+  + `\(\frac{P(student|yes)}{P(student)}P(yes) = \frac{\frac{.45}{.70}}{.55}\times .70 = .82\)`
+  + `\(P(yes|faculty) = \frac{P(faculty|yes)}{P(faculty)}P(yes) = \frac{\frac{.25}{.70}}{.45}\times .70 = .56\)`
+
+]
+
+.pull-right[
+
+|          | Yes           | No           | Marginal |
+|----------|---------------|--------------|----------|
+| Students | 0.45          | 0.10         | 0.55     |
+| Faculty  | 0.25          | 0.20         | 0.45     |
+| Marginal | 0.70          | 0.30         | 1.00     |
+
+]
+
+
+---
+## Are events independent?
+
+.pull-left[
+.center[**Expected (if independent)**
+
+|          | Yes           | No            | Marginal |
+|----------|---------------|---------------|----------|
+| Students | 0.385         | 0.165         | 0.55     |
+| Faculty  | 0.315         | 0.135         | 0.45     |
+| Marginal | 0.70          | 0.30          | 1.00     |
+
+`\(P(yes|student)\)` = `\(\frac{.385}{.55} = .70\)`
+
+`\(P(yes|faculty)\)` = `\(\frac{.315}{.45} = .70\)`
+
+`\(P(no|student)\)` = `\(\frac{.165}{.55} = .30\)`
+
+`\(P(no|faculty)\)` = `\(\frac{.135}{.45} = .30\)` 
+]
+]
+
+.pull-right[
+.center[**Observed**
+
+|          | Yes           | No           | Marginal |
+|----------|---------------|--------------|----------|
+| Students | 0.45          | 0.10         | 0.55     |
+| Faculty  | 0.25          | 0.20         | 0.45     |
+| Marginal | 0.70          | 0.30         | 1.00     |
+
+`\(P(yes|student) = \frac{.45}{.55} = .82\)`
+
+`\(P(yes|faculty) = \frac{.25}{.45} = .56\)`
+
+`\(P(no|student)\)` = `\(\frac{.10}{.55} = .18\)`
+
+`\(P(no|faculty)\)` = `\(\frac{.20}{.45} = .44\)`
+]
+]
+
+--
+
++ Because the probabilities we observe within our data are not at all similar to the probabilities we would expect if role and distance are independent, we might conclude that these events actually *are* dependent.
+
+
+---
+## Our first statistical test
+
++ What we have just done (more or less) is do all the background work to understand a `\(\chi^2\)` test of independence.
+
++ This tests the independence of two nominal category variables.
+
++ To use this in practice, we have a couple of extra steps, but the above is the fundamental principle.
+
+---
+class: center, inverse, middle
+
+# One final note about probability...
+
+---
+## Sampling: With and without replacement
+
+You may have noticed this argument in a previous Live R:
+
+
+```r
+sample(dat, size = 10, 
+*      replace = T)
+```
+
+
+What does it mean to sample with or without replacement?
+
+--
+
+- Imagine selecting a single ball from a bag with 6 red and 4 blue:
+
+    - `\(P(red) = \frac{6}{10} = \frac{3}{5}\)` = .60
+    - `\(P(blue) = \frac{4}{10} = \frac{2}{5}\)` = .40
+
+--
+
++ If we put the ball back, then the probabilities are the same next draw.
+
++ If we keep the ball, then the probabilities change...
+
+  + If we assume it was red, then;
+      + `\(P(red) = \frac{5}{9}\)` = .56
+      + `\(P(blue) = \frac{4}{9}\)` = .44
+
+---
+## Sampling: With and without replacement
+
+- Whether we replace or not matters with respect to thinking about multiple trials. 
+
+- If we draw two balls from the sample, what is the probability they are both red?
+
+- As long as the events are independent, then:
+    - **With replacement** = 0.6*0.6 = 0.36 = 36%
+    - **Without replacement** = 0.60*0.56 = 0.34 = 34%
+    
+---
+class: middle, center
+
+# Questions?
+
+---
+# Summary of today
+1. Review and extension of the rules of probability. 
+2. Bayes rule can be used to calculate conditional probabilities. 
+3. How to do a simple test for independence. 
+4. How probability changes when we sample with and without replacement
+
+
+---
+# Next tasks
++ Tomorrow, I'll present a live R session focused on computing probability based on these rules.
+
++ Next week, we will start to work on probability distributions
+
++ This week:
+
+  + Attend the live R session
+
+  + Complete your lab
+  
+  + Check the [reading list](https://eu01.alma.exlibrisgroup.com/leganto/readinglist/lists/43349908530002466) for recommended reading
+  
+  + Come to office hours
+  
+  + Weekly quiz
+      + Opens Monday 09:00
+      + Closes Sunday 17:00
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

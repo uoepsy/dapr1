@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Confidence Intervals &amp; Bootstrapping</title>
+
+<script src="site_libs/header-attrs-2.8/header-attrs.js"></script>
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+<script>
+function toggle_visibility(id1, id2) {
+var e = document.getElementById(id1);
+var f = document.getElementById(id2);
+e.style.display = ((e.style.display!='none') ? 'none' : 'block');
+if(f.classList.contains('fa-plus')) {
+    f.classList.add('fa-minus')
+    f.classList.remove('fa-plus')
+} else {
+    f.classList.add('fa-plus')
+    f.classList.remove('fa-minus')
+}
+}
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+<link rel="stylesheet" href="assets/style-labs.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"><strong>DAPR1</strong></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">
+    <span class="fas fa-home"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="intro_r_rstudio_year1.html">DAPR1 starts here</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Intro to data and R
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="01_data_types.html">1/1: Collecting data</a>
+    </li>
+    <li>
+      <a href="02_categorical.html">1/2: Categorical data</a>
+    </li>
+    <li>
+      <a href="03_numerical.html">1/3: Numerical data</a>
+    </li>
+    <li>
+      <a href="04_relationships.html">1/4: Relationships</a>
+    </li>
+    <li>
+      <a href="05_functions.html">1/5: Types of relations</a>
+    </li>
+    <li class="dropdown-header">1/6: Break week!</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Probability &amp; sampling
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="07_probability_basics.html">1/7: Probability basics</a>
+    </li>
+    <li>
+      <a href="08_probability_rules.html">1/8: Probability rules!</a>
+    </li>
+    <li>
+      <a href="09_discrete_distributions.html">1/9: Discrete random variables</a>
+    </li>
+    <li>
+      <a href="10_continuous_distributions.html">1/10: Continuous random variables</a>
+    </li>
+    <li>
+      <a href="11_sampling_distributions.html">1/11: Sampling distributions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Hypothesis testing
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="12_bootstrap_cis.html">2/1: Bootstrap &amp; CIs</a>
+    </li>
+    <li>
+      <a href="13_hypothesis_testing.html">2/2: Hypothesis testing: p-values</a>
+    </li>
+    <li>
+      <a href="14_critical_values.html">2/3: Hypothesis testing: critical values</a>
+    </li>
+    <li>
+      <a href="15_connecting_ci_ht.html">2/4: Hypothesis testing &amp; CIs</a>
+    </li>
+    <li>
+      <a href="16_ht_errors.html">2/5: Making decisions</a>
+    </li>
+    <li class="dropdown-header">2/6: Break week</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Basic tests
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="17_one_sample_mean.html">2/7: Test for one mean</a>
+    </li>
+    <li>
+      <a href="18_two_sample_means.html">2/8: Test for two means</a>
+    </li>
+    <li>
+      <a href="19_paired_t_test.html">2/9: Test for paired samples</a>
+    </li>
+    <li>
+      <a href="20_chi_square.html">2/10: Chi-square</a>
+    </li>
+    <li>
+      <a href="21_covcor.html">2/11: Covariance and correlation</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Confidence Intervals &amp; Bootstrapping</h1>
+
+</div>
+
+
+<div class="lo">
+<ol style="list-style-type: decimal">
+<li>Understand how bootstrap resampling with replacement can be used to approximate a sampling distribution.</li>
+<li>Understand how the bootstrap distribution can be used to construct a range of highly plausible values (a confidence interval).</li>
+<li>Understand the link between simulation-based standard errors and theory-based standard errors.</li>
+</ol>
+</div>
+<div id="sampling-distribution-recap" class="section level1">
+<h1>Sampling distribution recap</h1>
+<ul>
+<li><p>Instead of collecting data on an entire <strong>population</strong>, we often collect data on a <strong>sample</strong> drawn at random from that population.</p></li>
+<li><p>We can compute a <strong>statistic</strong> on our sample, which we can then use as an estimate of the equivalent <strong>parameter</strong> in the population.</p>
+<ul>
+<li>For example, we can take a sample of 30 students and calculate their mean height (the sample statistic). This is our estimate of the mean height of all students (population parameter).</li>
+</ul></li>
+<li><p><strong>However…</strong> sample statistics vary from sample to sample. Using a sample statistic as an estimate of a population parameter brings an element of <em>uncertainty</em>.</p></li>
+<li><p>By taking lots of samples and computing the statistic for each one, we can create a <strong>sampling distribution</strong> for that statistic. This allows us to quantify the variation in the sample statistics which is due to sampling.</p></li>
+<li><p>The standard deviation of the sampling distribution is known as the <strong>standard error</strong>.</p></li>
+<li><p>Finally, <a href="https://uoepsy.github.io/dapr1/lectures/dapR1_lec10_Samples-SamplingDist.html#21">we saw how the size of our samples influences the sampling variation</a>, with bigger samples leading to narrower sampling distributions, and more precise estimates.</p></li>
+</ul>
+</div>
+<div id="bootstrapping" class="section level1">
+<h1>Bootstrapping</h1>
+<p>In order to quantify the precision of our sample statistics as estimates of the population, we refer to the sampling distribution of the statistic.</p>
+<p><strong>Problem:</strong> in most real life research, we cannot observe the sampling distribution of a statistic. We have neither the time nor the resources to take <em>many samples</em> of size <span class="math inline">\(n\)</span> in order to get an idea of how accurate an estimate is.<br />
+<em>What can we do with only one sample?</em></p>
+<table>
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Solution 1</th>
+<th align="left">Solution 2 (Bootstrapping)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Use the formula <span class="math inline">\(\text{SE} = \frac{\sigma}{\sqrt{n}}\)</span>, where <span class="math inline">\(\sigma\)</span> is the standard deviation of the population, or our estimate of it (i.e., our sample standard deviation <span class="math inline">\(\hat \sigma\)</span> or <span class="math inline">\(s\)</span>), and <span class="math inline">\(n\)</span> is our sample size.</td>
+<td align="left">Mimick the act of repeated sampling from the population by repeated <em>resampling with replacement</em> from the original sample.</td>
+</tr>
+</tbody>
+</table>
+<div class="yellow">
+<p><strong>Bootstrapping</strong>
+<br>
+Random sampling <em>with replacement</em> from the original sample, <em>using the same sample size.</em></p>
+<p>We can mimick the act of repeated sampling of <span class="math inline">\(n\)</span> units from the population, by <em>resampling with replacement</em> <span class="math inline">\(n\)</span> units from our original sample of <span class="math inline">\(n\)</span> units.<br />
+When we resample with replacement from our original sample enough times, the distribution of <em>resample statistics</em> begins to approximate the sampling distribution of the sample statistic!.</p>
+</div>
+<div id="example-nfl-players" class="section level2">
+<h2>Example: NFL Players</h2>
+<p>We are interested in the following question: what was the average yearly salary of a NFL player in 2015?</p>
+<p>In this particular example, we are actually going to have access to data on the <em>entire population</em>, meaning that we will actually know the population parameter (the average yearly salary of NFL players in 2015). You can see these in the drop-down box below:</p>
+<div class="optional-begin">
+The population: NFL Players in 2015<span id="opt-start-120" class="fa fa-plus optional-icon clickable" onclick="toggle_visibility(&#39;opt-body-120&#39;, &#39;opt-start-120&#39;)"></span>
+</div>
+<div id="opt-body-120" class="optional-body" style="display: none;">
+<p>We will read a file containing the yearly salaries (in millions of dollars) for all players being paid at the start of 2015 by a National Football League (NFL) team. This entire dataset represents the population of all National Football League players in 2015</p>
+<pre class="r"><code>nfl_pop &lt;- read_csv(&quot;https://uoepsy.github.io/data/nflpop.csv&quot;)
+head(nfl_pop)</code></pre>
+<pre><code>## # A tibble: 6 x 5
+##   Player             Position Team     TotalMoney YearlySalary
+##   &lt;chr&gt;              &lt;chr&gt;    &lt;chr&gt;         &lt;dbl&gt;        &lt;dbl&gt;
+## 1 Russell Wilson     QB       Seahawks        140         35  
+## 2 Ben Roethlisberger QB       Steelers         68         34  
+## 3 Aaron Rodgers      QB       Packers         134         33.5
+## 4 Jared Goff         QB       Rams            134         33.5
+## 5 Carson Wentz       QB       Eagles          128         32  
+## 6 Matt Ryan          QB       Falcons         150         30</code></pre>
+<p>The population parameter:</p>
+<pre class="r"><code>nfl_pop %&gt;% summarise(
+  mean_salary = mean(YearlySalary)
+)</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   mean_salary
+##         &lt;dbl&gt;
+## 1        3.03</code></pre>
+</div>
+<p class="optional-end">
+</p>
+<p>In most research however, the population parameter is <strong>unknown</strong>, and so we must rely on <strong>sampling</strong>.<br />
+Let’s pretend for now that we don’t know the population parameter, and are only able to collect data on a random sample of 50 players.</p>
+<div class="optional-begin">
+Our Sample<span id="opt-start-121" class="fa fa-plus optional-icon clickable" onclick="toggle_visibility(&#39;opt-body-121&#39;, &#39;opt-start-121&#39;)"></span>
+</div>
+<div id="opt-body-121" class="optional-body" style="display: none;">
+<p>In conducting our research, we randomly sample 50 players:</p>
+<pre class="r"><code>nfl_sample &lt;- read_csv(&quot;https://uoepsy.github.io/data/nflsamp.csv&quot;)</code></pre>
+<p>The mean of our sample is 3.52:</p>
+<pre class="r"><code>mean(nfl_sample$YearlySalary)</code></pre>
+<pre><code>## [1] 3.51726</code></pre>
+</div>
+<p class="optional-end">
+</p>
+<p>We would like to obtain an idea of how precise our sample mean is as an estimate of the population parameter (which we’re pretending we don’t know).<br />
+So we would like to know “if I take lots of samples of 50 players, how spread out will all the mean salaries of 50 players be?”. In other words, we want to understand properties of the sampling distribution.</p>
+<p>We’re going answer this question via bootstrapping.<br />
+We can approximate the sampling distribution of <span class="math inline">\(\bar{x}\)</span> (the mean salary of our sample) by:</p>
+<ol style="list-style-type: decimal">
+<li>collect a sample of 50 players;</li>
+<li>compute the mean salary of the sample;</li>
+<li>take a random sample <em>with replacement</em> of 50 players <em>from our original sample</em> (this is known as a <strong>resample</strong>), and compute the mean of the resample;</li>
+<li>re-do step three many times.</li>
+</ol>
+<div class="yellow">
+<p><em>“With replacement”</em> simply means that as we take our sample, we replace the first item before we choose the second.. and so on.<br />
+<strong>If we resampled our 50 player sample <em>without</em> replacement, we would simply end up with the same 50 players, and therefore the same mean!</strong></p>
+</div>
+<ol style="list-style-type: decimal">
+<li>Collect a sample. This we already have:</li>
+</ol>
+<pre class="r"><code>library(tidyverse)
+nfl_sample &lt;- read_csv(&quot;https://uoepsy.github.io/data/nflsamp.csv&quot;)</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>Compute the mean salary of our sample:</li>
+</ol>
+<pre class="r"><code>nfl_sample %&gt;%
+  summarise(avg_salary = mean(YearlySalary))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   avg_salary
+##        &lt;dbl&gt;
+## 1       3.52</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Sample our original sample, with replacement, and compute the mean:
+To do this, we’re going to use the function which we used at the end of last term, <code>rep_sample_n()</code>.<br />
+But we are going to add an extra argument <code>replace = TRUE</code>:</li>
+</ol>
+<pre class="r"><code>source(&#39;https://uoepsy.github.io/files/rep_sample_n.R&#39;)
+
+rep_sample_n(nfl_sample, n = 50, samples = 1, replace = TRUE) %&gt;%
+  summarise(avg_salary = mean(YearlySalary))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   avg_salary
+##        &lt;dbl&gt;
+## 1       3.89</code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li>and again..</li>
+</ol>
+<pre class="r"><code>rep_sample_n(nfl_sample, n = 50, samples = 1, replace = TRUE) %&gt;%
+  summarise(avg_salary = mean(YearlySalary))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   avg_salary
+##        &lt;dbl&gt;
+## 1       3.36</code></pre>
+<p>and so on…</p>
+</div>
+<div id="the-bootstrap-distribution" class="section level2">
+<h2>The bootstrap distribution</h2>
+<div class="yellow">
+<p>If we resample with replacement from our original sample enough times, then the distribution of all the means of these <em>resamples</em> begins to approximate the sampling distribution.</p>
+</div>
+<p>We can speed up this process by getting R to take many resamples for us, in the same way that last week we asked it to take many samples from a population at the end of the previous semester, using <code>rep_sample_n()</code> and <code>group_by()</code>:</p>
+<pre class="r"><code>rep_sample_n(nfl_sample, n = 50, samples = 2000, replace = TRUE) %&gt;%
+  group_by(sample) %&gt;%
+  summarise(avg_salary = mean(YearlySalary))</code></pre>
+<pre><code>## # A tibble: 2,000 x 2
+##    sample avg_salary
+##     &lt;dbl&gt;      &lt;dbl&gt;
+##  1      1       4.79
+##  2      2       4.97
+##  3      3       4.42
+##  4      4       3.09
+##  5      5       3.96
+##  6      6       3.99
+##  7      7       4.47
+##  8      8       2.54
+##  9      9       2.89
+## 10     10       4.66
+## # … with 1,990 more rows</code></pre>
+<p>The above line of code takes 2000 samples of size 50, by sampling <em>with replacement</em> from our original sample of size 50. It then summarises it by each of these resamples (the 1st 50, 2nd 50, 3rd 50 etc), calculating the mean for each one.<br />
+This set of resample means is the <em>bootstrap distribution</em>.<br />
+We can plot them:</p>
+<pre class="r"><code>bootstrap_dist &lt;- 
+  rep_sample_n(nfl_sample, n = 50, samples = 2000, replace = TRUE) %&gt;%
+  group_by(sample) %&gt;%
+  summarise(avg_salary = mean(YearlySalary))
+
+ggplot(bootstrap_dist, aes(x = avg_salary)) + 
+  geom_histogram() + 
+  labs(x = &quot;resample mean&quot;)</code></pre>
+<p><img src="12_bootstrap_cis_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<div class="question-begin">
+Question
+</div>
+<div class="question-body">
+<p>Where do you think that this histogram is centred?</p>
+<ul>
+<li>The mean salary of the population (<span class="math inline">\(\mu\)</span>).</li>
+<li>The mean salary of the original sample (<span class="math inline">\(\bar{x}\)</span>).</li>
+<li>Somewhere else.</li>
+</ul>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-122" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-122&#39;, &#39;sol-start-122&#39;)"></span>
+</div>
+<div id="sol-body-122" class="solution-body" style="display: none;">
+<p>The distribution of means of resamples will be centered around the <em>mean of our original sample</em>, which was 3.52.</p>
+<pre class="r"><code>bootstrap_dist %&gt;%
+  summarise(mean_of_means = mean(avg_salary))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   mean_of_means
+##           &lt;dbl&gt;
+## 1          3.52</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question
+</div>
+<div class="question-body">
+<p>Last semester we looked at the <strong>standard error</strong> (the standard deviation of the sampling distribution).
+The <strong>boostrap distribution</strong> is an approximation of the <strong>sampling distribution</strong>.</p>
+<p>TRUE or FALSE: The standard deviation of the bootstrap distribution is an approximation of the standard error of <span class="math inline">\(\bar{x}\)</span>.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-123" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-123&#39;, &#39;sol-start-123&#39;)"></span>
+</div>
+<div id="sol-body-123" class="solution-body" style="display: none;">
+<p>TRUE!</p>
+</div>
+<p class="solution-end">
+</p>
+<div id="more-generally" class="section level3">
+<h3>More generally…</h3>
+<p>Now let’s think more generally about what we did there…</p>
+<ol style="list-style-type: decimal">
+<li>We were interested in estimating some unknown parameter of a population.</li>
+<li>We had a sample of size <span class="math inline">\(n\)</span> drawn at random from the population.</li>
+<li>We took lots of <em>resamples</em> (of size <span class="math inline">\(n\)</span>) from our original sample, and calculated a statistic for each one.</li>
+<li>We then visualised the distribution of those statistics.</li>
+</ol>
+<p>The tool below may help to conceptualise these steps:</p>
+<ul>
+<li><strong>The big blue distribution at the top</strong>: The population.<br />
+</li>
+<li><strong>The vertical blue line</strong>: The population parameter <span class="math inline">\(\mu\)</span>.</li>
+<li><strong>The yellow sample button</strong>: Takes a sample from the population (note you can change the sample <span class="math inline">\(n\)</span>).</li>
+<li><strong>The green resample button</strong>: Samples with replacement from the original sample (the yellow one), and calculates the mean (which is then dropped into the bottom panel).</li>
+<li><strong>The bottom panel</strong>: The distribution of resample means - the bootstrap distribution!</li>
+</ul>
+<p>Spend 10 minutes changing things such as the sample size. If you have any questions about what is happening, then please ask either now or during the lab.</p>
+<iframe src="https://web.archive.org/web/20160807193104/http://wise1.cgu.edu/vis/bootstrap/" width="100%" height="650px">
+</iframe>
+<p><strong>source: <a href="https://web.archive.org/web/20160807193104/http://wise1.cgu.edu/vis/bootstrap/">https://web.archive.org/web/20160807193104/http://wise1.cgu.edu/vis/bootstrap/</a></strong></p>
+</div>
+</div>
+</div>
+<div id="confidence-intervals" class="section level1">
+<h1>Confidence Intervals</h1>
+<div id="point-estimates-ranges-of-plausible-values" class="section level2">
+<h2>Point estimates &amp; Ranges of Plausible Values</h2>
+Take a look again at the bootstrap distribution we constructed (Figure <a href="#fig:bootstrap-dist">1</a>, below).
+<div class="figure"><span id="fig:bootstrap-dist"></span>
+<img src="12_bootstrap_cis_files/figure-html/bootstrap-dist-2.png" alt="Bootstrap resampling distribution based on 2000 resamples" width="672" />
+<p class="caption">
+Figure 1: Bootstrap resampling distribution based on 2000 resamples
+</p>
+</div>
+<div class="question-begin">
+Question
+</div>
+<div class="question-body">
+<p>Roughly, between what two values do <em>most</em> of the resample means lie?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-124" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-124&#39;, &#39;sol-start-124&#39;)"></span>
+</div>
+<div id="sol-body-124" class="solution-body" style="display: none;">
+<p>“Most” is very vague. Just eyeballing, most of the distribution lies between 2.5 and 4.5.</p>
+<pre class="r"><code>ggplot(bootstrap_dist, aes(x = avg_salary)) + 
+  geom_histogram() + 
+  labs(x = &quot;resample mean&quot;)+
+  geom_vline(xintercept = c(2.5, 4.5))</code></pre>
+<p><img src="12_bootstrap_cis_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+</div>
+<p class="solution-end">
+</p>
+<p><strong>Confidence intervals</strong> simply answer more exactly where “most” sample means lie - they give us a <em>range of plausible values</em> for our population parameter.</p>
+<p>To construct a confidence interval, we need two things:</p>
+<ol style="list-style-type: decimal">
+<li>a confidence level;<br />
+</li>
+<li>a measure of sampling variability.</li>
+</ol>
+<p>We have the latter, in the form of our bootstrap distribution. The confidence level, instead, needs to be set by us.
+For instance, we might ask between which values the middle 95% (or 90%, or 80%, etc.) of our distribution falls.
+In other words, the confidence level is the “success rate”: the proportion of all samples whose intervals contain the true parameter.</p>
+<div id="interpreting-a-confidence-interval" class="section level4 frame">
+<h4>Interpreting a confidence interval?</h4>
+<p>If we were to do this whole process over and over again:</p>
+<ul>
+<li>take a random sample of size <span class="math inline">\(n\)</span>;</li>
+<li>sample with replacement from that sample;</li>
+<li>construct a 95% confidence interval.</li>
+</ul>
+<p>Then about 95% of the confidence intervals we created would contain the population mean.</p>
+<p>So if we did this 100 times, we would expect about five of our 95% confidence intervals to not contain the true population mean.</p>
+<p>And if we had been constructing 80% confidence intervals instead, we would expect roughly 80 of them to contain the population mean.</p>
+</div>
+</div>
+<div id="constructing-a-confidence-interval-for-the-mean" class="section level2">
+<h2>Constructing a confidence interval for the mean</h2>
+<p>We can construct confidence intervals using the <strong>standard error</strong>.
+However, we <em>cannot</em> compute standard errors from just one sample, so we need to estimate the standard error of a statistic using either bootstrap, or the formula approach.</p>
+<p>We also use the following rules of thumb:</p>
+<div class="yellow">
+<p><strong>If the distribution is symettric and bell-shaped…</strong></p>
+<ul>
+<li>68% of values will lie within 1 standard deviation of the mean.</li>
+<li>95% of values will lie within 1.96 standard deviations of the mean.</li>
+<li>99.7% of values will lie within 3 standard deviations of the mean.
+<img src="images/bootstrap_cis/normal.png" width="324" /></li>
+</ul>
+</div>
+<p>We have our sample mean, and we can calculate the standard deviation of our bootstrap distribution (to approximate the standard error of the sample mean).
+We therefore have all the information we need to calculate, for instance, a 95% confidence interval - it is <span class="math inline">\(1.96 \times \text{standard error}\)</span> above and below our mean.</p>
+<p>Formally, we can write this 95% interval as:</p>
+<center>
+<span class="math inline">\(\text{Statistic} \pm 1.96 \times SE\)</span>
+</center>
+<div id="bootstrap-se" class="section level3">
+<h3>Bootstrap SE</h3>
+<p>The bootstrap standard error is just the standard deviation of the bootstrap distribution which we generated:</p>
+<pre class="r"><code>sd(bootstrap_dist$avg_salary)</code></pre>
+<pre><code>## [1] 0.6511474</code></pre>
+<p>So the 95% confidence interval would be the <strong>mean of our original sample</strong>, plus or minus 1.96 times the bootstrap SE.</p>
+<pre class="r"><code>mean(nfl_sample$YearlySalary) - 1.96*sd(bootstrap_dist$avg_salary)</code></pre>
+<pre><code>## [1] 2.241011</code></pre>
+<pre class="r"><code>mean(nfl_sample$YearlySalary) + 1.96*sd(bootstrap_dist$avg_salary)</code></pre>
+<pre><code>## [1] 4.793509</code></pre>
+<p>Does this interval contain the true population parameter? The answer is yes, 95 out of 100 times it will.</p>
+</div>
+</div>
+<div id="formula-approach" class="section level2">
+<h2>Formula approach</h2>
+<p>Recall the formula for the standard error: <span class="math inline">\(\text{SE} = \frac{\sigma}{\sqrt{n}}\)</span>, where <span class="math inline">\(\sigma\)</span> is the standard deviation of the population, or our estimate of it (i.e., our sample standard deviation <span class="math inline">\(\hat \sigma\)</span> or <span class="math inline">\(s\)</span>), and <span class="math inline">\(n\)</span> is our sample size.</p>
+<p>This will therefore be our estimate of the standard error:</p>
+<pre class="r"><code>sd(nfl_sample$YearlySalary) / sqrt(50)</code></pre>
+<pre><code>## [1] 0.652454</code></pre>
+<p>And this will be our 95% confidence interval:</p>
+<pre class="r"><code>mean(nfl_sample$YearlySalary) - 1.96*(sd(nfl_sample$YearlySalary) / sqrt(50))</code></pre>
+<pre><code>## [1] 2.23845</code></pre>
+<pre class="r"><code>mean(nfl_sample$YearlySalary) + 1.96*(sd(nfl_sample$YearlySalary) / sqrt(50))</code></pre>
+<pre><code>## [1] 4.79607</code></pre>
+</div>
+</div>
+<div id="glossary" class="section level1">
+<h1>Glossary</h1>
+<ul>
+<li><p><em>Population.</em> The entire collection of units of interest.</p></li>
+<li><p><em>Sample.</em> A subset of the entire population.</p></li>
+<li><p><em>Parameter.</em> A fixed but typically unknown quantity describing the population.</p></li>
+<li><p><em>Statistic.</em> A quantity computed on a sample.</p></li>
+<li><p><em>Sampling distribution.</em> The distribution of the values that a statistic takes on different samples of the same size and from the same population.</p></li>
+<li><p><em>Standard error.</em> The standard error of a statistic is the standard deviation of the sampling distribution of the statistic.</p></li>
+<li><p><em>Resample.</em> To sample again from your original sample</p></li>
+<li><p><em>Bootstrapping.</em> Repeated random sampling with replacement</p></li>
+<li><p><em>Bootstrap distribution.</em> The distribution of statistics calculated on random <strong>re</strong>samples. Approximates the sampling distribution of the sample statistic.</p></li>
+<li><p><em>Confidence interval (CI).</em> A range of plausible values around an estimate (e.g., a sample statistic), taking into account uncertainty in the statistic (e.g., sampling variability)</p></li>
+<li><p><em>Confidence level.</em> The percentage of confidence intervals which will contain the true population parameter <strong>in the long run</strong> (i.e., if you sampled the population and constructed confidence intervals many times over). The proportion of all samples whose intervals contain the true parameter.</p></li>
+</ul>
+</div>
+<div id="exercises" class="section level1">
+<h1>Exercises</h1>
+<div class="red">
+<p><strong>Remember</strong> you will need to “source” the <code>rep_sample_n()</code> function into your environment.
+Paste this code and make sure it appears in the top-right pane of RStudio.</p>
+<pre class="r"><code>source(&#39;https://uoepsy.github.io/files/rep_sample_n.R&#39;)</code></pre>
+</div>
+<div id="hollywood-movies" class="section level2">
+<h2>Hollywood Movies</h2>
+<p>The following code chunk reads in a <strong>sample</strong> of the Hollywood movies data we saw last week.</p>
+<pre class="r"><code>hollywood_sample &lt;- read_csv(&quot;https://uoepsy.github.io/data/hollywoodsample1.csv&quot;)</code></pre>
+<div class="question-begin">
+Question 1
+</div>
+<div class="question-body">
+<p>This week, we’re interested in the average Rotten Tomatoes rating for all Hollywood movies between 2007 and 2013.<br />
+What is our best estimate of this with the data we just read in?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-125" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-125&#39;, &#39;sol-start-125&#39;)"></span>
+</div>
+<div id="sol-body-125" class="solution-body" style="display: none;">
+<p><span class="math inline">\(\bar{x}\)</span>, the mean Rotten Tomatoes rating for our sample.</p>
+<pre class="r"><code>hollywood_sample %&gt;% 
+  summarise(avg_rating = mean(RottenTomatoes))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   avg_rating
+##        &lt;dbl&gt;
+## 1       49.2</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 2
+</div>
+<div class="question-body">
+<p>Generate 2000 bootstrap resamples to create the bootstrap distribution. Store it as an object in R with the name <code>hollywood_bs</code>.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-126" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-126&#39;, &#39;sol-start-126&#39;)"></span>
+</div>
+<div id="sol-body-126" class="solution-body" style="display: none;">
+<pre class="r"><code>hollywood_bs &lt;- 
+  rep_sample_n(hollywood_sample, n = 25, samples = 2000, replace = TRUE) %&gt;%
+  group_by(sample) %&gt;%
+  summarise(avg_rating = mean(RottenTomatoes))</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 3
+</div>
+<div class="question-body">
+<p>Estimate the standard error of the sample statistic from your bootstrap distribution.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-127" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-127&#39;, &#39;sol-start-127&#39;)"></span>
+</div>
+<div id="sol-body-127" class="solution-body" style="display: none;">
+<pre class="r"><code>hollywood_bs %&gt;%
+  summarise(estimated_SE = sd(avg_rating))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   estimated_SE
+##          &lt;dbl&gt;
+## 1         5.88</code></pre>
+<p>or</p>
+<pre class="r"><code>sd(hollywood_bs$avg_rating)</code></pre>
+<pre><code>## [1] 5.875942</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 4
+</div>
+<div class="question-body">
+<p>Compute the 95% confidence intervals around our estimate of the average Rotten Tomatoes rating, and plot the bootstrap distribution and the confidence interval.</p>
+<p><em>Hint</em>: <code>geom_vline()</code>.</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-128" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-128&#39;, &#39;sol-start-128&#39;)"></span>
+</div>
+<div id="sol-body-128" class="solution-body" style="display: none;">
+<pre class="r"><code>hwood_ci_lower &lt;- mean(hollywood_sample$RottenTomatoes) - 1.96 * sd(hollywood_bs$avg_rating)
+hwood_ci_upper &lt;- mean(hollywood_sample$RottenTomatoes) + 1.96 * sd(hollywood_bs$avg_rating)
+
+ggplot(hollywood_bs, aes(x=avg_rating)) +
+  geom_histogram() +
+  geom_vline(xintercept = c(hwood_ci_lower, hwood_ci_upper)) +
+  labs(x = &quot;bootstrap avg rating&quot;)</code></pre>
+<p><img src="12_bootstrap_cis_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 5
+</div>
+<div class="question-body">
+<p>Here is a new sample, but this time it contains 50 movies. Do the same (estimate the mean and construct a confidence interval). How does the confidence interval differ from the one created for a sample of 25?</p>
+<pre class="r"><code>hollywood_sample2 &lt;- read_csv(&quot;https://uoepsy.github.io/data/hollywoodsample2.csv&quot;)</code></pre>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-129" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-129&#39;, &#39;sol-start-129&#39;)"></span>
+</div>
+<div id="sol-body-129" class="solution-body" style="display: none;">
+<pre class="r"><code>hollywood_sample2 &lt;- read_csv(&quot;https://uoepsy.github.io/data/hollywoodsample2.csv&quot;)
+
+hollywood_bs &lt;- 
+  rep_sample_n(hollywood_sample2, n = 50, samples = 2000, replace = TRUE) %&gt;%
+  group_by(sample) %&gt;%
+  summarise(avg_rating = mean(RottenTomatoes))
+
+mean(hollywood_sample2$RottenTomatoes) - 1.96 * sd(hollywood_bs$avg_rating)</code></pre>
+<pre><code>## [1] 39.88288</code></pre>
+<pre class="r"><code>mean(hollywood_sample2$RottenTomatoes) + 1.96 * sd(hollywood_bs$avg_rating)</code></pre>
+<pre><code>## [1] 54.19712</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 6
+</div>
+<div class="question-body">
+<p><em>Using the formula approach for the standard error</em>, construct 95% <strong>and 99%</strong> confidence intervals around the mean Rotten Tomatoes rating based on the sample of 50 movies.</p>
+<p>Given that for the 99% confidence interval we will have <em>greater</em> confidence that it will contain the true population parameter than the 95% confidence interval, do we expect the range to be bigger or smaller?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-130" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-130&#39;, &#39;sol-start-130&#39;)"></span>
+</div>
+<div id="sol-body-130" class="solution-body" style="display: none;">
+<p>We are more confident in wider ranges, so the 99% CI will be wider.</p>
+<p>Example:</p>
+<ul>
+<li>imagine you are trying to guess my age.</li>
+<li>how confident are you that I am between 25 and 35 years old?</li>
+<li>how confident are you that I am between 10 and 50 years old?</li>
+<li>how confident are you that I am between 29 and 31 years old?</li>
+<li>how confident are you that I am between 0 and 1000 years old?</li>
+</ul>
+<pre class="r"><code>mean(hollywood_sample2$RottenTomatoes) - 1.96 * (sd(hollywood_sample2$RottenTomatoes)/sqrt(50))</code></pre>
+<pre><code>## [1] 39.80105</code></pre>
+<pre class="r"><code>mean(hollywood_sample2$RottenTomatoes) + 1.96 * (sd(hollywood_sample2$RottenTomatoes)/sqrt(50))</code></pre>
+<pre><code>## [1] 54.27895</code></pre>
+<pre class="r"><code>mean(hollywood_sample2$RottenTomatoes) - 3 * (sd(hollywood_sample2$RottenTomatoes)/sqrt(50))</code></pre>
+<pre><code>## [1] 35.95997</code></pre>
+<pre class="r"><code>mean(hollywood_sample2$RottenTomatoes) + 3 * (sd(hollywood_sample2$RottenTomatoes)/sqrt(50))</code></pre>
+<pre><code>## [1] 58.12003</code></pre>
+</div>
+<p class="solution-end">
+</p>
+</div>
+<div id="nfl-players" class="section level2">
+<h2>NFL Players</h2>
+<div class="question-begin">
+Question 7
+</div>
+<div class="question-body">
+<p>Scroll back up - what was the <strong>population</strong> mean yearly salary for all NFL players at the beginning of 2015?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-131" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-131&#39;, &#39;sol-start-131&#39;)"></span>
+</div>
+<div id="sol-body-131" class="solution-body" style="display: none;">
+<pre class="r"><code>nfl_pop &lt;- read_csv(&quot;https://uoepsy.github.io/data/nflpop.csv&quot;)
+mean(nfl_pop$YearlySalary)</code></pre>
+<pre><code>## [1] 3.033404</code></pre>
+<p>3.03 (million dollars!!)</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 8
+</div>
+<div class="question-body">
+<p>A researcher lives in Boston. They want to estimate salaries of NFL players, and in 2015 they go around and ask 50 players about their yearly salaries.<br />
+The code below reads in the sample they collected.</p>
+<pre class="r"><code>nfl_boston &lt;- read_csv(&quot;https://uoepsy.github.io/data/nflboston.csv&quot;)</code></pre>
+<p>Compute the sample mean, and calculate 95% confidence intervals via bootstrap standard error</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-132" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-132&#39;, &#39;sol-start-132&#39;)"></span>
+</div>
+<div id="sol-body-132" class="solution-body" style="display: none;">
+<pre class="r"><code>nfl_bs &lt;- rep_sample_n(nfl_boston, n = 50, samples = 2000, replace = TRUE) %&gt;%
+  group_by(sample) %&gt;%
+  summarise(avg_salary = mean(YearlySalary))
+
+mean(nfl_boston$YearlySalary) - 1.96 * sd(nfl_bs$avg_salary)</code></pre>
+<pre><code>## [1] 1.412244</code></pre>
+<pre class="r"><code>mean(nfl_boston$YearlySalary) + 1.96 * sd(nfl_bs$avg_salary)</code></pre>
+<pre><code>## [1] 2.862436</code></pre>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 9
+</div>
+<div class="question-body">
+<p>This confidence does not include the population mean of 3.03. Why not?</p>
+<pre class="r"><code>ggplot(nfl_bs, aes(x=avg_salary)) +
+  geom_histogram() +
+  labs(x = &quot;bootstrap avg salary (millions of $)\nbased on bootstrapped Boston sample&quot;) +
+  geom_vline(xintercept = mean(nfl_pop$YearlySalary))+
+  geom_text(x=3.05, y=150,label=&quot;True population mean&quot;,hjust=0)+
+  geom_vline(xintercept = c(mean(nfl_boston$YearlySalary) - 1.96 * sd(nfl_bs$avg_salary), mean(nfl_boston$YearlySalary) + 1.96 * sd(nfl_bs$avg_salary)), col=&quot;tomato1&quot;)</code></pre>
+<p><img src="12_bootstrap_cis_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
+<p><em>Hint:</em> Look at your data, and think about what you know about how it was collected - why might this not be a good sample?</p>
+<p class="question-end">
+</p>
+</div>
+<div class="solution-begin">
+Solution <span id="sol-start-133" class="fa fa-plus solution-icon clickable" onclick="toggle_visibility(&#39;sol-body-133&#39;, &#39;sol-start-133&#39;)"></span>
+</div>
+<div id="sol-body-133" class="solution-body" style="display: none;">
+<p>The researcher, living in Boston, seems to have sampled a lot of players from the New England Patriots (a local team).</p>
+<p>The key thing here is that the statistical inference we are making (that the sample mean is an estimate of the population mean) <em>assumes</em> that the sample is an unbiased representation. In this case it is not a truly random sample!</p>
+</div>
+<p class="solution-end">
+</p>
+<!-- Formatting -->
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;">
+
+</div>
+</div>
+</div>
+
+<link rel="stylesheet" href="https://uoepsy.github.io/assets/css/ccfooter.css" />
+<div class="ccfooter"></div>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

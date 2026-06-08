@@ -1,0 +1,762 @@
+---
+title: "<b>Semester 2, Week 2: Hypothesis Testing & P-values</b>"
+subtitle: "Data Analysis for Psychology in R 1"
+author: ""
+institute: "Department of Psychology<br/>The University of Edinburgh"
+date: "AY 2020-2021"
+output:
+  xaringan::moon_reader:
+    lib_dir: jk_libs/libs
+    css: 
+      - xaringan-themer.css
+      - jk_libs/tweaks.css
+    nature:
+      beforeInit: "jk_libs/macros.js"
+      ratio: '16:9'
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+editor_options:
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+options(digits=4,scipen=2)
+options(knitr.table.format="html")
+xaringanExtra::use_xaringan_extra(c("tile_view","animate_css","tachyons"))
+xaringanExtra::use_extra_styles(
+  mute_unhighlighted_code = FALSE
+)
+library(knitr)
+library(tidyverse)
+library(ggplot2)
+knitr::opts_chunk$set(
+  dev = "png",
+  warning = FALSE,
+  message = FALSE,
+  cache = TRUE
+)
+knitr::opts_chunk$set(fig.asp=.9)
+#source('R/myfuncs.R')
+```
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#0F4C81", # DAPR1
+  # base_color = "#BF1932", # DAPR2
+  # base_color = "#88B04B", # DAPR3 
+  # base_color = "#FCBB06", # USMR
+  # base_color = "#a41ae4", # MSMR
+  header_color = "#000000",
+  header_font_google = google_font("Source Sans Pro"),
+  header_font_weight = 400,
+  text_font_google = google_font("Source Sans Pro", "400", "400i", "600", "600i"),
+  code_font_google = google_font("Source Code Pro")
+)
+```
+
+
+```{r premable, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(kableExtra)
+library(patchwork)
+library(moderndive)
+```
+
+# Learning objectives
+
+1. Understand null and alternative hypotheses, and how to specify them for a given research question.  
+
+2. Understand the concept of a null distribution (via simulation and theoretical).  
+
+3. Understand statistical significance and how to calculate p-values from null distributions.  
+---
+class: inverse, center, middle
+
+# Part 1
+## Null and Alternative Hypotheses
+
+---
+
+
+# Example - Stroop Experiment  
+
+Remember this from last semester? 
+
+```{r echo=FALSE, out.height="500px",out.width="650px",fig.align="center"}
+knitr::include_graphics("jk_img_sandbox/stroop.png")
+```
+
+
+---
+
+# Example - Stroop Experiment  
+
+Remember this from last semester? 
+
+```{r warning=FALSE,message=FALSE}
+library(tidyverse)
+stroopdata <- read_csv("https://uoepsy.github.io/data/stroopexpt2.csv")
+head(stroopdata)
+```
+
+
+---
+
+# The ideal
+
+- We have some exact predictions to compare  
+
+    - Person 1: Mismatching colour words make you 10 seconds slower
+    
+    - Person 2: Mismatching colour words make you 50 seconds slower
+    
+{{content}}
+
+--
+
+- But what happens if it makes you 30 seconds slower? 
+
+    - Neither is right
+    
+    - But there is still an effect of the colour mismatch...
+
+---
+
+# The reality  
+
+- We have a sample of data  
+
+- From which we calculate something (a statistic)  
+
+- And we need to use this in some way to make a decision. 
+
+    - Enter hypothesis testing.
+
+---
+
+# Research Questions vs Hypotheses  
+
+.pull-left[
+
+## Research question
+
+- Statement on the expected relations between variables of interest.
+
+- Can be "messy" (not precisely stated)
+    
+]
+.pull-right[
+{{content}}
+]
+    
+--
+
+## Statistical hypothesis
+
+- Precise mathematical statement
+
+{{content}}
+
+--
+
+- **Testable!**
+
+---
+
+# Hypotheses
+
+- The typically applied hypothesis testing framework in psychology has two hypotheses. 
+
+--
+
+    - $H_0$ : the null hypothesis
+    
+--
+
+    - $H_1$ : the alternative hypothesis
+    
+---
+
+# Defining $H_0$
+
+- The null hypothesis $H_0$ is the statement that is taken to be true unless there is convincing evidence to the contrary. 
+
+--
+    
+    - $H_0:$ the status quo
+    
+--
+
+    - In most cases, this is equivalent to assuming there is **"no difference"** or **"no effect"**, or **"What would the result be if only chance were at play?"**  
+
+
+<div style="border-radius: 5px; 
+    padding: 20px 20px 10px 20px; 
+    margin-top: 20px; 
+    margin-bottom: 20px; 
+    border-style: solid;">
+<center>Example</center>
+
+- If I were trying to guess the playing card you drew from a deck, by chance I would get this right $\frac{1}{52}$ times.
+- My null hypothesis would be that the proportion of guesses which are correct is $\frac{1}{52} = 0.019$
+
+---
+
+# Defining $H_0$
+
+
+- Assume that there color-word mismatch has *no influence* on comprehension.
+    - And that there was nothing systematic about how participants completed the two conditions (e.g. some did the mismatch condition first, some did the mismatch condition second, and they was randomly allocated) 
+
+--
+
+- What would we expect the mean difference in reaction times between conditions to be? 
+    - "for a random participant, if color-word mismatch doesn't affect anything, what's your best guess for the time difference it took them between conditions?"
+
+--
+
+- Assuming that any differences are just chance, means believing $\mu_{mismatch-match} = 0$
+
+
+<span class="footnote"> $\mu_{mismatch-match}$ = the population mean difference </span>
+
+---
+
+# Defining $H_0$ 
+
+- $H_0$ is a very specific hypothesis.
+
+--
+
+- It states that the population value of a statistic is **equal** to a specific value.
+
+---
+
+# Defining $H_1$ 
+
+- $H_1$ is the opposing position to $H_0$.  
+
+--
+
+- $H_1$ claims "some other state of the world" is true.  
+
+--
+
+    - But is broader with respect to what this might be.
+
+--
+
+<div style="border-radius: 5px; 
+    padding: 20px 20px 10px 20px; 
+    margin-top: 20px; 
+    margin-bottom: 20px; 
+    border-style: solid;">
+<center>Example</center>
+
+- We are testing whether I am clairvoyant, and can therefore guess the correct playing card in your hand more often than just by chance. 
+- The alternative hypothesis would be that the proportion of guesses which are correct is *greater than* $\frac{1}{52}$
+
+---
+
+# Defining $H_1$
+
+- $H_1$ can be **one-sided** or **two-sided**
+
+--
+
+- Two-sided:
+    - $\mu_{mismatch-match} \neq 0$ 
+    
+--
+ 
+- One-sided:
+    - $\mu_{mismatch-match} < 0$ 
+    - $\mu_{mismatch-match} > 0$
+    
+---
+
+# Defining $H_1$
+
+- $H_1$ can be **one-sided** or **two-sided**
+
+--
+
+- Two-sided:
+    - $\mu_{mismatch-match} \neq 0$ 
+    - "there is *some* difference"
+    
+--
+
+- One-sided:
+    - $\mu_{mismatch-match} < 0$ 
+        - people are quicker for mismatch condition
+    - $\mu_{mismatch-match} > 0$
+        - people are slower for mismatch condition
+
+---
+
+.pull-left[
+## Research question 
+
+- Statement on the expected relations between variables of interest.
+
+- Can be "messy" (not precisely stated)
+    
+]
+.pull-right[
+
+## Statistical hypothesis
+
+- Precise mathematical statement
+
+- **Testable!**
+]
+
+---
+
+.pull-left[
+## Research question 
+
+- Statement on the expected relations between variables of interest.
+
+- Can be "messy" (not precisely stated)
+
+<div style="border-radius: 5px; 
+    padding: 20px 20px 10px 20px; 
+    margin-top: 100px; 
+    margin-bottom: 20px; 
+    border-style: solid;">
+Does color-word mismatch interfere with comprehension? 
+</div>
+
+]
+.pull-right[
+
+## Statistical hypothesis
+
+- Precise mathematical statement
+
+- **Testable!**
+
+<div style="border-radius: 5px; 
+    padding: 20px 20px 10px 20px; 
+margin-top: 125px; 
+    margin-bottom: 20px; 
+    border-style: solid;">
+    
+$H_0: \mu_{mismatch-match} = 0$
+$H_1: \mu_{mismatch-match} > 0$
+
+</div>
+
+]
+
+---
+class: inverse, center, middle, animated, rotateInDownLeft
+
+# End of Part 1
+
+---
+class: inverse, center, middle
+
+# Part 2
+## The Null Distribution
+
+---
+
+# Test Statistic  
+
+- A test statistic is the calculation that provides a value in keeping with our research question, in order to test our hypothesis.  
+
+    - It is calculated on a sample of data.
+    
+- We have been implicitly talking about such a calculation in our colour-word mismatch example.
+
+    - The mean! 
+{{content}}
+    
+<span class="footnote">Aside: Formally the test statistic here is a $t$-statistic (we will talk about this in full in a couple of weeks), but we will forego this here to concentrate on the conceptual idea of hypothesis testing</span>
+
+--
+    
+    - $\mu_{mismatch-match}$ = The mean in the population
+{{content}}
+    
+--
+
+    - $\bar{x}_{mismatch-match}$ = The mean in our sample
+    
+
+---
+
+# Point estimates
+
+- We have already seen the idea of a point estimate.
+
+--
+
+- It is simply a value of a statistic calculated in a sample.
+
+--
+
+```{r}
+stroopdata %>% 
+  summarise(
+    meanstroop = mean(stroop_effect)
+  )
+```
+
+- $\bar{x}_{mismatch-match}$ = `r round(mean(stroopdata$stroop_effect),2)`
+
+---
+
+# Null Distribution
+
+<div style="border-radius: 5px; 
+    padding: 20px 20px 10px 20px; 
+margin-top: 20px; 
+    margin-bottom: 20px; 
+    background-color:#fcf8e3 !important;">
+<center>
+<b>Key point</b><br>
+A test statistic must have a calculable sampling distribution under the null hypothesis.
+</center>
+</div>
+
+--
+
+- ??????
+    
+--
+
+- Last week (and in the final week of semester 1) we saw how we can construct sampling distributions. 
+
+--
+
+- **IF** the null hypothesis is true, and $\mu_{mismatch-match} = 0$, what would the variation around $\bar{x}_{mismatch-match}$.
+ 
+---
+ 
+# Null Distribution
+
+.pull-left[
+```{r, echo = FALSE, warning = FALSE, message=FALSE}
+set.seed(943)
+samplemeans <- replicate(2000, mean(rnorm(n=131, mean=0, sd=sd(stroopdata$stroop_effect))))
+
+ggplot(data=tibble(samplemeans),aes(x=samplemeans))+
+  geom_histogram(alpha=.3, binwidth=.15)+
+  stat_function(geom="line",fun=~dnorm(.x, mean=0,sd=sd(samplemeans))*290,lwd=1)+
+  
+  #geom_vline(aes(xintercept=mean(stroopdata$stroop_effect)),lty="dashed",col="tomato1")+
+  #annotate("text",x=1.5, y=100, label="What we observed for the mean\nstroop effect of our sample\nof size 131", col="tomato1")+
+  #geom_curve(aes(x=1.5, xend=2.35, y=75, yend=30), col="tomato1", size=0.5, curvature = 0.2, arrow = arrow(length = unit(0.03, "npc")))+
+  
+  labs(x = "mean stroop effect")+
+  scale_y_continuous(NULL, breaks=NULL)+
+  theme_minimal()+
+  annotate("text",x=1.1, y=230, label="What we would expect for the mean\nstroop effect from samples of size 131\nif the population mean is 0", col="grey30")+
+  geom_curve(aes(x=1.1, xend=0.5, y=200, yend=150), col="grey30", size=0.5, curvature = -0.2, arrow = arrow(length = unit(0.03, "npc")))+
+  annotate("text",x=-1.1, y=150, label="SD = 0.41", col="grey30")+
+  geom_curve(aes(x=-0.8, xend=-0.2, y=150, yend=100), col="grey30", size=0.5, curvature = -0.2, arrow = arrow(length = unit(0.03, "npc")))+
+  geom_segment(aes(x=0, xend=-0.41, y=95, yend=95), col="grey30", size=0.5)
+```
+]
+.pull-right[
+{{content}}
+]
+
+--
+
+How did we get here??
+{{content}}
+
+--
+
+1. Simulation! 
+{{content}}
+
+--
+
+2. Theory!
+{{content}}
+
+---
+
+# Simulating the Null Distribution
+
+.pull-left[
+generate (e.g. bootstrap) many samples of 131 with mean 0, and look at all their means... 
+{{content}}
+]
+--
+`r set.seed(123)`
+```{r}
+source("https://uoepsy.github.io/files/rep_sample_n.R")
+stroopdata <- 
+  stroopdata %>% 
+  mutate(
+    shifted = stroop_effect - mean(stroop_effect)
+  )
+
+bootstrap_dist <- 
+  rep_sample_n(stroopdata, n = 131, samples = 2000, replace = TRUE) %>%
+  group_by(sample) %>%
+  summarise(
+    resamplemean = mean(shifted)
+  ) -> bootstrap_dist
+
+sd(bootstrap_dist$resamplemean)
+```
+
+
+--
+
+.pull-right[
+```{r out.height="350px", fig.retina=4}
+ggplot(bootstrap_dist, 
+       aes(x = resamplemean))+
+  geom_histogram()
+```
+]
+
+---
+
+# Theorising about the Null Distribution
+
+.pull-left[
+
+- $SE = \frac{\sigma}{\sqrt{n}}$
+
+```{r}
+sd(stroopdata$stroop_effect)
+nrow(stroopdata)
+sd(stroopdata$stroop_effect) / sqrt(131)
+```
+]
+
+--
+
+.pull-right[
+```{r echo=FALSE}
+ggplot(data=tibble(samplemeans),aes(x=samplemeans))+
+  stat_function(geom="line",fun=~dnorm(.x, mean=0,sd=sd(samplemeans))*200,lwd=1)+
+  labs(x = "mean stroop effect")+
+  scale_y_continuous(NULL, breaks=NULL)+
+  theme_minimal()
+```
+]
+
+---
+
+# Null Distribution 
+
+```{r, echo = FALSE, warning = FALSE, message=FALSE, out.width="700px",out.height="500px"}
+ggplot(data=tibble(samplemeans),aes(x=samplemeans))+
+  geom_histogram(alpha=.3,binwidth=.15)+
+  stat_function(geom="line",fun=~dnorm(.x, mean=0,sd=sd(samplemeans))*290,lwd=1)+
+  geom_vline(aes(xintercept=mean(stroopdata$stroop_effect)),lty="dashed",col="tomato1",lwd=1)+
+  labs(x = "mean stroop effect")+
+  scale_y_continuous(NULL, breaks=NULL)+
+  theme_minimal()+
+  annotate("text",x=1.55, y=220, label="What we would expect for the mean\nstroop effect from samples\nof size 131 if the\npopulation mean is 0", col="grey30")+
+  annotate("text",x=1.55, y=100, label="What we observed for the mean\nstroop effect of our sample\nof size 131", col="tomato1")+
+  geom_curve(aes(x=1.3, xend=0.5, y=200, yend=150), col="grey30", size=0.5, curvature = -0.2, arrow = arrow(length = unit(0.03, "npc")))+
+  geom_curve(aes(x=1.5, xend=0.9, y=85, yend=50), col="tomato1", size=0.5, curvature = -0.2, arrow = arrow(length = unit(0.03, "npc")))+
+  annotate("text",x=-1.1, y=150, label="SD = 0.41", col="grey30")+
+  geom_curve(aes(x=-0.8, xend=-0.2, y=150, yend=100), col="grey30", size=0.5, curvature = -0.2, arrow = arrow(length = unit(0.03, "npc")))+
+  geom_segment(aes(x=0, xend=-0.41, y=95, yend=95), col="grey30", size=0.5)+
+  xlim(-1.5,2.1)
+```
+
+---
+class: inverse, center, middle, animated, rotateInDownLeft
+
+# End of Part 2
+
+---
+class: inverse, center, middle
+
+# Part 3
+## Probability and the Null
+
+---
+
+## Probability and the Null
+
+.pull-left[
+```{r, echo = FALSE, warning = FALSE, message=FALSE}
+ggplot(data=tibble(samplemeans),aes(x=samplemeans))+
+  geom_histogram(alpha=.3,binwidth=.15)+
+  stat_function(geom="line",fun=~dnorm(.x, mean=0,sd=sd(samplemeans))*290,lwd=1)+
+  geom_vline(aes(xintercept=mean(stroopdata$stroop_effect)),lty="dashed",col="tomato1",lwd=1)+
+  labs(x = "mean stroop effect")+
+  scale_y_continuous(NULL, breaks=NULL)+
+  theme_minimal()+
+  annotate("text",x=1.55, y=220, label="What we would expect for the mean\nstroop effect from samples\nof size 131 if the\npopulation mean is 0", col="grey30")+
+  annotate("text",x=1.55, y=100, label="What we observed for the mean\nstroop effect of our sample\nof size 131", col="tomato1")+
+  geom_curve(aes(x=1.3, xend=0.5, y=200, yend=150), col="grey30", size=0.5, curvature = -0.2, arrow = arrow(length = unit(0.03, "npc")))+
+  geom_curve(aes(x=1.5, xend=0.9, y=85, yend=50), col="tomato1", size=0.5, curvature = -0.2, arrow = arrow(length = unit(0.03, "npc")))+
+  annotate("text",x=-1.1, y=150, label="SD = 0.41", col="grey30")+
+  geom_curve(aes(x=-0.8, xend=-0.2, y=150, yend=100), col="grey30", size=0.5, curvature = -0.2, arrow = arrow(length = unit(0.03, "npc")))+
+  geom_segment(aes(x=0, xend=-0.41, y=95, yend=95), col="grey30", size=0.5)+
+  xlim(-1.5,2.1)
+```
+]
+.pull-right[
+{{content}}
+]
+
+--
+
+- To recap the last 5 weeks of semester 1, the area under the curve provides us with probability. 
+{{content}}
+
+--
+
+- We can calculate the probability of values more extreme than where the red line (our sample estimate), is on our x-axis.  
+{{content}}
+
+--
+
+- This probability is what is referred to as the $p$-value.
+
+---
+
+# p-value
+
+- The $p$-value represents the chance of obtaining a statistic as extreme or more extreme than the observed statistic, **if the null hypothesis were true**. 
+
+--
+
+- Think of it as $P(Data | Hypothesis)$  
+    ("the probability of our data *given* the null hypothesis"). 
+
+---
+
+# Calculating the p-value 
+
+.pull-left[
+**Simulation**  
+$SE_{bootstrap} =$ `r round(sd(bootstrap_dist$resamplemean),2)`
+```{r}
+bootstrap_se = sd(bootstrap_dist$resamplemean)
+bootstrap_se
+```
+What proportion of resample means are > our observed mean `r round(mean(stroopdata$stroop_effect),2)`? 
+```{r}
+sum(bootstrap_dist$resamplemean >= mean(stroopdata$stroop_effect)) / 2000
+```
+
+
+]
+.pull-right[
+**Theory**  
+$SE = \frac{\sigma}{\sqrt{n}} =$ `r round(sd(stroopdata$stroop_effect) / sqrt(131),2)`
+```{r}
+formula_se = sd(stroopdata$stroop_effect) / sqrt(131)
+formula_se
+```
+For a normal distribution with mean 0 and sd `r round(sd(stroopdata$stroop_effect) / sqrt(131),2)`, what is the probability of observing a value greater than our observed mean `r round(mean(stroopdata$stroop_effect),2)`? 
+```{r}
+1-pnorm(mean(stroopdata$stroop_effect), mean = 0, sd = formula_se)
+```
+
+]
+
+---
+
+# What about the other extreme?  
+
+- Depends on our hypothesis.  
+{{content}}
+
+.footnote[See <a href="https://uoepsy.github.io/dapr1/lectures/recap_pvalues.pdf" target="_blank">here</a> for a useful reminder.]
+
+
+--
+
+- If our hypothesis is **one-tailed** (e.g., $\mu < 0$ or $\mu > 0$), then we're only interested in one tail. 
+- If our hypothesis is **two-tailed** (e.g., $\mu \neq 0$), then we're interested in both tails.  
+{{content}}
+
+--
+
+    - But sampling distrubutions are normal (and so symmetric), meaning that 2 $\times$ one tail will give us the probability of observing a statistic at least extreme *in either direction*.   
+
+---
+
+# Making a decision  
+
+- So we know the probability of getting a value at least as extreme as our point estimate, given the sampling distribution for the null.  
+
+--
+
+- How can we evaluate it to inform our beliefs?  
+
+--
+
+- We do this by assigning a significance level, or $\alpha$ level. 
+
+--
+
+    - $\alpha$ is the cut-off point.  
+    - If our $p$-value is $< \alpha$ we make one decision. 
+    - If our $p$-value is $\geq \alpha$ we make another decision
+    
+--
+
+- We typically use $\alpha$ = 0.05
+
+---
+
+# Interpreting our result 
+
+- $p$-value is $< \alpha$: We reject the null hypothesis  
+
+- $p$-value is $\geq \alpha$: We fail to reject the null hypothesis  
+
+--
+
+- Odd language:  
+    - We don't "accept" the null? We just have no reason not to believe it.
+    - We don't "accept" the alternative? We never really tested the alternative (our sampling distribution was based around the null)
+
+---
+
+# Interpreting our result 
+
+### Alternative
+
+- $p$-value is $< \alpha$ / $\geq \alpha$ : We **reject**/**maintain** the null hypothesis.  
+
+--
+
+    - "maintaining" and "rejecting" is not about whether an hypothesis is *objectively true*, it is about our belief in it. 
+    - I can "maintain" that the earth is flat
+
+
+---
+
+## Summary  
+
+- Structure of a Hypothesis Test  
+
+    1. A hypothesis
+    2. A hypothesis test
+    3. Test statistic
+    4. Observed test statistic (point estimate from sample)
+    5. Null distribution
+    6. $p$-value
+    7. $p$-value $< \alpha$ / $\geq$ Significance level ($\alpha$)
+
+---
+
+class: inverse, center, middle, animated, rotateInDownLeft
+
+# End
+

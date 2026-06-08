@@ -1,0 +1,110 @@
+---
+title: "t-distribution plots"
+output: html_notebook
+---
+
+So we need `ggplot2` which we have been loading as part of `tidyverse`.
+
+```{r, warning=FALSE, message=FALSE}
+library(tidyverse)
+```
+
+The basic idea here is we start with an empty ggplto and build all the elements in. To actually plot the distribution as a line, we need two sets of values, values of t (x-axis) and the association probability density (y-axis).
+
+## The code
+
+```{r}
+ggplot(NULL, aes(x = c(-8,8))) +
+  stat_function(fun=dt,
+                geom = "line",
+                args = list(df=21)) +
+  stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(qt(0.05, 21), -8),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=21)) +
+  geom_vline(xintercept = -7.38, col="red") +
+  xlab("\n t") +
+  ylab("") +
+  ggtitle("t-distribution (df=21); t-statistic (-7.38; red line)")
+```
+
+## The breakdown
+
+- Line 1 makes an empty ggplot with the x axis defined as the range between -8 and 8.
+
+```{r}
+ggplot(NULL, aes(x = c(-8,8))) 
+```
+
+Next we add the curve.
+
+- `stat_function`: does what the name suggests. It plots the function your define.
+- `fun = dt`: is saying I want to plot the t-density function
+- `geom = line`: is saying I want to use a line to represent it
+- `args = list(df = 21)`: is providing the arguments you need to give to `dt` for it to work. Here we want the density to mirror the example which has 21 degrees of freedom
+
+```{r}
+ggplot(NULL, aes(x = c(-8,8))) +
+  stat_function(fun=dt,
+                geom = "line",
+                args = list(df=21)) 
+```
+
+Next step is that we are going to layer on the shaded area. Remember the logic of ggplot is to build things in layers, so this is essentially putting a shaded area on top of the plot above. To do this we add another `stat_function` argument. There are other ways to do this, but I have always found this way simplest to make sure the layers line up well. Below I flag the things that are different.
+
+- `geom = area`: this is saying I want to define an area (obvious I know), or in fancy language, the geometric representation of the arguments should be an area.
+- `xlim`: is used to define the start and the end of the area along the x-axis. Because we have coupled this with `dt` as the function, `ggplot` knows we are essentially doing the area under the curve.
+  - `c(qt(0.05, 21), -8)`: the are we need needs to define the critical region. So one value of x is our extreme (as defined in the first line, here -8). The other is the specific value of x define by our test ($\alpha$ level direction, given the df). This is `qt(0.05, 21)` argument.
+  - Important. `xlim` needs two numbers separated by , . You can use functions here, as long as the result of the function is a single number.
+- `fill`: is just the colour we want.
+
+```{r}
+ggplot(NULL, aes(x = c(-8,8))) +
+  stat_function(fun=dt,
+                geom = "line",
+                args = list(df=21)) +
+  stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(qt(0.05, 21), -8),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=21)) 
+```
+
+Next we add the vertical line. We do this with `geom_vline`. This is pretty simple. We just give it the point on x to try the line from and it will run it to the top of the plotting space. There s a `geom_hline` for horizontal lines as well. You can change the colour, type of line, and a few other things. I was lazy here and just put in our t-value, this could have been defined from the t functions.
+
+```{r}
+ggplot(NULL, aes(x = c(-8,8))) +
+  stat_function(fun=dt,
+                geom = "line",
+                args = list(df=21)) +
+  stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(qt(0.05, 21), -8),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=21)) +
+  geom_vline(xintercept = -7.38, col="red")
+```
+
+And the last bit, add some labels.
+
+```{r}
+ggplot(NULL, aes(x = c(-8,8))) +
+  stat_function(fun=dt,
+                geom = "line",
+                args = list(df=21)) +
+  stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(qt(0.05, 21), -8),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=21)) +
+  geom_vline(xintercept = -7.38, col="red") +
+  xlab("\n t") +
+  ylab("") +
+  ggtitle("t-distribution (df=21); t-statistic (-7.38; red line)")
+```
+

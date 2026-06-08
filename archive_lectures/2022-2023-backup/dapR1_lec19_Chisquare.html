@@ -1,0 +1,2066 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Chi-Square Tests</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="DapR1 Team" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/tile-view/tile-view.css" rel="stylesheet" />
+    <script src="libs/tile-view/tile-view.js"></script>
+    <link href="libs/animate.css/animate.xaringan.css" rel="stylesheet" />
+    <link href="libs/tachyons/tachyons.min.css" rel="stylesheet" />
+    <link href="libs/xaringanExtra-extra-styles/xaringanExtra-extra-styles.css" rel="stylesheet" />
+    <script src="libs/kePrint/kePrint.js"></script>
+    <link href="libs/lightable/lightable.css" rel="stylesheet" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+    <link rel="stylesheet" href="mc_libs/tweaks.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# <b>Chi-Square Tests</b>
+]
+.subtitle[
+## Data Analysis for Psychology in R 1
+]
+.author[
+### DapR1 Team
+]
+.institute[
+### Department of Psychology<br/>The University of Edinburgh
+]
+
+---
+
+
+
+
+
+
+# Week's Learning Objectives
+
+1. Understand the difference between `\(\chi^2\)` goodness-of-fit and `\(\chi^2\)` test of independence
+
+2. Perform a `\(\chi^2\)` goodness-of-fit and interpret results
+
+3. Perform a `\(\chi^2\)` test of independence and interpret results
+
+4. Understand the assumptions for `\(\chi^2\)` tests
+
+---
+
+
+class: inverse, center, middle
+
+# Part 1
+## Introduction to `\(\chi^2\)`
+
+---
+
+# Moving on from `\(t\)`-tests...
+
++ `\(t\)`-tests have allowed you to make comparisons using *continuous* data:
+
+  + A continuous outcome variable from two separate groups (independent-samples `\(t\)`-test)
+  + A continuous outcome variable from one group at two timepoints (paired-samples `\(t\)`-test)
+  + One continuous variable against a single value (one-sample `\(t\)`-test)
+
+--
+
++ You may instead want to test whether data are distributed across *categories* in the way that you would expect:
+
+  + Is your sample distributed equally across levels of education?
+  + Is smoking (Y/N) associated with cardiovascular disease (Y/N)? 
+  + Do sharks prefer to eat humans or fish? 
+
+--
+
++ In this case, you will will need a test that checks whether data are grouped according to your expectations.
+
++ `\(\chi^2\)`-tests are used to compare **frequencies** across categories in your data
+
+
+---
+# `\(\chi^2\)`-tests vs `\(t\)`-tests
+
++ Similar to a `\(t\)`-test,
+    1. Compute a test statistic
+    2. Locate the test statistic on a distribution that reflects the probability of each test statistic value, given that `\(H_0\)` is true.
+    3. If the probability associated with your test statistic is small enough, your results are considered significant.
+
+--
+
++ Like the `\(t\)`-distribution, the shape of the distribution depends on the degrees of freedom
+
++ Unlike the `\(t\)`-distribution, *df* in a `\(\chi^2\)` test isn't computed using sample size, but the number of groups within your data.
+
+.pull-left[
+.center[
+** `\(t\)` Distribution **
+![](dapR1_lec19_Chisquare_files/figure-html/unnamed-chunk-1-1.svg)&lt;!-- --&gt;
+]
+]
+
+.pull-right[
+.center[
+** `\(\chi^2\)` Distribution**
+![](dapR1_lec19_Chisquare_files/figure-html/unnamed-chunk-2-1.svg)&lt;!-- --&gt;
+
+]
+]
+
+---
+# `\(\chi^2\)` distribution
+
+.pull-left[
++ As the number of comparison groups increases, the distribution curve flattens
+
+  + Larger `\(\chi^2\)` values become more probable
+  + A wider range of `\(\chi^2\)` values become more likely
+
++ The `\(\chi^2\)` distribution begins at 0
+
+  + Categorical variables don't have direction
+  + We can investigate this further by looking at the `\(\chi^2\)` formula
+]
+
+.pull-right[
+.center[
+** `\(\chi^2\)` Distribution**
+![](dapR1_lec19_Chisquare_files/figure-html/unnamed-chunk-3-1.svg)&lt;!-- --&gt;
+
+]
+]
+
+---
+
+# The basic `\(\chi^2\)` formula
+
+.center.f2[
+`\(\chi^2 = \Sigma \frac{(O-E)^2}{E}\)`
+]
+
+
++ `\(\Sigma\)` = sum up
+
++ `\(E\)` = Expected Cases
+  + The values that you expect, given `\(H_0\)` is true
+  
++ `\(O\)` = Observed Cases
+  + The values you actually have
+
+---
+
+# Assumptions of `\(\chi^2\)` tests
+
++ Sufficiently large `\(n\)` so that data approximate a normal distribution
+  + What is 'sufficiently large' will depend on the number of cells you have.
+
++ Expected cases &gt; 5
+
++ Observations are independent
+
+  + Each observation appears only in a single cell.
+
+---
+
+# Types of `\(\chi^2\)` tests
+
++ Goodness of Fit
+
++ Test of Independence
+
+---
+
+class: inverse, center, middle
+
+# Part 2 
+## `\(\chi^2\)` Goodness of Fit test
+
+---
+
+# `\(\chi^2\)` Goodness of Fit test
+
+.pull-left[
++ Tests whether the values you actually have are consistent with the values you expect.
+
++ Looks at the distribution of data across a single category
+
++ **Hypotheses:**
+
+  + `\(H_0: p_1 = p_{1,0},\ p_2 = p_{2,0},\ ...,\ p_C = p_{C,0}\)`
+  
+  + `\(H_1:\)` Some `\(p_i \neq p_{i,0}\)`
+]
+
+---
+count: false
+
+# `\(\chi^2\)` Goodness of Fit test
+.pull-left[
++ Tests whether the values you actually have are consistent with the values you expect.
+
++ Looks at the distribution of data across a single category
+
++ **Hypotheses:**
+
+  + `\(H_0: p_1 = p_{1,0},\ p_2 = p_{2,0},\ ...,\ p_C = p_{C,0}\)`
+  
+  + `\(H_1:\)` Some `\(p_i \neq p_{i,0}\)`
+
+]
+
+.pull-right[
+.pull-left.center[**Expected Values ** 
+
+&lt;img src="figures/chiSqGoF_Exp.png" width="80%" /&gt;
+]
+
+.pull-right.center[ **Observed Values **
+
+&lt;img src="figures/chiSqGoF_Obs.png" width="80%" /&gt;
+]
+]
+
+
+---
+
+# `\(\chi^2\)` Goodness of Fit test
+
+.center.f3[ 
+`\(\chi^2 = \sum\limits_{i=1}^k \frac{(O_i - E_i)^2}{E_i}\)`
+]
+
++ `\(\sum\limits_{i=1}^k\)` : Sum all values from levels 1 through k
+
++ `\(i\)` : Current level
+
+---
+
+# Performing a `\(\chi^2\)` Goodness of Fit test
+
+
+.pull-left[
+
++ A new flower shop is trying to decide which days of the week they will be open 
+
++ They want to know whether order number is consistent across days of the week
+
++ They count the total number of orders they take each day of the week over the course of a month
+
+]
+
+
+.pull-right.center[
+&lt;br&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Day &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Orders &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Monday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 54 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Tuesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 39 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Wednesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 44 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Thursday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 47 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Friday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 68 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Saturday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Sunday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+---
+count: false
+
+# Performing a `\(\chi^2\)` Goodness of Fit test
+
+
+.pull-left[
+
++ A new flower shop is trying to decide which days of the week they will be open 
+
++ They want to know whether order number is consistent across days of the week
+
++ They count the total number of orders they take each day of the week over the course of a month
+
++ `\(H_0\)`: Orders will be consistent throughout the week 
+  + `\(p_{Monday}=p_{Tuesday}=\cdots\ p_{Sunday}\)`
+  
++ `\(H_1\)`: Orders will differ across the week
+  + Some `\(p_{i}\not=p_{i0}\)`
+  
+]
+
+
+.pull-right.center[
+&lt;br&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Day &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Orders &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Monday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 54 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Tuesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 39 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Wednesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 44 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Thursday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 47 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Friday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 68 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Saturday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Sunday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+---
+
+# Performing a `\(\chi^2\)` Goodness of Fit test
+
+**Compute the test statistic**
+
+.center.f3[
+`\(\chi^2 = \sum\limits_{i=1}^k \frac{(O_i-E_i)^2}{E_i}\)`
+]
+
++ `\(E_i=n\cdot\ p_i\)`
+
++ In this example, we expect each level to be approximately equal, so the expected proportion will be the same across levels.
+
+---
+count: false
+
+# Performing a `\(\chi^2\)` Goodness of Fit test
+
+**Compute the test statistic**
+
+.center.f3[
+`\(\chi^2 = \sum\limits_{i=1}^k \frac{(O_i-\color{#BF1932}{E_i})^2}{\color{#BF1932}{E_i}}\)`
+]
+
++ `\(E_i=n\cdot\ p_i\)`
+
++ In this example, we expect each level to be approximately equal, so the expected proportion will be the same across levels.
+
+  
+
+```r
+exVal &lt;- sum(flowerDat$Orders)*(1/length(levels(flowerDat$Day)))
+
+round(exVal, 2)
+```
+
+```
+## [1] 53.86
+```
+
+---
+
+# Performing a `\(\chi^2\)` Goodness of Fit test
+
+**Compute the test statistic**
+
+.center.f3[
+`\(\chi^2 = \sum\limits_{i=1}^k \frac{(O_i-\color{#BF1932}{E_i})^2}{\color{#BF1932}{E_i}}\)`
+]
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Day &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Orders &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Expected &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Monday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 54 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Tuesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 39 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Wednesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 44 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Thursday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 47 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Friday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 68 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Saturday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Sunday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+---
+
+# Performing a `\(\chi^2\)` Goodness of Fit test
+
+**Compute the test statistic**
+
+.center.f3[
+`\(\chi^2 = \sum\limits_{i=1}^k \frac{(\color{#BF1932}{O_i - E_i})^2}{E_i}\)`
+]
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Day &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Orders &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Expected &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Difference &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Monday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 54 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.14 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Tuesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 39 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -14.86 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Wednesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 44 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -9.86 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Thursday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 47 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -6.86 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Friday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 68 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14.14 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Saturday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 18.14 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Sunday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.86 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+
+# Performing a `\(\chi^2\)` Goodness of Fit test
+
+**Compute the test statistic**
+
+.center.f3[
+`\(\chi^2 = \sum\limits_{i=1}^k \frac{(O_i - E_i)\color{#BF1932}{^2}}{E_i}\)`
+]
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Day &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Orders &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Expected &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Difference &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Squared &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Monday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 54 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.02 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Tuesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 39 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -14.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 220.73 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Wednesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 44 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -9.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 97.16 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Thursday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 47 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -6.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 47.02 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Friday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 68 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14.14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 200.02 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Saturday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 18.14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 329.16 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Sunday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.73 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+
+# Performing a `\(\chi^2\)` Goodness of Fit test
+
+**Compute the test statistic**
+
+.center.f3[
+`\(\chi^2 = \sum\limits_{i=1}^k \color{#BF1932}{\frac{(O_i - E_i)^2}{E_i}}\)`
+]
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Day &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Orders &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Expected &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Difference &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Squared &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; SqbyExp &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Monday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 54 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.02 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Tuesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 39 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -14.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 220.73 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.10 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Wednesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 44 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -9.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 97.16 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.80 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Thursday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 47 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -6.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 47.02 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.87 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Friday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 68 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14.14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 200.02 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.71 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Saturday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 18.14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 329.16 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6.11 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Sunday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.73 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.01 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+
+# Performing a `\(\chi^2\)` Goodness of Fit test
+
+**Compute the test statistic**
+
+.center.f3[
+`\(\chi^2 = \color{#BF1932}{\sum\limits_{i=1}^k} \frac{(O_i - E_i)^2}{E_i}=\)` 16.62
+]
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Day &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Orders &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Expected &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Difference &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Squared &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; SqbyExp &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Monday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 54 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.02 &lt;/td&gt;
+   &lt;td style="text-align:right;color: #BF1932 !important;"&gt; 0.00 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Tuesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 39 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -14.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 220.73 &lt;/td&gt;
+   &lt;td style="text-align:right;color: #BF1932 !important;"&gt; 4.10 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Wednesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 44 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -9.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 97.16 &lt;/td&gt;
+   &lt;td style="text-align:right;color: #BF1932 !important;"&gt; 1.80 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Thursday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 47 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -6.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 47.02 &lt;/td&gt;
+   &lt;td style="text-align:right;color: #BF1932 !important;"&gt; 0.87 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Friday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 68 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14.14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 200.02 &lt;/td&gt;
+   &lt;td style="text-align:right;color: #BF1932 !important;"&gt; 3.71 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Saturday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 18.14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 329.16 &lt;/td&gt;
+   &lt;td style="text-align:right;color: #BF1932 !important;"&gt; 6.11 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Sunday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.73 &lt;/td&gt;
+   &lt;td style="text-align:right;color: #BF1932 !important;"&gt; 0.01 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+
+# Performing a `\(\chi^2\)` Goodness of Fit test
+
+**Find the test statistic on the distribution**
+
+.pull-left[
++ `\(df=k-1\)`
++ `\(k\)` = number of levels within categorical variable
+]
+
+---
+count: false
+
+# Performing a `\(\chi^2\)` Goodness of Fit test
+
+**Find the test statistic on the distribution**
+
+.pull-left[
++ `\(df=k-1\)`
++ `\(k\)` = number of levels within categorical variable
+
+
+```r
+length(levels(flowerDat$Day))-1
+```
+
+```
+## [1] 6
+```
+]
+
+.pull-right[
+
+![](dapR1_lec19_Chisquare_files/figure-html/unnamed-chunk-15-1.svg)&lt;!-- --&gt;
+]
+
+---
+count: false
+
+# Performing a `\(\chi^2\)` Goodness of Fit test
+
+**Find the test statistic on the distribution**
+
+.pull-left[
++ `\(df=k-1\)`
++ `\(k\)` = number of levels within categorical variable
+
+
+```r
+length(levels(flowerDat$Day))-1
+```
+
+```
+## [1] 6
+```
+
++ `\(\chi^2 =\)` 16.62
+]
+
+.pull-right[
+
+![](dapR1_lec19_Chisquare_files/figure-html/unnamed-chunk-17-1.svg)&lt;!-- --&gt;
+]
+
+---
+
+# Performing a `\(\chi^2\)` Goodness of Fit test
+
+**Compute the probability a score at least as extreme as the test statistic**
+
+.pull-left[
++ What proportion of the plot falls in the shaded area?
+]
+
+.pull-right[
+![](dapR1_lec19_Chisquare_files/figure-html/unnamed-chunk-18-1.svg)&lt;!-- --&gt;
+]
+
+---
+# Performing a `\(\chi^2\)` Goodness of Fit test
+
+**Compute the probability a score at least as extreme as the test statistic**
+
+.pull-left[
++ What proportion of the plot falls in the shaded area?
+
+
+```r
+pchisq(sum(flowerDat$SqbyExp), 
+       df = 6, 
+       lower.tail = F)
+```
+
+```
+## [1] 0.01080571
+```
++ The probability that we would have a `\(\chi^2\)` value as extreme as 16.62 if `\(H_0\)` is true is only 0.01.
+
+]
+
+
+
+.pull-right[
+![](dapR1_lec19_Chisquare_files/figure-html/unnamed-chunk-20-1.svg)&lt;!-- --&gt;
+]
+
+---
+
+class: center, middle
+
+.f1[Questions?]
+
+---
+
+# Exploring our Results Further
+
++ If our results are significant, we are likely interested in knowing which levels within our category had the biggest differences.
+
++ We can get this information by looking at the Pearson residuals (AKA, standardized residuals).
+
++ `\(\frac{O_i-E_i}{\sqrt{E_i}}\)`
+
+--
+
+```r
+(flowerDat$Orders[1]-flowerDat$Expected[1])/sqrt(flowerDat$Expected[1])
+```
+
+```
+## [1] 0.01946616
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Day &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Orders &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Expected &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Difference &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Squared &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; SqbyExp &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Residuals &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Monday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 54 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53.86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.02 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.02 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+
+# Exploring our Results Further
+
+.pull-left[
++ Positive residuals indicate the the frequency of the corresponding level is higher than expected
+
++ Negative residuals indicate that the frequency of the corresponding level is lower than expected
+
++ More extreme residuals indicate that the values are contributing more strongly to the results
+
+  + Values `\(\leq\)` -2 indicate the frequency of that level is **much lower** than expected
+  
+  + Values `\(\geq\)` 2 indicate the frequency of that level is **much higher** than expected
+]
+
+.pull-right[
+&lt;br&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Day &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Orders &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Residuals &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Monday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 54 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.02 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Tuesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 39 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -2.02 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Wednesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 44 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -1.34 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Thursday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 47 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.93 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Friday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 68 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.93 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Saturday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.47 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Sunday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.12 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+---
+
+# Drawing Conclusions
+
+.pull-left[
+**If you owned the flower shop, which two days would you choose to close each week?**
+]
+
+.pull-right[
+&lt;br&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Day &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Orders &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Residuals &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Monday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 54 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.02 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Tuesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 39 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -2.02 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Wednesday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 44 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -1.34 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Thursday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 47 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.93 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Friday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 68 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.93 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Saturday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.47 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Sunday &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.12 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+---
+
+class: inverse, center, middle
+
+# Part 3 
+## `\(\chi^2\)` Test of Independence
+
+---
+# `\(\chi^2\)` Test of Independence
+
+.pull-left[
+
++ Checks whether two categorical variables from a single population are independent of each other.
+
++ Specifically, tests whether membership in Variable 1 is dependent upon membership in Variable 2
+
++ **Hypotheses:**
+
+  + `\(H_0:\)` Variable A is not associated with variable B
+  
+  + `\(H_1:\)`  Variable A is associated with variable B
+
+]
+
+  
+---
+count: false
+
+# `\(\chi^2\)` Test of Independence
+
+.pull-left[
+
++ Checks whether two categorical variables from a single population are independent of each other.
+
++ Specifically, tests whether membership in Variable 1 is dependent upon membership in Variable 2
+
++ **Hypotheses:**
+
+  + `\(H_0:\)` Variable A is not associated with variable B
+  
+  + `\(H_1:\)`  Variable A is associated with variable B
+  
+]
+
+.pull-right.center[
+
+**Expected Values **
+
+&lt;img src="figures/chiSqToI_Exp.png" width="90%" /&gt;
+
+**Observed Values **
+
+&lt;img src="figures/chiSqToI_Obs.png" width="90%" /&gt;
+]
+
+
+---
+
+# `\(\chi^2\)` Test of Independence
+
+.center.f3[ 
+`\(\chi^2 = \sum\limits_{i=1}^r \sum\limits_{j=1}^c \frac{(O_{ij} - E_{ij})^2}{E_{ij}}\)`
+]
+
++ `\(i\)` : current level within Variable A
+
++ `\(r\)` : total levels within A
+
++ `\(j\)` : levels within Variable B
+
++ `\(c\)` : total levels within B
+
+---
+
+# Performing a `\(\chi^2\)` Test of Independence
+
+
+.pull-left[
+
++ The flower shop is trying to decide on their flower stock
+
++ They want to know whether the flower type that sells the best depends on the season
+
++ `\(H_0\)`: Flower orders will be independent of season
+  
++ `\(H_1\)`: Flower orders will be dependent on season
+
+]
+
+
+.pull-right.center[
+&lt;br&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Lilies &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Roses &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Tulips &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Spring &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 186 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 232 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 185 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Summer &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 172 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 228 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 192 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Autumn &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 168 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 219 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 164 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Winter &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 183 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 246 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 173 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+---
+
+# Performing a `\(\chi^2\)` Test of Independence
+
+**Compute the test statistic**
+
+.center.f3[ 
+`\(\chi^2 = \sum\limits_{i=1}^r \sum\limits_{j=1}^c \frac{(O_{ij} - E_{ij})^2}{E_{ij}}\)`
+]
+
++ `\(E_{ij}=\frac{R_i\ \cdot\ C_j}{n}\)`
+
+
++ In this example, we expect the orders to be distributed evenly across season and flower type
+
+---
+
+# Performing a `\(\chi^2\)` Test of Independence
+
+**Compute the test statistic**
+
++ `\(E_{ij}=\frac{R_i\ \cdot\ C_j}{n}\)`
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Lilies &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Roses &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Tulips &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Sum &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Spring &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 186 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 232 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 185 &lt;/td&gt;
+   &lt;td style="text-align:right;color: #BF1932 !important;"&gt; 603 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Summer &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 172 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 228 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 192 &lt;/td&gt;
+   &lt;td style="text-align:right;color: #BF1932 !important;"&gt; 592 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Autumn &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 168 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 219 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 164 &lt;/td&gt;
+   &lt;td style="text-align:right;color: #BF1932 !important;"&gt; 551 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Winter &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 183 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 246 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 173 &lt;/td&gt;
+   &lt;td style="text-align:right;color: #BF1932 !important;"&gt; 602 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;color: #BF1932 !important;"&gt; Sum &lt;/td&gt;
+   &lt;td style="text-align:right;color: #BF1932 !important;"&gt; 709 &lt;/td&gt;
+   &lt;td style="text-align:right;color: #BF1932 !important;"&gt; 925 &lt;/td&gt;
+   &lt;td style="text-align:right;color: #BF1932 !important;"&gt; 714 &lt;/td&gt;
+   &lt;td style="text-align:right;color: #BF1932 !important;color: #BF1932 !important;"&gt; 2348 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;br&gt;
+
+| Season |       Lilies     |      Roses       |      Tulips      |
+|--------|------------------|------------------|------------------|
+| Spring |(603 x 709)/2348|(603 x 925)/2348|(603 x 714)/2348| 
+| Summer |(592 x 709)/2348|(592 x 925)/2348|(592 x 714)/2348|
+| Autumn |(551 x 709)/2348|(551 x 925)/2348|(551 x 714)/2348|
+| Winter |(602 x 709)/2348|(602 x 925)/2348|(602 x 714)/2348|
+
+
+
+---
+
+# Performing a `\(\chi^2\)` Test of Independence
+
+**Compute the test statistic**
+
+.center.f3[
+`\(\chi^2 = \sum\limits_{i=1}^r \sum\limits_{j=1}^c \frac{(O_{ij} - \color{#BF1932}{E_{ij}})^2}{\color{#BF1932}{E_{ij}}}\)`
+]
+
+.pull-left.center[
+**Observed Values**
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Lilies &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Roses &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Tulips &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Spring &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 186 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 232 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 185 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Summer &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 172 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 228 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 192 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+.pull-right.center[ 
+**Expected Values**
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Seasons &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Lilies &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Roses &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Tulips &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Spring &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 182.08 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 237.55 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 183.37 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Summer &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 178.76 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 233.22 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 180.02 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+---
+
+# Performing a `\(\chi^2\)` Test of Independence
+
+**Compute the test statistic**
+
+.center.f3[
+`\(\chi^2 = \sum\limits_{i=1}^r \sum\limits_{j=1}^c \frac{\color{#BF1932}{(O_{ij} - E_{ij})}^2}{E_{ij}}\)`
+]
+
+.pull-left.center[
+**Observed Values**
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Lilies &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Roses &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Tulips &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Spring &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 186 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 232 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 185 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Summer &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 172 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 228 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 192 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+.pull-right.center[ 
+**Expected Values**
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Seasons &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Lilies &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Roses &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Tulips &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Spring &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 182.08 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 237.55 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 183.37 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Summer &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 178.76 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 233.22 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 180.02 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+.center[
+**Difference**
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Seasons &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Lilies &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Roses &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Tulips &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Spring &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.92 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -5.55 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.63 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Summer &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -6.76 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -5.22 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 11.98 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+---
+
+# Performing a `\(\chi^2\)` Test of Independence
+
+**Compute the test statistic**
+
+.center.f3[
+`\(\chi^2 = \sum\limits_{i=1}^r \sum\limits_{j=1}^c \frac{{(O_{ij} - E_{ij})\color{#BF1932}{^2}}}{E_{ij}}\)`
+]
+
+.pull-left.center[
+**Difference**
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Seasons &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Lilies &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Roses &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Tulips &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Spring &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.92 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -5.55 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.63 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Summer &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -6.76 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -5.22 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 11.98 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Autumn &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.62 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.93 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -3.55 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Winter &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.22 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8.84 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -10.06 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+.pull-right.center[ 
+**Squared**
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Seasons &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Lilies &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Roses &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Tulips &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Spring &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15.36 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 30.84 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.67 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Summer &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 45.69 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 27.25 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 143.51 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Autumn &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.63 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.73 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 12.62 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Winter &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.49 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 78.16 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 101.23 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+---
+
+# Performing a `\(\chi^2\)` Test of Independence
+
+**Compute the test statistic**
+
+.center.f3[
+`\(\chi^2 = \sum\limits_{i=1}^r \sum\limits_{j=1}^c \color{#BF1932}{\frac{{(O_{ij} - E_{ij})^2}}{E_{ij}}}\)`
+]
+
+.pull-left.center[
+**Squared**
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Seasons &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Lilies &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Roses &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Tulips &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Spring &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15.36 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 30.84 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.67 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Summer &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 45.69 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 27.25 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 143.51 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+.pull-right.center[ 
+**Expected**
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Seasons &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Lilies &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Roses &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Tulips &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Spring &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 182.08 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 237.55 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 183.37 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Summer &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 178.76 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 233.22 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 180.02 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+.center[ 
+**Squared over Expected**
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Seasons &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Lilies &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Roses &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Tulips &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Spring &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.08 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.01 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Summer &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.26 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.80 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+---
+# Performing a `\(\chi^2\)` Test of Independence
+
+**Compute the test statistic**
+
+.center.f3[
+`\(\chi^2 = \color{#BF1932}{\sum\limits_{i=1}^r \sum\limits_{j=1}^c}\frac{{(O_{ij} - E_{ij})^2}}{E_{ij}}\)`
+]
+
+.pull-left.center[
+**Squared over Expected**
+
+```r
+kable(divTab, digits = 2)
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Seasons &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Lilies &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Roses &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Tulips &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Spring &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.08 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.01 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Summer &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.26 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.80 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Autumn &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.02 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.02 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.08 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Winter &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.01 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.33 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.55 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+.pull-right.center[ 
+** `\(\chi^2\)`**
+
+```r
+sum(divTab[flowerCols])
+```
+
+```
+## [1] 2.397417
+```
+]
+
+---
+
+# Performing a `\(\chi^2\)` Test of Independence
+
+**Find the test statistic on the distribution**
+
+.pull-left[
++ `\(df=(r-1)(c-1)\)`
+
++ `\(c\)` = number of levels within Variable 1
+
++ `\(r\)` = number of levels within Variable 2
+]
+
+---
+count: false
+
+# Performing a `\(\chi^2\)` Test of Independence
+
+**Find the test statistic on the distribution**
+
+.pull-left[
++ `\(df=(r-1)(c-1)\)`
+
++ `\(c\)` = number of levels within Variable 1
+
++ `\(r\)` = number of levels within Variable 2
+
+
+
+```r
+r &lt;- length(levels(seasonDat$Season))
+c &lt;- length(levels(seasonDat$Flowers))
+
+(r-1)*(c-1)
+```
+
+```
+## [1] 6
+```
+]
+
+.pull-right[
+
+![](dapR1_lec19_Chisquare_files/figure-html/unnamed-chunk-42-1.svg)&lt;!-- --&gt;
+]
+
+---
+count: false
+
+# Performing a `\(\chi^2\)` Test of Independence
+
+**Find the test statistic on the distribution**
+
+.pull-left[
++ `\(df=(r-1)(c-1)\)`
+
++ `\(c\)` = number of levels within Variable 1
+
++ `\(r\)` = number of levels within Variable 2
+
+
+
+```r
+r &lt;- length(levels(seasonDat$Season))
+c &lt;- length(levels(seasonDat$Flowers))
+
+(r-1)*(c-1)
+```
+
+```
+## [1] 6
+```
+]
+
+.pull-right[
+
+![](dapR1_lec19_Chisquare_files/figure-html/unnamed-chunk-44-1.svg)&lt;!-- --&gt;
+]
+
+---
+
+# Performing a `\(\chi^2\)` Test of Independence
+
+**Compute the probability a score at least as extreme as the test statistic**
+
+.pull-left[
++ What proportion of the plot falls in the shaded area?
+]
+
+.pull-right[
+![](dapR1_lec19_Chisquare_files/figure-html/unnamed-chunk-45-1.svg)&lt;!-- --&gt;
+]
+
+---
+# Performing a `\(\chi^2\)` Test of Independence
+
+**Compute the probability a score at least as extreme as the test statistic**
+
+.pull-left[
++ What proportion of the plot falls in the shaded area?
+
+
+```r
+pchisq(sum(divTab[flowerCols]), 
+       df = 6, 
+       lower.tail = F)
+```
+
+```
+## [1] 0.8797671
+```
++ The probability that we would have a `\(\chi^2\)` value as extreme as 2.4 if `\(H_0\)` is true is 0.88.
+
+]
+
+
+
+.pull-right[
+![](dapR1_lec19_Chisquare_files/figure-html/unnamed-chunk-47-1.svg)&lt;!-- --&gt;
+]
+
+---
+class: center, middle
+
+.f1[Questions?]
+
+---
+
+# Exploring our Results Further
+
++ We can also compute standardized residuals for the Test of Independence
+
++ In this case, you will calculate them separately by cell.
+
++ `\(\frac{O_{ij}-E_{ij}}{\sqrt{E_{ij}}}\)`
+
+--
+
+```r
+(ObsVals['Spring', 'Lilies']-exVals[1, 'Lilies'])/sqrt(exVals[1, 'Lilies'])
+```
+
+```
+##      Lilies
+## 1 0.2904051
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Lilies &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Roses &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Tulips &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Spring &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.29 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.36 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.12 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Summer &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.51 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.34 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.89 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Autumn &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.27 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Winter &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.09 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.57 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.74 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+
+# Effect Sizes
+
++ There are 3 possibilities:
+
+  + Phi coefficient
+  + Cramer's V
+  + Odds Ratios
+
++ You will learn more about odds ratios in DapR2, so we will focus on Phi and Cramer's V
+
+---
+
+# Phi coefficient
+
+.center.f3[
+`\(\phi=\sqrt{\frac{\chi^2}{n}}\)`
+]
+
++ `\(n\)`: total number of observations
+
++ Should only be used when you have a 2x2 contingency table (2 categorical variables with 2 levels each)
+
++ Interpretation:
+  + 0.1: small effect
+  + 0.3: medium effect
+  + 0.5: large effect
+
+---
+
+# Cramer's V
+
+.center.f3[
+`\(V=\sqrt{\frac{\chi^2}{n\cdot\ df^*}}\)`
+]
+
++ where `\(df^* = min(r-1, c-1)\)`
+
++ Can be used when you aren't working with a 2x2 contingency table
+
++ Interpretation:
+  + Cramer's V is interpreted based on `\(df^*\)`:
+
+| `\(df^*\)` | small | medium | large |
+|--------|-------|--------|-------|
+|   1    |  .10  |  .30   |  .50  |
+|   2    |  .07  |  .21   |  .35  |
+|   3    |  .06  |  .17   |  .29  |
+|   4    |  .05  |  .15   |  .25  |
+|   5    |  .04  |  .13   |  .22  |
+
+---
+
+class: center, middle
+
+.f1[Questions?]
+  
+---
+
+# Summary of Today
+
++ We learned about the `\(\chi^2\)` distribution and how it compares to the `\(t\)` distribution.
+
++ We discussed the assumptions of `\(\chi^2\)` tests.
+
++ We differentiated between the `\(\chi^2\)` Goodness of Fit test and the `\(\chi^2\)` Test of Independence
+
++ We walked through how to calculate both types of `\(\chi^2\)` values.
+
++ We talked about standardized residuals and how they relate to your `\(\chi^2\)` results
+
++ We covered the measures of effect size you may use with `\(\chi^2\)` tests.
+
+---
+
+class: center, middle
+
+.f1[Thanks for listening!]
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="mc_libs/macros.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

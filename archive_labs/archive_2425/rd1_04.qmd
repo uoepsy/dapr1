@@ -1,0 +1,525 @@
+---
+title: "Visualising and describing relationships"
+callout-appearance: simple
+---
+
+
+```{r setup}
+#| include: false
+
+source('assets/setup.R')
+```
+
+
+```{r include=FALSE}
+library(tidyverse)
+library(patchwork)
+```
+
+
+## Outcome vs Explanatory 
+
+In the previous couple of weeks, we looked at how to handle different types of data, and how to describe and visualise categorical and numeric distributions.
+More often than not, research involves investigating _relationships_ between variables, rather than studying variables in isolation.  
+
+::: {.callout-note} 
+If we are using one variable to help us understand or predict values of another variable, we call the former the __explanatory variable__ and the latter the __outcome variable__. 
+
+
+_**Other names**_
+
++ _outcome variable = dependent variable = response variable = Y_
++ _explanatory variable = independent variable = predictor variable = X_   
+  
+(referring to outcome/explanatory variables as _Y_ and _X_ respectively matches up with how we often want to plot them - the outcome variable on the y-axis, and the explanatory variable on the x-axis)
+
+:::
+
+The distinction between explanatory and outcome variables is borne out in how we design __experimental studies__ - the researcher manipulates the explanatory variable for each unit _before_ the response variable is measured (for instance, we might randomly allocate participants to one of two conditions). 
+This contrasts with __observational studies__ in which the researcher does not control the value of any variable, but simply observes the values as they naturally exist.  
+
+We're going to use data from a Stroop task.
+
+:::{.callout-info}
+### Stroop data
+
+The data we are going to use for these exercises is from an experiment using one of the best known tasks in psychology, the "Stroop task".  
+<br>
+130 participants completed an online task in which they saw two sets of coloured words. Participants spoke out loud the colour of each word, and timed how long it took to complete each set. In the first set of words, the words _matched_ the colours they were presented in (e.g., word "blue" was coloured blue). In the second set of words, the words _mismatched_ the colours (e.g., the word "blue" was coloured red, see Figure \@ref(fig:stroop)). Participants' recorded their times for each set (*matching* and *mismatching*).  
+Participants were randomly assigned to either do the task once only, or to record their times after practicing the task twice.  
+You can try out the experiment at <https://faculty.washington.edu/chudler/java/ready.html>.  
+The data is available at <https://uoepsy.github.io/data/strooptask.csv>
+
+```{r stroop, echo=FALSE, fig.cap="Stroop Task - Color word interference. Images from  <https://faculty.washington.edu/chudler/java/ready.html>"}
+knitr::include_graphics("images/numeric/stroop1.png")
+```
+:::
+
+
+```{r}
+library(tidyverse)
+stroopdata <- read_csv("https://uoepsy.github.io/data/strooptask.csv")
+
+# calculate the "stroop effect" - the difference in time taken to complete
+# the matching vs mismatching sets 
+stroopdata <- 
+    stroopdata |> 
+        mutate(
+            stroop_effect = mismatching - matching
+        )
+```
+
+The data is experimental - researchers controlled the presentation of the stimuli (coloured words) and the assignment of whether or not participants received practice.  
+
+The researchers are interested in two relationships: 
+
+1. the relationship between receiving practice (*categorical*) and the stroop-effect (*numeric*)
+2. the relationship between age (*numeric*) and the stroop-effect (*numeric*)
+
+## Numeric and Categorical  
+
+Recall that the "stroop-effect" is the difference (in seconds) between participants' times on the mismatching set of words vs the matching set. We know how to describe a numeric variable such as the stroop-effect, for instance by calculating the mean and standard deviation, or median and IQR. We saw how to produce visualisations of numeric variables in the form of density curves, histogram, and boxplots.  
+
+```{r}
+# take the "stroopdata" dataframe |>
+# summarise() it, such that there is a value called "mean_stroop", which
+# is the mean() of the "stroop_effect" variable, and a value called "sd_stroop", which
+# is the standard deviation of the "stroop_effect" variable.
+stroopdata |> 
+  summarise(
+    mean_stroop = mean(stroop_effect),
+    sd_stroop = sd(stroop_effect)
+  )
+```
+
+```{r}
+ggplot(data = stroopdata, aes(x = stroop_effect)) + 
+  geom_histogram()
+```
+
+To understand the relationship between *categorical* (practice) and the *numeric* (stroop effect), for now we will simply calculate these summary statistics for the numeric variable when it is split by the different levels in the categorical variable. 
+
+In other words, we want to calculate the mean and standard deviation of the _stroop_effect_ variable separately for those observations where _practice_ is "no", and for those where _practice_ is "yes":
+```{r echo=FALSE}
+set.seed(421)
+sample_n(stroopdata, n()) |> select(practice,stroop_effect) |> mutate(stroop_effect = round(stroop_effect,2)) |> head(9L) |> rbind("...") |> knitr::kable()
+```
+
+
+We can do this using the `group_by()` function. 
+
+:::{.callout-note}
+__group_by()__
+
+The `group_by()` function creates a _grouping_ in the dataframe, so that subsequent functions will be computed _on each group._  
+
+It is most useful in combination with `summarise()`, to reduce a variable into a summary value _for each group in a grouping variable_:  
+
+```{r eval=FALSE}
+# take the data |>
+# make it grouped by each unique value in the "grouping_variable" |>
+# summarise() it FOR EACH GROUP, creating a value called "summary_value" ()
+data |> 
+  group_by(grouping_variable) |>
+  summarise(
+    summary_value = ...
+  )
+```
+  
+:::
+
+Let's do this for the Stroop Task data - we will `summarise()` the _stroop_effect_ variable, **after** grouping the data by the _practice_ variable:
+```{r}
+# take the "stroopdata" |>
+# and group it by each unique value in the "practice" variable (yes/no) |>
+# then summarise() it FOR EACH GROUP, creating summary values called 
+# "mean_stroop" and "sd_stroop" which are the means and standard deviations of 
+# the "stroop_effect" variable entries for each group of "practice".
+stroopdata |>
+  group_by(practice) |>
+  summarise(
+    mean_stroop = mean(stroop_effect),
+    sd_stroop = sd(stroop_effect)
+  )
+```
+
+### Visualising - Colours {-}  
+
+Given the output above, which of the following visualisations is most representative of these statistics?
+```{r echo=FALSE}
+tibble(
+  x = seq(-10, 25, 0.2),
+  y = dnorm(x, 4.5, 4.2),
+  y2 = dnorm(x, 0, 4.2)
+) -> practdat
+
+p1 <- ggplot(practdat,aes(x=x))+
+  geom_line(aes(y=y, col="no"))+
+  geom_line(aes(y=y2, col="yes"))+
+  scale_color_manual("Practice",breaks = c("no","yes"),values=c("tomato1","blue"))+
+  theme_light()+
+  theme(axis.line.y = element_blank(), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(), axis.title.y = element_blank(),
+        legend.position = "none")+labs(x="", title="B")
+p2 <- ggplot(practdat,aes(x=x))+
+  geom_line(aes(y=y2, col="no"))+
+  geom_line(aes(y=y, col="yes"))+
+  scale_color_manual("Practice",breaks = c("no","yes"),values=c("tomato1","blue"))+
+  theme_light()+
+  theme(axis.line.y = element_blank(), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(), axis.title.y = element_blank(),
+        legend.position = "bottom")+
+  labs(x="stroop effect", title="C")
+
+tibble(
+  x = seq(-10, 25, 0.2),
+  y = dnorm(x, 10, 4.2),
+  y2 = dnorm(x, 14.5, 4.2)
+) |> ggplot(aes(x=x))+
+  geom_line(aes(y=y, col="no"))+
+  geom_line(aes(y=y2, col="yes"))+
+  scale_color_manual("Practice",breaks = c("no","yes"),values=c("tomato1","blue"))+
+  theme_light()+
+  theme(axis.line.y = element_blank(), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(), axis.title.y = element_blank(),
+        legend.position = "none")+labs(x="", title="A")-> p3
+
+tibble(
+  x = seq(-10, 25, 0.2),
+  y = dnorm(x, 4.5, 4.2),
+  y2 = dnorm(x, 0, 2.2)
+) |> ggplot(aes(x=x))+
+  geom_line(aes(y=y, col="no"))+
+  geom_line(aes(y=y2, col="yes"))+
+  scale_color_manual("Practice",breaks = c("no","yes"),values=c("tomato1","blue"))+
+  theme_light()+
+  theme(axis.line.y = element_blank(), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(), axis.title.y = element_blank(),
+        legend.position = "none")+labs(x="stroop effect", title="D")-> p4
+
+(p3 + p1) / (p2 + p4)
+
+```
+
+:::{.callout-tip collapse="true"}
+We know that the stroop effect for those _with_ practice (blue line) was on average less than those _without_ practice (red line). Both figures A and C don't fit with this.  
+
+In _both_ of the figures B and D, the blue (with practice) distribution peaks at about 0, and the red (without practice) distribution peaks at about 5. However, in the figure D, the red distribution is much flatter and wider. It has a larger standard deviation than the blue distribution. In our calculations above, the distributions have very similar standard deviations.  
+
+So the best visualisation of the two means and standard deviations we calculated is figure B. 
+:::
+
+We can visualise the data using the same code we had before, but with one small addition - we tell ggplot to _colour_ the data according to the different values in the _practice_ variable.  
+
+__Note__ we add this inside the `aes()` mappings, because we are mapping something on the plot (the colour) to something in the data (the _practice_ variable). If we just wanted to make the line blue, we could put `col = "blue"` _outside_ the `aes()`.
+
+
+```{r}
+ggplot(data = stroopdata, aes(x = stroop_effect, col = practice)) +
+  geom_density()
+```
+
+### Visualising - Facets {-}
+
+Interpreting two density curves on top of one another works well, but overlaying two histograms on top of one another doesn't. Instead, we might want to create separate histograms for each set of values (the _stroop_effect_ variable values for each of practice/no practice groups).  
+
+`facet_wrap()` is a handy part of `ggplot` which allows us to easily split one plot into many:  
+```{r}
+ggplot(data = stroopdata, aes(x = stroop_effect)) +
+  geom_histogram() +
+  facet_wrap(~practice)
+```
+
+
+
+## Numeric and Numeric
+
+When we are interested in the relationship between two _numeric_ variables, such as the one we have between age and the stroop-effect, the most easily interpreted visualisation of this relationship is in the form of a scatterplot:
+
+```{r}
+# make a ggplot with the stroopdata
+# put the possible values of the "age" variable on the x axis,
+# and put the possible values of the "stroop_effect" variable on the y axis.
+# for each entry in the data, add a "tomato1" coloured geom_point() to the plot, 
+ggplot(data = stroopdata, aes(x = age, y = stroop_effect)) +
+  geom_point(col="tomato1")
+```
+
+The visual pattern that these points make on the plot tells us something about the data - it looks like the older participants tended to have a greater stroop-effect.  
+But we can also have relationships between two numeric variables that look the opposite, or have no obvious pattern, or have a more consistent patterning (see Figure \@ref(fig:numnumrels))
+```{r numnumrels, echo=FALSE, fig.cap = "Relationships between two numeric variables can look very different"}
+tibble(x=rnorm(100,100,15),
+       y=-x*2+rnorm(100,0,10)) |>
+  ggplot(aes(x=x,y=y))+
+  geom_point() + 
+  theme_minimal()+
+  theme(axis.text = element_blank(), axis.ticks = element_blank())+
+  labs(title="observations with higher values of x\ntend to have lower values for y\n(obvious pattern)") -> p1
+
+
+tibble(x=rnorm(100,100,15),
+       y=rnorm(100)) |>
+  ggplot(aes(x=x,y=y))+
+  geom_point() + 
+  theme_minimal()+
+  theme(axis.text = element_blank(), axis.ticks = element_blank())+
+  labs(title="observations with higher values of x\ndo not tend to have systematically\nhigher/lower values for y\n(No pattern)") -> p2
+
+p1 + p2
+```
+
+
+As a means of summarising these different types of relationships, we can calculate the __covariance__ to describe in what direction, and how strong (i.e., how clear and consistent) the pattern is.   
+
+### Covariance {-}  
+
+We know that __variance__ is the measure of how much a _single numeric variable_ varies around its mean.  
+__Covariance__ is a measure of how _two numeric variables_ vary together, and can express the directional relationship between them.
+
+:::{.callout-note}
+__Covariance__ is the measure of how two variables vary together.  
+For samples, covariance is calculated using the following formula:
+
+$$\mathrm{cov}(x,y)=\frac{1}{n-1}\sum_{i=1}^n (x_{i}-\bar{x})(y_{i}-\bar{y})$$
+
+where:
+
+- $x$ and $y$ are two variables;
+- $i$ denotes the observational unit, such that $x_i$ is value that the $x$ variable takes on the $i$th observational unit, and similarly for $y_i$;
+- $n$ is the sample size.
+
+:::  
+
+
+```{r echo=FALSE, message=FALSE,warning=FALSE}
+set.seed(7135)
+tibble(x=runif(10,20,80),y=rnorm(10,160,10)) |>
+  mutate(y=y+x/2,
+         coldir = ifelse( (x>mean(x) & y>mean(y)) | (x<mean(x) & y<mean(y)), "pos","neg")
+  ) -> df
+
+p1<-ggplot(df,aes(x=x,y=y))+
+  geom_point()+
+  theme_classic()
+    
+p2<-ggplot(df,aes(x=x,y=y))+
+  geom_point()+
+  theme_classic()+
+  geom_vline(aes(xintercept=mean(x)), lty="dashed")+
+  annotate("text",x=mean(df$x)+1, y=max(df$y)-5,label=expr(bar("x")))+
+  geom_hline(aes(yintercept=mean(y)), lty="dashed")+
+  annotate("text",x=min(df$x)+5, y=mean(df$y)+1,label=expr(bar("y")))
+  
+p3<-ggplot(df,aes(x=x,y=y))+
+  geom_point()+
+  theme_classic()+
+  geom_vline(aes(xintercept=mean(x)), lty="dashed")+
+  annotate("text",x=mean(df$x)-1, y=max(df$y)-5,label=expr(bar("x")))+
+  geom_hline(aes(yintercept=mean(y)), lty="dashed")+
+  annotate("text",x=min(df$x)+5, y=mean(df$y)+1,label=expr(bar("y")))+
+  annotate("text",x=mean(df$x)+7, y=202,label=expression(x[i]-bar("x")))+
+  annotate("text",x=71.5, y=mean(df$y)+7,label=expression(y[i]-bar("y")))+
+  geom_segment(aes(x = mean(x), y = 200.9559, xend = 69.47989, yend = 200.9559), color="tomato1", data = df)+
+  geom_segment(aes(x = 69.47989, y = mean(y), xend = 69.47989, yend = 200.9559), color="tomato1",data = df)
+
+
+p4<-ggplot(df,aes(x=x,y=y))+
+  geom_point(aes(col=coldir))+
+  scale_color_manual("",values=c("black","red"))+
+  theme_classic()+
+  theme(legend.position = "none")+
+  geom_vline(aes(xintercept=mean(x)), lty="dashed")+
+  annotate("text",x=mean(df$x)-1, y=max(df$y)-5,label=expr(bar("x")))+
+  geom_hline(aes(yintercept=mean(y)), lty="dashed")+
+  annotate("text",x=min(df$x)+5, y=mean(df$y)+1,label=expr(bar("y")))+
+  geom_segment(aes(x = mean(x), y = 200.9559, xend = 69.47989, yend = 200.9559), color="tomato1", data = df)+
+  geom_segment(aes(x = 69.47989, y = mean(y), xend = 69.47989, yend = 200.9559), color="tomato1",data = df)+
+  geom_segment(aes(x = mean(x), y = 211.5757, xend = 56.36053, yend = 211.5757), color="tomato1", data = df)+
+  geom_segment(aes(x = 56.36053, y = mean(y), xend = 56.36053, yend = 211.5757), color="tomato1",data = df)+
+  geom_segment(aes(x = mean(x), y = 180.5799, xend = 44.37031, yend = 180.5799), color="tomato1", data = df)+
+  geom_segment(aes(x = 44.37031, y = mean(y), xend = 44.37031, yend = 180.5799), color="tomato1",data = df)
+
+p5<-ggplot(df,aes(x=x,y=y))+
+  geom_point(aes(col=coldir))+
+  scale_color_manual("",values=c("blue","red"))+
+  theme_classic()+
+  theme(legend.position = "none")+
+  geom_vline(aes(xintercept=mean(x)), lty="dashed")+
+  annotate("text",x=mean(df$x)-1, y=max(df$y)-5,label=expr(bar("x")))+
+  geom_hline(aes(yintercept=mean(y)), lty="dashed")+
+  annotate("text",x=min(df$x)+5, y=mean(df$y)+1,label=expr(bar("y")))+
+  geom_segment(aes(x = mean(x), y = 200.9559, xend = 69.47989, yend = 200.9559), color="tomato1", data = df)+
+  geom_segment(aes(x = 69.47989, y = mean(y), xend = 69.47989, yend = 200.9559), color="tomato1",data = df)+
+  geom_segment(aes(x = mean(x), y = 211.5757, xend = 56.36053, yend = 211.5757), color="tomato1", data = df)+
+  geom_segment(aes(x = 56.36053, y = mean(y), xend = 56.36053, yend = 211.5757), color="tomato1",data = df)+
+  geom_segment(aes(x = mean(x), y = 180.5799, xend = 44.37031, yend = 180.5799), color="tomato1", data = df)+
+  geom_segment(aes(x = 44.37031, y = mean(y), xend = 44.37031, yend = 180.5799), color="tomato1",data = df)+
+  geom_segment(aes(x = mean(x), y = 194.4188, xend = 45.32536, yend = 194.4188), color="skyblue3", data = df)+
+  geom_segment(aes(x = 45.32536, y = mean(y), xend = 45.32536, yend = 194.4188), color="skyblue3",data = df)+
+  geom_segment(aes(x = mean(x), y = 182.6440, xend = 66.73541, yend = 182.6440), color="skyblue3", data = df)+
+  geom_segment(aes(x = 66.73541, y = mean(y), xend = 66.73541, yend = 182.6440), color="skyblue3",data = df)
+```
+
+It often helps to understand __covariance__ by working through a visual explanation.  
+<br>
+Consider the following scatterplot:  
+```{r echo=FALSE, message=FALSE}
+p1
+```
+<br>
+Now let's superimpose a vertical dashed line at the mean of $x$ ($\bar{x}$) and a horizontal dashed line at the mean of $y$ ($\bar{y}$):
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+p2
+```
+<br>
+Now let's pick one of the points, call it $x_i$, and show $(x_{i}-\bar{x})$ and $(y_{i}-\bar{y})$.  
+Notice that this makes a rectangle.  
+As $(x_{i}-\bar{x})$ and $(y_{i}-\bar{y})$ are both positive values, their product -  $(x_{i}-\bar{x})(y_{i}-\bar{y})$ - is positive. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+p3
+```
+<br>
+In fact, for all these points in red, the product $(x_{i}-\bar{x})(y_{i}-\bar{y})$ is positive (remember that a negative multiplied by a negative gives a positive): 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+p4
+```
+<br>
+And for these points in blue, the product $(x_{i}-\bar{x})(y_{i}-\bar{y})$ is negative:  
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+p5
+```
+<br>
+Now take another look at the formula for covariance:  
+
+$$\mathrm{cov}(x,y)=\frac{\sum_{i=1}^n (x_{i}-\bar{x})(y_{i}-\bar{y})}{n-1}$$
+  
+It is the sum of all these products divided by $n-1$. It is the average of the products!  
+<br>
+We can easily calculate the covariance between variables in R using the `cov()` function. 
+`cov()` takes two variables `cov(x = , y = )`.  
+We can either use the `$` to pull out the variables from the datset:  
+```{r}
+cov(stroopdata$age, stroopdata$stroop_effect)
+```
+Or we can specify the dataframe, use the `|>` symbol, and call `cov()` inside `summarise()`:  
+```{r}
+stroopdata |>
+  summarise(
+    mean_age = mean(age),
+    mean_stroop = mean(stroop_effect),
+    cov_agestroop = cov(age, stroop_effect)
+  )
+```
+
+## Categorical and Categorical  
+
+What if we are interested in the relationship between two variables that are both categorical?  
+
+As a quick example, let's read in a dataset containing information on passengers from the Titanic. 
+We can see from the first few rows of the dataset that there are quite a few categorical variables here: 
+```{r}
+titanic <- read_csv("https://uoepsy.github.io/data/titanic.csv")
+head(titanic)
+```
+
+Recall that we summarised one categorical variable using a **frequency table**:
+```{r}
+titanic |>
+  count(survived)
+```
+
+We can also achieve this using the `table()` function:
+```{r eval=FALSE}
+#thes two lines of code do exactly the same thing!
+table(titanic$survived)
+titanic |> select(survived) |> table()
+```
+```{r echo=FALSE}
+table(titanic$survived)
+```
+
+### Contingency Tables {-}
+
+Let's suppose we are interested in how the Class of passengers' tickets (1st Class, 2nd Class, 3rd Class) can be used to understand their survival.  
+We can create **two-way** table, where we have each variable on either dimension of the table:  
+```{r eval=FALSE}
+#Either this:
+table(titanic$class, titanic$survived)
+# or this:
+titanic |> select(class, survived) |> table()
+```
+```{r echo=FALSE}
+table(titanic$class, titanic$survived)
+```
+
+And we can pass this to `prop.table()` to turn these into proportions.  
+We can turn them into:
+
+1. proportions of the total:  
+
+```{r}
+titanic |> 
+    select(class, survived) |> 
+    table() |>
+    prop.table()
+```
+
+2. proportions of each row:  
+
+```{r}
+titanic |> 
+    select(class, survived) |> 
+    table() |>
+    prop.table(margin = 1)
+```
+
+3. proportions of each column:  
+
+```{r}
+titanic |> 
+    select(class, survived) |> 
+    table() |>
+    prop.table(margin = 2)
+```
+
+### Mosaic Plots {-}
+
+The equivalent way to visualise a contingency table is in the form of a **mosaic plot**.  
+
+```{r}
+titanic |> 
+  select(class, survived) |> 
+  table() |>
+  plot()
+```
+
+You can think of the `prop.table(margin = )` as scaling the areas of one of the variables to be equal:
+```{r}
+titanic |> 
+  select(class, survived) |> 
+  table() |>
+  prop.table(margin = 1)
+```
+In the table above, each row (representing each level of the "Class" variable) sums to 1. 
+The equivalent plot would make each of level of the "Class" variable as the same area:
+```{r}
+titanic |> 
+  select(class, survived) |> 
+  table() |>
+  prop.table(margin = 1) |>
+  plot()
+```
+
+
+## Glossary
+
++ __Explanatory variable:__ A variable used to understand or predict values of an outcome variable.
++ __Outcome variable:__ A variable which we are aiming to understand or predict via some explanatory variable(s).
++ __Scatterplot:__ A plot in which the values of two variables are plotted along the two axes, the pattern of the resulting points revealing any relationship which is present. 
++ __Covariance:__ A measure of the extent to which two variables vary together. 
+<br><br>
++ `cov()` To calculate the covariance between two variables. 
++ `group_by()` To apply a grouping in a dataframe for each level of a given variable. Grouped dataframes will retain their grouping, so that if we use `summarise()` it will provide a summary calculation _for each group_. 
++ `geom_point()` To add points/dots to a ggplot.
++ `facet_wrap()` To split a ggplot into multiple plots (facets) for each level of a given variable. 

@@ -1,0 +1,459 @@
+---
+title: "<b>Lecture 16: One-Sample t-test</b>"
+subtitle: "Data Analysis for Psychology in R 1<br><br> "
+author: "Tom Booth"
+institute: "Department of Psychology<br>The University of Edinburgh"
+date: "AY 2020-2021"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: xaringan-themer.css
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+```
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#0F4C81", # DAPR1
+  # base_color = "#BF1932", # DAPR2
+  # base_color = "#88B04B", # DAPR3 
+  # base_color = "#FCBB06", # USMR
+  # base_color = "#a41ae4", # MSMR
+  header_color = "#000000",
+  header_font_google = google_font("Source Sans Pro"),
+  header_font_weight = 400,
+  text_font_google = google_font("Source Sans Pro", "400", "400i", "600", "600i"),
+  code_font_google = google_font("Source Code Pro")
+)
+```
+
+```{r premable, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(kableExtra)
+library(patchwork)
+library(moderndive)
+```
+
+
+# Today
+- Introduce the three types of $t$-test:
+- Discuss in detail one-sample $t$-tests
+	- When to use
+	- Tested hypotheses
+	- Calculation
+	- Doing in R
+	- Write up
+
+---
+
+# Learning objectives
+- Understand when to use a one sample $t$-test
+- Understand the null hypothesis for a one sample $t$-test
+- Understand how to calculate the test statistic
+- Know how to conduct the test in R
+
+???
+Remember to do the course admin shout outs
+
+---
+
+# Purpose
+- $t$-tests (generally) concern testing the difference between two means.
+  - One-sample $t$-tests compare the mean in a sample to a known mean .
+  - Independent $t$-tests compare the means of two independent samples.
+  - Paired sample $t$-tests compare the mean from a single sample at two points in time (repeated measurements)
+
+---
+
+# Data Requirements: One-sample t-test
+- A continuous variable.
+  - Remember we are calculating means.
+- A known mean that we wish to compare our sample to.
+- A sample of data from which we calculate the sample mean.
+
+---
+
+# Hypotheses
+- We are comparing a single sample mean $\mu_1$ to a known mean $\mu$ 
+
+$$
+H_0: \mu = \mu_1
+$$
+
+- Note this is identical to saying:
+
+
+$$
+H_0: \mu - \mu_1 = 0
+$$
+
+---
+
+# Alternative Hypotheses
+- Two-tailed:
+
+$$
+\begin{matrix}
+H_0: \mu = \mu_1 \\
+H_1: \mu \neq \mu_1
+\end{matrix}
+$$
+
+- One-tailed:
+
+
+$$
+\begin{matrix}
+H_0: \mu = \mu_1 \\
+H_1: \mu < \mu_1 \\
+H_1: \mu > \mu_1
+\end{matrix}
+$$
+
+---
+
+# Are these means different?
+
+```{r, echo=FALSE}
+ggplot(NULL, aes(x=125:200)) +
+  geom_vline(xintercept = 150) +
+  geom_vline(xintercept = 170, col="red") +
+  xlim(125, 200) +
+  xlab("\n Height")
+```
+
+
+---
+
+# What about these?
+
+```{r, echo=FALSE}
+ggplot(NULL, aes(x=125:200)) +
+  geom_vline(xintercept = 140) +
+  geom_vline(xintercept = 190, col="red") +
+  xlim(125, 200) +
+  xlab("\n Height")
+```
+
+---
+
+# Differences in means
+- Why can we not tell whether they are different or not?
+- What else might we want to know in order to know whether not the group means could be thought of as coming from the same distribution?
+
+
+---
+
+# All the information
+
+```{r, echo=FALSE}
+ggplot(NULL, aes(x = c(125:200))) +
+  stat_function(fun=dnorm,
+                geom = "line",
+                args = list(mean=150, sd=10)) +
+  stat_function(fun = dnorm,
+                geom = "line",
+                col = "red",
+                args = list(mean=170, sd=10)) +
+  geom_vline(xintercept = 150) +
+  geom_vline(xintercept = 170, col="red") +
+  xlab("\n Height") +
+  ylab("") +
+  ggtitle("Comparing means")
+
+```
+
+---
+
+# All the information
+
+```{r, echo=FALSE}
+ggplot(NULL, aes(x = c(125:200))) +
+  stat_function(fun=dnorm,
+                geom = "line",
+                args = list(mean=150, sd=2)) +
+  stat_function(fun = dnorm,
+                geom = "line",
+                col = "red",
+                args = list(mean=170, sd=2)) +
+  geom_vline(xintercept = 150) +
+  geom_vline(xintercept = 170, col="red") +
+  xlab("\n Height") +
+  ylab("") +
+  ggtitle("Comparing means")
+
+```
+
+---
+
+# t-statistic
+- Recall when talking about hypothesis testing:
+  - We calculate a test statistic that represents our question.
+  - We compare our sample value to the sampling distribution under the null
+- Here the test statistic is a $t$-statistic.
+
+
+---
+
+# t-statistic
+
+$$
+t = \frac{\bar{x} - \mu}{\frac{s}{\sqrt{N}}}
+$$
+
+- where
+  - $s$ = sample estimated standard deviation of $x$
+  - $N$ = sample size
+- The numerator = a difference is means
+- The denominator = a estimate of variability
+- $t$ = a standardized difference in means.
+
+---
+
+# And breath
+- **Example:** Suppose I want to know whether the retirement age of Professors in my department is the same as the national average.
+- The national average age of retirement for Prof's 65.
+- So I look at the age of the last five Prof's that have retired at Edinburgh and compare against this value.
+
+---
+
+# Data
+
+```{r, echo=FALSE}
+df <- tibble(
+  ID = c(paste("Prof", 1:5, sep ="")),
+  Age = c(40, 70, 85, 80, 75)
+)
+df
+
+```
+
+---
+
+# Hypotheses
+- Let's say I am new to the department and a priori have no idea of the ages they retired.
+- So I specify a two-tailed hypothesis with $\alpha$ = 0.05.
+- So I am simply asking, does my mean differ from the known mean.
+
+---
+
+# Calculation
+
+$$
+t = \frac{\bar{x} - \mu}{\frac{s}{\sqrt{N}}}
+$$
+
+- Steps to calculate $t$:
+  - Calculate the sample mean ($\bar{x}$).
+  - Calculate the sample standard deviation ($s$).
+  - Check I know my N.
+  - Calculate the standard error of the mean ($\frac{s}{\sqrt{N}}$).
+  - Use all this to calculate t.
+
+---
+
+# Calculation
+```{r}
+df %>%
+  summarise(
+    PopMean = 65,
+    Mean = mean(Age),
+    SD = sd(Age),
+    N = n()
+  ) %>%
+  mutate(
+    SE = SD/sqrt(N)
+  )
+```
+
+---
+
+# Calculation
+
+```{r, echo=FALSE}
+df %>%
+  summarise(
+    PopMean = 65,
+    Mean = mean(Age),
+    SD = sd(Age),
+    N = n()
+  ) %>%
+  mutate(
+    SE = SD/sqrt(N)
+  )
+```
+
+
+$$
+t = \frac{\bar{x} - \mu}{\frac{s}{\sqrt{N}}} = \frac{70-65}{\frac{17.7}{\sqrt{5}}} = \frac{5}{7.91} = 0.63
+$$
+
+---
+
+# Is our test significant?
+- The sampling distribution for $t$-statistics is a $t$-distribution.
+- The t-distribution is a continuous probability distribution very similar to the normal distribution.
+  - Key parameter = degrees of freedom (df)
+	- df are a function of N.
+	- As N increases (and thus as df increases), the t-distribution approaches a normal distribution.
+- For a one sample $t$-test, we compare our test statistic to a $t$-distribution with N-1 df.
+
+---
+
+# Is our test significant?
+- So we have all the pieces we need:
+  - Degrees of freedom = N-1 = 5-1 = 4
+  - We have our t-statistic (0.63)
+  - Hypothesis to test (two-tailed)
+  - $\alpha$ level (0.05).
+- So now all we need is the critical value from the associated $t$-distribution in order to make our decision.
+
+---
+
+# Is our test significant?
+
+```{r}
+tibble(
+  LowerCrit = round(qt(0.025, 4),2),
+  UpperCrit = round(qt(0.975, 4),2),
+)
+```
+
+---
+
+# Is our test significant?
+
+```{r, echo=FALSE}
+ggplot(NULL, aes(x = c(-6,6))) +
+  stat_function(fun=dt,
+                geom = "line",
+                args = list(df=4)) +
+  stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(2.776445, 6),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=4)) +
+    stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(-2.776445, -6),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=4)) +
+  geom_vline(xintercept = 0.63, col="red") +
+  xlab("\n t") +
+  ylab("") +
+  ggtitle("t-distribution (df=4); t-statistic (0.63; red line)")
+```
+
+```{r, echo=FALSE}
+tibble(
+  LowerCrit = round(qt(0.025, 4),2),
+  UpperCrit = round(qt(0.975, 4),2),
+)
+```
+
+---
+
+# Is our test significant?
+- So our critical value is 2.78
+  - Our t-statistic is less than this, 0.63.
+  - So we fail to reject the null hypothesis.
+- t(4)=0.63, p > .05, two-tailed.
+
+
+---
+
+# Exact p-values
+
+```{r}
+tibble(
+  LowerCrit = round(qt(0.025, 4),2),
+  UpperCrit = round(qt(0.975, 4),2),
+  Exactp = round(2*(1-pt(0.63, 4)),2)
+)
+```
+
+
+---
+
+# Exact p-values
+
+```{r, echo=FALSE}
+ggplot(NULL, aes(x = c(-6,6))) +
+  stat_function(fun=dt,
+                geom = "line",
+                args = list(df=4)) +
+  stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(0.63, 6),
+                alpha=.25,
+                fill = "red",
+                args = list(df=4)) +
+    stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(-0.63, -6),
+                alpha=.25,
+                fill = "red",
+                args = list(df=4)) +
+  geom_vline(xintercept = 0.63, col="red") +
+  xlab("\n t") +
+  ylab("") +
+  ggtitle("t-distribution (df=4); t-statistic (0.63; red line)")
+```
+
+
+
+```{r, echo=FALSE}
+tibble(
+  LowerCrit = round(qt(0.025, 4),2),
+  UpperCrit = round(qt(0.975, 4),2),
+  Exactp = round(2*(1-pt(0.63, 4)),2)
+)
+```
+
+---
+
+# In R
+
+```{r}
+t.test(df$Age, mu=65, alternative="two.sided")
+```
+
+---
+
+# Write up
+A one-sample t-test was conducted in order to determine if a statistically significant ( $\alpha$ =.05) mean difference existed between the average retirement age of Professors, and the age at retirement of a sample of 5 psychology Professors. The sample scored higher (Mean=`r mean(df$Age)`, SD=`r round(sd(df$Age),2)`) than the population (Mean = 65), however the difference was not statistically significant (t(4)=0.63, p > .05, two-tailed). 
+
+---
+
+# Assumptions
+- As noted above, we have some requirements of the data:
+  - DV is continuous.
+- But we also have some additional model assumptions for the test to be valid.
+  - The data are normally distributed.
+  - The data are an independent random sample.
+- (2) we can not directly test.
+- (1) we can test using a QQplot, histograms and a Shapiro-Wilks Test.
+
+---
+
+`r knitr::include_url("https://www.menti.com/dahq981cn9", height="600px")`
+
+---
+
+<div style='position: relative; padding-bottom: 56.25%; padding-top: 35px; height: 0; overflow: hidden;'><iframe sandbox='allow-scripts allow-same-origin allow-presentation' allowfullscreen='true' allowtransparency='true' frameborder='0' height='315' src='https://www.mentimeter.com/embed/b4b94ecdca22f1610766f0eac9f78a23/a6e79818b9a1' style='position: absolute; top: 0; left: 0; width: 100%; height: 100%;' width='420'></iframe></div>
+
+
+---
+
+# Tasks for this week...
+
+    

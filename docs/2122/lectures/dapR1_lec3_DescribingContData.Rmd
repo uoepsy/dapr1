@@ -1,0 +1,684 @@
+---
+title: "<b>Week 3: Describing Continuous Data </b>"
+subtitle: "Data Analysis for Psychology in R 1<br><br> "
+author: "ALEX DOUMAS & TOM BOOTH"
+institute: "Department of Psychology<br>The University of Edinburgh"
+date: "AY 2020-2021"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: xaringan-themer.css
+    nature:
+      ratio: '16:9'
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+```
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+style_mono_accent(
+    base_color = "#0F4C81", # DAPR1
+  # base_color = "#BF1932", # DAPR2
+  # base_color = "#88B04B", # DAPR3 
+  # base_color = "#FCBB06", # USMR
+  # base_color = "#a41ae4", # MSMR
+  header_color = "#000000",
+  header_font_google = google_font("Source Sans Pro"),
+  header_font_weight = 400,
+  text_font_google = google_font("Source Sans Pro", "400", "400i", "600", "600i"),
+  code_font_google = google_font("Source Code Pro")
+)
+
+library(tidyverse)
+library(kableExtra)
+library(sn)
+library(moments)
+```
+
+
+```{r, echo=FALSE}
+ex1 <- read_csv("./ex1.csv", col_types = "cfddd")
+```
+
+
+# Weeks Learning Objectives
+1. Understand the appropriate visualization for the distribution of numeric data.
+
+2. Understand methods to calculate the spread for the distribution of numeric data.
+
+3. Understand methods to calculate central tendency for the distribution of numeric data.
+
+---
+# Topics for today
++ Histograms
+
++ Mean
+
++ Variance and standard deviation
+
+???
++Points to mention
++ continuing on how we describe data
++ focus on continuous numeric data
++ will consider visualizations, central tendency and dispersion
+
+---
+# Recap: Continuous data
++ Continuous (numeric) data is typically classed as interval or ratio
+
++ That means:
+
+  + The numeric values are meaningful as numbers.
+
+  + We are able to apply mathematical operations to the values.
+
+---
+# Visualization
+
+.pull-left[
+
++ Last lecture we discussed bar plots for frequency distributions of categorical variables.
+
++ For continuous data, we visualize the distribution using a histogram.
+
+**Example histogram on the height of a class**
+
+]
+
+.pull-right[
+```{r, echo=FALSE}
+set.seed(1984)
+df2 <- tibble(
+    dat = rnorm(225, 155, 15)
+)
+hp <- df2 %>%
+    ggplot(., aes(x=dat)) +
+    geom_histogram(bins = 20, color = "white", fill = "steelblue4") +
+    labs(x = "Height (cm)", y = "Count") +
+    scale_x_continuous(breaks = c(120, 130, 140, 150, 160, 170, 180, 190, 200))
+
+hp
+```
+
+]
+
+
+---
+# Histogram
+
+.pull-left[
+
++ Properties of a historgram: 
+
+  + X-axis: possible values of some variable. 
+    + Commonly presented in "bins" 
+    + A bin represents a range of scores (plot can look very different dependent on the bins)
+      + Scale = dependent on the form of measurement, here centimetres 
+
+  + Y-axis: frequency of a given value or values within "bins"
+
++ Here our data is heights of the class
+  + X-Axis values are the possible heights in bins of 4cm. 
+  + Y=Axis values are the counts of number of students in each bin. 
+
+]
+
+.pull-right[
+
+```{r, echo=FALSE}
+hp
+```
+
+
+]
+
+
+---
+# Pause for thought?
+
+**Why have we used bins for ranges of values and not individual values?**
+
+???
++ In recording, literally invite them to pause and write down thoughts
++ then do verbal explanation.
+
+
+---
+# Impact of bins
+
+.pull-left[
+```{r, echo=FALSE}
+df2 %>%
+    ggplot(., aes(x=dat)) +
+    geom_histogram(bins = 5, color = "white", fill = "steelblue4") +
+    labs(x = "Height (cm)", y = "Count") +
+    scale_x_continuous(breaks = c(120, 130, 140, 150, 160, 170, 180, 190, 200))
+```
+
+]
+
+
+.pull-right[
+```{r, echo=FALSE}
+df2 %>%
+    ggplot(., aes(x=dat)) +
+    geom_histogram(bins = 25, color = "white", fill = "steelblue4") +
+    labs(x = "Height (cm)", y = "Count") +
+    scale_x_continuous(breaks = c(120, 130, 140, 150, 160, 170, 180, 190, 200))
+```
+]
+
+---
+# Stats summer school example: test score
+
+.pull-left[
+
+```{r, echo=FALSE}
+kable(ex1[1:10,])
+```
+
+
+]
+
+
+.pull-right[
+
+```{r, echo=FALSE}
+ex1 %>%
+  ggplot(., aes(x=Score1)) +
+  geom_histogram(bins = 15, color = "white", fill = "steelblue4")+
+  xlab("Pre- Statistics Test Score") +
+  ylab("Count \n")
+```
+
+]
+
+
+---
+# Stats summer school example: test score
+
+.pull-left[
+
+```{r, eval=FALSE}
+ex1 %>%
+  ggplot(., aes(x=Score1)) +
+  geom_histogram(bins = 15, #<<
+                 color = "white", #<< 
+                 fill = "steelblue4")+ #<<
+  xlab("Pre- Statistics Test Score") +
+  ylab("Count \n")
+```
+
++ New bits of code:
+  + `geom_histogram` is used to make histograms
+  + `bins` is the number of columns we want
+  + `color` provides the colour for the outline of the column
+  + `fill` provides the main colour
+
+]
+
+
+.pull-right[
+
+```{r, echo=FALSE}
+ex1 %>%
+  ggplot(., aes(x=Score1)) +
+  geom_histogram(bins = 15, color = "white", fill = "steelblue4")+
+  xlab("Pre- Statistics Test Score") +
+  ylab("Count \n")
+```
+
+]
+
+
+---
+#  Central Tendency: Mean 
+
+.pull-left[
++ Last lecture we looked at the mode and median.
+
++ Both can be used for continuous data, but the optimal measure is the **arithmetic mean.**
+
++ **Mean:** is the sum of all values, divided by the total number of observations.
+  + I.e. this is the average as most people think about the average.
+]
+
+.pull-right[
+
+$$
+\bar{x} = \frac{\sum_{i=1}^{N}{x_i}}{N}
+$$
+
++ $\bar{x}$ = estimate of mean of variable $x$
++ $x_i$ = individual values of $x$
++ $N$ = sample size
+
+]
+
+---
+# Hand calculation
+
+$$
+\bar{x} = \frac{\sum_{i=1}^{N}{x_i}}{N}
+$$
+
++ Our data:
+
+$$x=[10,40,30,25,15,6]$$
+
+
++ Worked calculation
+
+$$\frac{\sum_{i=1}^{N}(10+40+30+25+15+6)}{6} = \frac{126}{6} = 21$$
+
+---
+#  Arithmetic Mean: Test score 
+
+
+.pull-left[
+
+**Following hand-calculation in `R`**
+
+```{r}
+sum(ex1$Score1)/length(ex1$Score1)
+```
+
+**Short way in `R`**
+```{r}
+mean(ex1$Score1)
+```
+
+]
+
+
+.pull-right[
+
+**Working with `tidyverse`**
+
+```{r}
+ex1 %>%
+    summarise(
+        mean = mean(Score1)
+    )
+```
+
++ We will work with `tidyverse` and summarise as we can build up summary tables for our data sets.
+
+
+]
+
+???
++ In this particular case the tidyverse is overkill, but we're using it becuase it allows us to build up summary tables very cleanly, which will come in handy as we get more statistics we'd like to summarise. 
+
+---
+# Variation around the mean
+
+```{r, echo=FALSE}
+mean_vec <- rep(mean(ex1$Score1), 150)
+x <- 1:150
+dev <- ex1 %>%
+  ggplot(., aes(x=factor(ID), y=Score1)) +
+  geom_point(size=1.5, color = "steelblue4") + 
+  xlab("ID") +
+  ylab("Pre- Statistics Score \n") +
+  theme(axis.text.x = element_blank(), 
+        axis.ticks.x=element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())
+
+dev
+```
+
+
+---
+# Variation around the mean
+
+```{r, echo=FALSE}
+dev +
+  geom_hline(yintercept = mean(ex1$Score1), size = 1, col = "steelblue4") +
+  geom_segment(x = x, y = ex1$Score1, xend = x, yend = mean_vec, linetype = "dashed")
+
+```
+
+
+---
+# Sum of deviations 
++ We could just add up the amount by which each observation differs from the mean.
+
++ This is called the **sum of deviations.**
+
+$$
+SumDev = \sum_{i=1}^{N}{(x_i - \bar{x})}
+$$
+
++ $x_i$ = individual observations
+
++ $\bar{x}$ = mean of $x$
+
+---
+# Calculation: First 10 rows
+
+```{r, echo=FALSE}
+ex1 %>%
+  select(ID, Score1) %>%
+  slice(., 1:10) %>%
+  mutate(
+    Score = Score1,
+    Mean = rep(mean(Score1), 10),
+    Deviance = Score1 - mean(Score1)
+  ) %>%
+  kable(.) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+---
+#  Problem: Sum of deviations 
+
+```{r, eval=FALSE}
+ex1 %>%
+  summarise(
+    Variable = "Statistics Test Score",
+    "Sum Deviation" = round(sum(Score1 - mean(Score1)),2) #<<
+  )
+```
+
+
+```{r, echo=FALSE}
+ex1 %>%
+  summarise(
+    Variable = "Statistics Test Score",
+    "Sum Deviation" = round(sum(Score1 - mean(Score1)),2)
+  ) %>%
+  kable(.)
+```
+
+
++ Uh oh! The positive and negative values cancel.
+
++ That means the sum of deviations from the mean will always be 0.
+
+
+---
+#  Variance 
++ In order to remove the effect of sign, we can square each of the deviations.
+
++ This is called the ***variance*** .
+
+$$
+\sigma^2 = \frac{\sum_{i=1}^{N}{(x_i - \bar{x})}^2}{N}
+$$
+
++ Variance is the average squared deviation from the mean.
+
++ $\sigma^2$ = variance (Greek letter lower case sigma)
+
+
+---
+# Calculation
+
+```{r, echo=FALSE}
+ex1 %>%
+  select(ID, Score1) %>%
+  slice(., 1:10) %>%
+  mutate(
+    Score = Score1,
+    Mean = rep(mean(Score1), 10),
+    Deviance = Score1 - mean(Score1),
+    Deviance_sq = Deviance^2
+  ) %>%
+  kable(.) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+---
+#  Variance 
+
+```{r, eval=FALSE}
+ex1 %>%
+  summarise(
+    Variable = "Statistics Test Score",
+    "Sum Deviation" = round(sum(Score1 - mean(Score1)),2),
+    Variance = round((sum((Score1 - mean(Score1))^2))/length(Score1),2) #<<
+  )
+```
+
+```{r, echo=FALSE}
+ex1 %>%
+  summarise(
+    Variable = "Statistics Test Score",
+    "Sum Deviation" = round(sum(Score1 - mean(Score1)),2),
+    Variance = round((sum((Score1 - mean(Score1))^2))/length(Score1),2)
+  ) %>%
+  kable(.)
+```
+
++ Problem: 
+  + Our units here are not quite right.
+  + Variance is the mean **squared** deviation from the mean.
+
+---
+#  Standard deviation 
++ What about a measure of variation in the same units as the mean/variable?
+
++ The ***standard deviation.***
+
++ The standard deviation is the square root of the variance.
+  + Taking the square root undoes (or fixes) the squaring of deviations that we did to get variance.
+
+$$
+\sigma = \sqrt{\frac{\sum_{i=1}^{N}{(x_i - \bar{x})}^2}{N}}
+$$
+
+---
+#  Standard deviation 
+
+```{r}
+ex1 %>%
+  summarise(
+    Variable = "Statistics Test Score",
+    Variance = round((sum((Score1 - mean(Score1))^2))/length(Score1),2),
+    SD = round(sqrt((sum((Score1 - mean(Score1))^2))/length(Score1)),2) #<<
+  ) 
+```
+
+---
+#  Standard deviation 
+
++ Easier `R` calculation
+
+```{r}
+ex1 %>%
+  summarise(
+    Variable = "Statistics Test Score",
+    "Sum Deviation" = round(sum(Score1 - mean(Score1)),2),
+    Variance = round(var(Score1),2), #<<
+    SD = round(sd(Score1),2) #<<
+  )
+```
+
+
+---
+# An important difference with `var` and `sd`
+
+.pull-left[
+
+**Population Variance**
+$$
+\sigma^2 = \frac{\sum_{i=1}^{N}{(x_i - \bar{x})}^2}{N}
+$$
+
+**Population SD**
+$$
+\sigma = \sqrt{\frac{\sum_{i=1}^{N}{(x_i - \bar{x})}^2}{N}}
+$$
+
+
+]
+
+
+.pull-right[
+
+**Sample Variance**
+$$
+s^2 = \frac{\sum_{i=1}^{N}{(x_i - \bar{x})}^2}{N-1}
+$$
+
+
+**Sample SD**
+$$
+s = \sqrt{\frac{\sum_{i=1}^{N}{(x_i - \bar{x})}^2}{N-1}}
+$$
+
+
+]
+
+--
+
++ NOTE: R defaults to sample values. 
+
+
+???
+Make the point that we will come back to this in more detail, but for now it is just important to note that the R defaults to sample.
+
+---
+# Summary of last 2 lectures
+
+```{r, echo = FALSE}
+tbl16 <- tibble::tribble(
+~`Measure`, ~`Strength`, ~`Weakness`,
+"Mode","Actually occurs in our data","Not algebraically calculable",
+" ","Unaffected by extreme values","Probably does not exist for true continuous data (think reaction time)",
+"Median","No assumptions about interval value of data","Not relatable to measures of dispersion (see next week)",
+" ","Unaffected by extreme values"," ",
+"Mean","Algebraically tractable","Sensitive to extreme values",
+" ","Related to measures of dispersion (see next week)","Assumes data are interval or better",
+" "," ","Possible no case in your data takes the value of the mean"
+)
+
+kableExtra::kable_styling(knitr::kable(tbl16), font_size = 22)
+```
+
+
+---
+#  Which measure should we use? 
+
+```{r, echo = FALSE}
+tbl18 <- tibble::tribble(
+~`Variable Type`, ~`Central Tendency`,
+"Categorical (Nominal)","Mode",
+"Categorical (Ordered)","Mode/Median",
+"Continuous","Mean (any in fact)",
+"Count","Mode (mean)"
+)
+
+kableExtra::kable_styling(knitr::kable(tbl18), font_size = 26)
+```
+
++ Depends on the level of measurement.
+
+
+---
+#  Which measure should we use? 
+
+```{r tbl23, echo = FALSE}
+tbl23 <- tibble::tribble(
+~`Variable Type`, ~`Central Tendency`, ~`Dispersion`,
+"Categorical (Nominal)","Mode","Frequency Table",
+"Categorical (Ordered)","Mode/Median","Range",
+"Continuous","Mean (any in fact)","Variance & Standard Deviation",
+"Count","Mode (mean)","Range (Variance & SD)"
+)
+
+kableExtra::kable_styling(knitr::kable(tbl23), font_size = 22)
+```
+
++ Depends on the level of measurement.
+
+---
+#  A few extra bits?
++ You may come across the mathematical language of *moments.*
+
++ Moments describe the shape of a set of points
+  + Mean
+  + Variance
+  + Skew
+  + Kurtosis
+
+---
+# Skew 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+tibble(
+  Value = c(rbeta(10000, 5, 2), rbeta(10000, 5, 5), rbeta(10000, 2,5)),
+  Skew = c(rep("Negative", 10000), rep("None",10000), rep("Positive",10000))
+) %>%
+  ggplot(., aes(x=Value, fill = Skew, color = Skew)) +
+  geom_density(alpha = .5) +
+  ylab("Density \n")
+```
+
++ Is a measure of asymmetry of a distribution.
+
+---
+#  Kurtosis
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+tibble(
+  Value = c(rnorm(10000, 0, 0.5), rnorm(10000, 0, 1), rnorm(10000, 0, 2)),
+  Kurtosis = c(rep("Leptokurtic", 10000), rep("None",10000), rep("Platykurtic",10000))
+) %>%
+  ggplot(., aes(x=Value, fill = Kurtosis, color = Kurtosis)) +
+  geom_density(alpha = .5) +
+  ylab("Density \n")
+```
+
++ Kurtosis is a measure of the flatness of the peak and the fatness of the tails of the distribution.
+
+
+---
+#  Do they matter? 
+
+.pull-left[
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+set.seed(07021984)
+df <- tibble(Data = rsn(1000, 5, 2, 5)) 
+
+df %>%
+  ggplot(., aes(x=Data)) +
+  geom_histogram(colour = "darkgrey", fill = "white") +
+  geom_vline(xintercept = mean(df$Data), col = "red", size = 2) +
+  geom_vline(xintercept = median(df$Data), col = "blue", size = 2) +
+  geom_vline(xintercept = 5.85, col = "green", size = 2) +
+  ylab("Count \n")
+```
+]
+
+.pull-right[
++ It can make a difference in how we describe data.
+
++ Both skew and kurtosis impact the **normality** of the distribution of the data.
+]
+
+---
+# Summary of today
++ Continuous variables are...
+  + Visualized with histogram
+  + summarised with mean and standard deviation
+  
++ We can describe the shape of the distribution with skew and kurtosis
+
+---
+# Next tasks
++ Next week, we will look at describing relationships.
+
++ This week:
+  + Complete your lab
+  + Come to office hours
+  + Weekly quiz - first assessed quiz on weeks 1 and 2 content
+      + Open Monday 09:00
+      + Closes Sunday 17:00

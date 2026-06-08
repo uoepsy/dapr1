@@ -1,0 +1,573 @@
+---
+title: "<b>Hypothesis testing: p-values</b>"
+subtitle: "<small>Data Analysis for Psychology in R 1<br>Semester 2, Week 2</small>"
+author: "<b>Dr Umberto Noè</b>"
+institute: "Department of Psychology<br/>The University of Edinburgh"
+date: ""
+output:
+  xaringan::moon_reader:
+    lib_dir: jk_libs/libs
+    css: 
+      - un-xaringan-themer.css
+      - jk_libs/tweaks.css
+    nature:
+      beforeInit: "jk_libs/macros.js"
+      ratio: '16:9'
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(tidyverse)
+
+theme_set(
+  theme_classic(base_size = 18) +
+    theme(plot.title = element_text(hjust = 0.5))
+)
+
+options(htmltools.dir.version = FALSE)
+options(digits=4, scipen=2)
+options(knitr.table.format="html")
+
+knitr::opts_chunk$set(
+  dev = "png",
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  cache = FALSE,
+  fig.align = 'center',
+  fig.height = 5, fig.width = 6,
+  out.width = "80%",
+  dpi = 300
+)
+```
+
+```{r xaringan-panelset, echo=FALSE}
+xaringanExtra::use_panelset()
+```
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#0F4C81", # DAPR1
+  # base_color = "#BF1932", # DAPR2
+  # base_color = "#88B04B", # DAPR3 
+  # base_color = "#FCBB06", # USMR
+  # base_color = "#a41ae4", # MSMR
+  header_color = "#000000",
+  header_font_google = google_font("Source Sans Pro"),
+  header_font_weight = 400,
+  text_font_google = google_font("Source Sans Pro", "400", "400i", "600", "600i"),
+  code_font_google = google_font("Source Code Pro"),
+  outfile = "un-xaringan-themer.css"
+)
+```
+
+
+```{r preamble, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(kableExtra)
+library(patchwork)
+```
+
+
+# Learning objectives
+
+1. Understand null and alternative hypotheses, and how to specify them for a given research question.
+
+1. Understand the concept of and how to obtain a null distribution.
+
+1. Understand statistical significance and how to calculate p-values from null distributions.
+
+
+
+
+---
+class: inverse, center, middle
+
+# Part A
+## Introduction
+
+---
+# Introduction
+
+- Are children with higher exposure to pesticides more likely to develop ADHD (attention-deficit/hyperactivity disorder)? 
+
+--
+
+- Is the average age of ICU patients at this hospital greater than 50?
+
+--
+
+- When getting voters to support a candidate in an election, is there a difference between a recorded phone call from the candidate or a flyer about the candidate sent through the mail?
+
+--
+
+- Does this new allergy medication really reduce symptoms more than a placebo? 
+
+--
+
+- If you want to remember something, should you take a nap or have some caffeine?
+
+
+---
+# What do all of these have in common?
+
+- Question:
+  
+  + What do all of the previous questions have in common?  
+
+--
+
+- Answer:
+  
+  + Testing a claim about a population parameter!
+
+---
+# Introduction
+
+- Are children with higher exposure to pesticides more likely to develop ADHD (attention-deficit/hyperactivity disorder)? 
+
+    + $p_{\text{exposed}} > p_{\text{not exposed}}? \qquad$ where $p$ = proportion of all children diagnosed with ADHD  
+    Remember, population proportion = $p$, sample proportion = estimate = $\hat p$.
+--
+
+- Is the average age of ICU patients at this hospital greater than 50?
+
+    + $\mu > 50? \qquad$ where $\mu$ = the hospital's mean age of all ICU patients
+
+--
+
+- When getting voters to support a candidate in an election, is there a difference between a recorded phone call from the candidate or a flyer about the candidate sent through the mail?
+
+    + $p_{\text{call}} \neq p_{\text{flyer}}? \qquad$ where $p$ = proportion of votes for the candidate
+
+
+---
+# Introduction
+
+- Lots of research questions involve testing a claim about a population parameter. 
+
+--
+
+- We will look at a widely applicable method (called __hypothesis test__ or __test of significance__) that allows you to test an hypothesis about a population parameter. 
+
+--
+
+- This method will allow you to answer many types questions you may have about a population. All you have to do is 
+
+    + collect relevant sample data
+    + perform an hypothesis test
+    + report it correctly
+
+--
+
+- If you have a research question you are interested in, and you perform the steps above correctly, you may end up writing up your research results in your first journal paper after that!
+
+--
+
+- Today's recurring example will focus on answering the following research question:
+
+> Has the average body temperature for healthy humans changed from the long-thought 37 °C? 
+
+- We will use data comprising measurements on body temperature and pulse rate for a sample of $n = 50$ healthy subjects. Data link: https://uoepsy.github.io/data/BodyTemp.csv
+
+
+---
+class: inverse, center, middle
+
+---
+class: inverse, center, middle
+
+# Part B
+## Fundamentals of hypothesis tests
+
+
+---
+# Statistical inference
+
+- After we have selected a sample at random, we know the measurements of the individuals in the sample.
+
+--
+
+- We are not interested in the individuals in the sample per se, but we collected data on them to __infer__ from the sample data some property of the wider population the sample came from.
+
+> __Definition__: Statistical inference  
+> Statistical inference is a collection of methods used to draw conclusions about a population from sample data.
+
+--
+
+- __Confidence interval__. Goal: estimating a population parameter
+
+- __Hypothesis test__ or __test of significance__. Goal: assess the evidence provided by the sample data about some claim concerning a population parameter.
+
+
+---
+# Stating hypotheses
+
+
+- In statistics, a __hypothesis__ is a claim or statement about a property of a population.
+
+--
+
+- A hypothesis test (or test of significance) is a procedure for testing a claim about a property of a population.
+
+--
+
+- The "property of a population" referred to in the preceding definitions is often the value of a population parameter.
+
+--
+
+- The test looks for evidence in the sample data __against__ a claim about the population parameter.
+
+--
+
+- The claim tested by a statistical test is called the __null hypothesis__. The test assesses the strength of the evidence __against__ the null hypothesis. Usually the null hypothesis is a statement of "no effect" or "no difference" and represents the status quo.
+
+--
+
+- The claim about the population that we are trying to find evidence __for__ is the __alternative hypothesis__.
+
+
+---
+# Null hypothesis
+
+- The null hypothesis usually is the skeptical claim that nothing is different / nothing is happening.
+
+    + Are we considering a (New! Improved!) possibly better method? The null hypothesis says, "Really? Convince me!" To convert a skeptic, we must pile up enough evidence against the null hypothesis that we can reasonably reject it.
+
+--
+
+> __Definition__: Null hypothesis    
+> The null hypothesis, denoted $H_0$, is a skeptical reaction to the research claim of interest, and it represents the "status quo". The specific null hypothesis varies from problem to problem, but generally it can be thought of as being the currently accepted "default", or no relationship, or no difference. In most situations, the researcher hopes to disprove or reject the null hypothesis.
+
+--
+
+- Lecture Example:
+$$H_0 : \mu = 37$$
+
+
+---
+# Alternative hypothesis
+
+- The alternative hypothesis (denoted $H_1$) is a statement that something is happening. In most situations, this hypothesis is what the researcher hopes to prove. It may be a statement that the assumed status quo is false, or that there is a relationship, or that there is a difference.
+
+--
+
+- Alternative hypothesis $H_1$ is the one NOT containing equality, so $H_1$ uses the symbol $>$ or $<$ or $\neq$.
+    
+    + If $H_1$ uses $<$ or $>$ it is called a one-sided alternative as it states that the parameter is larger than or smaller than some value.
+    
+    + If $H_1$ uses $\neq$ it is called a two-sided alternative as it stats that the parameter is different from some value (it could be either smaller or larger).
+
+--
+
+- Lecture Example:
+$$H_1: \mu \neq 37$$
+
+
+---
+# Analogy to trial
+
+- The idea of having to make a claim $H_0$ in order to evaluate the evidence __against__ it may seems unusual
+
+--
+
+- However, it isn't...
+
+--
+
+- Think of a criminal trial: the defendant is innocent until proven guilty.
+
+- The null hypothesis $(H_0)$ is that the defendant is __innocent__
+
+- The alternative hypothesis $(H_1)$ is that the defendant is __guilty__
+
+- The prosecution must provide convincing evidence __beyond reasonable doubt__ against the null hypothesis.
+
+- That's exactly how a hypothesis test works, the only difference is that the evidence is the sample statistic.
+
+
+---
+# Evidence against the null
+
+- A __test statistic__ is used to measure the difference between the  observed data and what we would expect to see if the null hypothesis were true.
+
+--
+
+- If we are testing a mean, e.g. $H_0 : \mu = \mu_0$, we use the test statistic called __t-statistic__:
+
+$$t = \frac{\bar x - \mu_0}{SE} \qquad \text{where} \qquad SE = \frac{s}{\sqrt{n}}$$
+
+--
+
+- $t$ says how many SEs away the observed mean $\bar x$ is from what is expected under the null hypothesis.
+
+--
+
+- Large values of the statistic show that the data are far from what we would expect if $H_0$ was true.
+
+--
+
+- More in the lab!
+
+---
+# Lecture example
+
+```{r echo=TRUE}
+library(tidyverse)
+tempsample <- read_csv('https://uoepsy.github.io/data/BodyTemp.csv')
+head(tempsample)
+dim(tempsample)
+n <- nrow(tempsample)
+n
+```
+
+
+---
+# Lecture example
+
+- Remember: we are testing:
+$$H_0 : \mu = 37 \quad \text{ vs } \quad H_1 : \mu \neq 37$$
+
+- We need to compute the t-statistic:
+$$
+t = \frac{\bar x - \mu_0}{s / \sqrt{n}}
+$$
+
+.pull-left[
+```{r echo=TRUE}
+xbar <- mean(tempsample$BodyTemp)
+xbar
+s <- sd(tempsample$BodyTemp)
+n <- nrow(tempsample)
+SE <- s / sqrt(n)
+```
+]
+
+.pull-right[
+```{r echo=TRUE}
+t <- (xbar - 37) / SE
+t
+```
+]
+
+
+---
+# Evidence against the null hypothesis
+
+.pull-left[
+- Is the t-statistic from our sample a value that is unlikely to happen if $H_0$ was true?
+
+    + If the mean temperature is really $H_0: \mu = 37$, is there a high chance to obtain the same t-statistic as that coming from our sample, or is it unlikely?
+    
+- You will not be surprised that the distribution of the sample mean when $H_0$ is true is a $t(n-1)$ distribution.
+
+- When $H_0$ is true, $\bar X \sim N(37, \frac{\sigma}{\sqrt n})$
+
+- When $H_0$ is true, $\dfrac{\bar X - 37}{\sigma / \sqrt n} \sim N(0, 1)$
+
+- Only sample data, so estimate $\sigma$ with $s$:
+$$\frac{\bar X - 37}{s / \sqrt{n}} \sim t(n-1)$$
+]
+
+.pull-right[
+
+```{r, out.width = '100%'}
+xx = seq(-4, 4, 0.01)
+yy = dt(xx, df = n-1)
+plot(xx, yy, type = 'l', frame.plot = F, col = 'darkblue', lwd = 2,
+     xlab = 't Distribution', ylab = 'Probability density')
+abline(v = t, col = 'darkorange', lwd = 1)
+text(t + 1, -0.005, labels = 't_obs = -3.14', 
+     col = 'darkorange')
+```
+]
+
+
+
+---
+# Null distribution
+
+- What values of the standardised sample mean do we expect to see if the null hypothesis that $H_0 : \mu = 37$ is true?
+
+- Remember: $$\bar X \sim N(\mu, \frac{\sigma}{\sqrt n})$$
+
+- But if $H_0$ were true, the population mean would be $\mu = 37$.
+
+- So $\bar X \sim N(37, \frac{\sigma}{\sqrt n})$
+
+- We can standardise it: $\dfrac{\bar X - 37}{\frac{\sigma}{\sqrt n}} \sim N(0, 1)$
+
+- We only have one sample, so we must estimate $\sigma$ with $s$
+$$\dfrac{\bar X - 37}{\frac{s}{\sqrt n}} \sim t(n-1)$$
+
+
+
+---
+# Evidence against the null hypothesis
+
+
+- The probability, computed assuming that $H_0$ is true, that the test statistic would take a value at least as extreme (in the direction of $H_1$) as that actually observed is called the P-value of the test. 
+
+- The smaller the P -value, the stronger the evidence that the data provide against $H_0$.
+
+- Small P-values are evidence against $H_0$, because they say that the observed result would be unlikely to occur if $H_0$ was true.
+
+- Large P-values fail to provide sufficient evidence against $H_0$ 
+
+- Failing to find sufficient evidence against $H_0$ means only that the data are __consistent__ with $H_0$, not that we have clear evidence that $H_0$ is true.
+
+- Example: not finding sufficient evidence that person is guilty doesn't necessarily prove they are innocent. They chould have just hidden every single possible trace.
+
+---
+# Statistical significance
+
+- We can compare a P-value with some fixed value (called __significance level__ and denoted $\alpha$) that is in common use as standard for evidence against $H_0$. 
+
+- The most common fixed values are 0.05 and 0.01. 
+
+- The value is chosen by the researcher (__you!__)
+
+- It is important to clearly state the significance level at the start  of your write-ups in every report or journal paper.
+
+- If $p \leq 0.05$, there is no more than 1 chance in 20 that a sample would give evidence this strong just by chance when $H_0$ is actually true. 
+
+- If $p \leq 0.01$, we have a result that in the long run would happen no more than once per 100 samples when $H_0$ is true. 
+
+---
+# Statistical significance: interpretation
+
+Significance means "worthwhile noting"
+
+- If the P -value is as small as or smaller than $\alpha$, we say that the data are statistically significant at level $\alpha$.
+
+- "Significant" is a technical term in scientific research and it doesnt have the same meaning as in everyday English language. 
+
+    + It does __not__ mean "important".  
+    
+    + It means "not likely to happen just by chance because of random variations from sample to sample".
+
+
+---
+# Step 1. Identify the claim
+
+> Step 1. Identify the claim to be tested and express it in symbolic form.
+
+Recall that we are interested in whether the average body temperature for healthy humans changed from the long-thought 37 °C. 
+
+Using $\mu$ to denote the average body temperature for healthy humans, the claim that "the average body temperature for healthy humans changed from the long-thought 37 °C" can be expressed in symbolic form as: is $\mu \neq 37$?
+
+
+---
+# Step 2. Give symbolic form
+
+> Step 2. Give the symbolic form that must be true when the original claim is false.
+
+If the original claim that $\mu \neq 37$ is false, then $\mu = 37$ must be true.
+
+
+---
+# Step 3. Identify Null and Alternative Hypotheses
+
+> Consider the two symbolic expressions obtained so far:
+> 
+> - Alternative hypothesis $H_1$ is the one NOT containing equality, so $H_1$ uses the symbol $>$ or $<$ or $\neq$.
+> 
+> - Null hypothesis $H_0$ is the symbolic expression that the parameter equals the fixed value being considered.
+
+- Identify $H_1$: consider the two symbolic expressions $\mu \neq 37$ and $\mu = 37$, the alternative hypothesis $H_1$ is the one that does not contain equality. So we have:
+
+$$H_1 : \mu \neq 37$$
+
+- Identify $H_0$: the null hypothesis $H_0$ is the symbolic expression that the parameter equals the fixed value being considered
+
+$$H_0 : \mu = 37$$
+
+
+---
+# Summary: Steps 1, 2, 3
+
+The result of the first 3 steps is a clearly defined null and alternative hypothesis for the research question or claim of interest.
+
+$$H_0 : \mu = 37$$
+
+$$H_1 : \mu \neq 37$$
+
+
+---
+# Step 4. Select the significance level $\alpha$
+
+> Step 4. Select Significance Level
+> 
+> Select the significance level $\alpha$ based on the seriousness of a type I error.
+> Make $\alpha$ small if the consequences of rejecting a true $H_0$ are severe. > 
+> The values of 0.05 and 0.01 are common choices.
+
+- The significance level, denoted $\alpha$ for a hypothesis test is the cutoff chosen to determine when the sample results provide significant evidence against the null hypothesis.
+
+- By con
+
+---
+# Steps 1, 2, 3
+
+- Steps 1, 2, 3 have as goal to use the original claim to create a null Hypothesis $H_0$ and an alternative Hypothesis $H_1$
+
+- The __null hypothesis__ (denoted $H_0$) is a statement that the value of a population parameter (such as proportion, mean, or SD) is equal to some claimed value.
+
+- The __alternative hypothesis__ (denoted $H_1$ or, less frequently, $H_a$ or $H_A$) is a statement that the parameter has a value that differs from the null hypothesis. The alternative hypothesis involves one of these three symbols: $<, >, \neq$.
+
+
+---
+# Basic concepts of hypothesis testing
+
+- A hypothesis is a claim or statement about a property of a population.
+
+- A hypothesis test (or test of significance) is a procedure for testing a claim about a property of a population.
+
+
+The "property of a population" referred to in the preceding definitions is often the value of a population parameter, so here are some examples of typical hypotheses (or claims):
+
+- $\mu \neq 37$ °C: the average body temperature for healthy humans different from 37 °C.
+- $p < 0.5$: the proportion of voters that support the candidate is less than fifty percent.
+- $\sigma = 15$: the population of high-school students has IQ scores with SD = 15.
+- $p > 0.5$: the majority of UK customers are not comfortable with drone deliveries.
+
+---
+
+```{r, out.width = "70%"}
+knitr::include_graphics('images/2_02_hyptest_pvalues/hyptest-chart-1.png')
+```
+
+---
+
+```{r, out.width = "70%"}
+knitr::include_graphics('images/2_02_hyptest_pvalues/hyptest-chart-2.png')
+```
+
+---
+class: inverse, center, middle
+
+---
+class: inverse, center, middle
+
+# Part C
+## Null distributions
+
+
+---
+class: inverse, center, middle
+
+---
+class: inverse, center, middle
+
+# Part C
+## P-values
+
+
+---
+class: inverse, center, middle

@@ -1,0 +1,100 @@
+---
+title: "Body temperature investigation"
+author: "DAPR1 staff"
+output: bookdown::pdf_document2
+toc: false
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+
+```{r include = FALSE}
+# week 1 code
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+
+temp_data <- read_csv("https://uoepsy.github.io/data/BodyTemp.csv")
+
+temp_data <- temp_data %>%
+  select(BodyTemp)
+
+dim(temp_data)
+head(temp_data)
+glimpse(temp_data)   # str()
+summary(temp_data)
+
+plt.h <- ggplot(temp_data, aes(x = BodyTemp)) +
+  geom_histogram(color = 'white') +
+  labs(x="Body temperature (°C)")
+plt.h
+
+plt.d <- ggplot(temp_data, aes(x = BodyTemp)) +
+  geom_density() +
+  labs(x="Body temperature (°C)")
+plt.d
+
+plt.b <- ggplot(temp_data, aes(x = BodyTemp)) +
+  geom_boxplot() +
+  labs(x="Body temperature (°C)")
+plt.b
+
+plt.h | plt.b
+
+# Option 1: with a descriptives table
+stats <- temp_data %>%
+  summarise(
+    n = n(),
+    M = mean(BodyTemp),
+    SD = sd(BodyTemp),
+    Min = min(BodyTemp),
+    Max = max(BodyTemp)
+  )
+stats
+
+tstar <- qt(c(0.025, 0.975), df = stats$n - 1)
+stats$M + tstar * (stats$SD / sqrt(stats$n))
+
+
+# Option 2: creating each variable
+xbar <- mean(temp_data$BodyTemp)
+n <- nrow(temp_data)
+s <- sd(temp_data$BodyTemp)
+se <- s / sqrt(n)
+tstar <- qt(c(0.025, 0.975), df = n - 1)
+xbar + tstar * se
+```
+
+
+# Introduction
+
+Will be added in the next weeks during the live R...
+
+
+# Analysis
+
+Figure \@ref(fig:temp-distr) shows that the body temperatures of the sample of 50 healthy individuals follow roughly a bell-shaped distribution, with most values between 36.5 and 37.5 °C and fewer in the tails of the distribution. No values were lower than 35.75 or larger than 38.22. The average body temperature in the sample was 36.81 °C, see Table \@ref(tab:temp-stats), with a SE of 0.06 and 95% CI [36.69, 36.93]. Hence, we are 95% confident that the average body temperature for a healthy individual is between 36.69 °C and 36.93 °C.
+
+```{r temp-distr, fig.height = 3, fig.cap = "Distribution of body temperatures (°C)"}
+plt.h | plt.b
+```
+
+```{r temp-stats}
+kbl(stats, booktabs = TRUE, digits = 2,
+    caption = "Descriptive statistics of body temperatures (°C)")
+```
+
+
+# Discussion
+
+Will be added in the next weeks during the live R...
+
+
+# Appendix
+
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
+

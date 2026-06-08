@@ -1,0 +1,770 @@
+```{r, echo=FALSE}
+HIDDEN_SOLS=FALSE
+TOGGLE=TRUE
+set.seed(15732)
+ggplot2::theme_set(ggplot2::theme_gray(base_size=13))
+
+library(tidyverse)
+```
+
+# Paired T-Test {#chap-paired-t-test}
+
+
+<div class="lo">
+#### Instructions {-}
+  
+- In this two-hour lab we will go through worked examples in the first hour, and you will attempt to answer some questions in the second hour.
+- The Rmarkdown file for this week is [here](https://uoe-psychology.github.io/uoe_psystats/dapr1/labsheets/week_18_practice.Rmd).
+
+
+#### Learning outcomes {-}
+
+**LO1.** Understand how to perform a paired-sample $t$-test and interpret the results.
+
+**LO2.** Learn how to compute Cohen's $D$ for different types of $t$-test.  
+
+<!-- #### Reading {-} -->
+
+</div>
+
+## Recap {-}
+
+
+Last week we extended our understanding of the $t$-test to compare the means of two populations (or the means of two treatment groups, if doing a randomized experiment).  
+We therefore now have the tools to answer questions of the form:  
+  
+1. _is_ [population mean] _different from_ [hypothesized value] _?_ (one sample $t$-test)  
+2. _is_ [population mean 1] _different from_ [population mean 2] _?_ (independent samples $t$-test)  
+<small>**Note**: this is the same as "_is the mean of_ [variable] _different between_ [group-1] and [group-2] _?_"</small>
+
+---
+
+#### One sample $t$-test ([Week 16](#chap-one-mean-test)) {-}
+<center>
+$$
+t = \frac{\bar{x} - \mu_0}{SE(\bar{x})}, \qquad SE(\bar{x}) = \frac{s}{\sqrt{n}}
+$$
+</center>
+__Validity conditions:__  
+i. The data are continuous (not discrete).  
+ii. The quantitative variable of interest is normally distributed in the population OR the sample size is large enough (as a convention, $n \geq 20$) and the data are not strongly skewed.  
+iii. The data are randomly sampled from a population.  
+
+
+---
+
+#### Two independent samples $t$-test (with equal variances) ([Week 17](#two-indep-samples)) {-}  
+$$
+t = \frac{\bar x_1 - \bar x_2}{SE(\bar x_1 - \bar x_2)}, \qquad SE(\bar{x}_1 - \bar{x}_2) = S_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}, \qquad S_p = \sqrt\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2}
+$$
+__Validity conditions:__  
+i. The data are continuous (not discrete).  
+ii. The quantitative variable of interest is normally distributed in both populations OR both sample sizes are large (as a convention, $n_1 \geq 20$ and $n_2 \geq 20$) and the sample distributions should not be strongly skewed.  
+iii. Independence of observations within and across groups.  
+iv. Homogeneity of variance across groups.  
+
+We also learnt that when the response variable does __not__ have equal variance across groups, we could use the Welch-Satterthwaite approximation to the degrees of freedom, and set `var.equal=FALSE` in the `t.test()` function.  
+
+
+## Paired $t$-test {-}
+
+The last $t$-test we are going to learn about is the paired $t$-test, or 'dependent samples $t$-test'.  
+  
+Recall that last week we were concerned with evaluating the differences in means between two groups, and one of our assumptions in conducting our test was that the two groups were independent.  
+  
+However, we are often interested in asking whether there is a difference in means between two sets of observations which are _paired_.  
+
+#### Paired data {-}
+
+We say that two sets of observations $A$ and $B$ are _paired_ when there is some pairing in the sets such that $A_1$ is linked to $B_1$ in the same way that $A_2$ is linked to $B_2$, and so on.
+
+<div class="noteBox">
+`r msmbstyle::solution_begin(header = "&#x25BA; __Pairs of time points:__", hidden = FALSE, toggle = TOGGLE)`
+__Same person, same variable, different times__  
+  
+Do peoples' scores differ between timepoint one and timepoint two? (Same participants and same test administered at multiple timepoints)   
+
+```{r echo=FALSE}
+tibble(
+  subject = c("sub1","sub2","..."),
+  time_1 = c(25, 18, "..."),
+  time_2 = c(25, 19, "...")
+) %>% knitr::kable()
+```
+`r msmbstyle::solution_end()`
+`r msmbstyle::solution_begin(header = "&#x25BA; __Pairs of variables:__", hidden = FALSE, toggle = TOGGLE)` 
+__Same person, different variables__  
+  
+Do peoples' scores on maths tests differ from their scores on English tests? (Same people taking both tests and producing a score on maths and score on English)   
+  
+```{r echo=FALSE}
+tibble(
+  subject = c("sub1","sub2","..."),
+  maths_test = c(42, 46, "..."),
+  english_test = c(38, 40, "...")
+) %>% knitr::kable()
+```
+`r msmbstyle::solution_end()`
+`r msmbstyle::solution_begin(header = "&#x25BA; __Pairs of people:__", hidden = FALSE, toggle = TOGGLE)`  
+__Same variable, different individual from a dyad (pair of people)__  
+  
+Do employees work different amount of hours to their bosses? (Same variable (hours worked per day) collected from each person in pairs of people (i.e., each employee and their respective bosses)).  
+
+```{r echo=FALSE}
+tibble(
+  pair = c("pair1","pair2","..."),
+  line_manager_hours = c(10, 8, "..."),
+  employee_hours = c(9, 9, "...")
+) %>% knitr::kable()
+```
+`r msmbstyle::solution_end()`
+
+</div>
+
+
+<div class="red">
+#### Comparing the means of two dependent groups (paired $t$-test) {-}
+
+Suppose you wish to determine whether the mean difference between two dependent sets of observations is zero, and if the difference is significant, you wish to quantify the magnitude of the difference using a confidence interval.  
+
+
+
+#### Test of significance  {-}
+
+__Null hypothesis:__    
+The null hypothesis assumes that the true mean difference ($\mu_d$) is equal to zero.
+
+<center>$H_0: \mu_d = 0$  </center>
+
+__Alternative hypothesis:__  
+The alternative hypothesis assumes that $\mu_d$ is less than/greater than/not equal to zero.  
+
+<center>
+$$
+\begin{matrix}
+i.   & H_1: \mu_d < 0 \\
+ii.  & H_1: \mu_d > 0 \\
+iii. & H_1: \mu_d \neq 0
+\end{matrix}
+$$
+</center>
+
+__Test statistic:__
+<center>
+$$
+t = \frac{\bar{d} - 0}{SE(\bar{d})}, \qquad SE(\bar{d})= \frac{s_d}{\sqrt{n}}
+$$
+</center>
+
+__$p$-value:__
+
+<center>
+$$
+\begin{matrix}
+i.   & \mathrm{Pr}(T_{df} \leq t) \\
+ii.  & \mathrm{Pr}(T_{df} \geq t) \\
+iii. & 2 \times \mathrm{Pr}(T_{df} \geq |t|)
+\end{matrix}
+$$
+</center>
+where $T_{df}$ denotes a $t$-distribution with $df$ degrees of freedom.
+
+
+#### Confidence interval for $\mu_d - 0$ {-}
+
+<center>
+$$
+(\bar d) \pm t^*_{df} \times SE(\bar d)
+$$
+</center>
+where $t^*_{df}$ denotes the critical value corresponding to a desired $\alpha$ level for a $t$-distribution with $df$ degrees of freedom.
+
+
+#### Validity conditions {-}
+
+These above procedures are considered valid if:
+
+i. Data are matched pairs (design issue).    
+ii. The *differences score* arise from independent random samples from the population (i.e., independence within group/time).  
+iii. Either the difference scores are normally distributed in the population OR the sample size is large (as a convention, $n \geq 20$) and the sample distribution should not be strongly skewed.  
+
+</div>
+
+
+#### **THE PAIRED $t$-TEST IS JUST THE ONE SAMPLE $t$-TEST IN DISGUISE!!** {-}  
+Steps for the one sample $t$-test:  
+   
++ 1. calculate the sample mean ($\bar x$)
++ 2. calculate the sample standard deviation ($s_x$)  
++ 3. calculate $t$
++ 4. calculate the probability of observing a $t$-statistic at least as extreme assuming the null hypothesis ($\mu_1 = \mu_0$) to be true.  
+  
+---
+
+Steps for paired $t$-test:  
+  
++ 1. **calculate the difference score for each pairs**  
++ 2. calculate the sample mean **difference score** ($\bar d$)  
++ 3. calculate the sample standard deviation **of difference scores** ($s_d$)   
++ 4. calculate $t$  
++ 5. calculate the probability of observing a $t$-statistic at least as extreme assuming the null hypothesis ($\mu_d = 0$) to be true.  
+
+The formula for the $t$-statistic, assessing statistical significance, and constructing confidence intervals is identical to the one-sample $t$-test.  
+We have simply changed the notation: Instead of talking about a population mean $\mu$ which is estimated by a sample mean $\bar x$, we are talking about a population mean difference $\mu_d$ estimated by the sample mean difference $\bar d$. And we are testing whether $\mu_d$ is different from 0.  
+
+
+## Walkthrough 
+
+### Change in score on the ACE-III {-}  
+
+Addenbrooke's Cognitive Examination-III (ACE-III) is a brief cognitive test that assesses five cognitive domains: attention, memory, verbal fluency, language and visuospatial abilities. The total score is 100 with higher scores indicating better cognitive functioning.  
+A research project is examining changes in cognitive functioning with age, and administers the ACE-III to a set of participants at age 60, then again at age 70.  
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.1")`
+How is the data from this study paired?
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+Same people, same variable, different time points.
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.2")`
+Write out the null and alternative hypotheses in words, and using the appropriate symbols.  
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+As the study is asking about the change in cognitive functioning with age, we are not presupposing that scores increase or decrease.  
+
+Our null hypothesis is that the population mean difference in scores on the ACE-III between ages 60 and 70 is equal to zero (i.e., no change).  
+
+$H_0: \mu_d = 0$
+
+Our alternative hypothesis is that the population mean difference in scores on the ACE-III between ages 60 and 70 is not equal to zero (e.g., scores at age 70 are different from scores at age 60).  
+
+$H_1: \mu_d \neq 0$
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.3")`
+Read in the data, and make a new column of the difference in scores for each pair.   
+
+The data is available as a **.csv** from [https://edin.ac/2Tz1cNH](https://edin.ac/2Tz1cNH). 
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+```{r message=FALSE}
+acedata <- read_csv("https://edin.ac/2Tz1cNH")
+
+acedata <-
+  acedata %>% 
+    mutate(
+      diff_score = ace_70 - ace_60
+    )
+```
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.4")`
+Perform a one-sample $t$-test to see whether the mean difference score is equal to 0.
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+Calculate the $\bar d$, $s_d$, $n$:
+```{r}
+aceterms <- acedata %>% 
+  summarise(
+    dbar = mean(diff_score),
+    s_d = sd(diff_score),
+    n = n()
+  )
+aceterms
+```
+Calculate $t$:
+```{r}
+t_stat = (aceterms$dbar - 0)/(aceterms$s_d / sqrt(aceterms$n))
+t_stat
+```
+Calculate the p-value: $2 \times \mathrm{Pr}(T_{df} \geq |t|)$:
+
+```{r echo=FALSE}
+p = pt(abs(t_stat), df = 24)
+ggplot(NULL, aes(x = c(-6,6))) +
+  stat_function(fun=dt,
+                geom = "line",
+                args = list(df=24)) +
+  stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(abs(t_stat), -6),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=24)) +
+  geom_vline(xintercept = abs(t_stat), col="red") +
+  xlab("t") +
+  scale_y_continuous(NULL, breaks=NULL)+
+  theme_classic()+
+  ggtitle(paste0("pt(|t|, df = 24)   =   ",round(p,2))) -> p1
+
+
+p = 1-pt(abs(t_stat), df = 24)
+
+ggplot(NULL, aes(x = c(-6,6))) +
+  stat_function(fun=dt,
+                geom = "line",
+                args = list(df=24)) +
+  stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(abs(t_stat), 6),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=24)) +
+  geom_vline(xintercept = abs(t_stat), col="red") +
+  xlab("t") +
+  scale_y_continuous(NULL, breaks=NULL)+
+  theme_classic()+
+  ggtitle(paste0("1 - pt(|t|, df = 24)   =   ",round(p,2)))->p2
+
+p = 2 * (1 - pt(abs(t_stat), df = 24))
+
+ggplot(NULL, aes(x = c(-6,6))) +
+  stat_function(fun=dt,
+                geom = "line",
+                args = list(df=24)) +
+  stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(abs(t_stat), 6),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=24)) +
+    stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(t_stat, -6),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=24)) +
+  geom_vline(xintercept = abs(t_stat), col="red") +
+  xlab("t") +
+  scale_y_continuous(NULL, breaks=NULL)+
+  theme_classic()+
+  ggtitle(paste0("2*(1 - pt(|t|, df = 24))   =   ",round(p,2)))-> p3
+
+library(patchwork)
+p1 / p2 / p3
+
+```
+
+```{r}
+2 * (1 - pt(abs(t_stat), df = 24))
+```
+
+Compute the confidence interval: 
+<center>
+$$
+(\bar d) \pm t^*_{df} \times SE(\bar d)
+$$
+</center>
+```{r}
+#We know dbar
+aceterms$dbar
+
+#And we can calculate the SE(dbar)
+aceterms$s_d / sqrt(aceterms$n)
+```
+
+
+We need to know the critical values of $t$, for our desired $\alpha$, with our $df=24$. 
+
+```{r echo=FALSE, fig.width=4, fig.height=4}
+ggplot(NULL, aes(x = c(-6,6))) +
+  stat_function(fun=dt,
+                geom = "line",
+                args = list(df=24)) +
+  stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(qt(.975, df=24), 6),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=24)) +
+    stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(qt(.025, df=24), -6),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=24)) +
+  xlab("t") +
+  scale_x_continuous(breaks=c(-6,-3,qt(.025, df=24), 0, qt(.975, df=24), 3, 6), labels=c("-6","-3","?","0","?","3","6"))+
+  scale_y_continuous(NULL, breaks=NULL)+
+  theme_classic()+
+  ggtitle("t-distribution (df=24)")
+```
+
+```{r}
+crit_t = qt(.975, df = 24)
+
+crit_t
+
+# lower interval
+aceterms$dbar - ( crit_t * (aceterms$s_d / sqrt(aceterms$n)))
+# upper interval
+aceterms$dbar + ( crit_t * (aceterms$s_d / sqrt(aceterms$n)))
+```
+
+Or all using `t.test()` function:
+```{r}
+t.test(acedata$diff_score, mu = 0)
+```
+Or, equivalently:
+```{r}
+t.test(acedata$ace_70, acedata$ace_60, paired = TRUE)
+```
+`r msmbstyle::solution_end()`
+
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.5")`
+Provide a write-up of the results. 
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+```{r echo=FALSE, include=FALSE}
+res<-t.test(acedata$ace_70, acedata$ace_60, paired = TRUE)
+ci=list(l=aceterms$dbar - ( crit_t * (aceterms$s_d / sqrt(aceterms$n))) %>% round(2),
+     u=aceterms$dbar + ( crit_t * (aceterms$s_d / sqrt(aceterms$n))) %>% round(2))
+```
+
+A paired-sample $t$-test was conducted in order to determine if a statistically significant ($\alpha$ = .05) mean change in cognitive functioning (as measured using the total scores on the ACE-III) was present between the ages of 60 and 70, in a sample of 25 participants. 
+The mean difference in score on the ACE-III from age 60 to age 70 was `r res$estimate` (95% CI=(`r ci$l` - `r ci$u`). The difference was statistically significant ($t$(`r res$parameter`)= `r round(res$statistic,2)`, $p$ < . 05, two-tailed). Thus, we reject the null hypothesis of no difference.
+`r msmbstyle::solution_end()`
+
+
+### Data organisation - reshaping {-}
+
+In the lecture, we talked briefly about data organisation, and how we might **reshape** data to make it go from this (*long* format): 
+```{r echo=FALSE}
+acedata %>% pivot_longer(ace_60:ace_70, names_to = "age", values_to="ace_score") %>%
+  select(participant, age, ace_score) %>%
+  head %>% 
+  rbind(.,"...") %>% knitr::kable()
+```
+
+To this (*wide* format):
+```{r echo=FALSE}
+head(acedata) %>% select(-diff_score) %>% rbind(.,"...") %>% knitr::kable()
+```
+
+#### New R stuff! {-}  
+
+We can reshape datasets using the functions `pivot_longer()` and `pivot_wider()`, which we mentioned briefly in the lecture.  
+
+![](https://www.fromthebottomoftheheap.net/assets/img/posts/tidyr-longer-wider.gif)
+
+(source: [https://www.fromthebottomoftheheap.net/2019/10/25/pivoting-tidily/](https://www.fromthebottomoftheheap.net/2019/10/25/pivoting-tidily/))
+
+
+Recall that our data was *wide*:
+```{r}
+acedata
+```
+
+We can make it long, by: 
+```{r}
+acedata_long <- 
+  acedata %>% 
+  pivot_longer(ace_60:ace_70, names_to = "age", values_to="ace_score")
+
+acedata_long
+```
+
+This takes the columns from `ace_60` to `ace_70` (and anything in between), and puts the *names* (i.e. the variable names) into a column we call "age", and puts the *values* into a column we call "ace_score".  
+
+<div class="noteBox">  
+Note that we could now run the same paired $t$-test using:  
+```{r}
+t.test(acedata_long$ace_score ~ acedata_long$age, paired = T)
+```
+</div>
+
+We can turn it back to wide using `pivot_wider()`:
+```{r}
+acedata_long %>%
+  pivot_wider(names_from = age, values_from = ace_score)
+```
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.6")`
+The code below produces a visualisation of the scores on the ACE-III at ages 60 and 70. 
+ 
+```{r eval=FALSE}
+ggplot(data = ace_iii, aes(x = age, y = score)) +
+  geom_boxplot()
+```
+
+1. Based on what we found out when we conducted our $t$-test, sketch what you think the code will produce.  
+2. What does the data `ace_iii` need to look like for this to work?  
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+We can tell that for the plot to work, it must find all the scores in a column called `score`, and all the ages (e.g., 60 and 70) in a column called `age`. So the data will have to look something like this (i.e., in *long* format):   
+```{r echo=FALSE}
+ace_iii <- acedata_long %>% 
+  rename(score=ace_score) %>% mutate(age = gsub("ace_","",age)) %>%
+  select(-diff_score)
+rbind(head(ace_iii),"...") %>% knitr::kable(.)
+```
+
+```{r}
+ace_iii <- acedata %>% 
+  pivot_longer(ace_60:ace_70, names_to = "age", values_to="score")
+
+ggplot(data = ace_iii, aes(x = age, y = score)) +
+  geom_boxplot()
+```
+`r msmbstyle::solution_end()`
+
+### Effect sizes {-}  
+
+We also learned in the lecture about Cohen's $D$ - a means of reporting a standardised magnitude of our difference.  
+
+##### Formula for Cohen's $D$: {-}
+
+|  Test                        |  Cohen's $D$
+|-----------------------------:|-----------------------------------------:|
+|  One sample $t$-test         |  $D = \frac{ \bar x - \mu_0}{s_x}$       |
+|  Independent samples $t$-test|  $D = \frac{ \bar{x}_1 - \bar{x}_2}{s_p}$|
+|  Paired $t$-test             |  $D = \frac{ \bar{d} - 0}{s_d}$          |
+
+
+##### Interpreting Cohen's $D$: {-}  
+
++ ~ 0.2 = small effect
++ ~ 0.5 = moderate effect  
++ ~ 0.8 = large effect 
+
+
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question A.7")`
+Calculate the effect size for the mean difference in scores on the ACE-III from age 60 to 70.
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = FALSE, toggle = TOGGLE)`
+We know all the terms for this already. In fact, we calculated them and saved them in an object called `aceterms`.
+```{r}
+aceterms
+```
+
+So we can calculate our effect size:  
+```{r}
+(aceterms$dbar - 0) / aceterms$s_d
+```
+`r msmbstyle::solution_end()`
+
+
+
+## Summary  
+
++ The paired $t$-test is the same as the one sample $t$-test.
++ Instead of assessing the distance from $\bar x - \mu_0$, we are investigating the distance of $\bar d - 0$. 
++ We can conduct a paired $t$-test in R by either:
+  + calculating the difference scores and using `t.test(difference_scores, mu = 0)`
+  + running `t.test(score1, score2, paired = TRUE)`
++ We can compute Cohen's $D$ for standardised size of our effect.  
++ We can *reshape* our data between *long* to *wide*. This helps with plotting, and also means we can conduct our test using `t.test(score ~ group, paired = TRUE)`. 
+
+
+
+## Lab  
+  
+_Please attempt the questions **before** looking at the solutions. Copy & pasting the solutions will not help with learning!_  
+
+### Age differences in heterosexual marriages {-}  
+
+<div class="red">
+##### Research Q {-}  
+
+Is there an age difference in heterosexual married couples? (and in what direction?)  
+
+Data on the ages of both brides and grooms at point of marriage is available at [https://edin.ac/2TBoZMY](https://edin.ac/2TBoZMY).  
+You can read it in using the code below: 
+
+```{r echo=TRUE, message=FALSE}
+marriages<-read_csv("https://edin.ac/2TBoZMY")
+```
+
+</div>
+
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.1")`
+Add new column which is the husband's age minus the wife's age.  
+As we plan on conducting a test on these differences, what assumptions are we making about them, and how can we check whether those assumptions hold?  
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+```{r}
+marriages <- marriages %>% 
+  mutate(
+    agediff = Husband - Wife
+  )
+```
+
+Remember, as this is just a one sample $t$-test in disguise, we are assuming that the differences come from a normally distribution. Our sample size is quite large ($n = 105$) so it is not essential to test for normality (using `shapiro.test()`), but we should always plot the data first, to check for thing like skew.  
+
+```{r}
+ggplot(marriages, aes(x=agediff)) +
+  geom_density()
+```
+
+
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.2")`
+Think carefully..
+If we are about to conduct a $t$-test on the difference scores we just calculated, what will the results mean?  
+If we get a **positive** $t$-statistic ($t > 0$), what direction is the difference? Who will it mean tends to be older than whom?  
+`r msmbstyle::question_end()`
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+Because we calculated the husband's age minus wife's age, a positive $t$-statistic will indicates that this value is > 0 (meaning that in heterosexual marriages, husbands tend be the older of the two).   
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.3")`
+1. Conduct a one sample $t$-test that the age differences are not equal to 0.  
+2. Using the `paired = TRUE` argument of `t.test()`, conduct the same test on the ages themselves (rather than the differences).
+3. Check that the results from 1 and 2 match. 
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+```{r}
+t.test(marriages$agediff, mu = 0)
+t.test(marriages$Husband, marriages$Wife, paired = TRUE)
+```
+`r msmbstyle::solution_end()`
+---
+`r msmbstyle::question_begin(header = "&#x25BA; Question B.4")`
+Calculate Cohen's $D$.
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+```{r}
+marriages %>%
+  summarise(
+    dbar = mean(agediff),
+    s_d = sd(agediff)
+  )
+
+2.37 / 4.28
+```
+`r msmbstyle::solution_end()`
+
+
+### Smoking interventions {-}  
+
+<div class="red">
+##### Research Q {-}  
+
+A researcher has developed a cognitive behavioural therapy (CBT) based smartphone app, and is testing how effective it is in helping people to stop smoking.  
+They recruit 60 participants who are trying to quit smoking, and over a week record the average number of cigarettes smoked per day for each participant. 
+Thirty participants are given the app, and asked that every time they feel like smoking they open the app on their phone and complete one five-minute task. 
+All 60 participants are followed up one month later, and the average number of cigarettes smoked per day (over a week) is recorded.  
+
+1. At point of recruitment, did the 60 participants smoke more or less than 20 cigarettes per day?  
+2. Calculate the average number of cigarettes smoked per day at both time-points for each group. 
+3. Did the average number of cigarettes smoked per day differ between the groups at the initial recruitment?  
+4. Did the group given the app change their smoking habits from the immediate to one month follow up? If so, was it a big change? (e.g, calculate the effect size).    
+
+</div>
+
+The data (**.csv**) is available at [https://edin.ac/2vRr3r9](https://edin.ac/2vRr3r9).  
+
+```{r echo=FALSE}
+cbtsmoke <- read.csv("https://edin.ac/2vRr3r9")
+```
+
+
+`r msmbstyle::question_begin(header = "&#x25BA; Question C")`
+Answer research questions 1 to 4.  
+
+This requires various things you have learned over the entire course, to do with data manipulation (grouping, summarising, filtering, etc.), as well as deciding on and conducting appropriate tests.  
+`r msmbstyle::question_end()`
+
+`r msmbstyle::solution_begin(header = "&#x25BA; C1", hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+1. At point of recruitment, did the 60 participants smoke more or less than 20 cigarettes per day?  
+
+This is asking whether the mean number of cigarettes per day is different to 20. So we are asking whether a mean is different from an hypothesized number - this is a one sample $t$-test!  
+
+First, lets check our assumptions. Our $n \geq 20$, but let's check normality anyway:  
+```{r}
+shapiro.test(cbtsmoke$cigs_pday)
+```
+At a significance level of 0.05, the $p$-value = 0.37 means that we fail to reject the  null hypothesis that the data is drawn from a normally distributed population.  
+We can now perform our $t$-test:  
+```{r}
+t.test(cbtsmoke$cigs_pday, mu = 20)
+```
+
+At a significance level of 0.05, we reject the null hypothesis that the average number of cigarettes smoked per day at point-of-recruitment is equal to 20 ($t(39)=-11.1, p<.05$ two-sided). 
+
+`r msmbstyle::solution_end()`
+
+`r msmbstyle::solution_begin(header = "&#x25BA; C2", hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+2. Calculate the average number of cigarettes smoked per day at both time-points for each group. 
+
+```{r}
+cbtsmoke %>%
+  group_by(app_group) %>%
+  summarise(
+    initial = mean(cigs_pday),
+    followup = mean(cigs_pday_1month)
+  )
+```
+`r msmbstyle::solution_end()`
+
+
+`r msmbstyle::solution_begin(header = "&#x25BA; C3", hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+3. Did the average number of cigarettes smoked per day differ between the groups at the initial recruitment?  
+
+The two sets of observations (from the different groups) are independent, so we are going to conduct an independent samples $t$-test.  
+
+First, we need to check the assumption of equal variances between groups:    
+```{r}
+var.test(cbtsmoke$cigs_pday ~ cbtsmoke$app_group)
+```
+At a significance level of 0.05, the $p$-value = 0.4 leads us to not rejecting the null hypothesis of equal variances across the two populations.  
+
+Because $n \geq 20$, we don't *need* to check for normality, but it is important to look for the skew, especially when our $n$ is not *that* much bigger than 20. The plot below suggest that skew is not a problem
+```{r}
+ggplot(cbtsmoke, aes(x = cigs_pday, col = app_group)) + 
+  geom_density()
+```
+
+We can now perform our $t$-test:  
+```{r}
+t.test(cbtsmoke$cigs_pday ~ cbtsmoke$app_group, var.equal = TRUE)
+```
+`r msmbstyle::solution_end()`
+
+`r msmbstyle::solution_begin(header = "&#x25BA; C4", hidden = HIDDEN_SOLS, toggle = TOGGLE)`
+
+4. Did the group given the app change their smoking habits from the immediate to one month follow up? If so, was it a big change? (e.g, calculate the effect size).  
+
+We will need to use only the data from the group who was given the app:
+```{r}
+appgroupsmoke <- cbtsmoke %>%
+  filter(app_group == "yes")
+```
+
+We can then perform a paired $t$-test:  
+```{r}
+t.test(appgroupsmoke$cigs_pday_1month, appgroupsmoke$cigs_pday, paired = TRUE)
+```
+
+Or, we could calculate the difference scores...
+```{r}
+appgroupsmoke <- 
+  appgroupsmoke %>%
+    mutate(
+      change = cigs_pday_1month - cigs_pday
+    )
+```
+and run the same test using:
+```{r}
+t.test(appgroupsmoke$change, mu = 0)
+```
+
+To calculate Cohen's $D$, we use the mean difference ($\bar d$) divided by the standard deviation of the differences ($s_d$): 
+
+```{r}
+appgroupsmoke %>%
+  summarise(
+    dbar = mean(change),
+    s_d = sd(change)
+  )
+
+abs(-5.13) / 5.53
+```
+`r msmbstyle::solution_end()`

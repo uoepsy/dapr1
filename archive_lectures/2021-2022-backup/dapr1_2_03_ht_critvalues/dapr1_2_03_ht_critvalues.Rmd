@@ -1,0 +1,932 @@
+---
+title: "<b>Hypothesis testing: critical values</b>"
+subtitle: "<small>Data Analysis for Psychology in R 1<br>Semester 2, Week 3</small>"
+author: "<b>Dr Umberto Noè</b>"
+institute: "Department of Psychology<br/>The University of Edinburgh"
+date: ""
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: 
+      - un-xaringan-themer.css
+    nature:
+      ratio: '16:9'
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+
+options(htmltools.dir.version = FALSE)
+options(digits = 4, scipen = 2)
+options(knitr.table.format = "html")
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE, message = FALSE,
+  cache = FALSE,
+  dev = "png",
+  fig.align = 'center',
+  fig.height = 5, fig.width = 6,
+  out.width = "80%",
+  dpi = 300
+)
+```
+
+```{r xaringan-panelset, echo=FALSE}
+xaringanExtra::use_panelset()
+```
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#0F4C81", # DAPR1
+  # base_color = "#BF1932", # DAPR2
+  # base_color = "#88B04B", # DAPR3 
+  # base_color = "#FCBB06", # USMR
+  # base_color = "#a41ae4", # MSMR
+  header_color = "#000000",
+  header_font_google = google_font("Source Sans Pro"),
+  header_font_weight = 400,
+  text_font_google = google_font("Source Sans Pro", "400", "400i", "600", "600i"),
+  code_font_google = google_font("Source Code Pro"),
+  outfile = "un-xaringan-themer.css"
+)
+```
+
+
+```{r preamble, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(patchwork)
+
+theme_set(
+    theme_classic(base_size = 15) +
+    theme(plot.title = element_text(hjust = 0.5))
+)
+```
+
+
+
+# Learning objectives
+
+1. Understand the parallel between p-values and critical values
+
+1. Be able to perform a one-sided or two-sided hypothesis test using the critical value method
+
+1. Understand the link between t-scores and critical values
+
+
+---
+class: inverse, center, middle
+
+---
+class: inverse, center, middle
+
+# Part A
+## Introduction
+
+
+---
+# Setting
+
+- We cannot afford to collect data for the full population
+
+- Data are only collected on __one__ random sample of $n$ individuals, where $n$ = sample size
+
+- After we have selected a sample at random, we know the measurements of the individuals in the sample.
+
+- We are not interested in the individuals in the sample per se, but we collected data on them to __infer__ from the sample data some property of the wider population the sample came from.
+
+- You may want to:
+
+    + Estimate a population parameter
+    + Test whether a hypothesised parameter value is plausible
+
+
+---
+# Estimation
+
+If our goal is estimating a population mean, $\mu$
+
++ we use the average of the observations in the sample, $\bar x$, as the estimate
+
++ the precision of our estimate is measured by the standard error, telling the average distance of a sample mean from the population mean
+
++ a 95% (or 90% or 99%) __confidence interval__ gives us a range of plausible values for the population mean. This is:
+
+$$\left[ \bar x - t^* \cdot \frac{s}{\sqrt n},\ \ \bar x + t^* \cdot \frac{s}{\sqrt n} \right]$$
+
++ for a 95% CI, the values $-t^*$ and $+t^*$ are found as:
+
+    ```
+    qt(c(0.025, 0.975), df = n - 1)
+    ```
+
+---
+# Testing
+
+If our goal is testing a hypothesis, for example:
+$$H_0: \mu = \mu_0 \qquad \text{vs} \qquad H_1:\mu \neq \mu_0$$
+
++ Compute a __test statistic__, measuring some sort of "distance" between the sample data and the null hypothesis.
+    
+> __Definition: Test Statistic__  
+> A test statistic is any numerical quantity computed from the sample data with the purpose to make a test of some kind.
+    
++ For testing a population mean, we use the __t-statistic__:
+$$t = \frac{\bar x - \mu_0}{SE} \qquad \text{where } \qquad SE = \frac{s}{\sqrt n}$$
+
++ The t-statistic is the distance of the sample mean from the hypothesised parameter value, measured in units of the standard error.
+    
++ When you will perform a test on categorical variables you will see a different type of test statistic (the chi-squared statistic).
+
+
+---
+class: inverse, center, middle
+
+---
+class: inverse, center, middle
+
+# Part B
+## P-values and Critical Values
+
+
+---
+# Thought experiment
+
+```{r eval=T}
+library(tidyverse)
+set.seed(0)
+
+MU = 0
+while (MU != 20) {
+    POP = rnorm(n = 20, mean = 20, sd = 2) %>% round(0)
+    MU = mean(POP)
+}
+
+# paste(POP, collapse = ', ')
+```
+
+```{r}
+# POP
+N = length(POP)
+mu = mean(POP)
+# mu
+
+n = 4
+r = 200000
+xbar.sampl.dist = replicate(r, {
+    x = sample(POP, n)
+    xbar = mean(x)
+    xbar
+})
+
+avg.xbar = mu
+se.xbar = sd(POP) / sqrt(n)
+
+plt1 <- ggplot(tibble(x = xbar.sampl.dist)) + 
+    geom_histogram(aes(x = x, y = ..density..), 
+                   binwidth = 0.25, boundary = 20.125,
+                   color = 'gray50', fill = 'gray90') +
+    stat_function(aes(x = x), fun = \(x) dnorm(x, avg.xbar, se.xbar),
+                  color = 'red', size = 1, linetype = 1) +
+    labs(x = 'Average', y = 'Density') +
+    xlim(avg.xbar - 3 * se.xbar, avg.xbar + 3 * se.xbar)
+```
+
+
+.pull-left[
+- Suppose I gave you a population __with a mean $\mu = 20$__:
+
+    (`r paste(POP, collapse = ', ')`)
+
+- Take all possible samples of size $n = 4$.
+
+- __For each sample:__
+
+    - Compute the average of the $n = 4$ numbers in the sample.
+
+- Plot all the averages $\bar{x}$'s using a histogram.
+
+    + Centre?
+    + Spread?
+    
+- The sample mean $\bar x$ fluctuates from sample to sample around the population mean $\mu = 20$, and the typical distance from the true value is given by the SE.
+]
+
+
+.pull-right[
+```{r, out.width = '100%'}
+plt1
+```
+]
+
+
+---
+# Testing hypotheses
+
+- Suppose we are testing
+$$H_0 : \mu = 20 \\ H_1 : \mu \neq 20$$
+
+
+- We can build a __test statistic__ to assess how much the sample data are consistent with the specified null hypothesis.
+
+- When testing a mean, the test statistic takes the form of a distance between the observed and hypothesised mean, measured in units of the SE
+
+    - The test statistic for testing a mean is the __t-statistic__ or __t-score__. In the example, $\mu_0 = 20$:
+$$t = \frac{\bar x - 20}{s / \sqrt  n}$$
+- We can compute the t-statistic for the observed sample. But is this a surprising value or not?
+
+- To decide this we need to ask ourselves: What are all the possible values of the t-statistic __when $H_0$ is true__?
+
+    + I.e., what is the distribution of the t-statistic __when $H_0$ is true__? More formally, what is the __null distribution__?
+
+
+???
+
+So we can compute $t$ for the observed sample. We don't know for the observed sample whether $H_0$ or $H_1$ is true, hence why we do the test.
+What we can do however, is compute all the possible t-statistics when $H_0$ is true, and see where the one from our observed sample is located. If it has low probability when $H_0$ is true, then we should reject the null hypothesis.
+
+
+---
+# Thought experiment: Null distribution
+
+```{r}
+mu0 = 20
+
+n = 4
+r = 200000
+tscores.sampl.dist = replicate(r, {
+    x = sample(POP, n)
+    xbar = mean(x)
+    s = sd(x)
+    SE = s / sqrt(n)
+    tscore = (xbar - mu0) / SE
+    tscore
+})
+
+avg.t = 0
+se.t  = sd( tscores.sampl.dist[!is.infinite(tscores.sampl.dist)] )
+
+plt.t <- ggplot(tibble(t = tscores.sampl.dist)) + 
+    geom_histogram(aes(x = t, y = ..density..), 
+                   boundary = 0.25/2, binwidth = 0.25,
+                   color = 'gray50', fill = 'gray90') +
+    stat_function(aes(x = t), fun = dnorm, color = 'red', alpha = 0.75,
+                  size = 1, linetype = 1, n = 501) +
+    stat_function(aes(x = t), fun = \(x) dt(x, df = n-1), alpha = 0.75,
+                  color = 'blue', size = 1, n = 501) +
+    labs(x = 't-statistic', y = 'Density',
+         caption = 'Red: Standard Normal\nBlue: t(n-1)') +
+    xlim(avg.t - 6 * se.t, avg.t + 6 * se.t)
+```
+
+.pull-left[
+- Suppose I gave you a population __with a mean $\mu = 20$__:
+
+    (`r paste(POP, collapse = ', ')`)
+
+- Take all possible samples of size $n = 4$.
+
+- __For each sample:__
+    
+    - Compute the average $\bar{x}$ of the $n=4$ numbers in the sample.
+    - Compute the SD $s$ of the $n=4$ numbers in the  sample.
+    - Compute the t-statistic $t = \frac{\bar x - 20}{s / \sqrt{n}}$ for that sample.
+
+- Histogram of all t-statistics shows a distribution with more variability than a standard normal:
+$$
+t(n-1)
+$$
+]
+
+.pull-right[
+```{r, out.width = '100%'}
+plt.t
+```
+]
+
+???
+
+- Instead of computing the t-statistic on one sample only (the one sample we have collected), we can imagine doing this many many times for all possible random samples.
+
+-  You know how to compute a t-score. You need to find the mean and SD of that sample, and do $t = \frac{\bar x - \mu_0}{s / \sqrt{n}}$. Now think about doing those steps repeatedly on many, many samples from the population. 
+
+
+---
+# Null distribution
+
+- This thought-experiment shows us that the t-statistic, when the null hypothesis is true, follows a $t(n-1)$ distribution.
+
+$$t = \frac{\bar{x} - \mu_0}{s / \sqrt{n}} \sim t(n-1)$$
+
+- Why only when $H_0$ is true? Recall the previous example, in which the null hypothesis that $H_0: \mu = 20$ was true.
+
+- If that is the case, the sample means will fluctuate around 20. In turn, the distances of the sample means from 20, i.e. the t-scores, will fluctuate around 0.
+
+- The null distribution shows us all the possible distances (t-statistics) between a sample mean and the hypothesised mean, when $H_0$ is true.
+
+- If our observed sample gives us a t-statistic that is unlikely / surprising when $H_0$ is true, we start doubting the null hypothesis!
+
+???
+
+If H0 is true the sample means will scatter around 20. When you compute the distance of the means from 20, the distances will scatter around 0.
+
+In fact, if $H_0$ was true and the t-statistic from our observed sample was unlikely when $H_0$ was true, it should have been very unlikely for us to obtained the observed sample in the first place.
+
+
+---
+# Example
+
+.pull-left[
+- Suppose you have collected data on one sample, with sample size 4. The sample data are:
+$$(32, 36, 26, 28)$$
+
+- We wish to test whether this sample comes from a population with a mean different from 20:
+$$H_0: \mu = 20 \qquad \text{vs} \qquad  H_1: \mu \neq 20$$
+
+```{r echo=T}
+data_sample <- tibble(x = c(32, 36, 26, 28))
+data_sample
+```
+]
+
+.pull-right[
+```{r echo=T}
+xbar <- mean(data_sample$x)
+xbar
+```
+
+```{r echo=T}
+n <- nrow(data_sample)
+s <- sd(data_sample$x)
+se <- s / sqrt(n)
+
+mu0 <- 20
+tobs <- (xbar - mu0) / se
+tobs
+```
+]
+
+
+---
+# P-value: Computation
+
+.pull-left[
+- We choose a significance level, $\alpha = 0.05$ say.
+
+- As $H_1$ is two-sided, we compute the p-value as:
+
+```{r echo=T}
+# Twice the area to the right of obs t
+pvalue <- 2 * pt(abs(tobs), df = n-1, 
+                 lower.tail = FALSE)
+pvalue
+```
+
+- This is the probability of observing a t-statistic having at least the same distance from 0 as the observed t-statistic, when $H_0$ is true.
+
+- An observed mean of 30 is as distant from 20 as 10 is. So both would be equally "different" from the hypothesised value, 20.
+
+]
+
+.pull-right[
+```{r out.width = '100%'}
+plt = tibble(
+    x = seq(-7, 7, 0.01),
+    y = dt(x, df = n-1)
+)
+
+plt.pval = plt %>%
+    mutate( y = y * ((x >= abs(tobs)) | (x <= -abs(tobs))) )
+
+ggplot(plt, aes(x, y)) +
+    geom_line(color = 'blue') +
+    geom_area(data = plt.pval, aes(x = x, y = y),
+              fill = 'darkgreen', alpha = 0.75) +
+    geom_vline(xintercept = tobs, color = 'darkgreen', size = 1) +
+    annotate('text', tobs + 0.3, 0.03, 
+             label = expression(t[obs]),
+             color = 'darkgreen', size = 7, adj = 0) +
+    labs(x = 't-statistic', y = 'Density',
+         title = paste('p =', signif(pvalue, 2)))
+```
+]
+
+???
+
+
+Last week we learned to assess significance by computing the p-value.
+
+
+---
+# P-value: Making a decision
+
+.pull-left[
+- To make a decision on whether or not to reject $H_0$ we need to compare the computed p-value with the chosen significance level of 5%.
+
+- The p-value is `r signif(pvalue, 2)`, which is less than the chosen significance level, so we reject the null hypothesis.
+
+- In doing so, we compared the _green_ area, corresponding to the p-value, against the _red_ area, corresponding to the $\alpha = 0.05$ significance level.
+
+- Recall that the $\alpha = 0.05$ probability is equally divided among the two tails in this case, because the alternative hypothesis is two-sided.
+
+]
+
+.pull-right[
+```{r out.width = '100%'}
+tcrit = qt(c(0.025, 0.975), df = n-1)
+
+plt = tibble(
+    x = seq(-7, 7, 0.01),
+    y = dt(x, df = n-1)
+)
+
+plt.crit = plt %>%
+    mutate(
+        y = y * ( (x <= tcrit[1]) | (x >= tcrit[2]) )
+    )
+
+plt.pval = plt %>%
+    mutate(
+        y = y * ( (x <= -abs(tobs)) | (x >= abs(tobs)) )
+    )
+
+ggplot(plt) +
+    geom_line(aes(x, y), color = 'blue') +
+    geom_area(data = plt.crit,
+              aes(x = x, y = y), fill = 'red', alpha = 0.75) +
+    geom_area(data = plt.pval,
+              aes(x = x, y = y), fill = 'darkgreen', alpha = 0.75) +
+    annotate('text', x = tcrit[2], y = 0.2,
+             label = expression(alpha == 0.05),
+             color = 'red', adj = 0, size = 5) +
+    annotate('text', x = tobs, y = 0.1,
+             label = paste('p =', signif(pvalue, 2)),
+             color = 'darkgreen', adj = 0, size = 5) +
+    labs(x = 't-statistic', y = 'Density')
+```
+]
+
+
+---
+# Equivalent approach: Critical values
+
+
+.pull-left[
+- Rather than comparing the area of $\alpha$ (0.05, in red) to the area of the p-value (0.018, in green), we can compare the corresponding t-statistics along the x-axis.
+
+- The p-value is computed using the observed t-statistic, `r tobs %>% round(2)`.
+
+- The t values that cut an area of 0.025 to the left and 0.025 to the right are called the __critical values__ for $\alpha = 0.05$, denoted $-t^*$ and $+t^*$:
+
+```{r echo=T}
+qt(c(0.025, 0.975), df = n-1)
+```
+
+- We reject $H_0$ when either $t \leq -t^*$ or $t \geq +t^*$.
+]
+
+.pull-right[
+```{r out.width = '100%'}
+tcrit = qt(c(0.025, 0.975), df = n-1)
+
+plt = tibble(
+    x = seq(-7, 7, 0.01),
+    y = dt(x, df = n-1)
+)
+
+plt.crit = plt %>%
+    mutate(
+        y = y * ( (x <= tcrit[1]) | (x >= tcrit[2]) )
+    )
+
+plt.pval = plt %>%
+    mutate(
+        y = y * ( (x <= -abs(tobs)) | (x >= abs(tobs)) )
+    )
+
+ggplot(plt) +
+    geom_line(aes(x, y), color = 'blue') +
+    geom_vline(xintercept = tcrit, color = 'red', size = 1) + 
+    geom_vline(xintercept = tobs, color = 'darkgreen', size = 1) +
+    geom_area(data = plt.crit,
+              aes(x = x, y = y), fill = 'red', alpha = 0.75) +
+    geom_area(data = plt.pval,
+              aes(x = x, y = y), fill = 'darkgreen', alpha = 0.75) +
+    annotate('label', x = c(-5, 5), y = c(0.3, 0.3), 
+             label = c(
+                 expression(frac(alpha, 2) == 0.025), 
+                 expression(frac(alpha, 2) == 0.025)
+             ), color = 'red', size = 6) +
+    annotate('text', x = tcrit + c(0.2, -0.2), y = tcrit * 0 - 0.01,
+             label = paste(c('-t* =', '+t* ='), round(tcrit, 2)),
+             color = 'red', adj = c(0, 1), size = 5) +
+    annotate('text', x = tobs + 0.2, y = - 0.01,
+             label = paste('t =', round(tobs, 2)),
+             color = 'darkgreen', adj = 0, size = 5) +
+    labs(x = 't-statistic', y = 'Density')
+```
+
+]
+
+
+???
+
+- In this case, $t =$ `r round(tobs, 2)` is larger than the upper critical value, $t^* =$ `r round(qt(0.975, df = n-1), 2)`.
+
+
+---
+# Example 2
+
+- Suppose now that the collected sample, with sample size 4, was:
+$$(18, 21, 19, 23)$$
+
+- We wish to test whether this sample comes from a population with a mean different from 20:
+$$H_0: \mu = 20 \\ H_1: \mu \neq 20$$
+
+```{r echo=T}
+data_sample2 <- tibble(x = c(18, 21, 19, 23))
+data_sample2
+```
+
+
+---
+# Example 2
+
+
+```{r echo=T}
+xbar <- mean(data_sample2$x)
+xbar
+```
+
+```{r echo=T}
+n <- nrow(data_sample2)
+s <- sd(data_sample2$x)
+se <- s / sqrt(n)
+
+mu0 <- 20
+tobs <- (xbar - mu0) / se
+tobs
+```
+
+
+---
+# Example 2
+
+.pull-left[
+- Critical values for a $t(n-1)$ distribution with $\alpha = 0.05$
+
+```{r echo=T}
+tstar <- qt(c(0.025, 0.975), df = n-1)
+tstar
+```
+
+- Is the observed $t =$ `r round(tobs, 2)` smaller than or equal to the lower critical value? _No!_
+- Is the observed $t =$ `r round(tobs, 2)` greater than or equal to the upper critical value? _No!_
+
+```{r echo=T}
+tobs <= tstar[1]
+tobs >= tstar[2]
+```
+
+]
+
+
+.pull-right[
+```{r out.width = '100%'}
+tcrit = qt(c(0.025, 0.975), df = n-1)
+
+plt = tibble(
+    x = seq(-7, 7, 0.01),
+    y = dt(x, df = n-1)
+)
+
+plt.crit = plt %>%
+    mutate(
+        y = y * ( (x <= tcrit[1]) | (x >= tcrit[2]) )
+    )
+
+plt.pval = plt %>%
+    mutate(
+        y = y * ( (x <= -abs(tobs)) | (x >= abs(tobs)) )
+    )
+
+ggplot(plt) +
+    geom_line(aes(x, y), color = 'blue') +
+    geom_vline(xintercept = tcrit, color = 'red', size = 1) + 
+    geom_vline(xintercept = tobs, color = 'darkgreen', size = 1) +
+    geom_area(data = plt.crit,
+              aes(x = x, y = y), fill = 'red', alpha = 0.75) +
+    geom_area(data = plt.pval,
+              aes(x = x, y = y), fill = 'darkgreen', alpha = 0.5) +
+    annotate('label', x = c(-5, 5), y = c(0.3, 0.3), 
+             label = c(
+                 expression(frac(alpha, 2) == 0.025), 
+                 expression(frac(alpha, 2) == 0.025)
+             ), color = 'red', size = 6) +
+    annotate('text', x = tcrit + c(-0.2, +0.2), y = tcrit * 0 - 0.01,
+             label = paste(c('-t* =', '+t* ='), round(tcrit, 2)),
+             color = 'red', adj = c(1, 0), size = 5) +
+    annotate('text', x = tobs + 0.2, y = -0.01,
+             label = paste('t =', round(tobs, 2)),
+             color = 'darkgreen', adj = 0, size = 5) +
+    labs(x = 't-statistic', y = 'Density')
+```
+
+]
+
+---
+# Example 2
+
+- As our observed t-statistic lies in between the two critical values, rather than beyond, it lies in the middle 95% of the null distribution.
+
+- If you were to compute the p-value for $t$, it would be larger than $\alpha$, which is the area beyond the critical values $\pm t^*$.
+
+- We do not have sufficient evidence to reject $H_0$ at the 5% significance level.
+
+
+---
+class: inverse, center, middle
+
+---
+class: inverse, center, middle
+
+# Part C
+## Body temperature example
+
+
+---
+# Body temperature example
+
+> Has the average body temperature for healthy humans changed from the long-thought 37 °C? 
+
+- We are testing:
+
+$$H_0: \mu = 37 \qquad \text{vs} \qquad H_1: \mu \neq 37$$
+
+--
+
+- Read the data:
+
+```{r echo=T}
+library(tidyverse)
+tempsample <- read_csv('https://uoepsy.github.io/data/BodyTemp.csv')
+head(tempsample)
+```
+
+
+---
+# Body temperature example
+
+```{r echo=T}
+xbar <- mean(tempsample$BodyTemp)
+xbar
+```
+
+--
+
+- The observed t-statistic: $t = \frac{\bar x - \mu_0}{s / \sqrt{n}}$
+
+```{r echo=T}
+n <- nrow(tempsample)
+n
+s <- sd(tempsample$BodyTemp)
+SE <- s / sqrt(n)
+
+mu0 <- 37
+tobs <- (xbar - mu0) / SE
+tobs
+```
+
+
+---
+# Body temperature example
+
+- The observed t-statistic is $t=$ `r round(tobs, 2)`.
+
+--
+
+- Compute the critical values of a t(`r n-1`) distribution with $\alpha = 0.05$:
+
+```{r echo=T}
+qt(c(0.025, 0.975), df = n - 1)
+```
+
+--
+
+- The observed t-statistic lies beyond the critical values, and as such falls in the 5% probability tails of the null distribution.
+
+--
+
+- We reject the null hypothesis as the observed t-statistic is unlikely to be obtained if the null hypothesis were true.
+
+--
+
+- In terms of reporting, when the observed $t$ is beyond the critical values, $p < \alpha$. Otherwise, $p > \alpha$.
+
+--
+
+Example:
+
+> At the 5% significance level, we performed a two-sided hypothesis test against the null hypothesis that the mean body temperature for all healthy humans is equal to 37 °C.  
+> As the observed t-statistics lies beyond the critical values, the sample results provide strong evidence against the null hypothesis and in favour of the alternative one that the average body temperature differs from 37 °C; $t(49) = -3.14, p < .05$, two-sided.
+
+
+
+---
+# $H_1 : \mu < \mu_0$, example with $t(3)$
+
+```{r, out.width = '55%'}
+tcrit = qt(0.05, 3)
+
+mosaic::xqt(0.05, df = 3, 
+            return = 'plot') +
+    scale_fill_manual(
+        values = c('red', 'gray90')
+    ) +
+    labs(x = 't-statistic', y = 'Density',
+         title = expression(H[1] : mu < mu[0])) +
+    geom_vline(xintercept = tcrit, col = 'red', size = 1) +
+    annotate('label', x = -5, y = 0.2, colour = 'red', size = 6,
+             label = expression(alpha == 0.05)) +
+    annotate('text', x = tcrit - 0.2, y = -0.02, hjust = 1,
+             colour = 'red', size = 6,
+             label = paste('t* =', tcrit %>% round(2))) +
+    theme(legend.position = 'none') +
+    xlim(-7,  7)
+```
+
+
+---
+# $H_1 : \mu < \mu_0$, example with $t(3)$
+
+.pull-left[
+- $t$ = A will lead to a p-value < .05
+
+- $t$ = B will lead to a p-value > .05
+
+- $t$ = C will lead to a p-value > .05
+]
+
+.pull-right[
+```{r, out.width = '100%'}
+tcrit = qt(0.05, 3)
+
+mosaic::xqt(0.05, df = 3, 
+            return = 'plot') +
+    scale_fill_manual(
+        values = c('red', 'gray90')
+    ) +
+    labs(x = 't-statistic', y = 'Density',
+         title = expression(H[1] : mu < mu[0])) +
+    geom_vline(xintercept = c(-5.2, -1.8, 1.5), colour = 'darkgreen',
+               size = 1) +
+    annotate('label', x = c(-5.2, -1.8, 1.5), y = c(0.1, 0.1, 0.1), 
+             label = c('A', 'B', 'C'), size = 6, colour = 'darkgreen') +
+    geom_vline(xintercept = tcrit, col = 'red', size = 1) +
+    annotate('label', x = -5, y = 0.2, colour = 'red', size = 6,
+             label = expression(alpha == 0.05)) +
+    annotate('text', x = tcrit - 0.2, y = -0.02, hjust = 1,
+             colour = 'red', size = 6,
+             label = paste('t* =', tcrit %>% round(2))) +
+    theme(legend.position = 'none') +
+    xlim(-7,  7)
+```
+]
+
+
+---
+# $H_1 : \mu > \mu_0$, example with $t(3)$
+
+```{r, out.width = '55%'}
+tcrit = qt(0.95, 3)
+
+mosaic::xqt(0.95, df = 3,
+            return = 'plot') +
+    scale_fill_manual(
+        values = c('gray90', 'red')
+    ) +
+    labs(x = 't-statistic', y = 'Density',
+         title = expression(H[1] : mu > mu[0])) +
+    geom_vline(xintercept = tcrit, col = 'red', size = 1) +
+    annotate('label', x = 5, y = 0.2, colour = 'red', size = 6,
+             label = expression(alpha == 0.05)) +
+    annotate('text', x = tcrit + 0.2, y = -0.02, hjust = 0,
+             colour = 'red', size = 6,
+             label = paste('t* =', tcrit %>% round(2))) +
+    theme(legend.position = 'none') +
+    xlim(-7,  7)
+```
+
+
+---
+# $H_1 : \mu > \mu_0$, example with $t(3)$
+
+.pull-left[
+- $t$ = A will lead to a p-value > .05
+
+- $t$ = B will lead to a p-value > .05
+
+- $t$ = C will lead to a p-value < .05
+]
+
+.pull-right[
+```{r, out.width = '100%'}
+tcrit = qt(0.95, 3)
+
+mosaic::xqt(0.95, df = 3,
+            return = 'plot') +
+    scale_fill_manual(
+        values = c('gray90', 'red')
+    ) +
+    labs(x = 't-statistic', y = 'Density',
+         title = expression(H[1] : mu > mu[0])) +
+    geom_vline(xintercept = c(-1.5, 1.8, 5.2), colour = 'darkgreen',
+               size = 1) +
+    annotate('label', x = c(-1.5, 1.8, 5.2), y = c(0.1, 0.1, 0.1), 
+             label = c('A', 'B', 'C'), size = 6, colour = 'darkgreen') +
+    geom_vline(xintercept = tcrit, col = 'red', size = 1) +
+    annotate('label', x = 5, y = 0.2, colour = 'red', size = 6,
+             label = expression(alpha == 0.05)) +
+    annotate('text', x = tcrit + 0.2, y = -0.02, hjust = 0,
+             colour = 'red', size = 6,
+             label = paste('t* =', tcrit %>% round(2))) +
+    theme(legend.position = 'none') +
+    xlim(-7,  7)
+```
+]
+
+---
+# $H_1 : \mu \neq \mu_0$, example with $t(3)$
+
+```{r, out.width = '55%'}
+tcrit = qt(c(0.025, 0.975), 3)
+
+mosaic::xqt(c(0.025, 0.975), df = 3,
+            return = 'plot') +
+    scale_fill_manual(
+        values = c('red', 'gray90', 'red')
+    ) +
+    labs(x = 't-statistic', y = 'Density',
+         title = expression(H[1] : mu != mu[0])) +
+    geom_vline(xintercept = tcrit, col = 'red', size = 1) +
+    annotate('label', x = -5, y = 0.2, colour = 'red', size = 6,
+             label = expression(frac(alpha,2) == 0.025)) +
+    annotate('label', x = 5, y = 0.2, colour = 'red', size = 6,
+             label = expression(frac(alpha,2) == 0.025)) +
+    annotate('text', x = tcrit + c(-0.2, 0.2), y = -0.02, hjust = c(1, 0),
+             colour = 'red', size = 6,
+             label = paste(c('-t* =', 't* ='), round(tcrit, 2))) +
+    theme(legend.position = 'none') +
+    xlim(-7,  7)
+```
+
+
+---
+# $H_1 : \mu \neq \mu_0$, example with $t(3)$
+
+.pull-left[
+- $t$ = A will lead to a p-value < .05
+
+- $t$ = B will lead to a p-value > .05
+
+- $t$ = C will lead to a p-value > .05
+
+- $t$ = D will lead to a p-value < .05
+]
+
+.pull-right[
+```{r, out.width = '100%'}
+tcrit = qt(c(0.025, 0.975), 3)
+
+mosaic::xqt(c(0.025, 0.975), df = 3,
+            return = 'plot') +
+    scale_fill_manual(
+        values = c('red', 'gray90', 'red')
+    ) +
+    labs(x = 't-statistic', y = 'Density',
+         title = expression(H[1] : mu != mu[0])) +
+    geom_vline(xintercept = c(-5.3, -2, 1.3, 3.7), colour = 'darkgreen',
+               size = 1) +
+    annotate('label', x = c(-5.3, -2, 1.3, 3.7), y = c(0.1, 0.1, 0.1, 0.1), 
+             label = c('A', 'B', 'C', 'D'), size = 6, colour = 'darkgreen') +
+    geom_vline(xintercept = tcrit, col = 'red', size = 1) +
+    annotate('label', x = -5, y = 0.2, colour = 'red', size = 6,
+             label = expression(frac(alpha,2) == 0.025)) +
+    annotate('label', x = 5, y = 0.2, colour = 'red', size = 6,
+             label = expression(frac(alpha,2) == 0.025)) +
+    annotate('text', x = tcrit + c(-0.2, 0.2), y = -0.02, hjust = c(1, 0),
+             colour = 'red', size = 6,
+             label = paste(c('-t* =', 't* ='), round(tcrit, 2))) +
+    theme(legend.position = 'none') +
+    xlim(-7,  7)
+```
+]
+
+---
+class: inverse, center, middle

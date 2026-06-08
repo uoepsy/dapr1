@@ -1,0 +1,659 @@
+---
+title: "Types of relationships"
+params: 
+    SHOW_SOLS: TRUE
+    TOGGLE: TRUE
+---
+
+```{r setup, include=FALSE}
+source('assets/setup.R')
+```
+
+
+```{r include=FALSE}
+library(tidyverse)
+library(patchwork)
+```
+
+:::green
+Be sure to check the [**solutions to last week's exercises**](04_relationships.html).<br>You can still ask any questions about previous weeks' materials if things aren't clear!
+:::
+<!-- # Visualising and describing relationships {#chap-relationships} -->
+
+<!-- # Types of relationships (functions) {#chap-functions} -->
+
+:::lo
+**LEARNING OBJECTIVES**
+
++ LO1: Understand the basic principles of functions.
++ LO2: Understand concept of data transformations.
++ LO3: Understand the calculation of z-scores.
+
+:::
+
+# Functions  
+
+You have seen by now how to visualise the distribution of a variable, and how to visualise a relationship between two variables. Relationships between two variables can look very different, and can follow different patterns. These patterns can be expressed mathematically in the form of __functions.__  
+
+:::yellow
+__Functions__
+
+A function is a mapping between two sets of numbers ($x$ and $y$) - associating every element of $x$ with an element in $y$.  
+We often denote functions using the letter $f$, in that we state that $y = f(x)$ ("y equals f of x").     
+
+For example, there is a mapping between these two sets:  
+
+$$x=\begin{bmatrix} 1 \\ 2 \\ 3 \\ 4 \\ 5 \\ 6 \\ 7 \\ 8 \\ \end{bmatrix}, \qquad
+y=\begin{bmatrix} 3 \\ 4 \\ 5 \\ 6 \\ 7 \\ 8 \\ 9 \\ 10 \\ \end{bmatrix}$$
+
+And we can write this mapping as:  
+$$f(x) = x + 2$$
+
+And we could visualise this relationship between $x$ and $y$:
+```{r echo=FALSE}
+tibble(
+    X = 1:8,
+    Y = X+2
+) %>% ggplot(.,aes(X,Y))+geom_point()+theme_classic()
+```
+
+:::
+
+## Linear functions {-}  
+
+In statistics, we often attempt to summarise the pattern that is present in the data using _linear functions_.  
+
+Imagine that we plant 10 trees, and measure their heights each year for 10 years. We could visualise this data (the relationship between _time_ and _tree height_) on a scatterplot (we have added some lines to the plot to show which tree is which):  
+<br>
+```{r echo=FALSE}
+set.seed(677)
+tibble(
+    tree = rep(1:10,each=11),
+    time = rep(0:10,10),
+    growth = abs(round(rnorm(110,10,2)))
+) %>% 
+    mutate(growth = ifelse(time==0, round(growth/2), growth)) %>%
+    group_by(tree) %>% 
+    mutate(height=cumsum(growth)) %>% 
+    ungroup -> treedat 
+
+
+ggplot(treedat,aes(x=time, y=height))+
+    geom_point() + 
+    geom_line(aes(group=tree,col=factor(tree)), alpha=.4)+
+    xlab("Time (years)") +
+    ylab("Tree Height (cm)") +
+    ggtitle("Tree height") + 
+    theme_classic()+
+    theme(legend.position="none")+
+    scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0))
+```
+
+We might sensibly choose to describe this pattern as a line: 
+<br>
+```{r echo=FALSE}
+ggplot(treedat,aes(x=time, y=height))+
+    geom_point(alpha=.2) + 
+    geom_line(aes(group=tree,col=factor(tree)), alpha=.2)+
+    xlab("Time (years)") +
+    ylab("Tree Height (cm)") +
+    ggtitle("Tree height") + 
+    theme_classic()+
+    theme(legend.position="none")+
+    scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0))+
+    geom_abline(intercept=5, slope = 10, lwd=1)
+```
+
+And in order to describe a line like this, we require two things:  
+
+1. The starting point (i.e., where it crosses the y-axis)
+2. The amount it goes up every year. 
+
+When we planted the trees (at year 0), they were on average about 5cm tall. So this is where our line starts.  
+For every year, the trees grew by about 10cm on average. So we can now describe tree height _as a function of_ time:  
+$$\textrm{Tree height} = 5 + (10 \times \textrm{Years})$$
+
+We can write this in terms of $x$ and $y$:  
+
+1. $y = f(x)$ &nbsp; &nbsp; &nbsp; &nbsp; "$y$ is some function $f$ of $x$"
+1. $f(x) = 5 + 10x$ &nbsp; &nbsp; &nbsp; &nbsp; "the function $f$ maps each value $x_i$ to $5 + (10 \times x_i)$"
+
+
+## Non-linear functions {-}  
+
+Functions don't have to be linear. Often, we might want to describe relationships which appear to be more complex than a straight line.  
+For example, it is often suggested that for difficult tasks, _some_ amount of stress may [improve performance](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1906714/) (but not too little or too much). We might think of the relationship between performance and stress as a curve (Figure \@ref(fig:ydodson)).
+<br>
+```{r ydodson, echo=FALSE, fig.cap="Yerkes Dodson Law"}
+tibble(
+    stress = -100:100,
+    performance = -(stress^2)
+) %>% 
+    ggplot(.,aes(x=stress,y=performance))+
+    geom_path()+
+    scale_x_continuous(breaks=c(-100,100),labels=c("Low","High"))+
+    theme_classic()+
+    theme(axis.ticks = element_blank(), axis.text.y = element_blank(), axis.line = element_blank())+
+    labs(x="Stress",y="Performance")
+```
+<br>
+One way to describe curves is to use polynomials ($x^2$, $x^3$, etc.).   
+For example, in the following two sets, $y$ can be described as $f(x)$ where $f(x)=x^2$:  
+
+$$x=\begin{bmatrix} -5 \\ -4 \\ -3 \\ -2 \\ -1 \\ 0 \\ 1 \\ 2 \\ 3 \\ 4 \\ 5 \end{bmatrix}, \qquad
+y=\begin{bmatrix} 25 \\ 16 \\ 9 \\ 4 \\ 1 \\ 0 \\ 1 \\ 4 \\ 9 \\ 16 \\ 25 \end{bmatrix}$$
+
+and when we plot each value of $x$ against the corresponding value of $y$: 
+```{r echo=FALSE}
+tibble(x = -5:5,
+       y = x^2
+) %>% ggplot(., aes(x = x, y = y)) + 
+    geom_point()
+```
+
+`r optbegin("Optional - the code to create the above plot. Click the plus to expand &#8594;", olabel = FALSE)`
+```{r eval=FALSE}
+# the tibble() function can be used to create a dataframe
+# here, we create one with two variables, x and y.
+# x is the sequence from -5 to 5,
+# y is equal to x squared. 
+# we save this data as "poly"
+poly <- 
+    tibble(
+        x = c(-5,-4,-3,-2,-1,0,1,2,3,4,5),
+        y = x^2
+    )
+# create a plot with "poly", with variable "x" on the x-axis,
+# and variable "y" on the y-axis. Add geom_points for each entry
+ggplot(data = poly, aes(x = x, y = y)) + 
+    geom_point()
+```
+`r optend()`
+
+# Transformations  
+
+We have seen previously how we might change all the values in a variable, for instance if we want to turn heights from centimetres to metres: 
+
+```{r}
+# read in the starwars dataset and assign it the name "starwars2"
+starwars2 <- read_csv("https://uoepsy.github.io/data/starwars2.csv")
+
+# take the starwars2 dataframe %>%
+# mutate it such that there is a new variable called "height_m",
+# the values of which are equal to the "height" variable divided by 100.
+# then, select only the "height" and "height_m" columns (this is just 
+# to make it easier to see without all the other variables)
+starwars2 %>%
+    mutate(
+        height_m = height/100
+    ) %>% 
+    select(height, height_m)
+```
+
+What we have done here, can be described as a __transformation__, in that we have applied a mathematical __function__ to the values in the _height_ variable. 
+
+:::yellow
+__Transformation__  
+  
+Data transformation is when we apply a deterministic function to map each value of a variable to a transformed value.   
+We transform for various reasons. For instance, we can use it to change the units we are interpreting (e.g., *cm* to *m*), or to change the shape of a distribution (e.g., make it less skewed).  
+:::
+
+We could even plot the heights in cm and heights in m against one another (note what units are on each axis): 
+```{r echo=FALSE}
+starwars2 %>%
+    mutate(
+        height_m = height/100
+    ) %>% 
+    select(height, height_m) %>%
+    ggplot(.,aes(x=height, y=height_m))+
+    geom_point()
+```
+<br>
+The relationship between a variable and a transformed variable need be linear, for example, log transformation:
+<br>
+```{r echo=FALSE}
+library(latex2exp)
+tibble(
+  x = c(1:10),
+  log_x = log(x)
+) %>% ggplot(.,aes(x=x,y=log_x))+geom_point()+
+  scale_x_continuous(breaks=1:10)+
+  labs(title=TeX("f(x) = log_e(x)"), y = TeX("log_e(x)"))
+```
+
+`r optbegin("Optional: Logarithms and Natural Logarithms. Click the plus to expand &#8594;", olabel=FALSE)`
+
+:::yellow 
+__Logarithm__
+
+A __logarithm__ (log) is the power to which a number must be raised in order to get some other number.  
+Take as examples $10^2$ and $10^3$:  
+
+$$
+10^2 = 100 \qquad \Longleftrightarrow \qquad Log_{10} (100) = 2 \\
+10^3 = 1000 \qquad \Longleftrightarrow \qquad Log_{10} (1000) = 3 \\
+$$  
+
+We refer to $Log_{10}$ as "Log base 10". 
+:::
+
+---
+
+:::yellow
+__Natural log__  
+
+A special case of the logarithm is referred to as the __natural logarithm__, and is denoted by $ln$ or $log_e$, where $e = 2.718281828459...$  
+
+$e$ is a special number for which $log_e(e) = 1$.  
+
+
+```{r}
+# Natural logarithm of e is 1:
+log(2.718281828459, base = 2.718281828459)
+```
+:::
+`r optend()`
+
+
+# Centering and Standardisation
+
+Recall our dataset from our [introduction to handling numerical data](https://uoepsy.github.io/dapr1/labs/03_numerical.html), in which we had data on 120 participants' IQ scores (measured on the Wechsler Adult Intelligence Scale, WAIS), their ages, and their scores on 2 other tests. We know how to calculate the mean and standard deviation of the IQ scores:  
+```{r}
+# read in the data
+wechsler <- read_csv("https://uoepsy.github.io/data/wechsler.csv")
+
+# calculate the mean and sd of IQs
+wechsler %>% 
+  summarise(
+    mean_iq = mean(iq),
+    sd_iq = sd(iq)
+  )
+```
+
+Two very useful transformations we can apply to a variable are __centering__ and __standardisation__.   
+
+1. __Centering__ A transformation which re-expresses each value as the distance from a given number (e.g., the mean).  
+1. __Standardising__ A transformation which re-expresses each value as the distance from the mean _in units of standard deviations._
+
+:::yellow
+__Mean-centering__  
+  
+To __Mean-center__ a variable, we simply subtract the mean from each value, $x_i - \bar{x}$:
+$$
+\textrm{raw IQ} = \begin{bmatrix} 71 \\ 103 \\ 74 \\ 108 \\ 118 \\ 129 \\ ... \end{bmatrix}, \qquad
+\textrm{mean centered IQ} = \begin{bmatrix} 71-99.3 \\ 103-99.3 \\ 74-99.3 \\ 108-99.3 \\ 118-99.3 \\ 129-99.3 \\ ... \end{bmatrix} = \begin{bmatrix} -28.3 \\ 3.7 \\ -25.3 \\ 8.7 \\ 18.7 \\ 29.7 \\ ... \end{bmatrix}
+$$
+:::
+
+To mean-center in R, we can simply add a new variable using `mutate()` and subtract the mean IQ from the IQ variable:
+```{r}
+# Take the "wechsler" dataframe, and mutate it,
+# such that there is a variable called "iq_meancenter" for which
+# the entries are equal to the "iq" variable entries minus the 
+# mean of the "iq" variable
+wechsler %>%
+  mutate(
+    iq_meancenter = iq - mean(iq)
+  )
+```
+
+:::yellow
+__Standardisation__  
+  
+When we __standardise__ a variable, we call the transformed values __z-scores__. To transform a given value $x_i$ into a __z-score__, we simply calculate the distance from $x_i$ to the mean, $\bar{x}$, and divide this by the standard deviation, $s$    
+
+$$
+z_i = \frac{x_i - \bar{x}}{s}
+$$
+
+So for each of the _raw_ IQ scores, we can transform them to __z-scores__ by subtracting the mean and then dividing by the standard deviation. The resulting values tell us how low/high each participant's IQ score is compared to observed distribution of scores:  
+$$
+\textrm{raw IQ} = \begin{bmatrix} 71 \\ 103 \\ 74 \\ 108 \\ 118 \\ 129 \\ ... \end{bmatrix}, \qquad
+\textrm{standardised IQ} = \begin{bmatrix} \frac{71-99.3}{15.43} \\ \frac{103-99.3}{15.43} \\ \frac{74-99.3}{15.43} \\ \frac{108-99.3}{15.43} \\ \frac{118-99.3}{15.43} \\ \frac{129-99.3}{15.43} \\ ... \end{bmatrix} = \begin{bmatrix} -1.84 \\ 0.238 \\ -1.64 \\ 0.562 \\ 1.21 \\ 1.92 \\ ... \end{bmatrix}
+$$
+:::
+
+We can achieve this in R either by manually performing the calculation:
+```{r}
+# Take the "wechsler" dataframe, and mutate it,
+# such that there is a variable called "iq_z" for which
+# the entries are equal to the "iq" variable entries minus the mean of the "iq"
+# variable, divided by the standard deviation of the "iq" variable.  
+wechsler %>% 
+  mutate(
+    iq_z = (iq - mean(iq)) / sd(iq)
+  )
+```
+
+Or we can use the `scale()` function:  
+```{r}
+# Take the "wechsler" dataframe, and mutate it,
+# such that there is a variable called "iq_std" for which
+# the entries are equal to the scaled values of the "iq" variable.  
+wechsler %>%
+  mutate(
+    iq_std = scale(iq)
+  )
+```
+
+We can also use the `scale()` function to mean-center a variable, by setting `scale(variable, center = TRUE, scale = FALSE)`:
+```{r}
+# create two new variables in the "wechsler" dataframe, one which is 
+# mean centered iq, and one which is standardised iq:
+wechsler %>%
+  mutate(
+    iq_mc = scale(iq, center = TRUE, scale = FALSE),
+    iq_std = scale(iq, center = TRUE, scale = TRUE) # these are the default settings
+  )
+```
+
+`r optbegin("Test norms. Click the plus to expand &#8594;", olabel=FALSE)`
+Many neuropsychological tests will have _norms_ - parameters which describe the distribution of scores on the test in a normal population. For instance, in a normal adult population, scores on the WAIS have a mean of 100 and a standard deviation of 15. 
+<br>
+What this means is that rather than calculating a standardised score against the _observed mean of our sample_, we might calculate a standardised score against the test norms. In the formula for $z$, we replace our __sample mean__ $\bar{x}$ with the __population mean__ $\mu$, and the __sample standard deviation__ $s$ with the __population standard deviation__ $\sigma$:  
+$$
+z = \frac{x - \mu}{\sigma}
+$$
+
+The resulting values tell us how low/high each participant's IQ score is compared to the _distribution of IQ scores in the population._  
+`r optend()`  
+
+---
+
+# Glossary
+
++ __Function:__ A mapping between two sets of numbers, associating every element of the first set with an elemet in the second.  
++ __Transformation:__ Applying a function to a variable to map each value to a transformed value. 
++ __Logarithm:__ The power to which a number must be raised in order to get some other number.
+1. __Centering:__ Transformation which re-expresses each value as the distance from a given number (e.g., the mean).  
+1. __Standardisation:__ Transformation which re-expresses each value as the distance from the mean _in units of standard deviations._
+<br><br>
++ `scale()` To mean center or standardise a variable (depending upon whether `center=TRUE/FALSE` and `scale=TRUE/FALSE`). 
+
+---
+
+# Exercises  
+
+The exercises below are a little different. As opposed to starting with some data, we're going to work a bit more abstractly, and create some data ourselves which maps one variable to another via some function which we define.  
+
+As always, you should begin by opening a new Rmarkdown file, and giving it an appropriate title for this set of exercises.  
+We're going to need the tidyverse packages, so load that too. 
+
+`r qbegin(1)`
+We know how to create a vector in R. For instance, we can create an object with called "x" which has the entries from 1 to 100:
+```{r}
+x <- 1:100
+```
+
+For $x = [1,2,...,99,100]$, give the values resulting from $f(x) = 3x+3$.  
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+3*x + 3
+```
+`r solend()`
+
+`r qbegin(2)`
+For $x = [1,2,...,19,20]$, give the values resulting from $f(x) = x^2+2$.  
+Plot these against $x$. 
+
+**Tip:** You don't *have* to use ggplot. For a really quick plot in R, you can use `plot()`. If you want to plot two vectors against one another, you can simply use `plot(x = <vector1name>, y = <vector2name>)` 
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+Remember - the object named "x" is currently the numbers 1 to 100, but we only want the numbers 1 to 30. We can reassign the name "x" to these numbers
+```{r}
+x <- 1:30
+y <- (x^2)+2
+
+plot(x = x, y = y)
+```
+`r solend()`
+
+
+`r qbegin(3)`
+We can create an object in R called a `tibble` (basically a dataframe in tidyverse language). We can, for instance, create an object which has a variable called "x" and a variable called "y", which we define:
+```{r}
+# create a new tibble/dataframe, and assign it the name "newdata".
+# in it, there is a variable called "x" which takes the numeric
+# values from -10 to 10, and the variable called "y" which takes a set of 
+# numeric values: 102,83,.... 
+newdata <-
+  tibble(
+    x = -10:10,
+    y = c(102,83,66,51,38,27,18,11,6,3,2,3,6,11,18,27,38,51,66,83,102)
+  )
+newdata
+```
+
+Plot the variables against one another, and write out the function which defines their relationship.  
+Confirm that you are correct by creating a new column called "fx", which is calculated from the values in x. 
+
+**Tip:** For variables in a dataframe against one another, you could combine `plot()` with the `$`, and use `plot(x = data$variable1, y = data$variable2)`.
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+plot(x = newdata$x, y = newdata$y)
+```
+
+Take the first pairing, $x = -10$ and $y = 102$.  
+We could write the translation between these two numbers in many ways.  
+All of these are compatible:  
+  
+a. $y = -10x + 2$  
+b. $y = 112 + x$  
+c. $y = 1000 + x - 888$  
+d. $y = x^2 + 2$
+
+Now take the second pair of points, $x = -9$ and $y = 83$.  
+From the possible functions a), b), c) and d) above, how many of these satisfy the relationship between this new pair of points? Only one!
+
+a. $-10x + 2 \quad = \quad 92$  &emsp; &emsp; &#10008;  
+b. $112 + x \quad = \quad 103$   &emsp; &emsp; &#10008;  
+c. $1000 + x - 888 \quad = \quad 103$   &emsp; &emsp; &#10008;  
+d. $x^2 + 2 \quad = \quad 83$   &emsp; &emsp; &#10004;
+  
+  
+The curvature here actually gives us a clue as to what to look for - it suggests that $y$ is a function of $x$ which includes the term $x^2$. Remember that negative numbers squared result in positive square numbers.  
+
+$$y = x^2 + 2$$
+
+Let's confirm this:
+```{r}
+newdata %>%
+  mutate(
+    fx = x^2 + 2
+  )
+```
+`r solend()`
+
+`r qbegin(4)`
+We can also create a plot of a function using `stat_function()` in a ggplot.  
+The syntax is a bit odd (and difficult to remember!), but we can give our ggplot the variable from our dataset on the x-axis, and then give the `stat_function()` function a mathematical function to the `fun = ` argument:  
+```{r}
+ggplot(data = newdata, aes(x = x)) +
+    stat_function(fun = function(.x) .x^2+2)
+```
+
+For $x in [-10,-9,...,9,10]$, use `stat_function()` to create three plots, one for each of the functions $f(x)=x^2$, $f(x)=x^3$ and $f(x)=x^4$.  
+
+:::frame  
+As an extra challenge, colour the lines blue, red and green respectively, and arrange the plots side by side.  
+
+You can do this with the package **patchwork**, which is specifically for arranging ggplots.  
+You will need to *install* the package first, by calling `install.packages("patchwork")` **in your console** (remember, we install only once so we don't want to keep this line in our script where we are likely to run code many times). 
+You will then need to *load* the package using `library(package)` **in your editor**.  
+  
+You can then arrange ggplots using `|`, `+`, and `/`.  
+
+To find out how, take a look at the [patchwork vignette](https://patchwork.data-imaginist.com/)
+```{r echo=FALSE, fig.cap="Artwork by \\@allison_horst"}
+knitr::include_graphics("images/ahorst/patchwork_1.jpg")
+```
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+p1 <- ggplot(data = newdata, aes(x = x)) +
+  stat_function(fun = function(.x) .x^2, col = "blue") +
+  labs(title = "Quadratic, x^2")
+
+p2 <- ggplot(data = newdata, aes(x = x)) +
+  stat_function(fun = function(.x) .x^3, col = "red") +
+  labs(title="Cubic, x^3")
+  
+p3 <- ggplot(data = newdata, aes(x = x)) +
+  stat_function(fun = function(.x) .x^4, col = "green") + 
+  labs(title="Quartic, x^4")
+
+library(patchwork)
+p1 + p2 + p3
+```
+`r solend()`
+
+`r qbegin(5)`
+I take out a loan of £1000 from a bank with an interest rate of 15% per annum.  
+Over the course of 20 years, I never pay any of it back.  
+If you were to create a plot with "years" on the x-axis and "amount owed" on the y-axis. What would the line look like?  
+
+As an extra challenge, try to write out the function f(x) for $x$ in years $[1,2,...,19,20]$ which computes the amount of the loan.  
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+The amount added each year gets bigger, which means the line is curved! 
+
++ Year 1:  15% of £1000 is £150
++ Year 2:  15% of £1150 is £172.5
++ Year 3: 15% of £1132.5 is £198.375  
+
+The function which describes the relationship between year ($x$) and total amount owed is $f(x) = 1000 \times 1.15^x$
+
+```{r}
+loan <- 
+  tibble(
+    years = 1:20
+  )
+ggplot(data = loan, aes(x = years)) +
+  stat_function(fun = function(.x) 1000 * 1.15^.x) + 
+  labs(title="Compound Interest")
+```
+
+`r solend()`
+
+`r qbegin(6)`
+
+Read in the data at https://uoepsy.github.io/data/rtdata.csv. It contains measurements (in milliseconds) from a simple reaction time task, conducted on 500 participants. 
+Create a histogram of the 500 participants' reaction times.  
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+rtdata <- read_csv("https://uoepsy.github.io/data/rtdata.csv")
+
+ggplot(data = rtdata, aes(x = rt)) + 
+  geom_histogram(col="white")
+```
+
+`r solend()`
+
+`r qbegin(7)`
+Notice that the distribution of reaction times is skewed. Why do you think this might be?  
+
+Often, a lot of statistical analyses rely on assuming certain characteristics of a distribution - for example, assuming that it is bell-shaped and symmetric (which these reaction times are not).  
+
+We can apply certain transformations to an observed distribution in order to have a distribution of transformed values which follows the shape we want.  
+One of the most common transformations is the log transformation: $f(x) = log_e(x)$  
+Add a new column to the data which contains log transformed reaction times, and create a histogram of the distribution. 
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+rtdata <- 
+  rtdata %>%
+  mutate(
+    logrt = log(rt)
+  )
+
+ggplot(data = rtdata, aes(x = logrt)) + 
+  geom_histogram(col="white")
+```
+`r solend()`
+
+`r qbegin(8)`
+Recall that log transformation is not a _linear_ transformation. Let's explore what that means.
+
+Consider the following people and their reaction times: 
+
+- Person A: 500ms
+- Person B: 600ms
+- Person C: 700ms
+- Person D: 800ms
+
+1. How much slower, in milliseconds, is person B compared to person A?
+1. How much slower, in milliseconds, is person D compared to person C? 
+1. How much slower, in log(milliseconds), is person B compared to person A?
+1. How much slower, in log(milliseconds), is person D compared to person C?  
+
+Are your answers what you expected?  
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+1. Person B is 100ms slower than person A (`600-500`)
+1. Person D is 100ms slower than person C (`800-700`)
+1. Person B is `r round(log(600)-log(500),3)` log(milliseconds) slower than person A (`log(600)-log(500)`)
+1. Person D is `r round(log(800)-log(700),3)` log(milliseconds) slower than person C (`log(800)-log(700)`)
+
+Notice that the a difference of 100ms corresponds to different amounts of the log transformed values, depending upon where the difference happens (800ms relative to 700ms, or 600ms relative to 500ms).  
+You can see the non-linearity of this when we plot the raw values against the log transformed ones:  
+```{r}
+ggplot(data = rtdata, aes(x = rt, y = logrt)) + 
+  geom_point()
+```
+`r solend()`
+
+
+
+`r qbegin(9)`
+Also in the dataset are the participants' heights: 
+
+```{r}
+ggplot(data = rtdata, aes(x = height)) + 
+  geom_histogram(col="white")
+```
+
+Standardise the participants' heights (re-express each value as the distance from the mean height in units of standard deviations). Produce a histogram of standardised heights. How is it different from the histogram above?  
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+The histogram of standardised values will look identical to the raw values, but the numbers on the x-axis are different, now reflecting standard deviations from the mean.  
+
+```{r}
+rtdata <- 
+  rtdata %>%
+  mutate(
+    height_z = scale(height)
+  )
+
+ggplot(data = rtdata, aes(x = height_z)) + 
+  geom_histogram(col="white")
+```
+`r solend()`
+
+`r qbegin(10)`
+How many standard deviations above the mean height is participant number 45? How tall are they in cm? 
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+Participant 45 is 199cm tall, and is 4.1 standard deviations above the sample mean.  
+We can access this data either by `filter()`-ing the data to where the "ppt" variable is equal to 45: 
+```{r}
+rtdata %>% filter(ppt == 45)
+```
+
+Or by using `[]` and `$`:
+```{r}
+rtdata[rtdata$ppt == 45, ]
+```
+`r solend()`
+
+<div class="tocify-extend-page" data-unique="tocify-extend-page" style="height: 0;"></div>

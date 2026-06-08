@@ -1,0 +1,172 @@
+---
+title: "Lecture 20: Alternative forms"
+subtitle: Data Analysis for Psychology in R 1
+author: Tom Booth
+---
+```{r premable, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(kableExtra)
+library(patchwork)
+library(moderndive)
+library(polycor)
+library(psych)
+```
+
+## Today
+- Briefly consider different forms of correlation and calculation in R
+
+## Learning objectives
+- Understand when to use different forms of correlation.
+- Be able to run correct forms of correlation in R.
+
+## Types of correlation
+
+| X           | Y           | Correlation Type |
+|-------------|-------------|------------------|
+| Continuous  | Continuous  | Pearson          |
+| Continuous  | Categorical | Polyserial       |
+| Continuous  | Binary      | Biserial         |
+| Categorical | Categorical | Polychoric       |
+| Binary      | Binary      | Tetrachoric      |
+| Rank        | Rank        | Spearman         |
+| Nominal     | Nominal     | Chi-square       |
+
+## Spearman correlation
+- Spearman's $\rho$ (or rank-order correlation) is a *non-parametric* estimate of the association between two variables.
+  - As name suggests, it uses data on the rank-ordering of X,Y responses for each individual.
+- When would we choose to use the Spearman correlation?
+	- If our data are naturally ranked data (e.g. imaging an experiment where the task is to rank foods and drinks in terms of preference).
+	- If the data are non-normal or skewed.
+	- If the data shows evidence of non-linearity.
+
+## Spearman correlation
+- Spearman's is not testing for linear relations, it is testing for increasing monotonic relationship.
+  - Huh?
+  
+## Linear vs. monotonic
+```{r, echo=FALSE}
+mono <- tibble(
+  A = c(1,2,3,4,5,6,7,8,9,10),
+  B = c(1,2,3,4,5,6,7,8,9,10),
+  C = c(1,4,5,6,8,9,10,13,15,16)
+)
+
+p1 <- mono %>%
+  ggplot(., aes(x=A, y=B)) +
+  geom_point() + 
+  geom_line() +
+  ggtitle("Linear")
+
+p2 <- mono %>%
+  ggplot(., aes(x=A, y=C)) +
+  geom_point() + 
+  geom_line() +
+  ggtitle("Increasing Monotonic")
+
+p1 + p2
+
+```
+
+## Steps in Spearman's
+$$
+\rho = 1 - \frac{6\Sigma{d^2_i}}{n(n^2-1)}
+$$
+
+- Calculation steps:
+	- Rank each variable from largest to smallest.
+	- If there are ties in ranks, assign the average of the rankings to each case.
+	- Calculate the difference in rank for each person on the two variables.
+	- Tabulate data
+	- Square the difference.
+	- Sum the squared values.
+	
+## Quick example
+
+```{r}
+rank <- tibble(
+  ID = paste("ID", 1:6, sep = ""),
+  RT =c(.264, .311, .265, .291, .350, .500),
+  Caff = c(210,280,150,90,200,450)
+)
+rank
+```
+
+## Calculation
+```{r}
+rank_calc <- rank %>%
+  mutate(
+    RT_rank = rank(RT),
+    Caff_rank = rank(Caff),
+    di = RT_rank - Caff_rank,
+    di2 = di^2
+  )
+rank_calc
+```
+
+## Calculation
+```{r}
+rank_calc
+```
+
+$$
+\rho = 1 - \frac{6\Sigma{d^2_i}}{n(n^2-1)} = 1 - \frac{6*18}{6(6^2-1)} = 1 - \frac{108}{210} = 1 - 0.514 = 0.486
+$$
+
+## In R
+```{r}
+cor(rank$RT, rank$Caff, method = "spearman")
+```
+
+## Other forms
+- General principle (simplified a little) of the other forms of correlation is roughly the same.
+- We assume that the categorical variable is a crude measurement of an underlying normal variable.
+- Aiming to provide an estimate of the association between these underlying variables.
+
+## Underlying continuous variable
+
+```{r, echo=FALSE}
+dat <- tibble(
+  x = factor(sample(c("Disagree", "Neither Agree/Disagree", "Agree"), 
+                       500, replace = T, prob = c(0.3, 0.5, 0.2)), 
+             levels = c("Disagree", "Neither Agree/Disagree", "Agree")
+             )
+  )
+p3 <- dat %>% 
+  ggplot(., aes(x=x)) +
+  geom_bar() 
+p4 <- ggplot(NULL, aes(x = c(-5,5))) +
+  stat_function(fun=dnorm,
+                geom = "line") +
+  theme_void()
+
+p3+p4
+```
+
+## In R
+- Estimating correlation is straight forward.
+- All we need to do is make sure R knows the type of data we have, then use `hetcor`
+
+```{r}
+pers_items <- bfi[,c(1:5)]
+pers_items <- pers_items %>%
+  mutate(
+    A1 = as_factor(A1)
+  )
+pers_cors <- hetcor(pers_items)
+```
+
+## In R
+
+```{r}
+pers_cors$correlations
+```
+
+
+```{r}
+pers_cors$type
+```
+
+
+## Tasks for this week...
+- Keep safe and healthy.
+

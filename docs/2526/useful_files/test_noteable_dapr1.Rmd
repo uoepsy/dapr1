@@ -1,0 +1,109 @@
+---
+title: "DAPR1 Formative Report"
+author: "Exam number B000001"
+date: "Academic year 2025-26"
+output: bookdown::pdf_document2
+toc: false
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+
+```{r include=FALSE}
+# INSTALL TINYTEX TO ALLOW KNITTING TO PDF
+
+# library(tinytex)
+# tinytex::install_tinytex(force = TRUE)
+
+
+# PACKAGES
+library(tidyverse)
+library(ggmosaic)
+library(ggridges)
+library(effectsize)
+library(corrr)
+library(patchwork)
+library(broom)
+library(psych)
+
+
+# GGMOSAIC
+mtcars <- mtcars |>
+    mutate(am = factor(am),
+           gear = factor(gear))
+p.m <- ggplot(mtcars) +
+    geom_mosaic(aes(x = product(am, gear), fill = am))
+p.m
+
+
+# GGRIDGES
+p.r <- ggplot(iris, aes(x = Sepal.Length, y = Species, fill = Species)) +
+    geom_density_ridges()
+p.r
+
+
+# PATCHWORK
+p.m | p.r
+
+
+# EFFECTSIZE
+data <- iris |>
+    filter(Species != "setosa") |>
+    mutate(Species = fct_drop(Species))
+
+cohens_d(Sepal.Length ~ Species, data = data, pooled_sd = TRUE)
+
+
+# CORRR
+datasets::airquality %>% 
+  correlate() %>% 
+  network_plot(min_cor = .2)
+
+
+# BROOM
+tidy(t.test(Sepal.Length ~ Species, data = data))
+
+
+# PSYCH
+describe(data)
+
+
+```
+
+
+# Introduction
+
+Write here your introduction.
+
+
+# Analysis
+
+Present here your figures/tables/results and provide write-ups of your results. See Figure \@ref(fig:TESTFIG).
+
+```{r TESTFIG, fig.cap = "My plots", fig.height = 4, fig.width = 8}
+p.m | p.r
+```
+
+
+# Discussion
+
+Summarise the key take-home findings among everything that was presented in the analysis section.
+
+
+# Appendix A: Additional figures and tables
+
+Include here additional tables and figures, with captions, and properly referenced. These should be used somewhere in the text, do not include tables or figures which are not referenced anywhere in your writing. If you don't need Appendix A, remove it.
+
+
+# Appendix B: R code
+
+Do not edit the code chunk below, but remove this paragraph of text before submitting.
+
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+
+```

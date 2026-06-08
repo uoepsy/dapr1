@@ -1,0 +1,377 @@
+---
+title: "Lecture 14: NHST"
+subtitle: Data Analysis for Psychology in R 1
+author: Tom Booth
+---
+```{r premable, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(kableExtra)
+library(patchwork)
+library(moderndive)
+```
+
+## Today
+- Discuss further details of NHST
+- Introduce Type I error, Type II error, power and effect size
+
+## Learning objectives
+- Understand the structure of a hypothesis test.
+- Understand the definition of Type I error, Type II error, power and effect size. 
+
+## Recap
+- Structure of a Hypothesis Test
+    1. A hypothesis
+    2. A hypothesis test
+    3. Test statistic
+    4. Observed test statistic (point estimate from sample)
+    5. Null distribution
+    6. $p$-value
+    7. Significance level
+    
+## NHST
+- What we are setting out is the modern application of **N**ull **H**ypothesis **S**ignificance **T**esting (NHST).
+- Before we continue to develop some of the key ideas, let's briefly discuss where the framework came from.
+
+## NHST: Brief history
+- Jerzy Neyman (1894-1981) and Egon S. Pearson (1895-1980).
+- **Key features:**
+	- Argued that you need two hypotheses to compare, the null ($H_{0}$) and the alternative ($H_{1}$).
+	- Rejected inductive reasoning for inductive behaviour
+		- They wanted a decision rule.
+	- Introduced concepts of Type I and Type II error
+		- The different ways we can be wrong.
+	- Focus was on decision making to maintain a long-run error rate.
+	
+## Decisions and errors
+- Type I and Type II error:
+	- N-P set up a 2x2 system.
+	- We make a binary decision (right/wrong) about the $H_{0}$
+	- Therefore, there are 2 ways to make the right decision, and two ways to make the wrong decision.
+
+## Decisions and errors
+
+|                     | $H_0$ is True          | $H_0$ is False             |
+|:--------------------|:----------------------:|:--------------------------:|
+|Fail to reject $H_0$ | Correct                | Incorrect                  |
+|Reject $H_0$         | Incorrect              | Correct                    |
+
+
+##  Error rates: Type I
+
+|                          | $H_0$ is True             | $H_0$ is False             |
+|:-------------------------|:-------------------------:|:--------------------------:|
+|Fail to reject $H_0$      | Correct                   | Incorrect                  |
+|Test rejects $H_0$        | Type I Error ($\alpha$)   | Correct                    |
+
+
+##  Error rates: Type I
+
+|                          | $H_0$ is True             | $H_0$ is False             |
+|:-------------------------|:-------------------------:|:--------------------------:|
+|Fail to reject $H_0$      | Correct<br>True Negative  | Incorrect                  |
+|Test rejects $H_0$        | Type I Error ($\alpha$)<br> False Positive  | Correct  |
+
+##  What is alpha? 
+- $\alpha$ is commonly referred to as the significance level of the test.
+	- It represents our level of tolerance for Type I error.
+	- Or in the long-run, the number of times we are willing to be wrong.
+	- Or probability of incorrectly rejecting the null.
+- It is set a priori for any given hypothesis test.
+  - The level at which $\alpha$ is set should be determined by study.
+	- Conventionally this is set at .05 (5%); .01 (1%); or .001 (0.1%).
+	
+## Alpha and critical regions	
+- $\alpha$ defines a **critical region** under the sampling distribution.
+	- The **critical value** is the value of the test statistic which defines the start of this region.
+
+##  Critical regions 
+```{r, echo=FALSE}
+twotail <- ggplot(NULL, aes(x = c(-4,4))) +
+  stat_function(fun=dnorm,
+                    geom = "line") +
+  stat_function(fun = dnorm, 
+                geom = "area",
+                xlim = c(qnorm(0.975), 4),
+                alpha=.25,
+                fill = "blue") +
+    stat_function(fun = dnorm, 
+                geom = "area",
+                xlim = c(qnorm(0.025), -4),
+                alpha=.25,
+                fill = "blue") +
+  xlab("\n Test Statistic") +
+  ylab("Probability \n") +
+  ggtitle("Critical region for two-tail alpha = 0.05")
+
+twotail
+
+```
+
+- A two tailed $\alpha = 0.05$ means we have 0.025% of the distribution within the critical region in each tail.
+
+
+##  Critical regions 
+```{r, echo=FALSE}
+onetail <- ggplot(NULL, aes(x = c(-4,4))) +
+  stat_function(fun=dnorm,
+                    geom = "line") +
+  stat_function(fun = dnorm, 
+                geom = "area",
+                xlim = c(qnorm(0.95), 4),
+                alpha=.25,
+                fill = "blue") +
+  xlab("\n Test Statistic") +
+  ylab("Probability \n") +
+  ggtitle("Critical region for one-tail alpha=0.05")
+
+onetail
+```
+
+- A one tailed $\alpha = 0.05$ means we have 0.05% of the distribution within the critical region either the left or right tail.
+
+##  Critical regions
+
+```{r, echo=FALSE}
+twotail_full <- twotail +
+      stat_function(fun = dnorm, 
+                geom = "area",
+                xlim = c(qnorm(0.025), qnorm(0.975)),
+                alpha=.25,
+                fill = "red") +
+  ggtitle("")
+
+onetail_full <- onetail +
+      stat_function(fun = dnorm, 
+                geom = "area",
+                xlim = c(-4, qnorm(0.95)),
+                alpha=.25,
+                fill = "red") +
+  ggtitle("")
+
+twotail_full | onetail_full
+```
+
+
+- In either case, 95% of the area is not within a critical region (red area in both plots).
+
+
+## Error and probability
+
+|                     | $H_0$ is True       | $H_0$ is False             |
+|:--------------------|:-------------------:|:--------------------------:|
+|Fail to reject $H_0$ | $p(True Negative)=(1-\alpha)=0.95$ | Incorrect   |
+|Test rejects $H_0$   | $p(False Positive) = \alpha=0.05$ | Correct      |
+|                     | $p =0.95+0.05=1$    |                            |
+
+
+##  Error rates: Type II
+
+|                     | $H_0$ is True             | $H_0$ is False             |
+|:--------------------|:-------------------------:|:--------------------------:|
+|Fail to reject $H_0$ | Correct <br> True Negative| Type II Error ($\beta$)    |
+|Test rejects $H_0$   | Type I Error ($\alpha$) <br> False Positive| Correct   |
+
+
+##  Error rates: Type II
+
+|                     | $H_0$ is True             | $H_0$ is False             |
+|:--------------------|:-------------------------:|:--------------------------:|
+|Fail to reject $H_0$ | Correct <br> True Negative| Type II Error ($\beta$) <br> False Negative |
+|Test rejects $H_0$   | Type I Error ($\alpha$) <br> False Positive| Correct <br> True Positive |
+
+## What are beta and power?
+- $\beta$ is the level of tolerance for Type II error
+  - Again, the number of times we are willing to be wrong.
+  - The probability of incorrectly failing to reject the null.
+- Power:
+  - The probability of correctly rejecting the null when the null hypothesis is false.
+  - Typically discuss a minimum power level of 80%.
+
+## What are beta and power?
+
+```{r, echo=FALSE}
+
+ggplot(NULL, aes(x = c(-4,8))) +
+  stat_function(fun=dnorm,
+                    geom = "line") +
+  stat_function(fun = dnorm, 
+                geom = "area",
+                xlim = c(qnorm(0.975), 4),
+                alpha=.25,
+                fill = "blue") +
+  stat_function(fun = dnorm, 
+                geom = "area",
+                xlim = c(qnorm(0.025), -4),
+                alpha=.25,
+                fill = "blue") +
+  stat_function(fun = dnorm,
+                geom = "line",
+                col = "red",
+                args = list(mean=3,sd=1)) +
+  stat_function(fun = dnorm,
+                geom = "area",
+                xlim = c(qnorm(0.975), 0),
+                alpha = .25, 
+                fill = "red",
+                args = list(mean=3,sd=1)) +
+  xlab("\n Test Statistic") +
+  ylab("Probability \n") +
+  ggtitle("Alpha and Beta")
+
+```
+
+
+## Error and probability
+
+|                     | $H_0$ is True    | $H_0$ is False                         |
+|:--------------------|:----------------:|:--------------------------------------:|
+|Fail to reject $H_0$ | Correct          | $p(FalseNegative)=\beta=0.20$          |
+|Test rejects $H_0$   | Incorrect        | $p(TrueNegative)=(1-\beta)=0.80=Power$ |
+|                     |                  | $p =0.20+0.80=1$                       |
+
+
+##  Effect size 
+- Imagine we have a null distribution for a statistic.
+  - Let's say the difference in means.
+  - The null assumes no difference.
+- How can I work out what would constitute a correct rejection of the null?
+  - Or how big of a difference in means would there need to be for me to confidently reject the null?
+
+	
+## Effect size
+
+```{r, echo=FALSE}
+ggplot(NULL, aes(x = c(-4,8))) +
+  stat_function(fun=dnorm,
+                    geom = "line") +
+  stat_function(fun = dnorm,
+                geom = "line",
+                col = "red",
+                args = list(mean=3,sd=1)) +
+  geom_vline(xintercept = 0, lty = 2) +
+  geom_vline(xintercept = 3, lty = 2, col = "red") +
+  geom_segment(aes(x=0,y=0.42,xend=3,yend=0.42), col = "darkblue", size = 1, 
+               arrow = arrow(length = unit(0.25, "cm"), ends = "both")) +
+  xlab("\n Test Statistic") +
+  ylab("Probability \n") +
+  ggtitle("Null (black) and alternative (red) distributions")
+```
+
+- This assumed (or hypothesized) difference from the null is known as an **effect size**.
+
+
+## Full picture
+
+|                     | $H_0$ is True             | $H_0$ is False             |
+|:--------------------|:-------------------------:|:--------------------------:|
+|Fail to reject $H_0$ | Confidence Level <br> True Negative <br>  1 - $\alpha$ | Type II Error ($\beta$) <br> False Negative <br> $1 - Power$|
+|Test rejects $H_0$   | Type I Error ($\alpha$) <br> False Positive <br> $1 - Conf.level$| Power <br> True Positive <br> $1-\beta$ |
+
+##  Interplay of components 
+- Interplay of the 2x2 (from Szucs et al):
+	- Set alpha level a priori
+		- How many times in the long run I am willing to be wrong.
+	- Decide on the effect size.
+	- Decide on power based on acceptable Type II error rate.
+	- From which we can select a sample size to keep power at this level given the set effect size.
+- This you will look a lot more at in labs this week.
+
+## Summary
+- NHST provides decisions rules for our hypothesis tests.
+- The null is either "right" or "wrong"
+  - And given that, our decisions to reject or fail to reject, are "right" or "wrong"
+- This gives a 2x2 system.
+- Our probabilities of being wrong are Type I and Type II error.
+- To fully define the system, we need to specify $\alpha$, $\beta$ thus power, and an effect size.
+
+## Tasks for this week...
+1. Finish tasks from last week. 
+2. Quiz 14: Hypothesis Testing and R
+    - Today at 17:00.
+    - Close Monday 3rd at 17:00
+    
+## Recommendations of the week
+- Podcast: [Quantitude](https://quantitudethepodcast.org/)
+- Recipe: [Spicy Baked eggs with tomato and chickpeas](https://www.deliciousmagazine.co.uk/recipes/spicy-baked-eggs-with-tomatoes-and-chickpeas/)
+- Book: [Surely You're Joking Mr Feynman](https://www.penguin.co.uk/books/1032177/surely-you-re-joking-mr-feynman/9780099173311.html), Richard Feynman.
+- Thing to do: [Scottish Parliament](https://www.parliament.scot/visitandlearn/visiting-the-parliament.aspx) 
+
+
+## Additional Notes
+- In the slides that follow, there is a brief outline of hypothesis testing as set out by Fisher.
+- **This material is not tested in dapR1.**
+- It is here purely for context.
+
+## NHST: Critiques
+1. We do not provide evidence for the null. 
+2. Testing leaves an theoretical black hole.
+3. $p$-values do not provide probabilities of H0 or H1 being true.
+4. NHST does not consider the pre-study probabilities of each hypothesis.
+5. NHST hugely under-estimates false positives.
+6. NHST is not structured to factor in accumulating evidence from science.
+
+## Alternatives
+- Likelihood (Fisher; see additional slides)
+- Bayesian hypothesis testing
+- We are not going to talk much about these approaches (not until 3rd year)
+    - If you are interested, see additional readings.
+
+## Hypothesis Testing: Fisher 
+- Key features:
+    - One hypothesis, null hypothesis, that we are interested in.
+        - It is specifically stated and testable.
+    - We can calculate a probability of this hypothesis.
+        - Referred to as a p-value.
+    - Small p-values indicate the data are not in line with our hypothesis.
+    - If after repeated testing, data rarely failed to provide a small p-value, this may suggest our hypothesis is not good.
+
+##  Defining concepts: Fisher 
+- Null hypothesis ($H_{0}$):
+	- The null hypothesis is the only hypothesis in Fishers system.
+	- It is stated precisely, such that a sampling distribution can be built.
+	- Conventionally will specific a point, around which we would only expect to see random variation.
+	- The term ?null? comes from the verb to nullify (invalidate).
+
+##  Defining concepts: Fisher 
+- $p$-value:
+	- Fisher rejected the idea that the information of interest was $P(H|data)$.
+	- Instead his testing considered $P(data|H)$
+		- That is, given a hypothesis which says something about the world, what is the probability of the data I see .
+	- This probability was Fisher?s $p$-value.
+	- Fisher saw the "**exact p-value as providing a heuristic piece of inductive evidence which gives an indication of the plausibility of H0 together with other available evidence**" ( Szucs et al. 2017)
+		- The smaller the value, the more unusual or rare the sample statistic is.
+
+##  Defining concepts: Fisher 
+- $p$-value:
+	- Formal definition: ***The probability of observing data as or more extreme if the null hypothesis is true.***
+		- This definition stems from the fact that what we expect to see in data is defined by the specification of the null hypothesis and the associated sampling distribution.
+	- Importantly, Fisher saw evidence of a small $p$-value from a single study as only weak evidence a phenomena may warrant further study.
+	- A phenomena was only of interest if in well designed repeated studies small $p$-values were seen.
+
+##  Defining concepts: Fisher 
+- Inductive reasoning:
+	- System is based on an inductive reasoning.
+	- There is not proof of the truth or a decision/outcome, it is just probable given information at hand.
+	- If the null is true, we have a point estimate of the effect, and random variation around this.
+		- We collect some data and calculate a statistic.
+	- If it does not fall close to the value specified by the null, and is distant enough given random variation, then we have either witnessed a very rare event, or the null is incorrect.
+
+##  Steps: Fisher 
+- Pick the appropriate statistical test (rest of the course)
+- Define the null hypothesis
+- Calculate the probability of the data given the null ($p$-value).
+- Assess the $p$-value.
+    -Note Fisher arbitrarily spoke of values less than 0.05 as being potential markers for small $p$-values, but he was in no way fixed to them and they carried no particular statistical meaning.
+- Come a conclusion.
+    - Being careful your conclusions are in line with the underlying inductive reasoning and definition of the $p$-value.
+
+
+## Additional Reading
+ - Berger, J.O. (2003). Could Fisher, Jeffreys and Neyman have Agreed on Testing? *Statistical Science, 18*, 1-32.
+- Gigerenzer, G. (2004). Mindless statistics. *J. Socio Econ. 33*, 587–606.
+- Hubbard, R. & Bayarri, M.J. (2003) Confusion Over Measures of Evidence (p's) Versus Errors ($\alpha$s) in Classical Statistical Testing, *The American Statistician, 57*, 171-178.
+
+## Additional Reading
+- Lehmann, E.L. (1993). The Fisher, Neyman-Pearson Theories of Testing Hypotheses: One theory or two? *Journal of the American Statistical Association, 88*, 1242-1249
+- Rouder, J.N., Morey, R.D., Verhagen, J., Province, J.M., & Wagenmakers E-J. (2016). Is there free lunch in inference? *Trends in Cognitive Science, 8*, 520-547.
+- Szucs, D., & Ioannidis, J.P.A. (2017). When null hypothesis significance testing is unsuitable for research: A reassessment. *Frontiers in Human Neuroscience*, 11:390.
