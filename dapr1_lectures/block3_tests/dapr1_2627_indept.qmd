@@ -1,0 +1,832 @@
+---
+title: "T-Test: Independent Samples"
+author: "Emma Waterston (Emma.Waterston@ed.ac.uk)"
+editor_options: 
+  chunk_output_type: console
+format:
+  revealjs:
+    smaller: true
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+library(simglm)
+
+source('_theme/theme_quarto.R')
+
+```
+
+
+# Course Overview 
+
+<br>
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+#| warning: false
+#| results: asis
+
+block1_name = "Exploratory Data Analysis"
+block1_lecs = c("W1",
+                "W2",
+                "W3",
+                "W4",
+                "W5")
+block2_name = "Inference"
+block2_lecs = c("W7",
+                "W8",
+                "W9",
+                "W10",
+                "W11")
+
+source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+course_table(block1_name,block2_name,block1_lecs,block2_lecs, week = 0)
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+#| warning: false
+#| results: asis
+
+block3_name = "Basic Tests"
+block3_lecs = c("W1",
+                "W2",
+                "W3",
+                "W4",
+                "W5")
+block4_name = "Intro Linear Models"
+block4_lecs = c("W6",
+                "W7",
+                "W8",
+                "W9",
+                "W10")
+
+source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=2)
+```
+
+:::
+
+::::
+
+
+## This Week's Learning Objectives
+
+<br>
+
+
+::: {style="font-size: 125%;"}
+
+::: {.fragment}
+::: {.dapr3callout}
+Understand when to use an independent samples $t$-test
+:::
+:::
+
+
+::: {.fragment}
+::: {.dapr3callout}
+Understand how to calculate the test statistic
+:::
+:::
+
+::: {.fragment}
+::: {.dapr3callout}
+Know how to conduct the test in `R`
+:::
+:::
+
+::: {.fragment}
+::: {.dapr3callout}
+Understand the data requirements and assumptions for a independent samples $t$-test
+:::
+:::
+
+:::
+
+
+# T-Test: Independent Samples
+
+
+## Purpose
+- The independent samples $t$-test is used when we want to test whether the mean of one group is statistically different from/greater than/less than the mean of another group
+
+<br>
+
+- Distinct/independent samples of participants:
+    - Is the average reaction time different between participants who do and don’t drink caffeinated drinks?
+    - Do participants who identify as 'early birds' have a higher average rating of sleep quality than those who identify as 'night owls'?
+
+
+## t-statistic
+
+$$
+t = \frac{(\bar{x}_1 - \bar{x}_2) - \delta_0}{SE_{(\bar{x}_1 - \bar{x}_2)}}
+$$
+
+- Where
+  - $\bar{x}_1$ and $\bar{x}_2$ are the sample means in each group
+  - $\delta_0$ is the hypothesised population difference in means in the null hypothesis $(\mu_1 - \mu_2)$
+  - $SE_{(\bar{x}_1 - \bar{x}_2)}$ is standard error of the difference, where:
+      - $SE_{(\bar{x}_1 - \bar{x}_2)} = s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}$
+      - $s_p = \sqrt\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2}$
+
+<br>
+
+- Sampling distribution is a $t$-distribution with $n-2$ degrees of freedom, where $n$ = $n_1 + n_2$
+
+- TO DO: LINK TO HANDOUT FOR HOW TO DO BY HAND
+
+## Hypotheses {.smaller}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+**Two-tailed (`alternative = "two.sided"`)**
+
+$$
+\begin{aligned}
+H_0: \mu_1 = \mu_2 
+\qquad \text{vs} \qquad 
+H_1: \mu_1 \neq \mu_2
+\end{aligned}
+$$
+
+<br>
+
+
+**One-tailed (`alternative = "less" | "greater"`)**
+
+$$
+\begin{aligned}
+H_0: \mu_1 = \mu_2 
+\qquad \text{vs} \qquad 
+H_1: \mu_1 < \mu_2 
+\end{aligned}
+$$
+
+<br>
+
+$$
+\begin{aligned}
+H_0: \mu_1 = \mu_2
+\qquad \text{vs} \qquad 
+H_1: \mu_1 > \mu_2
+\end{aligned}
+$$
+
+::: 
+
+::: {.column width="50%"}
+
+<br>
+
+$$
+\begin{aligned}
+H_0: \mu_1 -\mu_2 = 0
+\qquad \text{vs} \qquad 
+H_1: \mu_1 - \mu_2 \neq 0 
+\end{aligned}
+$$
+
+<br>
+
+
+<br>
+
+
+$$
+\begin{aligned}
+H_0: \mu_1 -\mu_2 = 0
+\qquad \text{vs} \qquad 
+H_1: \mu_1 - \mu_2 < 0 
+\end{aligned}
+$$
+
+<br>
+
+$$
+\begin{aligned}
+H_0: \mu_1 -\mu_2 = 0 
+\qquad \text{vs} \qquad 
+H_1: \mu_1 - \mu_2 > 0
+\end{aligned}
+$$
+
+::: 
+
+::::
+
+
+# Example
+
+## Stereotype Threat
+
+- Example taken from Howell, D.C. (2010). *Statistical Methods for Psychology, 7th Edition*. Belmont, CA: Wadsworth Cengage Learning.
+
+- Data from Aronson, Lustina , Good, Keough, Steele and Brown (1998). Experiment on stereotype threat.
+
+	- Two independent groups college students ($n$=12 control; $n$=11 threat condition) 
+	- Both samples excel in maths
+	- Threat group told certain students usually do better in the test
+
+
+## Hypotheses
+
+- I elect to use a one-tailed test with alpha $(\alpha)$ of .05
+
+<br>
+
+- I specify the following hypotheses:
+
+$$
+\begin{matrix}
+H_0: \mu_1 = \mu_2\\
+H_1: \mu_1 < \mu_2\\
+\end{matrix}
+$$
+
+
+## Data
+
+```{r}
+#| echo: false
+
+threat <- tibble(
+  Group = as_factor(c(rep("Threat", 11), rep("Control", 12))),
+  Score = c(7,5,6,5,6,5,4,7,4,3,6,10,11,8,9,12,11,10,9,8,7,11,9)
+)
+```
+
+```{r}
+#| echo: false
+
+threat
+```
+
+## Descriptive Statistics
+
+```{r}
+#| echo: true
+#| code-line-numbers: "2"
+
+threat |>
+  group_by(Group) |>
+  summarise(
+    Mean = mean(Score),
+    SD = sd(Score),
+    n = n()
+  ) |>
+  kable(digits = 2) |>
+  kable_styling(full_width = FALSE)
+```
+
+
+## Data Visualisation
+
+```{r}
+#| echo: true
+#| code-line-numbers: "1"
+
+ggplot(data = threat, aes(x = Group, y = Score, fill = Group)) +
+    geom_violin() + 
+    geom_jitter(alpha = 0.5) + 
+    labs(x = "Group", y = "Score")
+```
+
+
+## Independent Samples T-Test **in R**
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: true
+
+res <- t.test(threat$Score ~ threat$Group, 
+       alternative = "less",
+       mu = 0,
+       var.equal = TRUE,
+       conf.level = 0.95)
+res
+```
+
+:::
+
+::: {.column width="50%"}
+
+To get **missing** CI - need to do a **two-sided** test
+
+```{r}
+#| eval: false
+#| echo: true
+
+t.test(threat$Score ~ threat$Group, 
+       alternative = "two.sided",
+       mu = 0,
+       var.equal = TRUE,
+       conf.level = 0.95)
+```
+
+:::
+
+::::
+
+## Independent Samples T-Test Interpretation TO DO!! 
+
+[INSERT WOOCLAP]
+
+QUESTION:
+
+Do the threat group perform more significantly worse than the control group? Do we reject or fail to reject the null hypothesis?
+
+ ANSWER:
+
+- Yes! Difference estimated to be ~4, and this is statistically significant since p < .001. Thus, reject the null. 
+
+## Write Up
+
+```{r}
+#| echo: false
+
+calc <- threat |>
+  group_by(Group) |> #<<
+  summarise(
+    Mean = round(mean(Score),2),
+    SD = round(sd(Score),2),
+    n = n()
+    )
+```
+
+
+
+An independent samples $t$-test was used to determine whether the average maths score of the stereotype threat group $(n = `r calc[1,4]`)$ was significantly lower $(\alpha = .05)$ than the control group $(n = `r calc[2,4]`)$. There was a significant difference in test score between the control $(M = `r calc[2,2]`, SD=`r calc[2,3]`)$ and threat $(M = `r calc[1,2]`, SD=`r calc[1,3]`)$ groups, where the scores were significantly lower in the threat group $(t(`r res$parameter`)=`r round(res$statistic,2)`, p < .001, one-tailed)$. Therefore, we can reject the null hypothesis. The direction of difference supports our directional hypothesis and indicates that the threat group performed more poorly than the control group.
+
+
+# Data Requirements & Assumptions
+
+
+## Data Requirements
+
+- A numeric variable
+
+- A binary variable denoting groups
+
+
+## Assumption Checks Summary 
+
+```{r tbl7}
+#| echo: false
+
+tbl7 <- tibble::tribble(
+~` `, ~`Description`, ~`One-Sample t-test`, ~`Independent Samples t-test`, ~`Paired Samples t-test`,
+"Normality","Numeric variable (or difference) is normally distributed OR sample size is sufficiently large.","Yes (variable). Sample size guideline: n ≥ 30","Yes (variable in each group).  Sample size guideline: n1 ≥ 30 and n2 ≥ 30","Yes (difference).    Sample size guideline: number of pairs ≥ 30",
+"Tests:","Descriptive Statistics and Plots; QQ-Plot; Shapiro-Wilks Test"," "," "," ",
+"Independence","Observations are sampled independently.","Yes","Yes (within and across groups)","Yes (across pairs)",
+"Tests:","None. Design issue."," "," "," ",
+"Homogeneity of variance","Population standard deviation is the same in both groups.","NA","Yes[note]","NA",
+"Tests:","F-test"," "," "," ",
+"Matched Pairs in data","For paired sample, each observation must have matched pair.","NA","NA","Yes",
+"Tests:","None. Data structure issue."," "," "," ",
+" "," "," "," "," "
+)
+
+
+kable(tbl7) |>
+  kable_styling(bootstrap_options = "striped", full_width = F, font_size = 18) |>
+   add_footnote(c("Welch t-test is available if this is not met"), notation = "symbol")
+
+```
+
+## Data Requirements & Assumptions: How to Check/Test
+
+- DV is numeric
+  - The dependent variable should be measured on a interval/ratio/integer scale
+  
+- Normality **within groups**
+  - Can be checked with descriptive statistics, visually with plots, and with a Shapiro-Wilks test for each group separately 
+
+- Independence of observations **within and across groups**
+  - More of a study design issue, and cannot directly test
+  - Need to make sure that each individual only belongs to one group, and only has one observation in the group they belong to 
+
+  
+- Homogeneity of variance **across groups**
+  - Can be checked using an $F$-test
+
+
+##  Normality: Skew
+- Skew is a descriptive statistic informing us of both the direction and magnitude of asymmetry    
+
+- No strict cut offs for skew - these are loose guidelines on how to interpret skew   
+	  
+	
+| Verbal label         | Magnitude of skew in absolute value |
+|:--------------------:|:-----------------:|
+| Small (or weak)      | $|\text{Skew}|  < 1$  |
+| Medium (or moderate) | $1 \leq  |\text{Skew}|  < 2$     |
+| Large (or strong)    | $|\text{Skew}| \geq 2$       |
+
+
+## Skew **in R**
+
+```{r}
+#| echo: true
+#| code-line-numbers: "3"
+
+library(psych)
+threat |>
+  group_by(Group) |>
+    summarise(
+      skew = round(skew(Score),2)
+  )
+```
+
+
+## Normality: Visual Assessment 
+
+We can visually assess normality by plotting the distribution of our outcome variable in both groups separately
+
+- Histograms
+    - The count (or frequency) of data points that fall within specified intervals/bins
+        
+- Density Plots
+    - The probability density (or proportion of values) of data points at each value of the observed variable  
+      
+- QQ-Plots (Quantile-Quantile plot)  
+    - Plots the sorted quantiles of one data set (distribution) against sorted quantiles of data set (distribution)
+	  - Quantile = the percent of points falling below a given value
+	  - For a normality check, we can compare our own data to data drawn from a normal distribution
+
+
+## Visual Assessment **in R**
+
+```{r}
+#| echo: true
+#| layout-nrow: 1
+#| code-line-numbers: "4,9,13"
+
+#Histogram
+ggplot(data = threat, aes(x=Score)) +
+  geom_histogram() +
+  facet_wrap(~ Group) + 
+  labs(title = "Histogram")
+
+#Density Plot
+ggplot(data = threat, aes(x=Score)) +
+  geom_density() +
+  facet_wrap(~ Group) +
+  labs(title = "Density")
+
+#QQPlot
+ggplot(data = threat, 
+       aes(sample = Score, colour = Group)) +
+  geom_qq() +
+  geom_qq_line() +
+      labs(title="QQ-plot", 
+       x = "Theoretical quantiles",
+       y = "Sample quantiles")
+```
+
+
+##  Normality: Shapiro-Wilks Test 
+
+- Purpose:
+  - Statistical test of normality  
+  - Checks properties of the observed data against properties we would expected from normally distributed data  
+
+<br>
+
+- Hypotheses:
+	- $H_0$: data = normal distribution
+	- $H_1$: data = non-normal distribution
+
+<br> 
+
+- Interpretation: 
+  - If $p$-value $< \alpha$, then reject the null as data are not normally distributed
+
+<br>
+
+- Note: 
+  - Sensitive to $n$ as all $p$-values will be
+  - In very large $n$, normality should also be checked with QQ-plots alongside statistical test
+
+
+##  Shapiro-Wilks Test **in R**
+
+Check outcome variable in both groups separately:
+
+<br>
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: true
+#| code-line-numbers: "2"
+
+threat |> 
+  filter(Group == "Control") |> 
+  pull(Score) |>
+shapiro.test()
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: true
+#| code-line-numbers: "2"
+
+thr <- threat |> 
+  filter(Group == "Threat") |>
+  select(Score)
+shapiro.test(thr$Score)
+```
+
+
+:::
+
+::::
+
+## Normality Interpretation TO DO!! 
+
+[INSERT WOOCLAP]
+
+QUESTION:
+
+What do we conclude about normality based on skew, plots, and shapiro wilk test? Is the assumption of normality met?
+ 
+ANSWER:
+
+- Skew: low (< 1), so we would conclude that it is not problematic
+- Plots: no concerns in histogram or density plots for either group, qqplot reasonable in both 
+- Shapiro-wilk: Fail to reject the null since $p > \alpha$
+- Conclusion: Normality assumption is met
+
+
+##  Homogeneity of Variance: F-Test
+
+- Purpose:
+    - The $F$-test is a test that compares the variances of two groups
+
+<br> 
+
+- Hypotheses:
+	- $H_0$: Population variances are equal
+	- $H_1$: Population variances are **not** equal
+
+<br> 
+
+- Interpretation: 
+  - If $p$-value $< \alpha$, then reject the null as the variances differ across groups
+  
+  
+##  F-test **in R**
+```{r}
+#| echo: true
+
+var.test(threat$Score ~ threat$Group, ratio = 1)
+```
+
+<br>
+
+#### Why `ratio = 1`?
+
+$$
+\begin{matrix}
+H_0: \quad \sigma_1^2 = \sigma_2^2 \quad \text{which is equivalent to} \quad \frac{\sigma_1^2}{\sigma_2^2} = 1 \\
+H_1: \quad \sigma_1^2 \neq \sigma_2^2 \quad \text{which is equivalent to} \quad \frac{\sigma_1^2}{\sigma_2^2} \neq 1
+\end{matrix}
+$$
+
+
+##  F-test Interpretation TO DO!! 
+
+[INSERT WOOCLAP]
+
+QUESTION:
+
+What do we conclude? Do we reject or fail to reject the null hypothesis? Recall:
+
+	- $H_0$: Population variances are equal
+ - $p$-value $< \alpha$ = reject the null, variances differ across groups
+ 
+ ANSWER:
+
+- Fail to reject the null since $p > \alpha$
+- Equality of variances assumption is met
+
+
+##  Violation of Homogeneity of Variance 
+
+- If the variances differ, we can use a Welch test
+
+- Conceptually very similar, but we do not use a pooled standard deviation
+	- As such our estimate of the SE of the difference changes
+	- As do our degrees of freedom
+
+
+##  Welch Test
+
+- Test statistic:
+
+$$
+t = \frac{(\bar{x}_1 - \bar{x}_2) - \delta_0}{SE_{(\bar{x}_1 - \bar{x}_2)}}
+$$
+
+- SE calculation:
+
+$$
+SE_{(\bar{x}_1 - \bar{x}_2)} = \sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}
+$$
+
+- Degrees of freedom:
+
+$$
+df = \frac{(\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2})^2}{\frac{(\frac{s_1^2}{n_1})^2}{n_1 -1} + \frac{(\frac{s_2^2}{n_2})^2}{n_2 -1}}
+$$
+
+## Welch Test **in R**
+
+```{r}
+#| echo: true
+#| code-line-numbers: "4"
+
+t.test(threat$Score ~ threat$Group, 
+       alternative = "less",
+       mu = 0,
+       var.equal = FALSE, #default, only here to highlight difference
+       conf.level = 0.95)
+```
+
+
+# Effect Size
+
+
+##  Cohen's D: Independent T-Test
+
+- Independent samples $t$-test (if you **do** have equality of variances ^[if you do not have equality of variances, need to calculate via `cohens_d()` function from `effectsize` package - do not calculate by hand]):
+
+$$
+D = \frac{(\bar{x}_1 - \bar{x}_2) - \delta_0}{s_p}
+$$
+
+- where     
+    - $\bar{x}_1$ = mean group 1  
+    -	$\bar{x}_2$ = mean group 2  
+    - $\delta_0$ = the hypothesised population difference in means in the null hypothesis $(\mu_1 - \mu_2)$  
+    -	$s_p$ = pooled standard deviation  
+
+<br> 
+
+Recall the common 'cut-offs' for $D$ scores:
+
+| Verbal label         | Magnitude of $D$ in absolute value |
+|:--------------------:|:-----------------:|
+| Small (or weak)      | $\leq 0.20$       |
+| Medium (or moderate) | $\approx 0.50$    |
+| Large (or strong)    | $\geq 0.80$       |
+
+
+## Cohen's D: Independent Samples T-Test **in R**
+
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: true
+#| warning: false
+
+library(effectsize)
+
+cohens_d(threat$Score ~ threat$Group, 
+         mu = 0, 
+         alternative = "less", 
+         var.equal = TRUE, 
+         ci = 0.95)
+```
+
+:::
+
+::: {.column width="50%"}
+
+To get **missing** CI - need to do a **two-sided** test:
+
+```{r}
+#| echo: true
+#| warning: false
+
+library(effectsize)
+
+cohens_d(threat$Score ~ threat$Group, 
+       alternative = "two.sided",
+       mu = 0,
+       var.equal = TRUE,
+       ci = 0.95)
+```
+
+:::
+
+::::
+
+## Cohen's D Interpretation TO DO!! 
+
+[INSERT WOOCLAP]
+
+QUESTION:
+
+What do we conclude? How would we verbally describe the effect size?
+ 
+ANSWER:
+
+- large
+
+## Write Up: Data Requirements, Assumptions, & Effect Size
+
+The DV of our study, Score, was measured on a continuous scale, and data were independent (participants belonged to one of two groups - Control or Threat). The assumption of normality was visually assessed (via histograms, density plots, and a QQplot) as well as statistically via a Shapiro-Wilks test. The QQplots did not show much deviation from the diagonal line in either group, and the Shapiro-Wilks test for both the Control $(W = 0.96, p = .716)$ and Threat $(W = 0.94, p = .518)$ conditions suggested that the samples came from a population that was normally distributed. This was inline with the histogram and density plots for each group, which suggested that Score was normally distributed (and where $skew < 1$). Based on the results of our $F$-test, there was no significant difference between the two population variances $(F(10,11) = 0.71, p = .604)$. The size of the effect was found to be large $D = -3.08~[-4.30,-2.02]$. 
+
+
+## Revisiting This Week's Learning Objectives
+
+<br>
+
+::: {}
+::: {.dapr3callout}
+**When to use an independent samples t-test?**
+
+- Used to test whether the difference in means between two groups is significantly different from the hypothesised population difference in means under the null (usually assumed to be 0)  
+
+:::
+:::
+
+::: {}
+::: {.dapr3callout}
+**How to calculate the test statistic?**
+
+
+$$
+t = \frac{(\bar{x}_1 - \bar{x}_2) - \delta_0}{SE_{(\bar{x}_1 - \bar{x}_2)}}
+$$
+
+
+:::
+:::
+
+## Revisiting This Week's Learning Objectives
+
+<br>
+
+::: {}
+::: {.dapr3callout}
+**How to conduct the test in R?**
+
+```{r}
+#| eval: false
+
+t.test(dataframe$DV ~ dataframe$IV, #numeric outcome (DV) ~ binary grouping variable (IV)
+       mu = ?, #hypothesised population mean difference under the null
+       alternative = "", #options: "two.sided", "less", "greater"
+       var.equal = , #options: TRUE or FALSE
+       conf.level = 0.??) #depends on alpha specified e.g., if alpha = .05, then 0.95
+```
+
+  
+:::
+:::
+
+::: {}
+::: {.dapr3callout}
+**What are the data requirements & assumptions of an independent samples t-test?**
+
+- Data are continuous
+- The data are normally distributed OR the sample size is sufficiently large (rule-of-thumb $n \geq$ 30 in each group)
+- The data are independent (i.e. the value of a data point does not depend on the value of another data point in any way)
+- The variance is equal across groups (if not, use Welch test)
+
+:::
+:::
+
+
+## This Week 
+

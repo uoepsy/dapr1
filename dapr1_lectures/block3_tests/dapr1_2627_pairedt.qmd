@@ -285,6 +285,23 @@ exam <- tibble(
 exam
 ```
 
+## Descriptive Statistics
+
+```{r}
+#| echo: true
+#| code-line-numbers: "2"
+
+exam |>
+  group_by(time) |>
+  summarise(
+    Mean = mean(stress),
+    SD = sd(stress),
+    n = n()
+  ) |>
+  kable(digits = 2) |>
+  kable_styling(full_width = FALSE)
+```
+
 
 ## Data Visualisation
 
@@ -341,6 +358,23 @@ head(exam_wide)
 ```
 
 
+## Descriptive Statistics
+
+```{r}
+#| echo: true
+#| code-line-numbers: "2"
+
+exam_wide |>
+  summarise(
+    Mean = mean(dif),
+    SD = sd(dif),
+    n = n()
+  ) |>
+  kable(digits = 2) |>
+  kable_styling(full_width = FALSE)
+```
+
+
 ## Data Visualisation
 
 ```{r}
@@ -364,6 +398,21 @@ res_wide <- t.test(exam_wide$t1, exam_wide$t2,
        alternative = "two.sided",
        conf.level = 0.99)
 res_wide
+```
+
+
+## Paired Samples T-Test as a One Sample T-Test in Disguise **in R**
+
+- Instead of using our two numeric columns for our t1 and t2 stress scores, we can perform a one sample $t$-test on the mean of those difference scores!
+
+```{r}
+#| echo: true
+
+res_one <- t.test(exam_wide$dif, 
+       mu = 0,
+       alternative = "two.sided",
+       conf.level = 0.99)
+res_one
 ```
 
 
@@ -460,16 +509,16 @@ exam_wide |>
 
 ## Normality: Visual Assessment 
 
-- We can visually assess normality by plotting the distribution of the difference scores $(d_i)$
+We can visually assess normality by plotting the distribution of the difference scores $(d_i)$
 
-  - Histograms
-      - The count (or frequency) of data points that fall within specified intervals/bins
+- Histograms
+    - The count (or frequency) of data points that fall within specified intervals/bins
         
-  - Density Plots
-      - The probability density (or proportion of values) of data points at each value of the observed variable  
+- Density Plots
+    - The probability density (or proportion of values) of data points at each value of the observed variable  
       
-   - QQ-Plots (Quantile-Quantile plot):
-      - Plots the sorted quantiles of one data set (distribution) against sorted quantiles of data set (distribution)
+- QQ-Plots (Quantile-Quantile plot)  
+    - Plots the sorted quantiles of one data set (distribution) against sorted quantiles of data set (distribution)
 	  - Quantile = the percent of points falling below a given value
 	  - For a normality check, we can compare our own data to data drawn from a normal distribution
 
@@ -500,35 +549,28 @@ ggplot(exam_wide, aes(sample = dif)) +
 ```
 
 
-## Normality Interpretation TO DO!! 
-
-[INSERT WOOCLAP]
-
-QUESTION:
-
-What do we conclude about normality based on skew and plots?
- 
-ANSWER:
-
-- Skew is low (< 1), so we would conclude that it is not problematic
-- Histogram and density plot looks fairly normally distributed 
-- QQPlot: we want our points to be as close to this line as possible, and there doesn't appear to be much deviation
-
-
 ##  Normality: Shapiro-Wilks Test 
 
-- Checks properties of the observed data against properties we would expected from normally distributed data  
+- Purpose:
+  - Statistical test of normality  
+  - Checks properties of the observed data against properties we would expected from normally distributed data  
 
 <br>
 
-- Statistical test of normality
-    - $H_0$: data = a normal distribution
-    - $p$-value $< \alpha$ = reject the null, data are not normal
+- Hypotheses:
+	- $H_0$: data = normal distribution
+	- $H_1$: data = non-normal distribution
+
+<br> 
+
+- Interpretation: 
+  - If $p$-value $< \alpha$, then reject the null as data are not normally distributed
 
 <br>
 
-- Sensitive to $n$ as all $p$-values will be
-- In very large $n$, normality should also be checked with QQ-plots alongside statistical test
+- Note: 
+  - Sensitive to $n$ as all $p$-values will be
+  - In very large $n$, normality should also be checked with QQ-plots alongside statistical test
 
 
 ##  Shapiro-Wilks Test **in R**
@@ -539,26 +581,20 @@ ANSWER:
 shapiro.test(exam_wide$dif)
 ```
 
-<br>
 
-- $W = 0.97, p = .264$
-
-
-##  Shapiro-Wilks Test Interpretation TO DO!! 
+## Normality Interpretation TO DO!! 
 
 [INSERT WOOCLAP]
 
 QUESTION:
 
-What do we conclude? Do we reject or fail to reject the null hypothesis? Recall:
-
-- $H_0$: data = a normal distribution
- - $p$-value $< \alpha$ = reject the null, data are not normal
+What do we conclude about normality based on skew, plots, and shapiro wilk test? Is the assumption of normality met?
  
- ANSWER:
+ANSWER:
 
-- Fail to reject the null since $p > \alpha$
-- Normality of the difference scores is met
+- Skew: low (< 1), so we would conclude that it is not problematic
+- Plots: Histogram and density plot looks fairly normally distributed. QQplot - we want our points to be as close to this line as possible, and there doesn't appear to be much deviation
+- Shapiro-wilk: Fail to reject the null since $p > \alpha$
 
 
 # Effect Size

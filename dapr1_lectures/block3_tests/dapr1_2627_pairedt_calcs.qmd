@@ -1,0 +1,250 @@
+---
+title: "T-Test: Paired Samples"
+subtitle: "By Hand Calculations"
+author: "Emma Waterston"
+format: html
+---
+
+
+In this document we are going to work through the hand calculations for a paired samples $t$-test. 
+
+## Packages
+
+For this example we will only need the `tidyverse` and `kableExtra` packages.
+
+```{r}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(kableExtra)
+```
+
+
+## Data
+
+Below is code to create the data we used in lecture:
+
+```{r}
+set.seed(007)
+
+exam <- tibble(
+  ID = c(rep(paste("ID", 1:50, sep=""),2)),
+  stress = round(c(rnorm(50, 9.2, 2.2), rnorm(50, 7.5, 2.8))),
+  time = as_factor(c(rep("t1", 50), rep("t2", 50)))
+)
+
+head(exam)
+```
+
+The `glimpse()` and `str()` functions allow us to look at the structure of our dataset:
+
+```{r}
+glimpse(exam)
+```
+
+```{r}
+str(exam)
+```
+
+
+We can see that we have 100 rows of data, and have three variables -  `ID`, `stress`, and `time`. In terms of structure, `ID` is being recognised as a character (`chr`) vector, `stress` as numeric (`num`/`dbl`), and `time` as a factor (`fct`/`factor`) with two levels - t1 and t2. Each participant has two entries of data (i.e., each `ID` is repeated twice), where they have two stress scores - one for t1 and one for t2. 
+
+## Research Question & Hypotheses
+
+We are interested in whether stress levels are significantly different pre- and post-time management course
+
+- I elect to use a two-tailed test with alpha $(\alpha)$ of .01
+
+- I specify the following hypotheses:
+
+$$
+\begin{matrix}
+H_0: \mu_{d} = \mu_{d_0}\\
+H_1: \mu_{d} \neq \mu_{d_0}\\
+\end{matrix}
+$$
+
+## Calculation
+
+We can calculate a paired samples $t$-test using the following:
+
+$$
+t = \frac{\overline{d} - \mu_{d_0}}{SE_\bar{d}} \qquad \text{where} \qquad {SE_{\bar d}} = \frac{s_d}{\sqrt n}
+$$
+
+- Where
+  - $\bar{d}$ = mean of the individual difference scores $(d_i)$ 
+      - where $d_i = x_{i1} - x_{i2}$
+  - $\mu_{d_0}$ is the hypothesised population mean difference in the null hypothesis
+      - usually assumed to be 0
+  - $SE_\bar{d}$ = standard error of mean difference $(d_i)$
+      - $s_{d}$ = standard deviation of the difference scores $(d_i)$
+      - $n$ = sample size = number of matched pairs
+
+<br>
+
+- Sampling distribution is a $t$-distribution with $n-1$ degrees of freedom
+  - $n-1$ degrees of freedom as we only have 1 group of participants
+
+### Steps in Calculations
+
+Let's break down what we need to do into more simple steps: 
+
+1. Calculate the difference scores for individuals $d_i$ 
+2. Calculate the mean of the difference scores $\bar{d}$
+3. Calculate the $s_{d}$ of the difference scores
+4. Check our $n$
+5. Calculate the standard error of mean difference $(SE_\bar{d})$
+
+
+## Data Organisation
+
+Before we get started with our calculations, we need to make sure our data are in the correct format. It's currently in *long* format (i.e., two rows for each ID), and we need it to be in *wide* (i.e., one row for each ID). To convert, we can use the `pivot_wider()` function:
+
+```{r, echo = TRUE}
+exam_wide <- exam |>
+  pivot_wider(id_cols =  ID, 
+              names_from = time, 
+              values_from = stress)
+head(exam_wide)
+```
+
+
+## Calculations
+
+The first thing we need to do is calculate the difference between t1 and t2 (i.e., our difference scores for all individuals ($d_i$)):
+
+```{r}
+exam_wide <- exam_wide |>  
+  mutate(
+    dif = t1 - t2)
+head(exam_wide)
+```
+
+
+Now we have our difference scores, we can use `R` to calculate the values we need. Recall that we need to calculate the following - the mean of the difference scores $(\bar{d})$, the $(s_{d})$ of the difference scores, and our sample size $(n)$. 
+
+```{r}
+exam_wide |>  
+  summarise(
+    dbar = mean(dif), #step 2
+    Sd = sd(dif), #step 3
+    mu_d0 = 0,
+    n = n()) |> #step 4
+  kable(digits = 2) |>
+  kable_styling(full_width = FALSE)
+```
+
+
+From the above, we can plug the values directly into the formula: 
+
+$$
+t \quad = \quad \frac{\bar{d} - \mu_{d_0}}{SE_\bar{d}} \quad  = \quad \frac{2.1-0}{\frac{3.55}{\sqrt{50}}} \quad = \quad  \frac{2.1}{0.5} \quad = \quad 4.20
+$$
+
+Or alternatively, we can ask `R` to do the hard work for us by adding in a couple of extra sums to the above code to calculate the standard error of mean difference $(SE_\bar{d})$ and our $t$-statistic:
+
+```{r}
+exam_wide |>  
+  summarise(
+    dbar = mean(dif), #step 2
+    Sd = sd(dif), #step 3
+    mu_d0 = 0,
+    n = n()) |> #step 4
+  mutate(
+    SEd = (Sd /sqrt(n)), #step 5
+    t = ((dbar-mu_d0)/SEd) #bonus step: calculate t-stat
+    ) |>
+  kable(digits = 2) |>
+  kable_styling(full_width = FALSE)
+```
+
+
+<br>
+
+So in our example $t= 4.20$ (or $t= 4.19$ - when doing hand calculations, there might be a small amount of rounding error when we compare to $t$ calculated in `R` - given that `R` is likely more accurate due to rounding it might be safest to stick with what it tells us!). 
+
+
+## Is our Test Significant?
+
+We *almost* have all the pieces of information we need to be able to answer that question:
+
+- $t = 4.19$ 
+- $df = n-1 = 50 - 1 = 49$
+- Hypothesis to test is $two-tailed$
+- $\alpha = .01$
+
+But we either need to be told what the corresponding critical values and exact $p$-value is from the associated $t$-distribution in order to make our decision, **or** we can calculate via `R` (i.e., this bit we can't do using by hand calculations).
+
+To calculate the critical values, we can use the `qt()` function; and for the $p$-value, the `pt()` function: 
+  
+- `qt()`: since using $\alpha = .01$, computes the $t$-statistic corresponding to the 0.5th percentile (lower critical value) and 99.5th percentile (upper critical value) of the $t$-distribution with 49 degrees of freedom    
+-  `pt()`: computes the cumulative probability of a $t$-statistic as extreme as 4.19 with 49 degrees of freedom. Since we are conducting a two-tailed test, it multiplies the one-tailed probability by 2 to get the exact $p$-value for both tails    
+- `round()`: we are rounding our values to two decimal places for our critical values, and to five decimal places for our $p$-value (note only rounding to so many decimal places since its such a small number! When reporting, use 3 d.p. in line with APA guidelines)  
+
+
+```{r, echo = TRUE}
+tibble(
+  LowerCrit = round(qt(0.005, 49),2),
+  UpperCrit = round(qt(0.995, 49),2),
+  Exactp = round(2*(1-pt(4.19, 49)),5)
+)
+```
+
+If we were to visualise our results, we would see that our sample leads to an observed $t$-statistic that has a relatively low probability. In other words, the observed $t$-statistic was unlikely to be obtained from random samples if the null were true. 
+
+```{r, echo=FALSE}
+ggplot(tibble(x = c(-6,6)), aes(x = x)) +
+  stat_function(fun=dt,
+                geom = "line",
+                args = list(df=49)) +
+  stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(qt(0.005, 49), -6),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=49)) +
+    stat_function(fun = dt, 
+                geom = "area",
+                xlim = c(qt(0.995, 49), 6),
+                alpha=.25,
+                fill = "blue",
+                args = list(df=49)) +
+  geom_vline(xintercept = 4.19, col="red") +
+  xlab("\n t") +
+  ylab("") +
+  ggtitle("t-distribution (df=49); t-statistic = 4.19 (red line)")
+```
+
+Linking back to the output of our significance testing, we would say that the critical value is 2.68, and our $t$-statistic (4.19) is larger than this; and we found that $p < .001$, which is $< \alpha$. Therefore, we **reject the null hypothesis**. 
+
+
+## Effect Size
+
+To calculate the effect size for a paired samples $t$-test, we use:
+
+$$
+D = \frac{\bar{d} - \mu_{d_0}}{s_{d}}
+$$
+
+- where
+    - $\bar{d}$ = mean of the difference scores $(d_i)$  
+    - $\mu_{d_0}$ = the hypothesised population difference in means in the null hypothesis
+    -	$s_{d}$ = standard deviation of the difference scores $(d_i)$  
+      
+<br>
+
+In our example, we know that $\bar{d}$ = 2.1, $\mu_{d_0}$ = 0, and $s_{d}$ = 3.55. We can plug these values into the above formula:
+
+$$
+D = \frac{\bar{d} - \mu_{d_0}}{s_{d}} = \frac{2.1 - 0}{3.55} = \frac{2.1}{3.55} = 0.59
+$$
+
+
+
+
+
+
+
+
