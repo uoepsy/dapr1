@@ -1,0 +1,229 @@
+---
+title: "T-Test: Independent Samples"
+subtitle: "By Hand Calculations"
+author: "Emma Waterston"
+format: html
+---
+
+
+In this document we are going to work through the hand calculations for a independent samples $t$-test. 
+
+## Packages
+
+For this example we will only need the `tidyverse` and `kableExtra` packages.
+
+```{r}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(kableExtra)
+```
+
+
+## Data
+
+Below is code to create the data we used in lecture:
+
+```{r}
+threat <- tibble(
+  Group = as_factor(c(rep("Threat", 11), rep("Control", 12))),
+  Score = c(7,5,6,5,6,5,4,7,4,3,6,10,11,8,9,12,11,10,9,8,7,11,9)
+)
+
+head(threat)
+```
+
+The `glimpse()` and `str()` functions allow us to look at the structure of our dataset:
+
+```{r}
+glimpse(threat)
+```
+
+```{r}
+str(threat)
+```
+
+
+We can see that we have 23 rows of data, and have two variables -  `Group`, and `Score`. In terms of structure, `Group` is being recognised as a factor (`fct`/`factor`) with two levels - Threat and Control, and `Score` as numeric (`num`/`dbl`).
+
+## Research Question & Hypotheses
+
+We are interested in whether the threat group will perform significantly more poorly than the control group on the test
+
+- I elect to use a one-tailed test with alpha $(\alpha)$ of .05
+
+- I specify the following hypotheses:
+
+$$
+\begin{matrix}
+H_0: \mu_1 = \mu_2\\
+H_1: \mu_1 < \mu_2\\
+\end{matrix}
+$$
+
+## Calculation
+
+We can calculate a independent samples $t$-test using the following:
+
+$$
+t = \frac{(\bar{x}_1 - \bar{x}_2) - \delta_0}{SE_{(\bar{x}_1 - \bar{x}_2)}}
+$$
+
+- Where
+  - $\bar{x}_1$ and $\bar{x}_2$ are the sample means in each group
+  - $\delta_0$ is the hypothesised population difference in means in the null hypothesis $(\mu_1 - \mu_2)$
+      - usually assumed to be 0
+  - $SE_{(\bar{x}_1 - \bar{x}_2)}$ is standard error of the difference
+
+<br>
+
+- Sampling distribution is a $t$-distribution with $n-2$ degrees of freedom
+  - $n-1$ degrees of freedom as we have 2 group of participants, where $n$ = $n_1 + n_2$
+
+### Steps in Calculations
+
+Let's break down what we need to do into more simple steps: 
+
+1. Calculate the sample mean in both groups ($\bar{x}_1$ and $\bar{x}_2$)
+2. Calculate the standard deviation in both groups ($s_1$ and $s_2$)
+3. Check our $n$ in both groups ($n_1$ and $n_2$)
+4. Use the results of steps 2 and 3 to calculate the pooled standard deviation $(s_p)$    
+  - $s_p = \sqrt\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2}$    
+5. Use results of steps 3 and 4 to to calculate the SE of the difference $SE_{(\bar{x}_1 - \bar{x}_2)}$  
+  - $SE_{(\bar{x}_1 - \bar{x}_2)} = s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}$  
+
+
+## Calculations
+
+We can use `R` to calculate the values we need for steps 1-3, which we can then use for the subsequent calculations. Recall that we need to calculate the following - the mean scores in both groups ($\bar{x}_1$ and $\bar{x}_2$), the standard deviation in both groups ($s_1$ and $s_2$) and our sample size $(n)$. 
+
+To do so, when creating our descriptives table, we want to make sure that we use the `group_by()` function. This will allow us to get each descriptive statistic (e.g., `mean()`, `sd()`, and `n()`) for every level of our grouping variable (`Group`; i.e., values for the Threat and Control groups individually).
+
+```{r}
+threat |>
+  group_by(Group) |>
+  summarise(
+    Mean = round(mean(Score),2), #step 1
+    SD = round(sd(Score),2),
+    n = n() #step 2
+  ) |>
+  kable(digits = 2) |>
+  kable_styling(full_width = FALSE)
+```
+
+
+From the above, we can calculate pooled standard deviation:
+
+$$
+s_p = \sqrt\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2} = \sqrt{\frac{(11-1) \cdot 1.27^2 + (12-1) \cdot 1.51^2}{11+12-2}} = \sqrt{\frac{10 \cdot 1.27^2 + 11 \cdot 1.51^2}{11+12-2}} = \sqrt{\frac{41.21}{21}} = 1.401
+$$
+
+and then the standard error:
+
+$$
+SE_{(\bar{x}_1 - \bar{x}_2)} \quad = \quad  s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}} \quad = \quad  1.401 \cdot \sqrt{\frac{1}{11}+\frac{1}{12}} \quad = \quad 1.401 \cdot 0.417 \quad = \quad 0.584
+$$
+
+We can finally use all of this to calculate $t$:
+
+$$
+t = \frac{(\bar{x}_1 - \bar{x}_2) - \delta_0}{SE_{(\bar{x}_1 - \bar{x}_2)}} = \frac{5.27-9.58 - 0 }{0.584} = \frac{-4.31}{0.584} = -7.38
+$$
+
+
+<br>
+
+So in our example $t= -7.38$ (recall that when doing hand calculations, there might be a small amount of rounding error when we compare to $t$ calculated in `R` - given that `R` is likely more accurate due to rounding it might be safest to stick with what it tells us!). 
+
+
+## Is our Test Significant?
+
+We *almost* have all the pieces of information we need to be able to answer that question:
+
+- $t = -7.38$ 
+- $df = n-2 = (12+11)-2 = 23-2 = 21$
+- Hypothesis to test is $one-tailed$
+- $\alpha = .05$
+
+But we either need to be told what the corresponding critical values and exact $p$-value is from the associated $t$-distribution in order to make our decision, **or** we can calculate via `R` (i.e., this bit we can't do using by hand calculations).
+
+To calculate the critical values, we can use the `qt()` function; and for the $p$-value, the `pt()` function: 
+  
+- `qt()`: since using $\alpha = .05$, computes the $t$-statistic corresponding to the 5th percentile (lower critical value) of the $t$-distribution with 21 degrees of freedom    
+-  `pt()`: computes the cumulative probability of a $t$-statistic as extreme as -7.38 with 21 degrees of freedom
+- `round()`: we are rounding our values to two decimal places for our critical value, and to five decimal places for our $p$-value (note only rounding to so many decimal places since its such a small number! When reporting, use 3 d.p. in line with APA guidelines)  
+
+
+```{r}
+#| echo: true
+
+tibble(
+  LowerCrit = round(qt(0.05, 21),2),
+  Exactp = 1-pt(7.3817, 5)
+)
+```
+
+If we were to visualise our results, we would see that our sample leads to an observed $t$-statistic that has a relatively low probability. In other words, the observed $t$-statistic was unlikely to be obtained from random samples if the null were true. 
+
+```{r}
+#| echo: false
+
+ggplot(NULL) +
+    stat_function(fun=dt,
+                  geom = "line",
+                  args = list(df=21)) +
+    stat_function(fun = dt, 
+                  geom = "area",
+                  xlim = c(qt(0.05, 21), -8),
+                  alpha=.25,
+                  fill = "blue",
+                  args = list(df=21)) +
+    xlim(-8, 8) +
+    geom_vline(xintercept = -7.38, col="red") +
+    xlab("\n t") +
+    ylab("") +
+    ggtitle("t-distribution (df=21); t-statistic (-7.38; red line)")
+```
+
+Linking back to the output of our significance testing, we would say that the critical value is -1.72, and our $t$-statistic (-7.38) is larger than this; and we found that $p < .001$, which is $< \alpha$. Therefore, we **reject the null hypothesis**. 
+
+
+## Effect Size
+
+Assuming that we **do** have equality of variances^[recall that if we do **not**, then we need to use the `cohens_d()` function from the `effectsize` package in R - we can't calculate by hand] to calculate the effect size for a independent samples $t$-test, we use:
+
+$$
+D = \frac{(\bar{x}_1 - \bar{x}_2) - \delta_0}{s_p}
+$$
+
+
+- where
+  - $\bar{x}_1$ = mean group 1  
+  -	$\bar{x}_2$ = mean group 2  
+  - $\delta_0$ = the hypothesised population difference in means in the null hypothesis $(\mu_1 - \mu_2)$  
+  -	$s_p$ = pooled standard deviation  
+  
+  
+<br>
+
+In our example, we know that:
+  
+  - $\bar{x}_1$ = 5.27 
+  -	$\bar{x}_2$ = 9.58
+  - $\delta_0$ = 0 
+  -	$s_p$ = 1.401
+    
+We can plug these values into the above formula:
+
+$$
+D = \frac{(\bar{x}_1 - \bar{x}_2) - \delta_0}{s_p} = \frac{5.27 - 9.58 - 0}{1.401} = \frac{-4.31}{1.401} = -3.08
+$$
+
+
+
+
+
+
+
+
