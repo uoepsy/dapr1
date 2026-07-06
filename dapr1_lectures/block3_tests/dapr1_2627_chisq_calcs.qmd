@@ -1,0 +1,577 @@
+---
+title: "Chi-Square Tests"
+subtitle: "By Hand Calculations"
+author: "Emma Waterston"
+format: html
+---
+
+
+In this document we are going to work through the hand calculations for a $\chi^2$ goodness-of-fit test and a $\chi^2$ test of independence. 
+
+## Packages
+
+For this example we will only need the `tidyverse` and `kableExtra` packages.
+
+```{r}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(kableExtra)
+```
+
+
+## $\chi^2$ Goodness of Fit Test
+
+### Data
+
+Below is code to create the data we used in lecture:
+
+```{r}
+flowerDat <- tibble(Day=as.factor(c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')),
+                    Orders = c(54, 39, 44, 47, 68, 72, 53))
+
+head(flowerDat)
+```
+
+The `glimpse()` and `str()` functions allow us to look at the structure of our dataset:
+
+```{r}
+glimpse(flowerDat)
+```
+
+```{r}
+str(flowerDat)
+```
+
+
+We can see that we have 7 rows of data, and have two variables -  `Day` and `Orders`. In terms of structure, `Day` is being recognised as a factor (`fct`/`factor`) with seven levels - Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, and Sunday. `Orders` is being recognised as a numeric (`num`/`dbl`) variable, and contains the observed counts of orders received.
+
+### Research Question & Hypotheses
+
+We are interested in whether flower orders were consistent across days of the week.
+
+- I elect to use an alpha $(\alpha)$ of .05
+- I specify the following hypotheses:
+
+$$
+\begin{matrix}
+H_0: p_{Monday}=p_{Tuesday}=\cdots =\ p_{Sunday}\\
+H_1: \text{Some } p_{i}\not=p_{i0}\\
+\end{matrix}
+$$
+
+## Calculation
+
+We can calculate a $\chi^2$ goodness of fit test using the following:
+
+$$
+\chi^2 = \sum\limits_{i=1}^k \frac{(O_i - E_i)^2}{E_i}
+$$
+
+- where: 
+  - $\Sigma$ = sum up  
+    - $\sum\limits_{i=1}^k$ : Sum all values from levels 1 through k  
+      
+  - $E$ = Expected Cases
+    - The values that you expect, given $H_0$ is true  
+        
+  - $O$ = Observed Cases
+    -  The values you actually have  
+       
+  - $i$ : Current level
+
+<br>
+
+- Sampling distribution is a $\chi^2$-distribution with $k-1$ degrees of freedom
+  - $k$ = number of groups $(g)$
+
+### Steps in Calculations
+
+Let's break down what we need to do into more simple steps: 
+
+1. Calculate the expected counts $(E_i)$    
+    - $E_i=n\cdot\ p_i$     
+      - $n$ = sample size   
+      - $p$ = the hypothesised population proportion for the category under the null hypothesis    
+2. Calculate observed - expected counts $(O_i - E_i)$
+3. Square the difference between observed and expected counts $(O_i - E_i)^2$
+4. Divide the squared difference by the expected counts $(\frac{(O_i - E_i)^2}{E_i})$
+5. Sum up across all levels the squared divided by expected counts ($\sum\limits_{i=1}^k$)
+
+
+### Calculations
+
+We can calculate the values we need using the following:
+
+```{r}
+#| echo: false
+
+chi_gof_tab <- flowerDat |>  
+  mutate(
+    expected = sum(Orders)*(1/7)) |> #step 1
+  mutate(
+    diff = (Orders - expected), #step 2
+    sq_diff = (Orders - expected)^2, #step 3
+    std_sq_diff = (sq_diff/expected)) 
+```
+
+
+```{r}
+flowerDat |>  
+  mutate(
+    expected = sum(Orders)*(1/7)) |> #step 1
+  mutate(
+    diff = (Orders - expected), #step 2
+    sq_diff = (Orders - expected)^2, #step 3
+    std_sq_diff = (sq_diff/expected)) |> #step 4
+  kable(digits = 2) |>
+  kable_styling(full_width = FALSE)
+```
+
+<br>
+
+From the above, we can simply sum up the values to calculate our $\chi^2$ statistic (step 5): 
+
+$$
+\chi^2 \quad = \quad 0.00 + 4.10 + 1.80 + 0.87 + 3.71 + 6.11 + 0.01 \quad = \quad 16.60
+$$
+
+<br>
+
+So in our example $\chi^2= 16.60$ (when doing hand calculations, there might be a small amount of rounding error when we compare to $\chi^2$ calculated in `R` - given that `R` is likely more accurate due to rounding it might be safest to stick with what it tells us!). 
+
+
+### Is our Test Significant?
+
+We *almost* have all the pieces of information we need to be able to answer that question:
+
+- $\chi^2= 16.60$ 
+- $df = k-1 = 7 - 1 = 6$
+- $\alpha = .05$
+
+But we either need to be told what the corresponding exact $p$-value is from the associated $\chi^2$-distribution in order to make our decision, **or** we can calculate via `R` (i.e., this bit we can't do using by hand calculations).
+
+To calculate the the corresponding $p$-value, we use the the `pchisq()` function, where we specify three arguments in the following order:  
+    - our observed $\chi^2$ statistic     
+    - degrees of freedom $(df)$     
+    - specify `lower.tail = FALSE` since the $p$-value is only computed in the right tail     
+
+```{r}
+#| echo: true
+
+pchisq(16.6, 
+       df = 6, 
+       lower.tail = FALSE)
+```
+
+If we were to visualise our results, we would see that our sample leads to an observed $\chi^2$-statistic that has a relatively low probability. Linking back to the output of our significance testing, we would say that the probability that we would have a $\chi^2$ value as extreme as 16.60 if the null hypothesis were true is .011. Since $p = .011$, which is $< \alpha$, we **reject the null hypothesis**. 
+
+```{r}
+#| echo: false
+
+GOFplot <- ggplot(data.frame(x = c(0, 20)), aes(x = x)) +
+  stat_function(fun = dchisq, args = list(df = 6), colour = "#0F4C81", size = 1) +
+  labs(x=expression(chi^{2}), y = 'Probability', title = 'df = 6') +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14, face = 'bold'))
+
+testDat <- seq(sum(chi_gof_tab$std_sq_diff), 20, by = .1)
+dTest <- dchisq(testDat, df = 6)
+testDat <- data.frame(vals=testDat, prob=dTest)
+
+GOFplot + geom_area(data = testDat, aes(x=vals,y=prob), fill = "#0F4C81") +
+  geom_vline(xintercept=sum(chi_gof_tab$std_sq_diff), linetype = 'dashed', color = "#0F4C81") + 
+      ggtitle("X2 distribution (df=6); X2-statistic (16.60; blue dashed line)")
+```
+
+
+### Exploring Results Further - Residuals
+
+If we want to know which groups/levels within our category had the biggest differences, we can calculate the Pearson residuals using: 
+
+$$
+\frac{O_i-E_i}{\sqrt{E_i}} = \frac{\text{observed}-\text{expected}}{\sqrt{\text{expected}}} 
+$$
+
+- where
+  - $O_i$ = the $i$th observed value
+  - $E_i$ = the $i$th expected value
+      
+
+In our example, we need to calculate this for each group/level of the `Day` variable individually:  
+  
+- $\text{Monday}: \quad \frac{54-53.86}{\sqrt{53.86}} \quad = \quad 0.02$   
+- $\text{Tuesday}: \quad \frac{39-53.86}{\sqrt{53.86}} \quad = \quad -2.02$   
+- $\text{Wednesday}: \quad \frac{44-53.86}{\sqrt{53.86}} \quad = \quad -1.34$   
+- $\text{Thursday}: \quad \frac{47-53.86}{\sqrt{53.86}} \quad = \quad -0.93$    
+- $\text{Friday}: \quad \frac{68-53.86}{\sqrt{53.86}} \quad = \quad 1.93$   
+- $\text{Saturday}: \quad \frac{72-53.86}{\sqrt{53.86}} \quad = \quad 2.47$   
+- $\text{Sunday}: \quad \frac{53-53.86}{\sqrt{53.86}} \quad = \quad -0.12$    
+  
+
+## $\chi^2$ Test of Independence
+
+### Data
+
+Below is code to create the data we used in lecture:
+
+```{r}
+seasonDat <- tibble(Season=as.factor(rep(c('Spring', 'Summer', 'Autumn', 'Winter'), times=c(603, 592, 551, 602))), 
+                    Flowers=as.factor(c(rep('Roses', 232), rep('Tulips', 185), rep('Lilies', 186), rep('Roses', 228),
+                              rep('Tulips', 192), rep('Lilies', 172), rep('Roses', 219), rep('Tulips', 164),
+                              rep('Lilies', 168), rep('Roses', 246), rep('Tulips', 173), rep('Lilies', 183))))
+
+head(seasonDat)
+```
+
+The `glimpse()` and `str()` functions allow us to look at the structure of our dataset:
+
+```{r}
+glimpse(seasonDat)
+```
+
+```{r}
+str(seasonDat)
+```
+
+
+We can see that we have 2348 rows of data, and have two variables - `Season`, and `Flowers`. In terms of structure, both variables are being recognised as factors (`fct`/`factor`). `Season` has four levels - Autumn, Spring, Summer, Winter; and `Flowers` has three levels - Lilies, Roses, and Tulips. 
+
+### Research Question & Hypotheses
+
+We are interested in whether the flower type that sells the best depends on the season.
+
+- I elect to use an alpha $(\alpha)$ of .05
+- I specify the following hypotheses:
+
+$$
+\begin{matrix}
+H_0: \text{Flower orders} \perp \text{Season}\\
+H_1: \text{Flower orders} \not\perp \text{Season}\\
+\end{matrix}
+$$
+
+## Calculation
+
+We can calculate a $\chi^2$ test of independence using the following:
+
+$$
+\chi^2 = \sum\limits_{i=1}^r \sum\limits_{j=1}^c \frac{(O_{ij} - E_{ij})^2}{E_{ij}} 
+$$
+
+- where: 
+  - $\Sigma$ = sum up  
+    - $\sum\limits_{i=1}^r \sum\limits_{j=1}^c$ : Sum all values across rows and columns
+    
+  - $i$ : Current level within Variable A
+       
+  - $j$ : Current level within Variable B
+       
+  - $r$ : Total levels within Variable A
+       
+  - $c$ : Total levels within Variable B
+      
+  - $E$ = Expected Cases
+    - The values that you expect, given $H_0$ is true  
+        
+  - $O$ = Observed Cases
+    -  The values you actually have  
+  
+<br>
+
+- Sampling distribution is a $\chi^2$-distribution with $(r-1)(c-1)$ degrees of freedom   
+  - $r$ = levels within variable A    
+  - $c$ = levels within variable B    
+
+### Steps in Calculations
+
+Let's break down what we need to do into more simple steps: 
+
+1. Create contingency table   
+2. Calculate the expected counts $(E_{ij})$   
+    - $E_{ij}=\frac{R_i\ \cdot\ C_j}{n}$    
+      - $R_i$ = row total     
+      - $C_j$ = column total        
+      - $n$ = sample size   
+2. Calculate observed - expected counts $(O_{ij} - E_{ij})$   
+3. Square the difference between observed and expected counts $(O_{ij} - E_{ij})^2$   
+4. Divide the squared difference by the expected counts $(\frac{(O_{ij} - E_{ij})^2}{E_{ij}})$    
+5. Sum up across all levels the squared divided by expected counts ($\sum\limits_{i=1}^r \sum\limits_{j=1}^c$)    
+
+
+### Calculations
+
+We start with our observed counts:
+
+```{r}
+obs <- seasonDat |>
+  table()
+
+obs |> 
+  kable(caption = "Observed Counts",digits = 2) |>
+  kable_styling(full_width = FALSE)
+```
+
+From this, we can create a contingency table where we add the total counts for each row and column, before summing these values:
+
+```{r}
+cont <- seasonDat |>
+  table() |>
+  addmargins()
+
+cont |>
+  kable(caption = "Contingency Table",digits = 2) |>
+  kable_styling(full_width = FALSE)  
+```
+
+
+<br>
+
+Under the null hypothesis, flowers are equally likely to sell across seasons. We need to calculate the expected counts individually for each cell of our table  ($\chi^2 = \sum\limits_{i=1}^r \sum\limits_{j=1}^c \frac{(O_{ij} - {\color{#0F4C81}{E_{ij}}})^2}{\color{#0F4C81}{E_{ij}}}$).    
+    
+This is calculated as $E_{ij}=\frac{R_i\ \cdot\ C_j}{n}$, or in other words, the $E_{ij}=\frac{\text{Row Total}_i\ \cdot\ \text{Column Total}_j}{n}$. 
+    
+    
+For example, if we were to calculate for the number of Lilies sold in Autumn, we would use: 
+
+$$
+E_{\text{(Autumn, Lilies)}} \quad = \quad \frac{R_\text{Autumn}\ \cdot\ C_\text{Lilies}}{n} \quad = \quad \frac{551\ \cdot\ 709}{2348} \quad = \quad 166.38
+$$
+
+<br>
+
+We can use the 'outer product' operator `%o%` in `R` (this takes two vectors and multiplies them out into a matrix^[$$
+(a,b) \otimes (y, z) =
+\begin{bmatrix}
+a \times y & b \times y \\
+a \times z & b \times z \\
+\end{bmatrix}
+$$]) to repeatedly perform this sum for us, otherwise for all cells we would need to manually calculate each individually as above. 
+
+```{r}
+exp <- rowSums(obs) %o%
+  colSums(obs)/sum(obs)
+
+exp |> 
+  kable(caption = "Expected Counts", digits = 2) |>
+  kable_styling(full_width = FALSE)
+```
+
+<br>
+
+Once we have our expected counts, $(E_i)$, we can calculate the difference between the observed and expected counts ($\chi^2 = \sum\limits_{i=1}^r \sum\limits_{j=1}^c \frac{{\color{#0F4C81}{(O_{ij} - E_{ij}})}^2}{E_{ij}}$). 
+
+For example, if we were to manually calculate for the number of Lilies sold in Autumn, we would use: 
+    
+$(O_{ij} - E_{ij}) = 168 - 166.38	= 1.62$
+    
+Using `R` as our calculator, we can do this for all cells by taking `obs - exp`:
+    
+```{r}
+diff <- obs - exp
+
+diff |> 
+  kable(caption = "Difference", digits = 2) |>
+  kable_styling(full_width = FALSE)
+```
+
+<br>
+
+Step 3 is to square the difference between observed and expected counts ($\chi^2 = \sum\limits_{i=1}^r \sum\limits_{j=1}^c \frac{(O_{ij} - E_{ij})\color{#0F4C81}{^2}}{E_{ij}}$).
+
+For example, if we were to manually calculate for the number of Lilies sold in Autumn, we would use: 
+    
+$(O_{ij} - E_{ij})^2 = (168 - 166.38)^2	= (1.62)^2 = 2.62$
+    
+Using `R` as our calculator, we can do this for all cells by squaring the difference score created above (i.e., `^2`):
+    
+```{r}
+sq_diff <- diff^2
+
+sq_diff |> 
+  kable(caption = "Squared Difference", digits = 2) |>
+  kable_styling(full_width = FALSE)
+```
+
+<br>
+
+Step 4 is to divide the squared difference by the expected counts ($\chi^2 = \sum\limits_{i=1}^r \sum\limits_{j=1}^c \color{#0F4C81}{\frac{(O_{ij} - E_{ij})^2}{E_{ij}}}$).
+
+For example, if we were to manually calculate for the number of Lilies sold in Autumn, we would use: 
+    
+$\frac{(O_{ij} - E_{ij})^2}{E_{ij}} = \frac{(168 - 166.38)^2}{166.38} = \frac{2.62}{166.38} = 0.02$
+    
+Using `R` as our calculator, we can do this for all cells by taking the squared difference and dividing by the expected counts:
+
+```{r}
+std_sq_diff <- sq_diff/exp
+
+std_sq_diff |> 
+  kable(caption = "Squared Difference over Expected", digits = 2) |>
+  kable_styling(full_width = FALSE)
+```
+
+<br>
+
+Our last step is to sum up across all rows and columns ($\chi^2 = {\color{#0F4C81}{\sum\limits_{i=1}^r \sum\limits_{j=1}^c}} \frac{(O_{ij} - E_{ij})^2}{E_{ij}}$).
+
+From the above, we can simply sum up all the values in our table to calculate our $\chi^2$ statistic: 
+
+$$
+{\color{#0F4C81}{\chi^2}} \quad = \quad 0.02 + 0.02 + 0.08 + 0.08 + 0.13 + 0.01 + 0.26 + 0.12 + 0.80 + 0.01 + 0.33 + 0.55 \quad = \quad 2.41
+$$
+
+<br>
+
+So in our example $\chi^2= 2.41$ (when doing hand calculations, there might be a small amount of rounding error when we compare to $\chi^2$ calculated in `R` - given that `R` is likely more accurate due to rounding it might be safest to stick with what it tells us!). 
+
+
+### Is our Test Significant?
+
+We *almost* have all the pieces of information we need to be able to answer that question:
+
+- $\chi^2= 2.41$ 
+- $df = (r-1)(c-1) = (4-1)(3-1) = 6$
+- $\alpha = .05$
+
+But we either need to be told what the corresponding exact $p$-value is from the associated $\chi^2$-distribution in order to make our decision, **or** we can calculate via `R` (i.e., this bit we can't do using by hand calculations).
+
+To calculate the the corresponding $p$-value, we use the the `pchisq()` function, where we specify three arguments in the following order:  
+    - our observed $\chi^2$ statistic     
+    - degrees of freedom $(df)$     
+    - specify `lower.tail = FALSE` since the $p$-value is only computed in the right tail     
+
+```{r}
+#| echo: true
+
+pchisq(2.41, 
+       df = 6, 
+       lower.tail = FALSE)
+```
+
+If we were to visualise our results, we would see that our sample leads to an observed $\chi^2$-statistic that has a relatively high probability. Linking back to the output of our significance testing, we would say that the probability that we would have a $\chi^2$ value as extreme as 2.41 if the null hypothesis were true is .878. Since $p = .878$, which is $> \alpha$, we **fail to reject the null hypothesis**. 
+
+```{r}
+#| echo: false
+
+ObsVals <- table(seasonDat$Season, seasonDat$Flowers)
+flowerCols <- c('Lilies', 'Roses', 'Tulips')
+
+exVals <- tibble(Seasons=as.factor(c('Spring', 'Summer', 'Autumn', 'Winter')),
+                 Lilies=c(length(which(seasonDat$Season=='Spring'))*length(which(seasonDat$Flowers=='Lilies'))/nrow(seasonDat),
+                          length(which(seasonDat$Season=='Summer'))*length(which(seasonDat$Flowers=='Lilies'))/nrow(seasonDat),
+                          length(which(seasonDat$Season=='Autumn'))*length(which(seasonDat$Flowers=='Lilies'))/nrow(seasonDat),
+                          length(which(seasonDat$Season=='Winter'))*length(which(seasonDat$Flowers=='Lilies'))/nrow(seasonDat)),
+                 Roses=c(length(which(seasonDat$Season=='Spring'))*length(which(seasonDat$Flowers=='Roses'))/nrow(seasonDat),
+                          length(which(seasonDat$Season=='Summer'))*length(which(seasonDat$Flowers=='Roses'))/nrow(seasonDat),
+                          length(which(seasonDat$Season=='Autumn'))*length(which(seasonDat$Flowers=='Roses'))/nrow(seasonDat),
+                          length(which(seasonDat$Season=='Winter'))*length(which(seasonDat$Flowers=='Roses'))/nrow(seasonDat)),
+                 Tulips=c(length(which(seasonDat$Season=='Spring'))*length(which(seasonDat$Flowers=='Tulips'))/nrow(seasonDat),
+                          length(which(seasonDat$Season=='Summer'))*length(which(seasonDat$Flowers=='Tulips'))/nrow(seasonDat),
+                          length(which(seasonDat$Season=='Autumn'))*length(which(seasonDat$Flowers=='Tulips'))/nrow(seasonDat),
+                          length(which(seasonDat$Season=='Winter'))*length(which(seasonDat$Flowers=='Tulips'))/nrow(seasonDat)))
+
+DiffTab <- tibble(Seasons=as.factor(c('Spring', 'Summer', 'Autumn', 'Winter')),
+                  Lilies=ObsVals[,'Lilies']-exVals$Lilies,
+                  Roses=ObsVals[,'Roses']-exVals$Roses,
+                  Tulips=ObsVals[,'Tulips']-exVals$Tulips)
+
+sqTab <- DiffTab
+sqTab[,flowerCols] <- sqTab[,flowerCols]^2
+divTab <- sqTab
+divTab[,flowerCols] <- divTab[,flowerCols]/exVals[,flowerCols]
+
+TOIplot <- ggplot(data.frame(x = c(0, 30)), aes(x = x)) +
+  stat_function(fun = dchisq, args = list(df = 6), colour = "#0F4C81", size = 1) +
+  labs(x=expression(chi^{2}), y = 'Probability') +
+  annotate(geom = 'text', x = 12, y = 0.1, label = 'df = 6', colour = "#0F4C81", size = 8) +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14, face = 'bold'))
+
+testDat2 <- seq(sum(divTab[flowerCols]), 30, by = .1)
+dTest2 <- dchisq(testDat2, df = 6)
+testDat2 <- data.frame(vals=testDat2, prob=dTest2)
+
+TOIplot + geom_area(data = testDat2, aes(x=vals,y=prob), fill = "#0F4C81") +
+  geom_vline(xintercept=sum(divTab[flowerCols]), linetype = 'dashed', color = "#0F4C81") + 
+  ggtitle("X2 distribution (df=6); X2-statistic (2.41; blue dashed line)")
+```
+
+
+### Exploring Results Further - Residuals
+
+If we want to know which combination of groups/levels within our categories had the biggest differences, we can calculate the Pearson residuals using: 
+
+$$
+\frac{O_{ij}-E_{ij}}{\sqrt{E_{ij}}} = \frac{\text{observed}-\text{expected}}{\sqrt{\text{expected}}} 
+$$
+
+- where
+  - $O$ = observed value 
+  - $E$ = expected value
+  - $i$ = Current level within Variable A
+  - $j$ = Current level within Variable B
+      
+
+In our example, we need to calculate this for each cell (or all combinations of variable A and B):  
+  
+- $\text{Autumn, Lilies}: \quad \frac{168-166.38}{\sqrt{166.38}} \quad = \quad 0.13$   
+- $\text{Autumn, Roses}: \quad \frac{219-217.07}{\sqrt{217.07}} \quad = \quad 0.13$    
+- $\text{Autumn, Tulips}: \quad \frac{164-167.55}{\sqrt{167.55}} \quad = \quad -0.27$  
+
+
+- $\text{Spring, Lilies}: \quad \frac{186-182.08}{\sqrt{182.08}} \quad = \quad 0.29$     
+- $\text{Spring, Roses}: \quad \frac{232-237.55}{\sqrt{237.55}} \quad = \quad -0.36$   
+- $\text{Spring, Tulips}: \quad \frac{185-183.37}{\sqrt{183.37}} \quad = \quad 0.12$   
+
+
+- $\text{Summer, Lilies}: \quad \frac{172-178.76}{\sqrt{178.76}} \quad = \quad -0.51$   
+- $\text{Summer, Roses}: \quad \frac{228-233.22}{\sqrt{233.22}} \quad = \quad -0.34$   
+- $\text{Summer, Tulips}: \quad \frac{192-180.02}{\sqrt{180.02}} \quad = \quad 0.89$  
+
+
+- $\text{Winter, Lilies}: \quad \frac{183-181.78}{\sqrt{181.78}} \quad = \quad 0.09$     
+- $\text{Winter, Roses}: \quad \frac{246-237.16}{\sqrt{237.16}} \quad = \quad 0.57$   
+- $\text{Winter, Tulips}: \quad \frac{173-183.06}{\sqrt{183.06}} \quad = \quad -0.74$   
+
+
+### Effect Size
+
+We have a couple of different options when it comes to calculating effect size (i.e., $\phi$ or Cramers $V$), and which we calculate depends on the size of our contingency table. 
+
+In our current example, we have a 4 (`Season`; Spring, Summer, Autumn, Winter) x 3 (`Flowers`; Lilies, Roses, Tulips) contingency table, so we would calculate Cramers $V$. 
+
+To calculate Cramers $V$, we need 3 pieces of information:    
+- $\chi^2$ = $\chi^2$ statistic   
+- $n$ = total number of observations    
+- $df^*$ = $min(r-1, c-1)$    
+        
+            
+In our example:     
+- $\chi^2 = 2.41$   
+- $n = 2348$    
+- $df^*$ = $min(4-1, 3-1) = min(3, 2) = 2$    
+    
+<br>
+
+$$
+V \quad = \quad \sqrt{\frac{\chi^2}{n\cdot\ df^*}} \quad = \quad \sqrt{\frac{2.41}{2348\cdot\ 2}} \quad = \quad 0.02
+$$
+
+<br>
+
+Unsurprisingly, given our non-significant $\chi^2$ test of independence result, the effect size is very close to 0, and so we would describe this as negligable (in reality outside of demonstration purposes, we wouldn't usually calculate unless we did have a significant result). 
+
+Note: when calculating effect size by hand, it is only possible to calculate the *non-bias* corrected version - for *bias corrected*, we would need to calculate via `R`.
+
+
+
+
+
+
+
+
+
+
+
+
+
