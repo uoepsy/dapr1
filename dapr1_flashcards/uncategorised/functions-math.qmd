@@ -1,0 +1,174 @@
+---
+title: "Describe relationships using mathematical functions"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+library(tidyverse)
+```
+
+
+## Functions  
+
+You have seen by now how to visualise the distribution of a variable, and how to visualise a relationship between two variables. Relationships between two variables can look very different, and can follow different patterns. These patterns can be expressed mathematically in the form of __functions.__  
+
+:::{.callout-note}
+__Functions__
+
+A function is a mapping between two sets of numbers ($x$ and $y$) - associating every element of $x$ with an element in $y$.  
+We often denote functions using the letter $f$, in that we state that $y = f(x)$ ("y equals f of x").     
+
+For example, there is a mapping between these two sets of numbers: 
+
+- $x$ = 1, 2, 3, 4, 5, 6, 7, 8
+- $y$ = 3, 4, 5, 6, 7, 8, 9, 10
+
+To get $y$, you take $x$ and add two.
+
+Formally we'll represent two lists of numbers like this:
+
+$$x=\begin{bmatrix} 1 \\ 2 \\ 3 \\ 4 \\ 5 \\ 6 \\ 7 \\ 8 \\ \end{bmatrix}, \qquad
+y=\begin{bmatrix} 3 \\ 4 \\ 5 \\ 6 \\ 7 \\ 8 \\ 9 \\ 10 \\ \end{bmatrix}$$
+
+And mathematically, we can write the mapping between them as:  
+
+$$f(x) = x + 2$$
+
+And we could visualise this relationship between $x$ and $y$:
+
+```{r echo=FALSE}
+tibble(
+    X = 1:8,
+    Y = X+2
+) |> 
+    ggplot(aes(X,Y)) +
+    geom_point() +
+    theme_classic()
+```
+
+:::
+
+### Linear functions {-}  
+
+In statistics, we often attempt to summarise the pattern that is present in the data using _linear functions_.  
+
+Imagine that we plant 10 trees, and measure their heights each year for 10 years. We could visualise this data (the relationship between _time_ and _tree height_) on a scatterplot (we have added some lines to the plot to show which tree is which):  
+<br>
+```{r echo=FALSE}
+set.seed(677)
+tibble(
+    tree = rep(1:10,each=11),
+    time = rep(0:10,10),
+    growth = abs(round(rnorm(110,10,2)))
+) |> 
+    mutate(growth = ifelse(time==0, round(growth/2), growth)) |>
+    group_by(tree) |> 
+    mutate(height=cumsum(growth)) |> 
+    ungroup() -> treedat 
+
+
+ggplot(treedat,aes(x=time, y=height))+
+    geom_point() + 
+    geom_line(aes(group=tree,col=factor(tree)), alpha=.4)+
+    xlab("Time (years)") +
+    ylab("Tree Height (cm)") +
+    ggtitle("Tree height") + 
+    theme_classic()+
+    theme(legend.position="none")+
+    scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0))
+```
+
+We might sensibly choose to describe this pattern as a line: 
+<br>
+```{r echo=FALSE}
+ggplot(treedat,aes(x=time, y=height))+
+    geom_point(alpha=.2) + 
+    geom_line(aes(group=tree,col=factor(tree)), alpha=.2)+
+    xlab("Time (years)") +
+    ylab("Tree Height (cm)") +
+    ggtitle("Tree height") + 
+    theme_classic()+
+    theme(legend.position="none")+
+    scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0))+
+    geom_abline(intercept=5, slope = 10, lwd=1)
+```
+
+And in order to describe a line like this, we require two things:  
+
+1. The starting point (i.e., where it crosses the y-axis)
+2. The amount it goes up every year. 
+
+When we planted the trees (at year 0), they were on average about 5cm tall. So this is where our line starts.  
+For every year, the trees grew by about 10cm on average. So we can now describe tree height _as a function of_ time:  
+$$\textrm{Tree height} = 5 + (10 \times \textrm{Years})$$
+
+We can write this in terms of $x$ and $y$:  
+
+1. $y = f(x)$ &nbsp; &nbsp; &nbsp; &nbsp; "$y$ is some function $f$ of $x$"
+1. $f(x) = 5 + 10x$ &nbsp; &nbsp; &nbsp; &nbsp; "the function $f$ maps each value $x_i$ to $5 + (10 \times x_i)$"
+
+
+### Non-linear functions {-}  
+
+Functions don't have to be linear. Often, we might want to describe relationships which appear to be more complex than a straight line.
+
+For example, it is often suggested that for difficult tasks, _some_ amount of stress may [improve performance](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1906714/) (but not too little or too much). We might think of the relationship between performance and stress as a curve (@fig-ydodson).
+
+<br>
+
+```{r ydodson, echo=FALSE}
+#| label: fig-ydodson
+#| fig-cap: "Yerkes Dodson Law"
+tibble(
+    stress = -100:100,
+    performance = -(stress^2)
+) |> 
+    ggplot(aes(x=stress,y=performance))+
+    geom_path()+
+    scale_x_continuous(breaks=c(-100,100),labels=c("Low","High"))+
+    theme_classic()+
+    theme(axis.ticks = element_blank(), axis.text.y = element_blank(), axis.line = element_blank())+
+    labs(x="Stress",y="Performance")
+```
+
+<br>
+
+One way to describe curves is to use polynomials ($x^2$, $x^3$, etc.).   
+For example, in the following two sets, $y$ can be described as $f(x)$ where $f(x)=x^2$:  
+
+$$x=\begin{bmatrix} -5 \\ -4 \\ -3 \\ -2 \\ -1 \\ 0 \\ 1 \\ 2 \\ 3 \\ 4 \\ 5 \end{bmatrix}, \qquad
+y=\begin{bmatrix} 25 \\ 16 \\ 9 \\ 4 \\ 1 \\ 0 \\ 1 \\ 4 \\ 9 \\ 16 \\ 25 \end{bmatrix}$$
+
+and when we plot each value of $x$ against the corresponding value of $y$: 
+```{r echo=FALSE}
+tibble(x = -5:5,
+       y = x^2
+) |> ggplot(aes(x = x, y = y)) + 
+    geom_point()
+```
+
+:::{.callout-note collapse="true"}
+### The code to create the above plot
+
+```{r eval=FALSE}
+# the tibble() function can be used to create a dataframe
+# here, we create one with two variables, x and y.
+# x is the sequence from -5 to 5,
+# y is equal to x squared. 
+# we save this data as "poly"
+poly <- 
+    tibble(
+        x = c(-5,-4,-3,-2,-1,0,1,2,3,4,5),
+        y = x^2
+    )
+# create a plot with "poly", with variable "x" on the x-axis,
+# and variable "y" on the y-axis. Add geom_points for each entry
+ggplot(data = poly, aes(x = x, y = y)) + 
+    geom_point()
+```
+:::
+
+ 
+## Glossary
+
++ __Function:__ A mapping between two sets of numbers, associating every element of the first set with an element in the second.  

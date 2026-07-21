@@ -1,0 +1,209 @@
+---
+title: "Visualise numeric data"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+
+library(tidyverse)
+library(patchwork)
+wechsler <- read_csv("https://uoepsy.github.io/data/wechsler.csv")
+```
+
+### Boxplots {-}
+
+Boxplots provide a useful way of visualising the __interquartile range (IQR).__ 
+
+You can see what each part of the boxplot represents below:
+
+
+```{r boxplotdesc, echo=FALSE, fig.cap="Anatomy of a boxplot", out.width = '100%'}
+set.seed(34875)
+px = rnorm(100,10,10)
+mn=min(px[px>quantile(px, .25)-(1.5*IQR(px))])
+mx=max(px[px<quantile(px, .75)+(1.5*IQR(px))])
+outs_up = px[px>quantile(px, .75)+(1.5*IQR(px))]
+outs_lw = px[px<quantile(px, .25)-(1.5*IQR(px))]
+ggplot(data = NULL, aes(x = px)) +
+  geom_boxplot(col="red")+
+  ylim(-1,1)+xlim(-30,45)+
+  theme_classic()+
+  theme(axis.title = element_blank(), axis.text = element_blank(),
+      axis.ticks = element_blank(), axis.line = element_blank())+
+  
+  # Quartiles
+  annotate("text",x=median(px), y=0.7, label="Q2\n(Median)", vjust=1,hjust=0.5, col="grey20")+
+  annotate("text",x=quantile(px, .25), y=0.6, label="Q1", vjust=1,hjust=1, col="grey20")+
+  annotate("text",x=quantile(px, .75), y=0.6, label="Q3", vjust=1,hjust=0, col="grey20")+
+  geom_segment(aes(x=median(px), xend=median(px), y=0.48, yend=0.38), col="grey20",lty="dashed")+
+  geom_segment(aes(x=quantile(px, .25), xend=quantile(px, .25), y=0.48, yend=0.38), col="grey20",lty="dashed")+
+  geom_segment(aes(x=quantile(px, .75), xend=quantile(px, .75), y=0.48, yend=0.38), col="grey20",lty="dashed")+
+  
+  # Whiskers
+  annotate("text",x=mn, y=-0.2, label="Minimum value in data\nwhich is > Q1 - (1.5 * IQR)", vjust=1,hjust=0.5, col="grey20")+
+  annotate("text",x=mx, y=-0.2, label="Maximum value in data\nwhich is < Q3 + (1.5 * IQR)", vjust=1,hjust=0.5, col="grey20")+
+  geom_segment(aes(x=mn, xend=mn, y=0, yend=-0.2),col="grey20",lty="dashed")+
+  geom_segment(aes(x=mx, xend=mx, y=0, yend=-0.2),col="grey20",lty="dashed")+
+  
+  #IQR
+  geom_segment(aes(x=quantile(px, .25), xend=quantile(px, .25), y=0.78, yend=0.85), col="grey20")+
+  geom_segment(aes(x=quantile(px, .75), xend=quantile(px, .75), y=0.78, yend=0.85), col="grey20")+
+  geom_segment(aes(x=quantile(px, .75), xend=quantile(px, .25), y=0.85, yend=0.85), col="grey20")+
+  annotate("label",x=median(px), y=0.9, label="IQR", vjust=1,hjust=0.5, col="grey20")+
+  
+  # Outliers +
+  geom_segment(aes(x=outs_up, xend=mean(outs_up), y=0, yend=0.27), col="grey20", lty="dashed")+
+  annotate("text",x=mean(outs_up), y=0.5, label="Outliers\nDatapoints > Q3 + (1.5 * IQR)", vjust=1,hjust=0.5, col="grey20")+
+  # Outliers -
+  geom_segment(aes(x=outs_lw, xend=mean(outs_lw), y=0, yend=0.27), col="grey20", lty="dashed")+
+  annotate("text",x=mean(outs_lw), y=0.5, label="Outliers\nDatapoints < Q1 - (1.5 * IQR)", vjust=1,hjust=0.5, col="grey20")+
+  
+  NULL
+  
+rm(mn,mx,outs_lw,outs_up,px)
+```
+
+We can create a boxplot of our age variable using the following code:
+```{r}
+# Notice, we put age on the x axis, making the box plot vertical. 
+# If we had set aes(y = age) instead, then it would simply be rotated 90 degrees 
+ggplot(data = wechsler, aes(x = age)) +
+  geom_boxplot()
+```
+
+
+However, you should know that a lot of people don't like boxplots, because by summarising the data only in terms of its IQR, they tend to misrepresent how the data is actually distributed (see, for example, [I've Stopped Using Box Plots. Should You?](https://nightingaledvs.com/ive-stopped-using-box-plots-should-you/){target="_blank"}).
+
+
+
+### Histograms {-}
+
+We can visualise numeric data using a __histogram__, which shows the frequency of values which fall within _bins_ of an equal width. 
+
+```{r}
+# make a ggplot with the "wechsler" data. 
+# on the x axis put the possible values in the "iq" variable,
+# add a histogram geom (will add bars representing the count 
+# in each bin of the variable on the x-axis)
+ggplot(data = wechsler, aes(x = iq)) + 
+  geom_histogram()
+```
+
+We can specifiy the width of the bins:
+
+```{r}
+ggplot(data = wechsler, aes(x = iq)) + 
+  geom_histogram(binwidth = 5)
+```
+
+Let's take a look at the means and standard deviations of participants' scores on the other tests (the _test1_ and _test2_ variables):
+```{r}
+wechsler |> 
+  summarise(
+    mean_test1 = mean(test1),
+    sd_test1 = sd(test1),
+    mean_test2 = mean(test2),
+    sd_test2 = sd(test2)
+  )
+```
+Tests 1 and 2 have similar means (around 50), but the standard deviation of Test 2 is almost double that of Test 1. We can see this distinction in the visualisation below - the histograms are centered at around the same point (50), but the one for Test 2 is a lot wider than that for Test 1.
+```{r echo=FALSE}
+ggplot(data = wechsler, aes(x = test1)) + 
+  geom_histogram()+
+  xlim(0,100) + theme_classic() +
+  
+ggplot(data = wechsler, aes(x = test2)) + 
+  geom_histogram()+
+  xlim(0,100) + theme_classic()
+```
+
+
+### Density curves {-}  
+
+In addition to grouping numeric data into _bins_ in order to produce a histogram, we can also visualise a __density curve.__
+A density plot is essentially like a smoothed-out histogram.
+The numbers on the y-axis are not informative—you can just ignore them.
+
+::: {.callout-caution collapse="true"}
+#### What's "density"?
+
+You can think of the density as a bit similar to the notion of __relative frequency__, in that for a density curve, the values on the y-axis are scaled so that the total area under the curve is equal to 1. Because there are infinitely many values that numeric variables could take (e.g., 50, 50.1, 50.01, 5.001, ...), we could group the data into infinitely many bins. In creating a curve for which the total area underneath is equal to one, we can use the area under the curve in a range of values to indicate the proportion of values in that range.  
+
+:::
+
+
+```{r}
+ggplot(data = wechsler, aes(x = iq)) + 
+  geom_density()+
+  xlim(50,150)
+```
+
+
+## Violin plots
+
+A violin plot is kind of halfway between a density plot and a boxplot.
+It takes the smoothed-out histogram shape of the density plot and mirrors it vertically.
+The result is a violin-like shape, which is why it's called a "violin plot".
+
+```{r}
+ggplot(data = wechsler, aes(x = iq, y = 1)) +  # y = 1 is not meaningful, but necessary
+  geom_violin() +
+  xlim(50,150)
+```
+
+It's often nice to show the individual data points on top of the violin as well.
+You can achieve that with `geom_jitter()`, which plots one point for each observation.
+
+```{r}
+ggplot(data = wechsler, aes(x = iq, y = 1)) +  # y = 1 is not meaningful, but necessary
+  geom_violin() +
+  geom_jitter() +
+  xlim(50,150)
+```
+
+Each data point is plotted along the x axis that corresponds to its observed `iq` value.
+Its location along the y axis is random and not informative—the reason that the data points are scattered about vertically is so that the overall distribution of data points is easier to see.
+
+
+::: {.callout-caution collapse="true"}
+#### Changing the amount of jitter
+
+Here's what those data points would look like if they weren't vertically jittered at all: that is, if they were all lined up at the same `y` value.
+
+```{r}
+ggplot(data = wechsler, aes(x = iq, y = 1)) +  # y = 1 is not meaningful, but necessary
+  geom_violin() +
+  geom_jitter(height = 0) +
+  xlim(50,150)
+```
+
+You can play with the `height` argument of `geom_jitter()` to find your favourite happy medium.
+
+```{r}
+```{r}
+ggplot(data = wechsler, aes(x = iq, y = 1)) +  # y = 1 is not meaningful, but necessary
+  geom_violin() +
+  geom_jitter(height = 0.1) +
+  xlim(50,150)
+```
+```
+
+
+:::
+
+
+
+
+
+## Glossary
+
++ __Boxplot:__ Displays the median and the IQR, and any extreme values.  
++ __Histogram:__ Shows the frequency of values which fall within _bins_ of an equal width. 
++ __Density curve:__ A curve for reflecting the distribution of a variable, for which the area under the curve sums to 1.
++ __Violin plot:__ A mirrored version of a density curve that resembles a violin; good for combining with jittered points for visualising the actual observed data.
+<br><br>
++ `geom_boxplot()` To add a boxplot to a ggplot.
++ `geom_histogram()` To add a histogram to a ggplot.
++ `geom_density()` To add a density curve to a ggplot.
++ `geom_violin()` To add a violin to a ggplot.
++ `geom_jitter()` To add jittered points to a ggplot.

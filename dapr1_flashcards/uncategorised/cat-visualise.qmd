@@ -1,0 +1,147 @@
+---
+title: "Visualise categorical data"
+---
+
+```{r echo=FALSE, fig.cap="Artwork by \\@allison_horst"}
+knitr::include_graphics("images/ggplot2_masterpiece.png")
+```
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+
+library(tidyverse)
+```
+
+
+> "By visualizing information, we turn it into a landscape that you can explore with your eyes. A sort of information map. And when you’re lost in information, an information map is kind of useful."_ 
+>   [David McCandless](https://informationisbeautiful.net/)
+
+## Unordered Categorical (Nominal) Data
+
+We're going to now make our first steps into the world of data visualisation. R is an incredibly capable language for creating visualisations of almost any kind. It is used by many media companies (e.g., the BBC), and has the capability of producing 3d visualisations, animations, interactive graphs, and more.  
+
+We are going to use the most popular R package for visualisation, __ggplot2__. This is actually part of the __tidyverse__, so if we have an Rmarkdown document and have loaded the __tidyverse__ packages at the start (by using `library(tidyverse)`), then __ggplot2__ will be loaded too).  
+
+Recall our __frequency distribution table:__
+```{r}
+psych_disciplines <- read_csv("https://uoepsy.github.io/data/psych_survey.csv")
+
+# make a new object called "freq_table", and assign it:
+# the counts of values of "area" variable in 
+# the psych_discipline dataframe.
+freq_table <- psych_disciplines |>
+    count(area)
+
+# show the object called "freq_table"
+freq_table
+```
+
+We can plot these values as a bar chart:
+
+```{r}
+ggplot(data = freq_table, aes(x = area, y = n)) +
+    geom_col()
+```
+
+
+
+:::{.callout-note}
+__ggplot components__  
+
+Note the key components of the ggplot code. 
+
+*  `data = ` where we provide the name of the dataframe. 
+*  `aes = ` where we provide the _aesthetics_. These are things which we map from the data to the graph. For instance, the x-axis, or if we wanted to colour the columns/bars according to some aspect of the data. 
+
+Then we add (using `+`) some _geometry_. These are the shapes (in our case, the columns/bars), which will be put in the correct place according to what we specified in `aes()`.  
+
+* `+ geom_col()` Adds columns to the plot. 
+:::
+
+:::{.callout-note collapse="true"}
+### Optional - Different aes() and geoms, and labels
+
+Use these as reference for when you want to make changes to the plots you create.  
+Additionall, remember that google is your friend - there are endless forums with people asking how to do something in ggplot, and you can just copy and paste bits of code to add to your plots!  
+  
+  
+1. Fill the geoms: 
+```{r}
+ggplot(data = freq_table, aes(x = area, y = n, fill = area)) +
+    geom_col()
+```
+2. Change the axis labels:
+```{r}
+ggplot(data = freq_table, aes(x = area, y = n, fill = area)) +
+    geom_col()+
+    labs(title="Counts of respondents by sub-discipline", y = "Number of respondents", x = "Sub-discipline")
+```
+3. Change the geom:  
+(Note that using `geom_col` had the y axis starting at 0, but geom_point starts just below the lowest value.
+```{r}
+# note that we also need to change "fill = area" to "col = area". 
+ggplot(data = freq_table, aes(x = area, y = n, col = area)) +
+    geom_point()+
+    labs(title="Counts of respondents by sub-discipline", y = "Number of respondents", x = "Sub-discipline")
+```
+4. Change the limits of the axes:
+```{r}
+ggplot(data = freq_table, aes(x = area, y = n, fill = area)) +
+    geom_col()+
+    labs(title="Counts of respondents by sub-discipline", y = "Number of respondents", x = "Sub-discipline")+
+    ylim(0,50)
+```
+5. Remove (or reposition) the legend:
+```{r}
+# setting legend.position as "bottom" would put it at the bottom!
+
+ggplot(data = freq_table, aes(x = area, y = n, fill = area)) +
+    geom_col()+
+    labs(title="Counts of respondents by sub-discipline", y = "Number of respondents", x = "Sub-discipline")+
+    ylim(0,50)+
+    theme(legend.position = "none") 
+```
+6. Changing the theme:
+```{r}
+# there are many predefine themes, including: 
+# theme_bw(), theme_classic(), theme_light()
+
+ggplot(data = freq_table, aes(x = area, y = n, fill = area)) +
+    geom_col()+
+    labs(title="Counts of respondents by sub-discipline", y = "Number of respondents", x = "Sub-discipline")+
+    ylim(0,50)+
+    theme_minimal()
+```
+:::
+
+
+## Ordered Categorical (Ordinal) Data 
+
+We can visualise ordered categorical data in the same way we did for unordered.  
+First we save our frequencies/percentages as a new object:
+
+```{r}
+psych_survey <- read_csv("https://uoepsy.github.io/data/psych_survey2.csv")
+
+freq_table2 <- psych_survey |>
+  count(happiness) |>
+  mutate(
+    percent = n/sum(n)*100
+  )
+```
+
+Then we give that object to our __ggplot__ code, with the appropriate `aes()` mappings:
+```{r}
+# make a ggplot with the object "freq_table2". 
+# on the x axis put the possible values in the "happiness" variable,
+# on the y axis put the possible values in the "n" variable.
+# add columns for each entry in the data. 
+ggplot(data = freq_table2, aes(x = happiness, y = percent)) + 
+  geom_col()
+```
+
+
+## Glossary
+
++ `ggplot()` creates a plot. Takes `data=` and a set of mappings `aes()` from the data to properties of the plot (e.g., x/y axes, colours).
++ `geom_col()` adds columns to a ggplot. 
