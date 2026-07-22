@@ -11,6 +11,11 @@ library(latex2exp)
 ```
 
 
+TODO:
+
+- ggmosaic doesn't exist for EP's version of R, add installation instructions in case students have same issue
+- "Helpful references" section somewhat redundant, streamline
+
 
 ## Outcome vs Explanatory 
 
@@ -97,7 +102,7 @@ To understand the relationship between *categorical* (practice) and the *numeric
 In other words, we want to calculate the mean and standard deviation of the _stroop_effect_ variable separately for those observations where _practice_ is "no", and for those where _practice_ is "yes":
 ```{r echo=FALSE}
 set.seed(421)
-sample_n(stroopdata, n()) |> select(practice,stroop_effect) |> mutate(stroop_effect = round(stroop_effect,2)) |> head(9L) |> rbind("...") |> knitr::kable()
+sample_n(stroopdata, n()) |> select(practice,stroop_effect) |> mutate(stroop_effect = round(stroop_effect,2)) |> head(9L) |> rbind("...")
 ```
 
 
@@ -511,6 +516,225 @@ titanic |>
   prop.table(margin = 1) |>
   plot()
 ```
+
+
+
+## Helpful references on relationships between variables
+
+In the following, Cat = Categorical and Num = Numerical.
+
+```{r}
+tips <- read_csv("https://uoepsy.github.io/data/RestaurantTips.csv")
+head(tips)
+```
+
+
+::: {.callout-tip collapse="false"}
+### Relationships between two variables
+
+#### Cat-Cat
+
+Visualise with a mosaic plot:
+
+```{r}
+# library(ggmosaic)
+# ggplot(tips) +
+#     geom_mosaic(aes(x = product(Credit, Server), fill=Credit))
+```
+
+Summarise with a contingency table:
+
+```{r eval=F}
+tips |>
+    select(Credit, Server) |>
+    table()
+```
+
+```{r echo=FALSE}
+tips |>
+    select(Credit, Server) |>
+    table() 
+```
+
+
+#### Num-Cat
+
+Boxplot
+
+```{r}
+ggplot(tips, aes(x = Credit, y = Tip)) +
+    geom_boxplot()
+```
+
+or grouped histogram
+
+```{r}
+ggplot(tips, aes(x = Tip)) +
+    geom_histogram(color='white') +
+    facet_wrap(~Credit)
+```
+
+or coloured density plot
+
+```{r}
+ggplot(tips, aes(x = Tip, colour = Credit)) +
+    geom_density()
+```
+
+Summarise via a grouped table of descriptive statistics:
+
+```{r eval=F}
+tips |>
+    group_by(Credit) |>
+    summarise(N = n(),
+              M = mean(Tip),
+              SD = sd(Tip),
+              Med = median(Tip),
+              IQR = IQR(Tip))
+```
+
+```{r echo=FALSE}
+tips |>
+    group_by(Credit) |>
+    drop_na(Tip) |>    # to drop rows with NA in the Tip column
+    summarise(N = n(),
+              M = mean(Tip),
+              SD = sd(Tip),
+              Med = median(Tip),
+              IQR = IQR(Tip))
+```
+
+
+#### Num-Num
+
+Visualise with a scatterplot:
+
+```{r}
+ggplot(tips, aes(x = Bill, y = Tip)) +
+    geom_point()
+```
+
+Summarise with the covariance:
+
+```{r}
+cov(tips$Bill, tips$Tip, use = "pairwise.complete.obs") |>
+    round(digits = 2)
+```
+
+There's no need to put just one number into a table, write it up in a sentence.
+
+:::
+
+
+::: {.callout-tip collapse="false"}
+### Relationships between three variables
+
+#### Cat-Cat-Cat
+
+Visalise with a faceted mosaic plot:
+
+```{r}
+#ggplot(tips)+
+#    geom_mosaic(aes(x = product(Credit, Server), fill=Credit)) +
+#    facet_wrap(~Day, scales = "free") # scales = "free" shows the x-axis on each plot
+```
+
+Summarise with grouped frequency tables:
+
+```{r}
+mon <- tips |>
+    filter(Day == "Monday") |>
+    select(Credit, Server) |>
+    table()
+
+tue <- tips |>
+    filter(Day == "Tuesday") |>
+    select(Credit, Server) |>
+    table()
+
+wed <- tips |>
+    filter(Day == "Wednesday") |>
+    select(Credit, Server) |>
+    table()
+
+thu <- tips |>
+    filter(Day == "Thursday") |>
+    select(Credit, Server) |>
+    table()
+
+fri <- tips |>
+    filter(Day == "Friday") |>
+    select(Credit, Server) |>
+    table()
+```
+
+
+#### Cat-Num-Cat
+
+Visualise using a faceted boxplot:
+
+```{r}
+ggplot(tips)+
+    geom_boxplot(aes(x = Credit, y = Tip)) + 
+    facet_wrap(~Day)
+```
+
+or faceted and coloured density plots:
+
+```{r}
+ggplot(tips)+
+    geom_density(aes(x = Tip, color = Credit)) + 
+    facet_wrap(~Day)
+```
+
+Summarise with a table of descriptive statistics grouped by the categorical variables:
+
+```{r eval=F}
+tips |>
+    group_by(Credit, Day) |>
+    summarise(M = mean(Tip, na.rm=TRUE),
+              SD = sd(Tip, na.rm=TRUE)) 
+```
+
+```{r echo=FALSE}
+tips |>
+    group_by(Credit, Day) |>
+    summarise(M = mean(Tip, na.rm=TRUE),
+              SD = sd(Tip, na.rm=TRUE))
+```
+
+
+#### Num-Num-Cat
+
+Scatterplot
+
+```{r}
+ggplot(tips, aes(x = Bill, y = Tip)) +
+    geom_point() +
+    facet_wrap(~Day)
+```
+
+Summarise via a grouped table of descriptive statistics:
+
+```{r eval=F}
+tips |>
+    group_by(Day) |>
+    summarise(
+        Cov = cov(Bill, Tip, use = "pairwise.complete.obs")
+    )
+```
+
+```{r echo=FALSE}
+tips |>
+    group_by(Day) |>
+    summarise(
+        Cov = cov(Bill, Tip, use = "pairwise.complete.obs")
+    )
+```
+
+:::
+
+
 
 
 ## Glossary

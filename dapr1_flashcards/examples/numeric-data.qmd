@@ -1,0 +1,209 @@
+---
+title: "Numeric data"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+```
+
+
+Consider the dataset available at <https://uoepsy.github.io/data/RestaurantTips.csv>, containing 157 observations on the following 7 variables:
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(kableExtra)
+
+tribble(
+    ~'Variable Name', ~'Description',
+    'Bill', 'Size of the bill (in dollars)',
+    'Tip', 'Size of the tip (in dollars)',
+    'Credit', 'Paid with a credit card? n or y',
+    'Guests', 'Number of people in the group',
+    'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday',
+    'Server', 'Code for specific waiter/waitress: A, B, or C',
+    'PctTip', 'Tip as a percentage of the bill'
+) |>
+    kbl() |>
+    kable_styling(full_width = FALSE)
+```
+
+These data were collected by the owner of a bistro in the US, who was interested in understanding the tipping patterns of their customers. The data are adapted from @lock2020.
+
+```{r}
+library(tidyverse)
+tips <- read_csv("https://uoepsy.github.io/data/RestaurantTips.csv")
+head(tips)
+glimpse(tips)
+```
+
+```{r}
+tips$Day <- factor(tips$Day, 
+                   levels = c("m", "t", "w", "th", "f"),
+                   labels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"))
+
+tips$Credit <- factor(tips$Credit, 
+                      levels = c("n", "y"),
+                      labels = c("No", "Yes"))
+
+tips$Server <- factor(tips$Server)
+
+glimpse(tips)
+```
+
+```{r}
+tips <- tips |>
+    mutate(
+        PctTip = ifelse(PctTip > 100, NA, PctTip)
+    )
+```
+
+We can create a histogram of tips via:
+
+```{r}
+ggplot(tips, aes(x = Tip)) + 
+    geom_histogram(color = 'white') + 
+    labs(x = "Size of the tip (US dollars)")
+```
+
+We can create a single figure with the distribution of all numeric variables by using the patchwork package:
+
+::: {.column-margin}
+If you save each plot into an object with a name, e.g. `p1`, `p2`, `p3`, `p4`, you can arrange the four plots into 2 by 2 panels as follows:
+
+```
+library(patchwork)
+(p1 | p2) / (p3 | p4)
+```
+
+To do 1 row of 4 plots:
+
+```
+p1 | p2 | p3 | p4
+```
+:::
+
+```{r}
+#| column: page
+#| fig-height: 6
+#| fig-width: 8
+
+library(patchwork)
+
+pltBill <- ggplot(tips, aes(x = Bill)) +
+    geom_histogram(color = 'white', fill = 'lightblue') +
+    labs(x = "Size of the bill (US dollars)")
+
+pltTip <- ggplot(tips, aes(x = Tip)) +
+    geom_histogram(color = 'white', fill = 'lightblue') +
+    labs(x = "Size of the tip (US dollars)")
+
+pltGuests <- ggplot(tips, aes(x = Guests)) +
+    geom_bar(fill = 'lightblue') +
+    labs(x = "Number of people in the group")
+
+pltPctTip <- ggplot(tips, aes(x = PctTip)) +
+    geom_histogram(color = 'white', fill = 'lightblue') +
+    labs(x = "Tip as a percentage of the bill")
+
+(pltBill | pltTip) / (pltGuests | pltPctTip)
+```
+
+To summarise one numeric variable, you can use the `summarise` function from tidyverse, which takes the data and computes a numeric summary. The syntax is:
+
+```
+data |>
+    summarise(
+        write_the_column_name = computation
+    )
+```
+
+This computes the mean and SD of tip size (in US dollars), and calls the column storing the mean `M`, and the column storing the standard deviation `SD`:
+
+```{r eval=F}
+tips |>
+    summarise(
+        M = mean(Tip, na.rm = TRUE),
+        SD = sd(Tip, na.rm = TRUE)
+    ) |>
+    kbl(digits = 2, booktabs = TRUE)
+```
+
+```{r echo=F}
+tips |>
+    summarise(
+        M = mean(Tip, na.rm = TRUE),
+        SD = sd(Tip, na.rm = TRUE)
+    ) |>
+    kbl(digits = 2) |>
+    kable_styling(full_width = FALSE)
+```
+
+To summarise all of the numeric variables into a single table of descriptive statistics you can use the `describe` function from the psych package:
+
+```{r eval=F}
+library(kableExtra)
+library(psych)
+
+tips |>
+    select(Bill, Tip, Guests, PctTip) |>
+    describe() |>
+    kbl(booktabs = TRUE, digits = 2)
+```
+
+```{r echo=F}
+library(kableExtra)
+library(psych)
+
+tips |>
+    select(Bill, Tip, Guests, PctTip) |>
+    describe() |>
+    kbl(digits = 2) |>
+    kable_styling(full_width = FALSE)
+```
+
+To only keep the sample size, mean, SD, median, min, max, we use the `select` function from tidyverse:
+
+```{r eval=F}
+library(kableExtra)
+library(psych)
+
+tips |>
+    select(Bill, Tip, Guests, PctTip) |>
+    describe() |>
+    select(n, mean, sd, median, min, max) |>
+    kbl(booktabs = TRUE, digits = 2)
+```
+
+```{r echo=F}
+library(kableExtra)
+library(psych)
+
+tips |>
+    select(Bill, Tip, Guests, PctTip) |>
+    describe() |>
+    select(n, mean, sd, median, min, max) |>
+    kbl(digits = 2) |>
+    kable_styling(full_width = FALSE)
+```
+
+
+:::{.callout-warning}
+#### Use the appropriate summary for each variable type
+
+Ensure that you summarise variables correctly:
+
+- For categorical variables use frequency tables
+- For continuous variables use a table of descriptive statistics (mean, SD, Median, etc.)
+
+You should not summarise categorical variables with the mean, SD, and this is why it's important to use `select()` before `describe()` to only keep the variables that are continuous.
+
+:::
+
+
+:::{.callout-tip}
+#### Example writeup
+
+The distributions of bill size, tip size, and group size are skewed to the right. The distribution of tips, as a percentage of the total bill, appears to be approximately bell shaped, with three outliers in the right tail of the distribution.  
+The average bill was about \$22.73, with a SD of \$12.16. The average tip was \$3.81, with a SD of \$2.37, corresponding to an average tip as a percentage of the total bill of \$16.59, with a SD of \$4.39. The average party size comprised 2 guests, with a SD of roughly 1 person.
+:::
+

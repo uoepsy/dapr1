@@ -1,0 +1,157 @@
+---
+title: "Power"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+```
+
+
+To compute power, you need to know the distribution of the sample mean 
+
+- when $H_0$ is true
+- when $H_1$ is true
+
+This seldom happens in practice, so these exercises will be more conceptual.
+
+Before going ahead, though, remember that if the population has mean $\mu$ the sampling distribution of the mean is $N(\mu, \frac{\sigma}{\sqrt n})$, where $\sigma$ is the population SD and $n$ the size of a sample.
+
+Suppose you are testing
+
+$$H_0 : \mu = 0$$
+$$H_1 : \mu > 0$$
+
+
+
+What is the power of the test if:
+
+- the population has a mean $\mu = 5$
+- the population has a standard deviation $\sigma = 3$
+- you will take a sample of size 30
+
+
+The distribution of the sample mean in the population is 
+
+$$\bar X \sim N(5, \frac{3}{\sqrt{30}})$$
+
+
+If $H_0$ is true, however, the distribution would be:
+
+$$\bar X \sim N(0, \frac{3}{\sqrt{30}})$$
+
+```{r echo=FALSE}
+SE <- 3 / sqrt(30)
+par(mfrow = c(2,1), mai = c(1,.3,.2,.5) * 1)
+curve(dnorm(x, 0, SE), -3, 3, xlim = c(-4, 10), col = 'dodgerblue', lwd = 2,
+      frame.plot = F, axes = F, ylab = "", xlab = "")
+text(x = 2, y = 0.1, label = "H0 true")
+axis(1)
+curve(dnorm(x, 5, SE), 2, 8, xlim = c(-4, 10), col = 'darkorange', lwd = 2,
+      frame.plot = F, axes = F, ylab = "", xlab = "")
+text(x = 7, y = 0.1, label = "H1 true")
+axis(1)
+```
+
+
+You would reject the null hypothesis, at the 5% significance level, for values larger the 0.95 quantile of a $N(0, \frac{3}{\sqrt{30}})$ distribution:
+
+```{r}
+sigma <- 3
+n <- 30
+SE <- 3 / sqrt(30)
+```
+
+```{r}
+tstar <- qnorm(0.95, mean = 0, sd = SE)
+tstar
+```
+
+
+```{r echo=FALSE}
+par(mfrow = c(2,1), mai = c(1,.3,.2,.5) * 1)
+curve(dnorm(x, 0, SE), -3, 3, xlim = c(-4, 10), col = 'dodgerblue', lwd = 2,
+      frame.plot = F, axes = F, ylab = "", xlab = "")
+text(x = 2, y = 0.1, label = "H0 true", col = 'dodgerblue')
+axis(1)
+abline(v = 0.90, col = 'red')
+
+curve(dnorm(x, 5, SE), 2, 8, xlim = c(-4, 10), col = 'darkorange', lwd = 2,
+      frame.plot = F, axes = F, ylab = "", xlab = "")
+text(x = 7, y = 0.1, label = "H1 true", col = 'darkorange')
+axis(1)
+abline(v = 0.90, col = 'red')
+text(x = 0.90, y = 0.7, label = '0.90', col = 'red', adj = -0.2)
+```
+
+The power is the probability of rejecting the null hypothesis when the null is false.
+
+So, if the null is false, the mean follows the distribution $N(5, \frac{3}{\sqrt{30}})$. The probability of correctly rejecting the null would be the probability under that distribution beyond -1.07
+
+```{r}
+Pow <- 1 - pnorm(0.90, mean = 5, sd = SE)
+Pow
+```
+
+The power is 1.
+
+
+::: {.callout-note}
+__Question 9.__ Assume now that the true population mean is $\mu = 2$. What is the power of the test?
+:::
+
+```{r echo=FALSE}
+par(mfrow = c(2,1), mai = c(1,.3,.2,.5) * 1)
+curve(dnorm(x, 0, SE), -3, 3, xlim = c(-4, 10), col = 'dodgerblue', lwd = 2,
+      frame.plot = F, axes = F, ylab = "", xlab = "")
+text(x = 2, y = 0.1, label = "H0 true", col = 'dodgerblue')
+axis(1)
+abline(v = 0.90, col = 'red')
+
+curve(dnorm(x, 2, SE), -1, 5, xlim = c(-4, 10), col = 'darkorange', lwd = 2,
+      frame.plot = F, axes = F, ylab = "", xlab = "")
+text(x = 4, y = 0.1, label = "H1 true", col = 'darkorange')
+axis(1)
+abline(v = 0.90, col = 'red')
+text(x = 0.90, y = 0.7, label = '0.90', col = 'red', adj = -0.2)
+```
+
+The distribution of the mean when $H_0$ is false is then
+
+$$\bar X \sim N(2, \frac{3}{\sqrt{30}})$$
+
+We need to compute the probability in a $N(2, \frac{3}{\sqrt{30}})$ distribution __to the right__ of 0.90.
+
+```{r}
+Pow <- pnorm(0.90, mean = 2, sd = SE, lower.tail = FALSE)
+Pow
+```
+
+or
+
+```{r}
+Pow <- 1 - pnorm(0.90, mean = 2, sd = SE)
+Pow
+```
+
+The power, i.e. the probability that the test rejects the null hypothesis when it is false, is 0.98.
+
+::: {.callout-note}
+__Question 10.__ Assume now that the true population mean is $\mu = 2$. What is the probability of a Type II error?
+:::
+
+The easiest way to compute it is as $\beta = 1 - \text{Power}$ because $\text{Power} = 1 - \beta$.
+
+```{r}
+beta <- 1 - Pow
+beta
+```
+
+The probability of not rejecting the null when it is false is 0.02.
+
+If you want to compute it from scratch you can compute it as the probability __to the left__ of 0.90. This is because values below 0.90 lead to not rejecting the null hypothesis.
+
+```{r}
+beta <- pnorm(0.90, mean = 2, sd = SE)
+beta
+```
+

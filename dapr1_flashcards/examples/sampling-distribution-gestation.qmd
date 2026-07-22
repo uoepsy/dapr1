@@ -257,14 +257,6 @@ Each of the density histograms above displays the distribution of the sample mea
 
 Such a distribution is called the _**sampling distribution**_ of the sample mean.
 
-::: callout-tip
-__Sampling distribution__
-
-The sampling distribution of a statistic is the distribution of a sample statistic computed on many different samples of the same size from the same population.
-
-A sampling distribution shows how the statistic varies from sample to sample due to sampling variation.
-:::
-
 
 :::{.callout-note collapse="false"}
 ### Centre and spread of a sampling distribution
@@ -407,94 +399,6 @@ This suggests that:
 
 - We will doubt any hypothesis specifying that the population mean is $\mu$ when the value $\mu$ is more than $2 SE$ away from the sample mean we got from our data, $\bar x$. We shall be even more suspicious when the hypothesised value $\mu$ is more than $3 SE$ away from $\bar x$.
 
-
-
-
-::: callout-tip
-__Centre and shape of a sampling distribution__
-
-- _Centre_: If samples are randomly selected, the sampling distribution will be centred around the population parameter. _(No bias)_
-
-- _Shape_: For most of the statistics we consider, if the sample size is large enough, the sampling distribution will follow a normal distribution, i.e. it is symmetric and bell-shaped. _(Central Limit Theorem)_
-:::
-
-
-Clearly, we can compute sampling distributions for other statistics too: the proportion, the standard deviation, ...
-
-This requires the following steps:
-
-- Obtaining multiple samples, all of the same size, from the same population;
-
-- For each sample, calculate the value of the statistic;
-
-- Plot the distribution of the computed statistics.
-
-:::
-
-
-
-:::{.callout-note collapse="false"}
-### Why sample size matters
-
-You might be wondering: why did we take multiple samples of size $n$ from the population when, in practice, we can only afford to take one?
-
-This is a good question. We have taken multiple samples to show how the estimation error varies with the sample size.
-We saw in @fig-sampl-dist-mean, shown again below, that smaller sample sizes lead to more variable statistics, while larger sample sizes lead to more **precise** statistics, i.e. the estimates are more concentrated around the true parameter value.
-
-```{r echo=FALSE, fig.cap = "Density histograms of the sample means from 5,000 samples of women ($n$ women per sample).", fig.height=6, fig.width=5}
-ggplot(sample_means_n) +
-  geom_histogram(aes(mean_gest, after_stat(density)), color = 'white', binwidth = 1) +
-  facet_grid(n ~ ., labeller = label_both) +
-  theme_bw() + 
-  labs(x = 'Sample mean of gestation period (days)', y = 'Density')
-```
-
-__This teaches us that, when we have to design a study, it is better to obtain just one sample with size $n$ as large as we can afford.__
-
-
-:::{.callout-note collapse="false"}
-#### Think about it
-What would the sampling distribution of the mean look like if we could afford to take samples as big as the entire population, i.e. of size $n = N$?
-:::
-
-:::{.callout-tip collapse="false"}
-#### Think about it: Answer
-_If you can_, it is best to measure the entire population. 
-
-If we could afford to measure the entire population, then we would find the exact value of the parameter all the time.
-By taking multiple samples of size equal to the entire population, every time we would obtain the population parameter exactly, so the distribution would look like a histogram with a single bar on top of the true value: we would find the true parameter with a probability of one, and the estimation error would be 0.
-
-```{r}
-pop_means <- gest |>
-  rep_sample_n(n = nrow(gest), samples = 10) |>
-  group_by(sample) |>
-  summarise(mean_gest = mean(gest_period))
-pop_means
-```
-
-The following is a dotplot of the means computed above:
-```{r echo=FALSE, fig.height=3, fig.width=4}
-ggplot(pop_means, aes(x = mean_gest)) +
-  geom_dotplot(binwidth = 1, dotsize = 0.05) +
-  theme_classic() +
-  theme(axis.text.y = element_blank(),
-        axis.ticks.y = element_blank()) + 
-  labs(x = 'Sample mean', y = '')
-```
-:::
-
-To summarize:
-
-- We have __high precision__ when the estimates are less variable, and this happens for a __large sample size__. 
-
-- We have __no bias__ when we select samples that are representative of the population, and this happens when we do __random sampling__. No bias means that the estimates will be centred at the true population parameter to be estimated.
-
-
-```{r echo=FALSE, out.width='80%'}
-knitr::include_graphics('images/prob/bias_prec.png')
-```
-
-:::
 
 
 

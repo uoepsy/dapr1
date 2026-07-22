@@ -1,0 +1,334 @@
+---
+title: "Categorical data"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+```
+
+
+Consider the dataset available at <https://uoepsy.github.io/data/RestaurantTips.csv>, containing 157 observations on the following 7 variables:
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(kableExtra)
+
+tribble(
+    ~'Variable Name', ~'Description',
+    'Bill', 'Size of the bill (in dollars)',
+    'Tip', 'Size of the tip (in dollars)',
+    'Credit', 'Paid with a credit card? n or y',
+    'Guests', 'Number of people in the group',
+    'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday',
+    'Server', 'Code for specific waiter/waitress: A, B, or C',
+    'PctTip', 'Tip as a percentage of the bill'
+) |>
+    kbl() |>
+    kable_styling(full_width = FALSE)
+```
+
+These data were collected by the owner of a bistro in the US, who was interested in understanding the tipping patterns of their customers. The data are adapted from @lock2020.
+
+```{r}
+library(tidyverse)
+```
+
+:::{.column-margin}
+We load the `tidyverse` package as we will use the functions `read_csv` and `glimpse` from this package.
+:::
+
+```{r}
+tips <- read_csv("https://uoepsy.github.io/data/RestaurantTips.csv")
+```
+
+:::{.column-margin}
+`read_csv` is the function to read CSV (comma separated values) files. Once we have read the file, it is stored into an object called tips using the arrow (`<-`).
+:::
+
+```{r}
+head(tips)
+```
+
+:::{.column-margin}
+`head()` shows the top 6 rows of data. Use the `n = ...` option to change the default behaviour, e.g. `head(<data>, n = 10)`.
+:::
+
+```{r}
+glimpse(tips)
+```
+
+:::{.column-margin}
+`glimpse` is part of the tidyverse package and is used to check the type of each variable.
+:::
+
+We can use better and more descriptive labels for the categorical variables:
+
+```{r}
+tips$Day <- factor(tips$Day, 
+                   levels = c("m", "t", "w", "th", "f"),
+                   labels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"))
+```
+
+:::{.column-margin}
+`tips$Day`, i.e. the column `Day` within the data `tips`, is converted to a factor in R (the appropriate storage mode for categorical variables). Furthermore, it replaces the level "m" with the new label "Monday", "t" with the new label "Tuesday", and so on.
+:::
+
+```{r}
+tips$Credit <- factor(tips$Credit, 
+                      levels = c("n", "y"),
+                      labels = c("No", "Yes"))
+```
+
+We don't have better labels for Server (current values A , B, or C), so we will just convert it to a factor by keeping the current levels:
+
+```{r}
+tips$Server <- factor(tips$Server)
+```
+
+Check the relabelled columns:
+
+```{r}
+glimpse(tips)
+```
+
+<!-- :::{.column-margin} -->
+<!-- The categorical variable `course` in `toy_data` with levels "A" and "B" can have the values relabelled to "Year1" and "Year2" via: -->
+
+<!-- ``` -->
+<!-- toy_data$course <- factor( -->
+<!--   toy_data$course,  -->
+<!--   levels = c("A", "B"),  -->
+<!--   labels = c("Year1", "Year2") -->
+<!-- ) -->
+<!-- ``` -->
+<!-- ::: -->
+
+Last week, we also saw that if someone tipped more than 100% of the bill size, it was likely a data input error and we decided to replace that value with NA (not available):
+
+::: {.column-margin}
+The `mutate` function takes as arguments:
+
+- column name  
+- =  
+- how to compute that column
+:::
+
+::: {.column-margin}
+The syntax for `ifelse` is:
+```
+ifelse(test_condition, 
+       value_if_true, 
+       avalue_if_false)
+```
+:::
+
+```{r}
+tips <- tips |>
+    mutate(
+        PctTip = ifelse(PctTip > 100, NA, PctTip)
+    )
+```
+
+This displays the frequency distribution of credit card payers:
+
+```{r}
+plt_credit <- ggplot(tips, aes(x = Credit)) +
+    geom_bar() +
+    labs(x = "Paid by credit card?", y = "Count")
+plt_credit
+```
+
+You can even flip the coordinates, if you wish to, using the `coord_flip()` function:
+
+```{r}
+ggplot(tips, aes(x = Credit)) +
+    geom_bar() +
+    labs(x = "Paid by credit card?") +
+    coord_flip()
+```
+
+You can use the `patchwork` package to place graphs side by side. Simply create an object for each graph, and concatenate the objects with `|` for horizontal concatenation and `/` for vertical concatenation of graphs. You can even combine this by using parentheses, e.g. (plot1 | plot2) / (plot3 | plot4) for 2 rows and 2 columns.
+
+::: {.column-margin}
+Run `install.packages("patchwork")` first in your R console
+:::
+
+We can display the frequency distribution of all the categorical variables: Credit, Day, and Server:
+
+::: {.callout-note collapse="true"}
+## Rotate x-axis labels
+
+To rotate x-axis labels by 90 degrees, you can use this code:  
+`theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))`  
+To rotate the labels by 45 degrees, you can use:
+`theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))`  
+Don't worry, no one remembers it. People always google "rotate x-axis labels ggplot" to find it.
+:::
+
+```{r}
+#| column: page
+#| fig-height: 5
+#| fig-width: 12
+
+library(patchwork)
+
+plt1 <- ggplot(tips, aes(x = Credit)) +
+    geom_bar() +
+    labs(x = "Paird by credit card?", y = "Count") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+plt2 <- ggplot(tips, aes(x = Day)) +
+    geom_bar() +
+    labs(x = "Day of week", y = "Count") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+plt3 <- ggplot(tips, aes(x = Server)) +
+    geom_bar() +
+    labs(y = "Count") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+plt1 | plt2 | plt3
+```
+
+
+:::{.callout-note collapse="true"}
+### Sorting the barplot
+
+If wanted, you can sort the bars in order of frequency by using the `fct_infreq()` function. 
+
+In the last plot, plt3, this involves changing the first row from `ggplot(tips, aes(x = Server))` to `ggplot(tips, aes(x = fct_infreq(Server)))`.
+
+In these plot I have preferred not to do so, as changing the order of levels may confuse the reader when the factors have easily understood ordering: credit (No/Yes), day (Mon,Tue,Wed,Thu,Fri), server (A,B,C)
+
+```{r}
+#| fig-height: 5
+#| fig-width: 12
+
+library(patchwork)
+
+plt1 <- ggplot(tips, aes(x = fct_infreq(Credit))) +
+    geom_bar() +
+    labs(x = "Paird by credit card?", y = "Count") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+plt2 <- ggplot(tips, aes(x = fct_infreq(Day))) +
+    geom_bar() +
+    labs(x = "Day of week", y = "Count") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+plt3 <- ggplot(tips, aes(x = fct_infreq(Server))) +
+    geom_bar() +
+    labs(x = "Server", y = "Count") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+plt1 | plt2 | plt3
+```
+:::
+
+
+A frequency table can be obtained using:
+
+```{r}
+tbl_credit <- tips |>
+    count(Credit) |>
+    mutate(
+        Percent = round((n / sum(n)) * 100, digits = 2)
+    )
+tbl_credit
+```
+
+```{r}
+tbl_day <- tips |>
+    count(Day) |>
+    mutate(
+        Percent = round((n / sum(n)) * 100, digits = 2)
+    )
+tbl_day
+```
+
+```{r}
+tbl_server <- tips |>
+    count(Server) |>
+    mutate(
+        Percent = round((n / sum(n)) * 100, digits = 2)
+    )
+tbl_server
+```
+
+You can create nice tables with the `kbl` command from the `kableExtra` package.
+
+:::{.column-margin}
+Run `install.packages("kableExtra")` first in your R console
+:::
+
+```{r, eval=FALSE}
+library(kableExtra)
+
+kbl(list(tbl_credit, tbl_day, tbl_server), booktabs = TRUE)
+```
+
+<!-- Test -->
+
+```{r}
+#| tbl-cap: Frequency tables of categorical variables
+#| tbl-subcap: 
+#|   - "Paid with a credit card"
+#|   - "Day of the week"
+#|   - "Server"
+#| layout-ncol: 3
+#| echo: false
+
+kbl(tbl_credit) |> kable_styling(full_width = FALSE)
+kbl(tbl_day) |> kable_styling(full_width = FALSE)
+kbl(tbl_server) |> kable_styling(full_width = FALSE)
+```
+
+<!-- End test -->
+
+:::{.callout-note collapse="true"}
+#### How do I arrange by descending frequency order?
+
+Add `arrange(desc(<column_of_freq>))`. For example:
+
+```{r}
+tbl_day <- tips |>
+    count(Day) |>
+    mutate(
+        Percent = round((n / sum(n)) * 100, digits = 2)
+    ) |>
+    arrange(desc(n))
+tbl_day
+```
+
+If you just did `arrange(n)`, it would be in ascending order.
+
+:::
+
+:::{.callout-note collapse="true"}
+#### How do I rename the frequency and percent columns?
+
+You can specify a different name for the column of counts by using `name = "new name"`. If you don't specify it, the default is `n`.
+
+You can specify any valid name for the percentages inside of mutate.
+
+For example:
+
+```{r}
+tbl_day <- tips |>
+    count(Day, name = "Freq") |>
+    mutate(
+        Perc = round((Freq / sum(Freq)) * 100, digits = 2)
+    ) |>
+    arrange(desc(Freq))
+tbl_day
+```
+
+:::
+
+From the univariate distribution (or marginal distribution) of each categorical variable we see that the most common payment method was not a credit card, and the most common day of the week to dine at that restaurant was Wednesday, followed by Thursday and Friday. Finally, most parties were waited on by server B. 
+
+::: {.column-margin}
+The __mode__ of a variable is the value that appears most often.
+
+The term comes from the French expression "à la mode", i.e. in fashion. If you think about it, something is considered to be in fashion if it's worn very often.
+:::
