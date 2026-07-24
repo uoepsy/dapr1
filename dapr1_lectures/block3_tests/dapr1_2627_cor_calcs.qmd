@@ -1,0 +1,460 @@
+---
+title: "Correlations"
+subtitle: "By Hand Calculations"
+author: "Emma Waterston"
+format: html
+---
+
+
+In this document we are going to work through the hand calculations for a Pearson's $r$ correlation and a Spearman's $\rho$ correlation.  
+
+## Packages
+
+For this example we will only need the `tidyverse` and `kableExtra` packages.
+
+```{r}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(kableExtra)
+```
+
+
+## Pearson's $r$
+
+### Data
+
+Below is code to create a *subset* of the data we used in lecture:
+
+```{r}
+running_dat <- tibble(Names=c('Alfred', 'Bernard', 'Clarence', 'Dorothy', 'Edna', 'Flora', 'Geraldine'),
+                    daysInProgram=c(121.57, 99.73, 114.63, 78.37, 136.41, 126.42, 108.94),
+                    maxDistance=c(8.53, 10.57, 8.01, 14.63, 27.03, 22.22, 6.77))
+```
+
+The `glimpse()` and `str()` functions allow us to look at the structure of our dataset:
+
+```{r}
+glimpse(running_dat)
+```
+
+```{r}
+str(running_dat)
+```
+
+We can see that we have 7 rows of data, and have three variables - `Names`, `daysInProgram`, and `maxDistance`. In terms of structure, `Names` is being recognised as a character (`chr`). Both `daysInProgram` and `maxDistance` are coded as numeric variables (`dbl` / `num`).  
+
+
+### Research Question & Hypotheses
+
+We are interested in whether whether there is an association between a participants' time spent enrolled in their running program (`daysInProgram`; recorded in days) and the maximum distance they can run (`maxDistance`; recorded in miles)
+
+
+- I elect to use an alpha $(\alpha)$ of .05
+- I specify the following hypotheses:
+
+$$
+\begin{matrix}
+H_0: r = 0 \\
+H_1: r \neq   0 \\
+\end{matrix}
+$$
+
+## Calculation
+
+We can calculate Pearson's $r$ using the following:
+
+$$
+r \quad = \quad\frac{\frac{\sum_{i=1}^n(x_i-\bar{x})(y_i-\bar{y})}{n-1}}{\sqrt{\frac{\sum_{i=1}^n(x_i-\bar{x})^2}{n-1}}\sqrt{\frac{\sum_{i=1}^n(y_i-\bar{y})^2}{n-1}}} \quad = \quad \frac{Cov_{xy}}{s_xs_y}
+$$
+
+- where: 
+  - $\Sigma$ = sum up  
+    
+  - $x_i$ = individual data points for variable $x$
+  
+  - $y_i$ = individual data points for variable $y$  
+  
+  - $\bar{x}$ = mean of variable $x$
+  
+  - $\bar{y}$ = mean of variable $y$
+       
+  - $n$ = sample size
+       
+  - $Cov_{xy}$ = covariance between $x$ and $y$
+       
+  - $s_x$ = standard deviation of variable $x$     
+  
+  - $s_y$ = standard deviation of variable $y$ 
+       
+<br>
+
+- Sampling distribution is a $t$-distribution with $n-2$ degrees of freedom 
+
+
+### Steps in Calculations
+
+Let's break down what we need to do into more simple steps: 
+
+1. Calculate the means for $x$ and $y$ 
+  - $\bar{x}$: Computed as $\bar{x} = \frac{\sum_{i=1}^{n} x_i}{n}$
+  - $\bar{y}$: Computed as $\bar{y} = \frac{\sum_{i=1}^{n} y_i}{n}$
+2. Calculate deviations from the mean
+  - for $x$: Compute $(x_i - \bar{x})$ for each data point / observation
+  - for $y$: Compute $(y_i - \bar{y})$ for each data point / observation  
+3. Calculate the covariance $(Cov_{xy})$
+  - calculated as the sum of the products of deviations
+      - multiply each pair of deviations ($(x_i - \bar{x}) \cdot (y_i - \bar{y})$)
+      - sum across all observations $(\sum_{i=1}^n)$
+      - divide the total sum by $n-1$
+4. Calculate the variance for $x$ and $y$
+  - for $x$: $\frac{\sum_{i=1}^n (x_i - \bar{x})^2}{n-1}$
+      - square each deviation $(x_i - \bar{x})$
+      - sum the squared deviations
+      - divide by $n - 1$
+  - for $y$: $\frac{\sum_{i=1}^n (y_i - \bar{y})^2}{n-1}$
+      - square each deviation $(y_i - \bar{y})$
+      - sum the squared deviations
+      - divide by $n - 1$
+5. Calculate the standard deviations $(s_x)$ and $(s_y)$
+  - calculated as the square root of the variance (as calculated in step 4)
+      - for $s_x$: $\sqrt{\frac{\sum_{i=1}^n (x_i - \bar{x})^2}{n-1}}$
+      - for $s_y$: $\sqrt{\frac{\sum_{i=1}^n (y_i - \bar{y})^2}{n-1}}$
+
+
+### Calculations
+
+We can use `R` as a calculator to perform these various sums for us:
+
+```{r}
+#| echo: true
+
+cor_tab <- running_dat |> #step 1
+  mutate(
+    xbar = mean(daysInProgram),
+    ybar = mean(maxDistance)
+    ) |>
+  mutate( #step 2
+    x_dev = (daysInProgram - xbar),
+    y_dev = (maxDistance - ybar)
+    ) |> 
+  mutate(
+    x_dev2 = (x_dev^2),
+    y_dev2 = (y_dev^2)
+  )  
+
+cor_tab
+
+cor_tab_stats <- cor_tab |>
+  summarise(
+    cov_xy = sum(x_dev * y_dev) / (n() - 1), #step 3
+    s_x = sqrt(sum(x_dev2) / (n() - 1)), #step 5
+    s_y = sqrt(sum(y_dev2) / (n() - 1)) #step 5
+  ) |>
+  mutate(
+    r = cov_xy / (s_x * s_y)
+  )
+
+cor_tab_stats
+  
+```
+
+
+Or we can work through them by hand:
+
+
+|        $x_i - \bar{x}$          |            $(x_i - \bar{x})^2$    |        $y_i - \bar{y}$          |        $(y_i - \bar{y})^2$     |  $(x_i - \bar{x})(y_i - \bar{y})$   | 
+|--------------------------------:|----------------------------------:|--------------------------------:|-------------------------------:|------------------------------------:|
+| 121.57 - 112.30 = 9.27          | (9.27)^2 = 85.93                  | 8.53 - 13.97 = -5.44            | (-5.44)^2 = 29.59              | 9.27 * -5.44 = -50.43               |
+| 99.73 - 112.30 = -12.57         | (-12.57)^2 = 158.00               | 10.57 - 13.97 = -3.40           | (-3.40)^2 = 11.56              | -12.57 * -3.40 = 42.74              |
+| 114.63 - 112.30 = 2.33          | (2.33)^2 = 5.43                   | 8.01 - 13.97 = -5.96            | (-5.96)^2 = 35.52              | 2.33 * -5.96 = -13.89               |
+| 78.37 - 112.30 = -33.93         | (-33.93)^2 = 1151.25              | 14.63 - 13.97 = 0.66            | (0.66)^2 = 0.44                | -33.93 * 0.66 = -22.39              |
+| 136.41 - 112.30 = 24.11         | (24.11)^2 = 581.29                | 27.03 - 13.97 = 13.06           | (13.06)^2 = 170.56             | 24.11 * 13.06 = 314.88              |
+| 126.42 - 112.30 = 14.12         | (14.12)^2 = 199.37                | 22.22 - 13.97 = 8.25            | (8.25)^2 = 68.06               | 14.12 * 8.25 = 116.49               |
+| 108.94 - 112.30 = -3.36         | (-3.36)^2 = 11.29                 | 6.77 - 13.97 = -7.20            | (-7.20)^2 = 51.84              | -3.36 * -7.20 = 24.19               |
+|                                 | **2192.56**                       |                                 | **367.57**                     | **411.59**
+  
+
+From the above, we can calculate both the covariance and standard deviations of $x$ and $y$::
+
+- $Cov_{xy} = \frac{411.59}{7-1} = 68.60$
+
+- $s_{x} = \sqrt{\frac{2192.56}{7-1}} = 19.12$
+
+- $s_{y} = \sqrt{\frac{367.57}{7-1}} = 7.83$
+
+Where we can then simply substitute these values into the formula:
+
+$$
+r \quad = \quad \frac{Cov_{xy}}{s_xs_y} \quad = \quad \frac{68.60}{19.12 \cdot 7.83} \quad = \quad \frac{68.60}{149.71} \quad = \quad 0.46
+$$
+
+
+<br>
+
+So in our example $r= .46$ (when doing hand calculations, there might be a small amount of rounding error when we compare to $r$ calculated in `R` - given that `R` is likely more accurate due to rounding it might be safest to stick with what it tells us!). 
+
+### Is our Test Significant?
+
+We *almost* have all the pieces of information we need to be able to answer that question:
+
+- $r = .46$ 
+- $n = 7$
+- $df = n - 2 = 7 - 2 = 5$
+- Hypothesis to test is $two-tailed$
+- $\alpha = .05$
+- **$t = ???$**
+
+We first need to calculate our $t$-statistic:
+
+$$
+t \quad = \quad r\sqrt{\frac{n-2}{1-r^2}} \quad = \quad 0.46 \cdot \sqrt{\frac{7-2}{1-0.21}} \quad = \quad 0.46 \cdot \sqrt{\frac{5}{0.79}} \quad = \quad 0.46 \cdot \sqrt{6.33} \quad = \quad 0.46 \cdot 2.52 \quad = \quad 1.16
+$$ 
+
+Next, we either need to be told what the corresponding exact $p$-value is from the associated $t$-distribution in order to make our decision, **or** we can calculate via `R` (i.e., this bit we can't do using by hand calculations).
+
+To calculate the $p$-value, the `pt()` function: 
+  
+-  `pt()`: computes the cumulative probability of a $t$-statistic as extreme as 1.16 with 5 degrees of freedom. Since we are conducting a two-tailed test, it multiplies the one-tailed probability by 2 to get the exact $p$-value for both tails    
+- `round()`: we are rounding our values to five decimal places $p$-value (when reporting, use 3 d.p. in line with APA guidelines)    
+
+```{r}
+#| echo: true
+
+tibble(
+  Exactp = round(2*(1-pt(1.16, 5)),5)
+)
+```
+
+If we were to visualise our results, we would see that our sample leads to an observed $t$-statistic that has a relatively high probability. In other words, the observed $t$-statistic was likely to be obtained from random samples if the null were true. Linking back to the output of our significance testing, we would say that the probability that we would have a $r$ value as extreme as .46 if the null hypothesis were true is .298. Since $p = .298$, which is $> \alpha$, we **fail to reject the null hypothesis**. 
+
+
+```{r}
+#| echo: false
+#| message: false
+
+corTestPlot <- ggplot(data.frame(x = c(-4, 4)), aes(x = x)) +
+  stat_function(fun = dt, args = list(df = nrow(running_dat)-2), colour = "#0F4C81", size = 1) +
+  labs(x='t', y = 'Probability') + 
+  annotate(geom = 'text', x = -2, y = 0.3, label = paste('df =',nrow(running_dat)-2), colour = "#0F4C81", size = 8) +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14, face = 'bold'))
+
+testDat <- seq(1.16, 4, by = .1)
+dTest <- dt(testDat, df = nrow(running_dat)-2)
+testDat <- data.frame(vals=testDat, prob=dTest)
+
+corTestPlot + geom_vline(xintercept=1.16, linetype = 'dashed', color = "#0F4C81") +
+  geom_area(data = testDat, aes(x=vals,y=prob), fill = "#0F4C81") 
+```
+
+## Spearman's $\rho$
+
+**Important**: The below can only be applied when there are no ties i.e., when all initial values are different/unique within each variable, meaning that all ranks are distinct integers.
+
+### Data
+
+Below is code to create the data we used in lecture:
+
+```{r}
+ratings <- tibble(Names=c('Alfred', 'Bernard', 'Clarence', 'Dorothy', 'Edna', 'Flora', 'Geraldine'), 
+                  ProgRating =c(7, 8, 4, 2, 5, 3, 1), 
+                  Difficulty=c(10, 9, 8, 5, 7, 1, 4))
+
+head(ratings)
+```
+
+The `glimpse()` and `str()` functions allow us to look at the structure of our dataset:
+
+```{r}
+glimpse(ratings)
+```
+
+```{r}
+str(ratings)
+```
+
+
+We can see that we have 7 rows of data, and have three variables - `Names`, `ProgRating`, and `Difficulty`. In terms of structure, `Names` is being recognised as a character (`chr`). Both `ProgRating`, and `Difficulty` are coded as numeric variables (`dbl` / `num`). 
+
+### Research Question & Hypotheses
+
+We are interested in whether the participants' ratings of the program (`ProgRating`; rated on a 1-10 scale) were associated with how difficult they found the program (`Difficulty`; rated on a 1-10 scale)
+
+- I elect to use an alpha $(\alpha)$ of .05
+- I specify the following hypotheses:
+
+$$
+\begin{matrix}
+H_0: \rho = 0 \\
+H_1: \rho \neq   0 \\
+\end{matrix}
+$$
+
+## Calculation
+
+We can calculate Spearman's $\rho$ using the following:
+
+$$
+\rho=1-\frac{6\sum{d^2_i}}{n(n^2-1)}
+$$
+
+- where: 
+  - $\Sigma$ = sum up  
+    
+  - $d_i$ = rank( $x_i$ ) $-$ rank( $y_i$ )
+       
+  - $n$ = sample size
+       
+### Steps in Calculations
+
+Let's break down what we need to do into more simple steps: 
+
+**Calculate the formula's numerator $(6\sum{d^2_i})$:**
+
+1. For each pair of data points, rank each from largest to smallest within its own variable
+  - rank( $x$ )
+  - rank( $y$ )
+2. Calculate the difference ($d_i$) in rank for each person on the two variables 
+  - rank( $x_i$ ) $-$ rank( $y_i$ )
+3. Square the difference ($d_i^2$)
+4. Sum up all the squared values of the difference ($\sum{d^2_i}$)
+5. Multiply the sum of the squared differences by 6 ($6\sum{d^2_i}$)
+
+**Calculate the formula's denominator $(n(n^2-1))$:**
+
+6. Calculate $n$ (sample size)
+7. Calculate $n^2$ (square the sample size) and subtract 1
+8. Multiply the results of the first two calculations
+
+**Calculate $\rho$:**
+
+9. Divide the result of step 5 $(6\sum{d^2_i})$ by the result of step 8 $(n(n^2-1))$
+10. Subtract the result of the division in step 9 $(\frac{6\sum{d^2_i}}{n(n^2-1)})$ from 1 
+
+
+### Calculations
+
+**Calculate the formula's numerator $(6\sum{d^2_i})$**
+
+We start with our observed scores on $x$ (in our example this is Programme Rating) and $y$ (in our example this is Difficulty):
+
+| $x_i$  | $y_i$  |
+|--------|--------|
+| 7      | 10     |
+| 8      | 9      |
+| 4      | 8      |
+| 2      | 5      |
+| 5      | 7      |
+| 3      | 1      |
+| 1      | 4      | 
+
+<br>
+
+<span style="color:#0F4C81;">Step 1: Rank both $x$ and $y$ from smallest to largest:</span>
+
+| $x_i$  | $y_i$  | $x_i$ ranked | $y_i$ ranked |
+|--------|--------|--------------|--------------|
+| 7      | 10     | 6            | 7            |
+| 8      | 9      | 7            | 6            |
+| 4      | 8      | 4            | 5            |
+| 2      | 5      | 2            | 3            |
+| 5      | 7      | 5            | 4            |
+| 3      | 1      | 3            | 1            |
+| 1      | 4      | 1            | 2            |
+
+
+<br>
+
+<span style="color:#0F4C81;">Step 2: Calculate the difference ($d_i$) between ranks:</span>
+
+| $x_i$  | $y_i$  | $x_i$ ranked | $y_i$ ranked | $d{i}$  |
+|--------|--------|--------------|--------------|---------|
+| 7      | 10     | 6            | 7            | -1      |
+| 8      | 9      | 7            | 6            | 1       |
+| 4      | 8      | 4            | 5            | -1      |
+| 2      | 5      | 2            | 3            | -1      |
+| 5      | 7      | 5            | 4            | 1       |
+| 3      | 1      | 3            | 1            | 2       |
+| 1      | 4      | 1            | 2            | -1      |
+
+
+<br>
+
+<span style="color:#0F4C81;">Step 3: Square the difference values ($d_i^2$):</span> 
+
+
+| $x_i$  | $y_i$  | $x_i$ ranked | $y_i$ ranked | $d{i}$  |  $d{i}^2$ |
+|--------|--------|--------------|--------------|---------|-----------|
+| 7      | 10     | 6            | 7            | -1      | 1         |
+| 8      | 9      | 7            | 6            | 1       | 1         |
+| 4      | 8      | 4            | 5            | -1      | 1         |
+| 2      | 5      | 2            | 3            | -1      | 1         |
+| 5      | 7      | 5            | 4            | 1       | 1         |
+| 3      | 1      | 3            | 1            | 2       | 4         |
+| 1      | 4      | 1            | 2            | -1      | 1         |
+
+
+<br>
+
+<span style="color:#0F4C81;">Step 4: Sum up all the squared values of the difference ($\sum{d^2_i}$):</span> 
+
+
+| $x_i$  | $y_i$  | $x_i$ ranked | $y_i$ ranked | $d{i}$  |  $d{i}^2$ |
+|--------|--------|--------------|--------------|---------|-----------|
+| 7      | 10     | 6            | 7            | -1      | 1         |
+| 8      | 9      | 7            | 6            | 1       | 1         |
+| 4      | 8      | 4            | 5            | -1      | 1         |
+| 2      | 5      | 2            | 3            | -1      | 1         |
+| 5      | 7      | 5            | 4            | 1       | 1         |
+| 3      | 1      | 3            | 1            | 2       | 4         |
+| 1      | 4      | 1            | 2            | -1      | 1         |
+|        |        |              |              |         | **10**    |
+
+<br>
+
+<span style="color:#0F4C81;">Step 5: Multiply the sum of the squared differences by 6 ($6\sum{d^2_i}$):</span> 
+
+- $6 \cdot \sum{d^2_i} \quad = \quad 6 \cdot 10 \quad = \quad 60$
+
+
+<br>
+
+
+**Calculate the formula's denominator $(n(n^2-1))$**
+
+<span style="color:#0F4C81;">Step 6: Calculate $n$:</span> 
+
+- Review the sample size: $n$ = 7
+
+
+<br>
+
+<span style="color:#0F4C81;">Step 7: Calculate $n^2 - 1$:</span>  
+
+- $n^2 -1 \quad = \quad 7^2 - 1 \quad = \quad 49 - 1 \quad = \quad 48$
+
+
+<br>
+
+<span style="color:#0F4C81;">Step 8: Multiply the results of steps 6 & 7:</span> 
+
+- $n(n^2-1) \quad = \quad 7 \cdot 48 \quad = \quad 336$
+
+<br>
+
+**Calculate $\rho$**
+
+<span style="color:#0F4C81;">Steps 9 & 10:</span>  
+
+$$
+\rho \quad = \quad 1-\frac{6\sum{d^2_i}}{n(n^2-1)} \quad = \quad 1-\frac{6 \cdot 10}{7\cdot(7^2-1)} \quad = \quad 1-\frac{60}{7 \cdot (49-1)} \quad = \quad 1-\frac{60}{336}  \quad = \quad 1-0.18  \quad = \quad 0.82
+$$
+
+
+<br>
+
+So in our example $\rho= .82$ (when doing hand calculations, there might be a small amount of rounding error when we compare to $r$ calculated in `R` - given that `R` is likely more accurate due to rounding it might be safest to stick with what it tells us!). 
+
+
+

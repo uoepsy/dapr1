@@ -1,0 +1,761 @@
+---
+title: "Basic Tests as Linear Models"
+author: "Emma Waterston (Emma.Waterston@ed.ac.uk)"
+editor_options: 
+  chunk_output_type: console
+format:
+  revealjs:
+    smaller: true
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+library(simglm)
+
+source('_theme/theme_quarto.R')
+
+```
+
+
+# Course Overview 
+
+<br>
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+#| warning: false
+#| results: asis
+
+block1_name = "Exploratory Data Analysis"
+block1_lecs = c("W1",
+                "W2",
+                "W3",
+                "W4",
+                "W5")
+block2_name = "Inference"
+block2_lecs = c("W7",
+                "W8",
+                "W9",
+                "W10",
+                "W11")
+
+source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+course_table(block1_name,block2_name,block1_lecs,block2_lecs, week = 0)
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+#| warning: false
+#| results: asis
+
+block3_name = "Basic Tests"
+block3_lecs = c("W1",
+                "W2",
+                "W3",
+                "W4",
+                "W5")
+block4_name = "Intro Linear Models"
+block4_lecs = c("W6",
+                "W7",
+                "W8",
+                "W9",
+                "W10")
+
+source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=9)
+```
+
+:::
+
+::::
+
+
+## This Week's Learning Objectives
+
+<br>
+
+
+::: {style="font-size: 125%;"}
+
+::: {.fragment}
+::: {.dapr3callout}
+XXXXXXXXXXXX 
+:::
+:::
+
+
+::: {.fragment}
+::: {.dapr3callout}
+XXXXXXXXXXXX 
+:::
+:::
+
+::: {.fragment}
+::: {.dapr3callout}
+XXXXXXXXXXXX 
+:::
+:::
+
+::: {.fragment}
+::: {.dapr3callout}
+XXXXXXXXXXXX 
+:::
+:::
+
+:::
+
+
+# Linear Models Recap
+
+## Intercept Only & Simple Linear Regression Models
+
+For the last few weeks, we've fitted variants of these models:
+
+- Intercept Only Model:
+
+$$
+y_i = \beta_0 + \epsilon_i
+$$
+
+- Simple Linear Model: 
+
+$$
+y_i = \beta_0 + \beta_1 \cdot x_{i} + \epsilon_i
+$$
+
+<br>
+
+But how does this follow from what we learned about basic statistical tests?
+
+# Comparing to a Known Mean
+
+## One-Sample T-Test: Recap 
+
+- Used when we want to test the difference in the mean scores between a sample and a known mean 
+
+$$
+t = \frac{\bar x - \mu_0}{SE_{\bar x}} = \quad  \frac{\text{sample mean} - \text{hypothesised mean value}}{\text{variation in sample mean due to random sampling}}
+$$
+
+
+<br>
+
+- Sampling distribution is a $t$-distribution with $n-1$ degrees of freedom
+  - $n-1$ degrees of freedom as we have 1 group of participants
+
+*This is just an intercept only model*
+
+## Example: Balancing App
+
+A cognitive psychologist is developing a new app-based game to test 'balance' in older adults. They measured how well participants could maintain a virtual object on a moving surface. 
+
+The game gives participants a score after each playing session. A score of 0 represented perfect balance, whilst scores above or below zero indicate deviations. Researchers wanted to test whether the average score of participants deviated from zero.
+
+
+## Hypotheses
+
+- I elect to use a two-tailed test with alpha $(\alpha)$ of .05
+
+<br>
+
+- I specify the following hypotheses:
+
+<br>
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+$$
+\begin{matrix}
+H_0: \mu = \mu_0\\
+H_1: \mu \neq \mu_0\\
+\end{matrix}
+$$
+
+:::
+
+::: {.column width="50%"}
+
+
+$$
+\begin{matrix}
+H_0: \beta_0 = 0\\
+H_1: \beta_0 \neq 0\\
+\end{matrix}
+$$
+
+:::
+
+::::
+
+## Data
+
+```{r}
+#| echo: false
+
+set.seed(7284)
+app_dat <- tibble(
+  ID = c(paste("ID", 1:30, sep ="")),
+  balance = round(rnorm(30, mean = 0, sd = 4),0)
+)
+```
+
+```{r}
+#| echo: true
+
+app_dat
+```
+
+## Data Visualisation {.smaller}
+
+```{r}
+#| echo: true
+
+ggplot(data = app_dat, aes(x = balance)) +
+  geom_histogram() + 
+  geom_vline(aes(xintercept = mean(balance)), color = "red", linetype = "dashed", size = 2) +
+  geom_vline(aes(xintercept = 0), color = "green", linetype = "dotted", size = 2) +
+  labs(title = "Histogram of Balance Scores \nwith Mean (Red Line) and Hypothesised Mean (Green Line)",
+       x = "Balance Score",
+       y = "Frequency")
+```
+
+
+## Conduct Tests **in R**
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+**One Sample T-Test** 
+
+```{r}
+#| echo: true
+
+tres1 <- t.test(app_dat$balance, 
+              mu=0, 
+              alternative="two.sided",
+              conf.level = 0.95)
+tres1
+```
+
+
+:::
+
+::: {.column width="50%"}
+
+**Intercept Only Linear Model**
+
+
+```{r}
+#| echo: true
+
+mres1 <- lm(balance ~ 1, data = app_dat)
+summary(mres1)
+
+```
+
+
+:::
+
+::::
+
+
+## Results
+
+- Mean of balance is equal to the intercept -0.53
+- t-statistic, df, and p-value equivalent across approach 
+
+
+# Comparing Two Means
+
+## Independent Samples T-Test: Recap 
+
+- Used when we want to test whether the mean of one group is statistically different from/greater than/less than the mean of another group
+
+$$
+t \quad = \quad \frac{(\bar{x}_1 - \bar{x}_2) - \delta_0}{SE_{(\bar{x}_1 - \bar{x}_2)}} \quad = \quad \frac{\text{difference between sample means} - \text{hypothesised difference in means}}{\text{variation in sample mean differences due to random sampling}}
+$$
+
+<br>
+
+- Sampling distribution is a $t$-distribution with $n-2$ degrees of freedom
+  - $n-2$ degrees of freedom as we have 2 group of participants, where $n$ = $n_1 + n_2$
+
+*This is just a simple linear model using dummy coding*
+
+## Example: Recall
+
+**Is recall success different depending on the memory technique used?**
+
+- Comparing the effectiveness of two different memory techniques
+
+- Want to determine whether the method of loci or the chunking technique is more effective in helping individuals recall a list of 25 words 
+
+- Data is collected from 30 participants, with 15 individuals randomly assigned to each memory technique 
+
+
+## Hypotheses
+
+- I elect to use a two-tailed test with alpha $(\alpha)$ of .05
+
+<br>
+
+- I specify the following hypotheses:
+
+<br>
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+$$
+\begin{matrix}
+H_0: \mu_1 = \mu_2\\
+H_1: \mu_1 \neq \mu_2\\
+\end{matrix}
+$$
+
+:::
+
+::: {.column width="50%"}
+
+$$
+\begin{matrix}
+H_0: \beta_1 = 0\\
+H_1: \beta_1 \neq 0\\
+\end{matrix}
+$$
+:::
+
+::::
+
+
+## Data
+
+```{r}
+#| echo: false
+
+Memory <- tibble(
+  Method = as_factor(c(rep("MoL", 15), rep("Chunking", 15))),
+  Words_Recalled = c(18, 20, 19, 21, 20, 19, 22, 20, 21, 19, 18, 20, 21, 22, 20, 15, 14, 16, 14, 15, 14, 16, 15, 14, 16, 15, 13, 16, 15, 14)
+)
+```
+
+```{r}
+#| echo: true
+
+Memory
+```
+
+
+## Data Visualisation
+
+```{r}
+#| echo: true
+
+ggplot(data = Memory, aes(x = Method, y = Words_Recalled, fill = Method)) +
+    geom_violin() + 
+    geom_jitter(alpha = 0.5) + 
+    labs(x = "Method", y = "No. of Words Recalled")
+```
+
+
+## Conduct Tests **in R**
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+
+**Independent Samples T-Test** 
+
+```{r}
+#| echo: true
+
+tres2 <- t.test(Memory$Words_Recalled ~ Memory$Method, 
+       mu = 0,
+       var.equal = TRUE,
+       conf.level = 0.95)
+tres2
+```
+
+
+
+:::
+
+::: {.column width="50%"}
+
+
+**Simple Linear Model**
+
+
+```{r}
+#| echo: true
+
+mres2 <- lm(Words_Recalled  ~ Method, data = Memory)
+summary(mres2)
+
+```
+
+
+:::
+
+::::
+
+## Results
+
+- Mean in group MoL = 20, which is equivalent to our intercept as it is the baseline/reference level
+- Mean in group chunking = 14.8, which we can calculate as the difference between the intercept $\beta_0$ and $\beta_1$ (i.e., 20-5.2 = 14.8)
+- t-statistic, df, and p-value equivalent across approach 
+
+# Is There a Difference Between Pairs?
+
+## Paired Samples T-Test: Recap 
+
+- Used when we want to test the difference in mean scores for a sample comprising matched (or naturally related) pairs 
+
+$$
+t \quad = \quad  \frac{\overline{d} - \mu_{d_0}}{SE_\bar{d}} \quad = \quad  \frac{\text{mean difference between pairs} - \text{hypothesised mean difference}}{\text{variation in sample mean differences due to random sampling}}
+$$
+
+<br>
+
+- Sampling distribution is a $t$-distribution with $n-1$ degrees of freedom
+  - $n-1$ degrees of freedom as we have 1 group of participants
+
+
+*This is just an intercept only model where the difference is our dependent variable*
+
+## Example: Community & Attitudes
+
+- Researchers want to assess the impact of a three-month community garden engagement programme on attitudes towards volunteerism. 
+
+- They recruited 40 participants, who:
+    - Completed a self-report attitudes toward volunteerism questionnaire, measured in March (pre-programme)
+    - Participated in the community garden programme on a monthly basis for three months (April-June)
+    - Completed a self-report attitudes toward volunteerism questionnaire, measured in July (post-programme)
+
+- Attitude scores were measured on a scale of 1 to 100, with higher scores reflecting more positive attitudes towards volunteerism
+
+- Researchers calculated the difference between post- and pre-scores
+
+
+## Hypotheses
+
+- I elect to use a two-tailed test with alpha $(\alpha)$ of .01
+
+<br>
+
+- I specify the following hypotheses:
+
+<br>
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+$$
+\begin{matrix}
+H_0: \mu_{d} = \mu_{d_0}\\
+H_1: \mu_{d} \neq \mu_{d_0}\\
+\end{matrix}
+$$
+
+:::
+
+::: {.column width="50%"}
+
+$$
+\begin{matrix}
+H_0: \beta_0 = 0\\
+H_1: \beta_0 \neq 0\\
+\end{matrix}
+$$
+:::
+
+::::
+
+## Data
+
+```{r}
+#| echo: false
+set.seed(007)
+volunteer <- tibble(
+  PID = rep(paste("ID", 1:100, sep="")),
+  pre_score = round(rnorm(100, 50, 4.2)),
+  post_score = round(rnorm(100, 75, 3.7))
+)
+
+volunteer <- volunteer |>  
+  mutate(
+    dif = post_score - pre_score)
+```
+
+```{r}
+#| echo: true
+
+volunteer 
+```
+
+
+## Conduct Tests **in R**
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+
+**Paired Samples T-Test** 
+
+```{r}
+#| echo: true
+
+tres3 <- t.test(volunteer$dif, 
+       mu = 0,
+       alternative = "two.sided",
+       conf.level = 0.95)
+
+tres3
+```
+
+:::
+
+::: {.column width="50%"}
+
+
+**Intercept Only Model**
+
+
+```{r}
+#| echo: true
+
+mres3 <- lm(dif ~ 1, data = volunteer)
+summary(mres3)
+
+```
+
+
+:::
+
+::::
+
+
+## Results
+
+- Mean of dif is equal to the intercept 24.99
+- t-statistic, df, and p-value equivalent across approach 
+
+
+# Is there a Linear Association between 2 Variables?
+
+## Correlation: Recap 
+
+- Used when we want to assess the direction and degree of association between two variables 
+
+$$
+r=\frac{\frac{\sum_{i=1}^n(x_i-\bar{x})(y_i-\bar{y})}{n-1}}{\sqrt{\frac{\sum_{i=1}^n(x_i-\bar{x})^2}{n-1}}\sqrt{\frac{\sum_{i=1}^n(y_i-\bar{y})^2}{n-1}}} = \frac{Cov_{xy}}{s_xs_y}
+$$
+
++ The $t$-statistic for a correlation is calculated as:
+
+$$
+t=r\sqrt{\frac{n-2}{1-r^2}}
+$$
+
+
+- Sampling distribution is a $t$-distribution with $n-2$ degrees of freedom
+  - $n-2$ degrees of freedom as we calculate the means of *two* variables 
+  
+  *This is just a simple linear model where the variables are standardised*
+
+## Example: Social Media & Loneliness
+
+- Researchers want to assess the influence of social media usage on feelings of loneliness in young people. 
+
+- They recruited 50 participants, who:
+    - Self-reported the number of hours spent per week on social media (`social_hrs`)
+    - Completed a self-report loneliness questionnaire, measured on a scale 0-100 (`loneliness`; higher scores indicated greater feelings of loneliness)
+
+
+
+## Hypotheses
+
+- I elect to use a two-tailed test with alpha $(\alpha)$ of .05
+
+<br>
+
+- I specify the following hypotheses:
+
+<br>
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+$$
+\begin{matrix}
+H_0: r = 0 \\
+H_1: r \neq 0 \\
+\end{matrix}
+$$
+
+:::
+
+::: {.column width="50%"}
+
+$$
+\begin{matrix}
+H_0: \beta_1 = 0\\
+H_1: \beta_1 \neq 0\\
+\end{matrix}
+$$
+:::
+
+::::
+
+## Data
+
+```{r}
+#| echo: false
+
+set.seed(007)
+
+lonely <- tibble(
+  PID = rep(paste("ID", 1:50, sep="")),
+  loneliness = round(rnorm(50, 40, 9)),
+  social_hrs = round(rnorm(50, 44, 3))) |>
+  mutate(
+    social_hrs_z = (social_hrs - mean(social_hrs)) / sd(social_hrs),
+    loneliness_z = (loneliness - mean(loneliness)) / sd(loneliness)
+  )
+```
+
+```{r}
+#| echo: false
+
+lonely
+```
+
+
+## Data Visualisation
+
+```{r}
+#| echo: true
+
+ggplot(data = lonely, aes(x=social_hrs, y=loneliness)) +
+  geom_point() +
+  geom_smooth(method = "lm")+
+  xlab("Social Media Hours (per week)") +
+  ylab("Loneliness Score (0-100)")
+```
+
+
+## Conduct Tests **in R**
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+**Correlation**
+
+```{r}
+cor.test(lonely$loneliness, lonely$social_hrs)
+```
+
+:::
+
+::: {.column width="50%"}
+
+**Standardised Simple Linear Model**
+
+```{r}
+m1z <- lm(loneliness_z ~ social_hrs_z, data = lonely)
+summary(m1z)
+
+```
+
+:::
+
+::::
+
+
+## Results
+
+Since our linear model had a single continuous predictor, the standardised slope $(\hat \beta_1^*)$ is exactly the same as the correlation coefficient $(r)$ between the predictor and the outcome!
+
+Why?
+
++ They are equivalent:
+  + $r$ is a standardised measure of linear association
+  + $\hat \beta_1^*$ is a standardised measure of the linear slope
+
+
+## Why is the Linear Model a Better Choice?
+
+- We have a much wider class of problems than what can be assessed with basic tests, and linear models can be extended to other forms 
+- We often have many predictors we want to include
+- We have variables we want to control for (e.g., age and sex)
+- More robust to assumptions
+- Predictive power
+
+
+
+## Revisiting This Week's Learning Objectives
+
+<br>
+
+::: {}
+::: {.dapr3callout}
+**XXXXXXXXXX**
+
+
+:::
+:::
+
+::: {}
+::: {.dapr3callout}
+**XXXXXXXXXX**
+
+
+:::
+:::
+
+## Revisiting This Week's Learning Objectives
+
+<br>
+
+::: {}
+::: {.dapr3callout}
+**XXXXXXXXXX**
+
+
+  
+:::
+:::
+
+::: {}
+::: {.dapr3callout}
+**XXXXXXXXXX**
+
+
+:::
+:::
+
+
+## This Week 
+
