@@ -1,0 +1,92 @@
+---
+title: "Manage factor variables"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+library(tidyverse)
+```
+
+`factor()` is a function in base R (that is, not in any additional package) that encodes categorical variables in the most R-friendly way.
+
+We'll illustrate the use of `factor()` with the `msleep` dataset that comes from `tidyverse`.
+`msleep` contains some data about how much different kinds of mammals sleep.
+Here's what the first few rows of `msleep` look like.
+
+```{r}
+msleep |> head()
+```
+
+
+## To convert a categorical variable to a factor
+
+This code uses `mutate()`; for more detail, see [the Mutate columns flash card](mutate.html){target="_blank"}.
+
+```{r}
+msleep <- msleep |>
+   mutate(
+    vore = factor(vore)
+  ) 
+
+msleep
+```
+
+To make sure it's worked, check the data type that `str()` gives us for `vore`:
+
+```{r}
+str(msleep)
+```
+
+`vore` is stored as a "Factor w/ 4 levels", and those levels are labelled "carni", "herbi", "insecti", and "omni".
+
+## To change the order of levels in a factor
+
+By default, factor levels use the labels' alphabetical order.
+To change the factor levels, say to put "insecti" first and "carni" at the end, we can use `levels` argument of `factor()`:
+
+```{r}
+msleep <- msleep |>
+   mutate(
+    vore = factor(
+      vore,
+      levels = c('insecti', 'herbi', 'omni', 'carni')  
+      # make sure the labels you type match the existing labels exactly!
+    )
+  ) 
+
+msleep
+```
+
+The preview doesn't look any different, but we can see the factor levels have changed order in `str()`, because now "insecti" is listed first:
+
+```{r}
+str(msleep)
+```
+
+
+## To change the labels shown for factor levels
+
+To relabel "carni" as "carnivore", "insecti" as "insectivore", and so on, we can also use the `labels` argument of `factor()`.
+
+```{r}
+msleep <- msleep |>
+   mutate(
+    vore = factor(
+      vore,
+      labels = c('insectivore', 'herbivore', 'omnivore', 'carnivore')
+      # make sure the labels match the order of the levels, else you might relabel carnivores as insectivores etc.!
+    )
+  ) 
+
+msleep
+```
+
+This change is more apparent in the `vore` column!
+
+And we can also see it using `str()`:
+
+```{r}
+str(msleep)
+```
+
+

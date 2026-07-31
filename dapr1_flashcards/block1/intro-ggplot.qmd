@@ -1,0 +1,323 @@
+---
+title: "Plot a variable"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+library(tidyverse)
+```
+
+To make plots, we will use the `ggplot()` function from `tidyverse`.
+
+We'll make plots table using the `msleep` dataset that comes from `tidyverse`.
+`msleep` contains some data about how much different kinds of mammals sleep.
+Here's what the first few rows of `msleep` look like.
+
+```{r}
+msleep |> head()
+```
+
+
+## Bar plot
+
+Bar plots let us visualise [frequency tables](freq-table.html){target="_blank"}.
+
+```{r}
+msleep |>
+  ggplot(aes(x = vore)) +
+  geom_bar()
+```
+
+Sometimes if the labels are long enough, then they'll overlap if the variable is shown along the x axis.
+In that case, it's more reader-friendly to show them along the y axis.
+
+```{r}
+msleep |>
+  ggplot(aes(y = order)) +
+  geom_bar()
+```
+
+
+### Customise your bar plot
+
+Inside `geom_bar()`, you can use the `fill` argument to specify a colour for all the bars, or you can use the `colour` argument to specify a colour to outline each bar.
+Or both!
+
+```{r}
+msleep |>
+  ggplot(aes(y = vore)) +
+  geom_bar(fill = 'darkseagreen')
+```
+
+```{r}
+msleep |>
+  ggplot(aes(y = vore)) +
+  geom_bar(colour = 'darkslategray', fill = 'darkseagreen')
+```
+
+
+::: {.callout-caution collapse="true"}
+#### What colour options are there?
+
+Here are all of the named colours you can choose from.
+
+<center><img src="https://r-graph-gallery.com/img/graph/42-colors-names.png" width="80%"></center>
+
+For more detail and other methods for customising colour, check out [this page on the R Graph Gallery](https://r-graph-gallery.com/ggplot2-color.html){target="_blank"}.
+:::
+
+
+## Boxplot
+
+Boxplots visualise the interquartile range (IQR).
+
+```{r boxplotdesc, echo=FALSE, out.width = '100%'}
+set.seed(34875)
+px = rnorm(100,10,10)
+mn=min(px[px>quantile(px, .25)-(1.5*IQR(px))])
+mx=max(px[px<quantile(px, .75)+(1.5*IQR(px))])
+outs_up = px[px>quantile(px, .75)+(1.5*IQR(px))]
+outs_lw = px[px<quantile(px, .25)-(1.5*IQR(px))]
+ggplot(data = NULL, aes(x = px)) +
+  geom_boxplot(col="red")+
+  ylim(-1,1)+xlim(-30,45)+
+  theme_classic()+
+  theme(axis.title = element_blank(), axis.text = element_blank(),
+      axis.ticks = element_blank(), axis.line = element_blank())+
+  
+  # Quartiles
+  annotate("text",x=median(px), y=0.7, label="Q2\n(Median)", vjust=1,hjust=0.5, col="grey20")+
+  annotate("text",x=quantile(px, .25), y=0.6, label="Q1", vjust=1,hjust=1, col="grey20")+
+  annotate("text",x=quantile(px, .75), y=0.6, label="Q3", vjust=1,hjust=0, col="grey20")+
+  geom_segment(aes(x=median(px), xend=median(px), y=0.48, yend=0.38), col="grey20",lty="dashed")+
+  geom_segment(aes(x=quantile(px, .25), xend=quantile(px, .25), y=0.48, yend=0.38), col="grey20",lty="dashed")+
+  geom_segment(aes(x=quantile(px, .75), xend=quantile(px, .75), y=0.48, yend=0.38), col="grey20",lty="dashed")+
+  
+  # Whiskers
+  annotate("text",x=mn, y=-0.2, label="Minimum value in data\nwhich is > Q1 - (1.5 * IQR)", vjust=1,hjust=0.5, col="grey20")+
+  annotate("text",x=mx, y=-0.2, label="Maximum value in data\nwhich is < Q3 + (1.5 * IQR)", vjust=1,hjust=0.5, col="grey20")+
+  geom_segment(aes(x=mn, xend=mn, y=0, yend=-0.2),col="grey20",lty="dashed")+
+  geom_segment(aes(x=mx, xend=mx, y=0, yend=-0.2),col="grey20",lty="dashed")+
+  
+  #IQR
+  geom_segment(aes(x=quantile(px, .25), xend=quantile(px, .25), y=0.78, yend=0.85), col="grey20")+
+  geom_segment(aes(x=quantile(px, .75), xend=quantile(px, .75), y=0.78, yend=0.85), col="grey20")+
+  geom_segment(aes(x=quantile(px, .75), xend=quantile(px, .25), y=0.85, yend=0.85), col="grey20")+
+  annotate("label",x=median(px), y=0.9, label="IQR", vjust=1,hjust=0.5, col="grey20")+
+  
+  # Outliers +
+  geom_segment(aes(x=outs_up, xend=mean(outs_up), y=0, yend=0.27), col="grey20", lty="dashed")+
+  annotate("text",x=mean(outs_up), y=0.5, label="Outliers\nDatapoints > Q3 + (1.5 * IQR)", vjust=1,hjust=0.5, col="grey20")+
+  # Outliers -
+  geom_segment(aes(x=outs_lw, xend=mean(outs_lw), y=0, yend=0.27), col="grey20", lty="dashed")+
+  annotate("text",x=mean(outs_lw), y=0.5, label="Outliers\nDatapoints < Q1 - (1.5 * IQR)", vjust=1,hjust=0.5, col="grey20")+
+  
+  NULL
+  
+rm(mn,mx,outs_lw,outs_up,px)
+```
+
+
+To create a boxplot:
+
+```{r}
+ggplot(data = msleep, aes(x = sleep_total)) +
+  geom_boxplot()
+```
+
+```{r}
+ggplot(data = msleep, aes(y = sleep_total)) +
+  geom_boxplot()
+```
+
+
+::: {.callout-caution collapse="true"}
+#### Where are these –0.4, –0.2, 0.0 numbers coming from?
+
+They're meaningless numbers that ggplot puts there automatically.
+Why? 
+Because by default, it wants to display some values on both the y axis and the x axis.
+So it invents these ones to put on the axis that you haven't defined.
+
+Advanced: To suppress those numbers, you can add the following `theme()` function to your code. (Don't worry too much about what these bits mean yet.)
+
+::::{.columns}
+:::{.column width="50%"}
+```{r}
+ggplot(data = msleep, aes(x = sleep_total)) +
+  geom_boxplot() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+```
+:::
+:::{.column width="50%"}
+```{r}
+ggplot(data = msleep, aes(y = sleep_total)) +
+  geom_boxplot() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  )
+```
+:::
+::::
+:::
+
+
+::: {.callout-caution collapse="true"}
+#### Why some people don't like boxplots
+
+If you specifically want to visualise the data's median and IQR, the boxplots are fine.
+But if you want to visualise the true distribution of the data, then boxplots might not meet your needs.
+See, for example, the article [I've Stopped Using Box Plots. Should You?](https://nightingaledvs.com/ive-stopped-using-box-plots-should-you/){target="_blank"}).
+
+An alternative is a violin plot with jittered points, which you will find if you uncollapse the "More kinds of plots" rabbit hole below!
+:::
+
+
+### Customise your boxplot
+
+The `fill` argument of `geom_boxplot()` changes the background colour, and the `colour` argument changes the outline colour.
+
+```{r}
+msleep |>
+  ggplot(aes(x = sleep_total)) +
+  geom_boxplot(colour = 'brown', fill = 'darksalmon')
+```
+
+## Histogram
+
+To visualise numeric data, we can use a histogram, which shows the frequency of values which fall within bins of an equal width. 
+
+```{r}
+ggplot(data = msleep, aes(x = sleep_total)) + 
+  geom_histogram()
+```
+
+
+### Customise your histogram
+
+The `fill` and `colour` arguments work the same way for histograms as they do for bar plots and boxplots:
+
+```{r}
+ggplot(data = msleep, aes(x = sleep_total)) +  
+  geom_histogram(fill = 'cadetblue1', colour = 'cyan4')
+```
+
+
+
+::: {.callout-caution collapse="true"}
+#### More kinds of plots, if you feel inspired
+
+#### Density plot
+
+A density plot is essentially a smoothed-out histogram.
+
+The key with density plots: the taller the curve, the more common the values in that range are.
+Just like a histogram!
+
+The numbers on the y axis are not informative—you can just ignore them.
+
+```{r}
+msleep |>
+  ggplot(aes(x = sleep_total)) +
+  geom_density()
+```
+
+```{r}
+msleep |>
+  ggplot(aes(x = sleep_total)) +
+  geom_density(fill = 'antiquewhite', colour = 'antiquewhite4')
+```
+
+::: {.callout-caution collapse="true"}
+#### But I want to know what the "density" numbers mean
+
+Think of "density" like "relative frequency", with a twist.
+
+In a density plot, mathematically speaking, the total area under the curve is equal to 1.
+
+So the values on the y axis are like counts, but scaled, so that the total area under the curve comes to 1.
+
+:::
+
+
+#### Violin plot
+
+A violin plot is an alternative to a boxplot if you want to visualise a variable's whole distribution, not just its IQR.
+
+A violin plot is essentially a density plot that's been stood upright on its end, and then mirrored to create a violin-like shape:
+
+```{r}
+msleep |>
+  ggplot(aes(y = sleep_total, x = 1)) +  
+  # note: aes(x = 1) is not meaningful, 
+  # but necessary for the plot to work
+  # if we're only plotting one variable
+  geom_violin()
+```
+
+Just like with the boxplots, the values that ggplot invents along the x axis are not meaningful.
+
+**Advanced:** you might want to show the individual data points on top of the violin as well.
+You can achieve that with `geom_jitter()`, which plots one point for each observation.
+
+```{r}
+msleep |>
+  ggplot(aes(y = sleep_total, x = 1)) +  
+  geom_violin() +
+  geom_jitter()
+```
+
+How to interpret `geom_jitter()`?
+
+It looks like a cloud of data points, but only the values on the y axis are actually meaningful.
+Each data point is plotted at the correct `sleep_total` position along the y axis, and its position on the x axis is randomly "jittered" so that the data points don't overlap.
+
+::: {.callout-caution collapse="true"}
+#### Changing the amount of jitter
+
+Here's what those data points would look like if they weren't vertically jittered at all: that is, if they were all lined up at the same `y` value.
+
+```{r}
+msleep |>
+  ggplot(aes(y = sleep_total, x = 1)) +  
+  geom_violin() +
+  geom_jitter(width = 0)
+```
+
+You can play with the `width` argument of `geom_jitter()` to find your favourite happy medium.
+
+```{r}
+msleep |>
+  ggplot(aes(y = sleep_total, x = 1)) +  
+  geom_violin() +
+  geom_jitter(width = 0.2)
+```
+
+:::
+
+And to customise the colours:
+
+```{r}
+msleep |>
+  ggplot(aes(y = sleep_total, x = 1)) +  
+  geom_violin(
+    fill = 'darkolivegreen3', 
+    colour = 'darkgreen'
+    ) +  
+  geom_jitter(colour = 'darkgreen')
+```
+
+
+
+
+:::
+
+
+
+<br>
+
+For lots more detail on `ggplot()`, check out the [R for Data Science online textbook](https://r4ds.hadley.nz/visualise.html){target="_blank"}.
