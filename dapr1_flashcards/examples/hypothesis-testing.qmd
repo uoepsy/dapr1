@@ -1,0 +1,302 @@
+---
+title: "Hypothesis testing with p-values"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+```
+
+
+## Procrastination example
+
+The Procrastination Assessment Scale for Students (PASS) was designed to assess how individuals approach decision situations, specifically the tendency of individuals to postpone decisions ([Solomon & Rothblum, 1984](https://psycnet.apa.org/doiLanding?doi=10.1037%2F0022-0167.31.4.503)).
+
+The PASS assesses the prevalence of procrastination in six areas: writing a paper; studying for an exam; keeping up with reading; administrative tasks; attending meetings; and performing general tasks. For a measure of total endorsement of procrastination, responses to 18 questions (each measured on a 1-5 scale) are summed together, providing a single score for each participant (range 0 to 90). The mean score from [Solomon & Rothblum, 1984](https://psycnet.apa.org/doiLanding?doi=10.1037%2F0022-0167.31.4.503) was 33.
+
+> __Research question:__
+> 
+> Does the mean procrastination score of Edinburgh University students differ from the Solomon & Rothblum average of 33?
+
+To answer this question, we will use data collected for a random sample of students from the University of Edinburgh: <https://uoepsy.github.io/data/pass_scores.csv>
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(kableExtra)
+
+tribble(
+    ~'Variable Name', ~'Description',
+    'sid', 'Subject identifier',
+    'school', 'School each subject belonged to',
+    'PASS', 'Total endorsement of procrastination score'
+) |>
+    kbl() |>
+    kable_styling(full_width = FALSE)
+```
+
+Necessary packages:
+
+::: {.column-margin}
+- tidyverse for using `read_csv()`, using `summarise()` and `ggplot()`.
+- patchwork for arranging plots side by side or underneath
+- kableExtra for creating user-friendly tables
+:::
+
+
+```{r}
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+```
+
+Read the data into R:
+
+```{r}
+pass_scores <- read_csv("https://uoepsy.github.io/data/pass_scores.csv")
+stats <- pass_scores |>
+    summarise(n = n(),
+              Min = min(PASS),
+              Max = max(PASS),
+              M = mean(PASS),
+              SD = sd(PASS))
+```
+
+
+**Step 1: Identify the null and alternative hypotheses.**  
+
+First we need to write the null and alternative hypothesis, which take the form $H_0 : \mu = \mu_0$ vs $H_1: \mu \neq \mu_0$. From the research question, we identify the hypothesised value $\mu_0$ to be 33, hence:
+
+::: {.column-margin}
+These are written as:
+
+```
+$$H_{0}: \mu = 33$$
+$$H_{1}: \mu \neq 33$$
+```
+
+In H_{0} and H_{1} the 0 and 1 within curly braces are written as subscripts. The curly braces delimit what goes in the subscript. The symbol `\mu` denotes the greek letter "mu" that stands for the population mean (a parameter). The symbol `\neq` means not equal.
+:::
+
+
+$$H_0: \mu = 33$$
+$$H_1: \mu \neq 33$$
+
+**Step 2: Compute the t-statistic**  
+
+Next, we compute the t-statistics, which compares the difference between the sample and hypothesised mean ($\bar{x} - \mu_0$) to the variation due to random sampling ($SE_{\bar{x}}$).
+
+To test the hypothesis, we need to compute the t-statistic, 
+
+$$
+t = \frac{\bar{x} - \mu_0}{SE_{\bar{x}}} \qquad \text{where} \qquad SE_{\bar{x}} = \frac{s}{\sqrt{n}}
+$$
+
+```{r}
+# Sample mean
+xbar <- stats$M
+
+# Standard error
+s <- stats$SD
+n <- stats$n
+se <- s / sqrt(n)
+
+# Observed t-statistic
+tobs <- (xbar - 33) / se
+tobs
+```
+
+**Step 3: Identify the null distribution**, i.e. the distribution of the t-statistic assuming the null to be true.  
+
+As the sample size is $n =$ `r n`, if the null hypothesis is true the t-statistic will follow a t(`r n - 1`) distribution.
+
+**Step 4: Compute the p-value**  
+
+As the alternative hypothesis is two-sided (or two-tailed), we can compute the p-value as twice the area to the right of `abs(tobs)`.
+
+```{r}
+2 * pt(abs(tobs), df = n - 1, lower.tail = FALSE)
+```
+
+**Step 5: Make a decision**  
+
+Using the p-value method, we compare the p-value with the significance level ($\alpha = .05$ in this case). As .005800318 < .05, we reject $H_0$. Please note this is just an explanation and not how you would write up the result!
+
+
+We can update the example introduction to add the new question investigated:
+
+:::{.callout-tip}
+#### Example introduction
+A random sample of 20 students from the University of Edinburgh completed a questionnaire measuring their total endorsement of procrastination. The data, available from <https://uoepsy.github.io/data/pass_scores.csv>, were used to estimate the average procrastination score of all Edinburgh University students, __and whether the mean procrastination score differed from the Solomon & Rothblum reported average of 33 at the 5% significance level.__ The recorded variables included a subject identifier (`sid`), the school of each subject (`school`), and the total score on the Procrastination Assessment Scale for Students (`PASS`). The data do not include any impossible values for the PASS scores, as they were all within the possible range of 0 -- 90. To answer the question of interest, in the following we will only focus on the total PASS score variable.
+:::
+
+And this is a potential way to report the t-test results:
+
+:::{.callout-tip}
+#### Example hypothesis test write-up
+At the 5% significance level, the sample data provide very strong evidence against the null hypothesis and in favour of the alternative one that the mean procrastination score of Edinburgh University students is different from the Solomon & Rothblum reported average of 33: $t(19) = -3.11, p = .006$, two-sided.
+:::
+
+
+
+
+
+
+## Neurons and autism example
+
+A 2011 study by Courchesne et al.[^1] examined brain tissue of seven autistic male children between the ages of 2 and 16. The mean number of neurons in the prefrontal cortex in non-autistic male children of the same age is about 1.15 billion. The prefrontal cortex is the part of the brain most disrupted in autism, as it deals with language and social communication.
+
+In the exercises you will perform a test of significance to assess whether this sample provides evidence that autistic male children have more neurons (on average) in the prefrontal cortex than non-autistic children.
+
+
+::: {.callout-note collapse="true"}
+#### Data codebook
+
+__Download link__  
+
+The data can be found at this address: <https://uoepsy.github.io/data/NeuronCounts.csv>
+
+__Preview__  
+
+```{r echo=FALSE}
+library(tidyverse)
+autism <- read_csv('https://uoepsy.github.io/data/NeuronCounts.csv')
+autism |> 
+    gt::gt()
+```
+
+__Codebook__  
+
+- The first column, `Case`, is an anonymised index used to identify each child.
+- The second column, `Age`, records the age of each child.
+- The last column, `PFC_NC`, contains the prefrontal cortex neuron counts (in billions).
+
+:::
+
+
+[^1]: Courchesne, E., et al., "Neuron Number and Size in Prefrontal Cortex of Children with Autism," _Journal of the American Medical Association_, November 2011;306(18): 2001–2010.
+
+
+<br>
+
+::: {.callout-note}
+__Question 1__. Read the data into R.
+:::
+
+```{r}
+library(tidyverse)
+autism <- read_csv('https://uoepsy.github.io/data/NeuronCounts.csv')
+autism
+```
+
+
+::: {.callout-note}
+__Question 2__. Compute and interpret a table of descriptive statistics.
+:::
+
+```{r}
+stats <- autism |>
+    summarise(
+        SampleSize = n(),
+        M_Age = mean(Age), SD_Age = sd(Age),
+        M_PFC_NC = mean(PFC_NC), SD_PFC_NC = sd(PFC_NC)
+    ) |>
+    round(2)
+stats
+```
+
+
+In the sample of seven autistic children, the mean age was 6.14 years, with a SD of 4.88 years, and the mean number of neurons in the prefrontal cortex was 1.94 billion with a standard deviation of 0.40 billion.
+
+::: {.callout-note}
+__Question 3.__ State the null and alternative hypotheses.
+:::
+
+We wish to test the claim that the mean number of neurons in the prefrontal cortex is larger than 1.15 billion (the value for non-autistic male children). At this is our research hypothesis, we must place this into the alternative hypothesis. 
+
+__Remember:__ A hypothesis test looks for evidence __against__ a null hypothesis and in favour of the alternative.
+
+The null hypothesis is typically a skeptical reaction to a research hypothesis. In our case, a skeptic would say that there is no difference in mean number of neurons, so the mean number of neurons for autistic children will be equal to that of non-autistic children (1.15).
+
+The answer is then:
+
+$$H_0 : \mu = 1.15$$
+$$H_1 : \mu > 1.15$$
+
+where $\mu$ is the mean number of neurons (in billions) in the prefrontal cortex for all autistic male children.
+
+::: {.callout-note}
+__Question 4.__ Compute the value of the t-statistic from the sample mean number of neurons.
+:::
+
+Recall the formula for the t-statistic:
+
+$$
+t = \frac{\bar x - \mu_0}{\frac{s}{\sqrt{n}}}
+$$
+
+where
+
+- $\bar x$ is the sample average number of neurons in the prefrontal cortex
+- $\mu_0$ is the hypothesised value for the population parameter found in $H_0$
+- $s$ is the sample standard deviation
+- $n$ is the sample size
+
+Hence, the value of the t-statistic for the observed sample is given by:
+
+```{r}
+xbar <- mean(autism$PFC_NC)
+xbar
+
+s <- sd(autism$PFC_NC)
+s
+
+n <- nrow(autism)
+n
+
+mu0 <- 1.15
+
+tobs <- (xbar - mu0) / (s / sqrt(n))
+tobs
+```
+
+The sample mean neuron count, `r round(xbar, 2)` billion, is `r round(tobs, 2)` standard errors larger than the hypothesised value.
+
+::: {.callout-note}
+__Question 5.__ Identify the null distribution.
+:::
+
+When $H_0: \mu = 1.15$ is true, the t values will follow a $t(6)$ distribution.
+
+::: {.callout-note}
+__Question 6.__ Compute the p-value for the test.
+:::
+
+The alternative hypothesis is $H_1 : \mu > 1.15$. This involves the "greater than sign", so we compute the p-value by finding the probability of observing a t-statistic __at least as large as__ the observed t value:
+
+```{r}
+# P(T >= tobs)
+pt(tobs, df = n-1, lower.tail = FALSE)
+```
+
+or
+
+```{r}
+# P(T >= tobs) = 1 - P(T <= tobs)
+1 - pt(tobs, df = n-1)
+```
+
+::: {.callout-note}
+__Question 7.__ Using a 5% significance level, i.e. $\alpha = 0.05$, report whether or not you reject the null hypothesis.
+:::
+
+The p-value is smaller than $\alpha = 0.05$, so we reject $H_0$.
+
+::: {.callout-note}
+__Question 8.__ Write up your results in the context of the research question.
+:::
+
+The estimated mean number of neurons in the prefrontal cortex of male autistic children is `r round(xbar, 2)` billion, with a standard error of `r round(s / sqrt(n), 2)` billion.
+
+At the 5% significance level, we performed a one-sided test of significance against the null hypothesis that the mean number of neurons in the prefrontal cortex of all male autistic children was equal to that of all non-autistic male children.
+The sample results indicate that there is very strong evidence that the mean number of neurons in the prefrontal cortex may be larger for autistic compared to non-autistic male children: $t(6) = 5.21, p < .001$, one-sided.
+
+

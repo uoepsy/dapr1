@@ -1,0 +1,250 @@
+---
+title: "Research design and data"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+```
+
+
+Consider the dataset available at <https://uoepsy.github.io/data/RestaurantTips.csv>, containing 157 observations on the following 7 variables:
+
+```{r, echo=FALSE}
+library(tidyverse)
+tribble(
+    ~'Variable Name', ~'Description',
+    'Bill', 'Size of the bill (in dollars)',
+    'Tip', 'Size of the tip (in dollars)',
+    'Credit', 'Paid with a credit card? n or y',
+    'Guests', 'Number of people in the group',
+    'Day', 'Day of the week: m=Monday, t=Tuesday, w=Wednesday, th=Thursday, or f=Friday',
+    'Server', 'Code for specific waiter/waitress: A, B, or C',
+    'PctTip', 'Tip as a percentage of the bill'
+) |>
+    knitr::kable()
+```
+
+These data were collected by the owner of a bistro in the US, who was interested in understanding the tipping patterns of their customers. The data are adapted from @lock2020.
+
+```{r}
+library(tidyverse)
+```
+
+:::{.column-margin}
+We load the `tidyverse` package as we will use the functions `read_csv` and `glimpse` from this package.
+:::
+
+```{r}
+tips <- read_csv("https://uoepsy.github.io/data/RestaurantTips.csv")
+```
+
+:::{.column-margin}
+`read_csv` is the function to read CSV (comma separated values) files. Once we have read the file, it is stored into an object called tips using the arrow (`<-`).
+:::
+
+```{r}
+head(tips)
+```
+
+:::{.column-margin}
+`head()` shows by default the top 6 rows of the data. Use the `n = ...` option to change the default behaviour, e.g. `head(<data>, n = 10)`.
+:::
+
+```{r}
+dim(tips)
+```
+
+:::{.column-margin}
+This returns the number of rows and columns in the data
+:::
+
+```{r}
+glimpse(tips)
+```
+
+:::{.column-margin}
+`glimpse` is part of the tidyverse package
+:::
+
+
+::: {.callout-note collapse="true"}
+### Alternative
+
+Alternatives to glimpse are the data "structure" function:
+
+```{r}
+str(tips)
+```
+
+or:
+
+```{r}
+sapply(tips, data.class)
+```
+:::
+
+::: {.callout-tip}
+### Example writeup
+A dataset containing records on 7 variables related to tipping was obtained from <https://uoepsy.github.io/data/RestaurantTips.csv>, and was provided by the owner of a bistro in the US interested in studying which factors affected the tipping behaviour of the bistro's customers.
+The data contains measurements for a total of 157 parties on four numeric variables: size of the bill (in dollars), size of the tip, number of guests in the group, and tip as a percentage of the bill total. The data also includes three categorical variables indicating whether or not the party paid with a credit card, the day of the week, as well as a server-specific identifier.
+:::
+
+
+```{r}
+summary(tips)
+```
+
+:::{.column-margin}
+`summary` returns a quick summary of the data, i.e. a list of numerical summaries.
+:::
+
+You probably won't understand some parts of the output above, but we will learn more in the coming weeks, so don't worry too much about it. For the moment, you should be able to understand the minimum, maximum, and the mean.  
+Currently, it is not showing very informative output for the categorical variables, also known as factors.
+
+We can replace each factor level with a clearer label. The following code takes the column `Day` from the `tips` data and assigns a new label "Monday" to the level "m", etc.
+
+```{r}
+tips$Day <- factor(tips$Day, 
+                   levels = c("m", "t", "w", "th", "f"),
+                   labels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"))
+
+tips$Credit <- factor(tips$Credit, 
+                      levels = c("n", "y"),
+                      labels = c("No", "Yes"))
+
+tips$Server <- factor(tips$Server)
+```
+
+
+::: {.callout-note collapse="true"}
+### Alternative
+
+You can change/update a variable (column) in the data using the function `mutate` from the tidyverse package. It works as follows:
+
+```{r eval=FALSE}
+tips <- tips |>
+    mutate(
+        Day = factor(Day,
+                     levels = c("m", "t", "w", "th", "f"),
+                     labels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")),
+        Credit = factor(Credit,
+                        levels = c("n", "y"),
+                        labels = c("No", "Yes")),
+        Server = factor(Server)
+    )
+```
+
+The function `|>` is called __pipe__ and works by taking what's on the left and passing it to the operation on the right. For example, you can take the logarithm of the whole numbers from 1 to 10 and round them to 2 digits using this code: 
+
+```{r}
+round(log(1:10), digits = 2)
+```
+
+or this equivalent code that uses the pipe `|>`:
+
+```{r}
+1:10 |>
+    log() |>
+    round(digits = 2)
+```
+
+You can loosely think of the pipe as "then". In fact, the pipe takes what's to its left, and then passes it on to what's on its right.
+
+__Curiosity:__ Sometimes you may also find an older version of the pipe, which is `%>%` and works in the same style. However, __it requires the package tidyverse__ to be loaded before you can use the older pipe `%>%`.
+:::
+
+
+Let's check the result of the changes to the variable types:
+
+```{r}
+glimpse(tips)
+```
+
+```{r}
+summary(tips)
+```
+
+:::{.column-margin}
+After making categorical variables factors, `summary` shows the count of each category for the categorical variables.
+:::
+
+The percentage of total bill has a maximum value of 221, which seems very strange. Someone is very unlikely to tip more than their bill total. In this case 221% of their bill value seems unlikely.
+
+Let's inspect the row where `PctTip` is greater than 100:
+
+```{r}
+tips[tips$PctTip > 100, ]
+```
+
+
+::: {.callout-note collapse="true"}
+## Alternative
+
+Alternatively, using tidyverse, the function `filter` is used to only filter the rows that satisfy a condition:
+
+```{r}
+tips |> 
+    filter(PctTip > 100)
+```
+:::
+
+
+With a bill of 49.6, the tip would be 109.62 dollars:
+
+```{r}
+49.6 * 221 / 100
+```
+
+Furthermore, we also notice that the tipping amount is not available (NA). The corresponding value in the percentage of total tip seems likely an inputting error, perhaps due to double typing the leading 2 when recording the data. We will set that value to not available (NA) with the following code:
+
+```{r}
+tips$PctTip[tips$PctTip > 100] <- NA
+```
+
+::: {.column-margin}
+`a > b` tests whether a is greater than b. `a < b` tests whether a is smaller than b. `a == b` tests whether a is equal to b; notice the double equal sign! You can also use `>=` or `<=`
+:::
+
+
+::: {.callout-note collapse="true"}
+### Alternative
+
+Alternatively you can use tidyverse:
+
+```{r, eval=FALSE}
+tips <- tips |>
+    mutate(
+        PctTip = ifelse(PctTip > 100, NA, PctTip)
+    )
+```
+
+Where the function `ifelse` selects a value depending on a condition to test: `ifelse(test, value_if_true, value_if_false)`. In the case above, each value in the column PctTip is replaced by NA if Pct > 100, and it is kept the same otherwise.
+
+:::
+
+
+```{r}
+summary(tips)
+```
+
+The function `summary()` return a numeric answer for the min/max/mean, see above, even in the presence of missing values (NAs).
+
+However, if you use functions such as `min()`, `max()`, `mean()`, which compute the minimum, maximum, and mean (i.e., average) of a variable respectively, they will return NA when applied to a variable that contains a missing value:
+
+```{r}
+min(tips$Tip)
+```
+
+To get a numeric result, you need to include the argument, i.e. the option, `na.rm = TRUE`:
+
+```{r}
+min(tips$Tip, na.rm = TRUE)
+```
+
+
+:::{.callout-tip}
+### Example writeup
+The average bill size was \$22.73, and the average tip was \$3.81, corresponding to roughly 17% of the total bill. Out of 157 parties, only 51 paid with a credit card. Most parties tended to be of around 2 people each, and people tended to go to that restaurant more often on Wednesday. Among the three servers, server C was the one that served the least number of parties.
+The data also included a missing tipping value, corresponding to a bill $49.59, and a data inputting error for the corresponding measure of the tip as a percentage of the total bill.
+:::
+

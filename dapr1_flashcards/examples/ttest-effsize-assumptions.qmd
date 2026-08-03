@@ -1,0 +1,333 @@
+---
+title: "Assumptions of t-tests, effect size"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+```
+
+
+## Procrastination example (assumptions)
+
+```{r echo=TRUE, eval=TRUE, results='hide', fig.show='hide'}
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+
+pass_scores <- read_csv("https://uoepsy.github.io/data/pass_scores.csv")
+stats <- pass_scores |>
+    summarise(n = n(),
+              Min = min(PASS),
+              Max = max(PASS),
+              M = mean(PASS),
+              SD = sd(PASS))
+
+
+# assumptions checks
+dim(pass_scores)
+
+plt_dens <- ggplot(pass_scores, aes(x = PASS)) + 
+    geom_density() +
+    labs(x = "PASS scores",
+         title = "(a) Density plot")
+
+plt_qq <- ggplot(pass_scores, aes(sample = PASS)) + 
+    geom_qq() +
+    geom_qq_line() +
+    labs(x = "Theoretical quantiles",
+         y = "Sample quantiles",
+         title = "(b) QQ-plot")
+
+plt_dens | plt_qq
+
+shapiro.test(pass_scores$PASS)
+```
+
+
+
+
+One way to report:
+
+> The sample data did not show violations of the assumptions required for the t-test results to be valid. Specifically, the data were collected on a random sample of students from Edinburgh University, hence independence was met. 
+Figure 1(a) shows that the distribution of PASS scores is roughly bell-shaped, with a single mode and as such does not raise any concerns of violations of normality. Similarly, the QQ-plot in Figure 1(b) shows agreement between the sample and theoretical quantiles, as they almost all fall on the line. We also performed a Shapiro-Wilk test against the null hypothesis of normality of the population data: $W = 0.94$, $p = .20$. The sample data did not provide sufficient evidence at the 5% level to reject the null hypothesis that the population data follow a normal distribution.
+
+
+## Reading scores t-test example (assumptions and effect size)
+
+You will be using the following dataset: <https://uoepsy.github.io/data/students_reading_scores.csv>
+
+These contain measurements of age (in years) and reading scores (0 - 100) for 35 university students randomly sampled from a hypothetical university.
+
+```{r echo=F, eval=F}
+set.seed(10)
+
+library(tidyverse)
+
+n = 35
+data = tibble(age = rdunif(n, 18, 32),
+              read_score = rnorm(n, 65, 20) |> round(0))
+
+idx1 = sample(1:n, 10)
+idx2 = sample(1:n, 10)
+
+data$age[idx1] = -99
+data$read_score[idx2] = NA
+
+write_csv(data, "../../data/students_reading_scores.csv", na = ' ')
+```
+
+
+::: {.callout-note}
+__Question 1.__ Read the data into R.
+:::
+
+```{r}
+library(tidyverse)
+students <- read_csv("https://uoepsy.github.io/data/students_reading_scores.csv")
+head(students)
+```
+
+::: {.callout-note}
+__Question 2.__ Perform preliminary checks on the data by:
+
+- plotting the variables in the dataset;
+- computing a table of descriptive statistics.
+:::
+
+Plot the variables in the dataset:
+
+```{r}
+library(patchwork)
+
+plt_age <- ggplot(students, aes(x = age)) +
+    geom_histogram()
+
+plt_read <- ggplot(students, aes(x = read_score)) +
+    geom_histogram()
+
+plt_age | plt_read
+```
+
+
+Table of descriptive statistics:
+
+```{r}
+students |>
+    pivot_longer(cols = c(age, read_score), names_to = "Variable", values_to = "Values") |>
+    group_by(Variable) |>
+    summarise(M = mean(Values), 
+              SD = sd(Values),
+              Min = min(Values),
+              Med = median(Values),
+              Max = max(Values),
+              NMiss = sum(is.na(Values)))
+```
+
+
+::: {.callout-note}
+__Question 3.__ What do you notice? Are there any issues with the data that need fixing? If yes, make appropriate changes to the data to fix those issues.
+:::
+
+It looks like some students had their age stored as "-99". This is an impossible value for age, and it was used by those entering the data as a missing value; i.e. when a student preferred to not disclose that information. The values "-99" should be replaced to be NAs.
+
+The reading scores for some students were also missing but, if you look at the CSV file itself you will see that those were stored as spaces rather than -99s.
+This is in the CSV file, and not the object created into R when you read the CSV file data into R.
+
+However, R is smart enough that when you read CSV data into R and there are spaces, those are interpreted as missing values and converted to NAs automatically.
+
+Alternative 1:
+
+```{r eval=F}
+students$age[students$age == -99] <- NA
+```
+
+Alternative 2:
+
+```{r}
+students <- students |>
+    mutate(
+        age = ifelse(age == -99, NA, age)
+    )
+
+head(students)
+```
+
+
+Plot the variables in the dataset:
+
+```{r}
+library(patchwork)
+
+plt_age <- ggplot(students, aes(x = age)) +
+    geom_histogram()
+
+plt_read <- ggplot(students, aes(x = read_score)) +
+    geom_histogram()
+
+plt_age | plt_read
+```
+
+
+Table of descriptive statistics:
+
+```{r}
+students |>
+    pivot_longer(cols = c(age, read_score), names_to = "Variable", values_to = "Values") |>
+    group_by(Variable) |>
+    summarise(M = mean(Values), 
+              SD = sd(Values),
+              Min = min(Values),
+              Med = median(Values),
+              Max = max(Values),
+              NMiss = sum(is.na(Values)))
+```
+
+The table still has NAs, because when you compute the mean for example, if you add a number to NA, you get NA. For example, 2 + NA = NA.
+
+To tell R to ignore NAs when computing the mean, you say `na.rm = TRUE`.
+
+```{r}
+students |>
+    pivot_longer(cols = c(age, read_score), names_to = "Variable", values_to = "Values") |>
+    group_by(Variable) |>
+    summarise(M = mean(Values, na.rm = TRUE), 
+              SD = sd(Values, na.rm = TRUE),
+              Min = min(Values, na.rm = TRUE),
+              Med = median(Values, na.rm = TRUE),
+              Max = max(Values, na.rm = TRUE),
+              NMiss = sum(is.na(Values)))
+```
+
+::: {.callout-note}
+__Question 4.__ We will only be using the reading scores. Remove from the data any rows for which the reading score is missing.
+:::
+
+Alternative 1:
+
+```{r}
+students_tidy <- students |>
+    drop_na(read_score)
+
+head(students_tidy)
+```
+
+Alternative 2:
+
+```{r eval=FALSE}
+students_tidy <- students |>
+    filter(complete.cases(read_score))
+```
+
+If you used `na.omit(students)` or `drop_na()`, you would remove students having NAs also for age. However, students may not have provided their age, but we can have their reading score, so if we were to do this, we would throw away available data!
+
+
+::: {.callout-note}
+__Question 5.__ At the 5% significance level, test whether the sample data provide significance evidence that the mean reading score for all students in that university is not equal to 50.
+:::
+
+```{r}
+xbar <- mean(students_tidy$read_score)
+xbar
+
+n <- nrow(students_tidy)
+n
+
+s <- sd(students_tidy$read_score)
+s
+
+se <- s / sqrt(n)
+se
+```
+
+Observed t-statistic
+
+```{r}
+mu0 <- 50
+tobs <- (xbar - mu0) / se
+tobs
+```
+
+P-value = 2 * Probability to the right of tobs:
+
+```{r}
+2 * pt(abs(tobs), df = n - 1, lower.tail = FALSE)
+```
+
+The sample results are significant, so it's good practice to follow up with a confidence interval
+
+```{r}
+tstar <- qt(c(0.025, 0.975), df = n - 1)
+tstar
+
+ci <- xbar + tstar * se
+ci
+```
+
+::: {.callout-note}
+__Question 6.__ The t-test for one population mean relies on some assumptions for the results to be valid. Check whether these are satisfied or not in this sample.
+:::
+
+The data come from a random sample of students from that university, hence the independence assumption is satisfied.
+
+The sample size - that is, the number of data points that are __not missing__ - is $n = 25$. This is not a large enough sample size for the sample mean to be normally distributed, so we will check whether the sample came from a population that follows a normal distribution. If this is the case, then the sample mean would be normally distributed irrespectively of the sample size.
+
+```{r}
+#| label: fig-dist-read-scores
+#| fig-cap: "Distribution of reading scores"
+#| fig-height: 5
+#| fig-width: 10
+#| out-width: "100%"
+plt1 <- ggplot(students_tidy, aes(x = read_score)) +
+    geom_density() +
+    labs(x = "Reading scores (0-100)", title = "(a) Density plot")
+
+plt2 <- ggplot(students_tidy, aes(sample = read_score)) +
+    geom_qq() +
+    geom_qq_line() +
+    labs(x = "Theoretical quantiles", y = "Sample quantiles", title = "(b) qqplot")
+
+plt1 | plt2
+```
+
+The density plot highlights a roughly bell-shaped distribution with a single peak near 60. The qqplot doesn't highlight any severe departures from normality, in fact the sample quantiles follow the theoretical quantiles from a normal distribution pretty closely.
+
+
+Alternatively, you can also obtain the qqplot as follows:
+
+```{r}
+qqnorm(students_tidy$read_score)
+qqline(students_tidy$read_score)
+```
+
+
+We can also perform a Shapiro-Wilk test:
+
+```{r}
+shapiro.test(students_tidy$read_score)
+```
+
+::: {.callout-note}
+__Question 7.__ Provide a write up pf your results in the context of the study.
+:::
+
+Data were obtained from <https://uoepsy.github.io/data/students_reading_scores.csv>. The dataset contains measurements on age and reading scores for 35 randomly sampled students from a hypothetical university. Due to random sampling of the students, the independence assumption is satisfied. Some students had missing values for their reading scores, so those students were dropped from the analysis, leaving a sample of 25 students for the analysis. A Shapiro-Wilk normality test was performed at the 5% significance level ($W = 0.98, p = 0.84$). The sample data do not provide sufficient evidence to reject the null hypothesis of normality of the population data. Furthermore, the density plot shown in @fig-dist-read-scores(a) highlights a roughly bell-shaped distribution, and the qqplot in @fig-dist-read-scores(b) doesn't show violations from normality.
+
+At the 5% significance level, we performed a hypothesis test against the null hypothesis that the mean reading score of all students in that university was equal to 50. The sample data provide very strong evidence to reject the null hypothesis in favour of the alternative one that the population mean reading score is different from 50: $t(24) = 2.56, p = 0.02$, two-sided.
+
+We are 95% confident that the mean reading score for all students in that university is between 52 and 66.
+
+
+::: {.callout-note}
+__Question 8.__ Is there a significant effect? Is the effect important?
+:::
+
+Yes, there is a significant effect, as we found a p-value smaller than the significance level of 5%. However, this is no guarantee that the effect is of practical importance.
+
+To judge whether the effect is important, we need to compute the effect size, i.e. Cohen's D:
+
+```{r}
+D <- (xbar - mu0) / s
+D
+```
+
+Cohen's D highlights a medium effect size, highlighting that the sample result is not only significant, but perhaps also of moderate importance and worth noting.

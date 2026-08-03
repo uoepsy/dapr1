@@ -1,0 +1,280 @@
+---
+title: "Probability as area under the curve"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+```
+
+We cannot compute probabilities for continuous random variables in the same way as we would for a discrete set of outcomes (where we would compute the number of outcomes in the event, divided by the number of possible outcomes).
+
+For continuous random variables, we can only compute the probability of observing a value _**in a given interval.**_ 
+For example, the probability that the hand stops in between 3 and 3.5 hours.
+
+Consider the histogram shown below. The height of each rectangle will tell you the number of people having a value within a specific interval. For example, the number of people having a value of $x$ between 20 and 22.5.
+
+```{r echo=FALSE, out.width = '60%'}
+library(tidyverse)
+
+set.seed(3)
+
+tibble(x = rchisq(10000, 20)) |>
+    ggplot(aes(x = x)) + 
+    geom_histogram(color = 'white', binwidth = 2.5, 
+                   boundary = 10, fill = 'gray') +
+    theme_minimal() +
+    scale_x_continuous(
+        breaks = round(seq(0, 60, by = 5), 0)
+    ) +
+    labs(x = 'x', y = 'Count')
+```
+
+
+
+## Proportions as areas: the density histogram
+
+The natural gestation period for human births has a mean of about 266 days and a standard deviation of about 16 days. 
+A group of researchers recorded the gestation period (in days) of 10,000 babies and the distribution is shown below as a _frequency histogram_ (left panel) and _relative frequency_ histogram (right panel).
+
+```{r echo=FALSE, fig.width = 10, fig.height = 4, out.width = '100%', fig.cap = "Frequency histogram (left panel) and relative frequency histogram (right panel) of gestation period."}
+library(tidyverse)
+library(patchwork)
+
+set.seed(3)
+
+n <- 10000
+mu <- 266
+sigma <- 16
+
+df <- tibble(days = rnorm(n, mu, sigma))
+
+p1 <- ggplot(df, aes(x = days)) + 
+    geom_histogram(color = 'white', fill = 'gray', 
+                   binwidth = 5, boundary = 200) +
+    theme_minimal() +
+    scale_x_continuous(
+        breaks = round(seq(200, max(df$days), by = 10), 0)
+    ) +
+    labs(x = 'Gestation period (days)', y = 'Count', 
+         title = 'Frequency histogram')
+
+p2 <- ggplot(df, aes(x = days)) + 
+    geom_histogram(aes(y = after_stat(count / sum(count))), 
+                   color = 'white', fill = 'gray', 
+                   binwidth = 5, boundary = 200) +
+    theme_minimal() +
+    scale_x_continuous(
+        breaks = round(seq(200, max(df$days), by = 10), 0)
+    ) +
+    labs(x = 'Gestation period (days)', y = 'Relative frequency', 
+         title = 'Relative frequency histogram')
+
+p1 | p2
+```
+
+The histogram is unimodal, with the modal interval extending from 266 to 270 days.
+The distribution is symmetric around the centre (266). This means that if you were the fold the histogram at 266 days, the two halves would match when superimposed.
+
+The histogram also highlights some variability in gestation days from person to person, with some women giving birth after as low as 200 days or as high as 320 days.
+
+Usually, histograms are drawn with the height of the rectangle for the $j$th interval being either the frequency (count) $n_j$ or the relative frequency $n_j / n$ of observations falling into that interval.
+
+For example, for roughly 400 women the gestation period was between 240 and 245 days.
+If we use the relative frequency, instead, the _height_ of the rectangle tells us the proportion of observations in that interval. In this case, the proportion of women with a gestation period between 240 and 245 days is $400 / 10,000 = 0.04$.
+
+We now discuss a third type of histogram called the _**density histogram**_, in which we adjust the heigh of the rectangle so that the _area_ is equal to the relative frequency.
+This is accomplished by changing the height to $n_j / (n w)$ where $w$ is the interval width.
+
+Why does this work?
+$$
+area = width \cdot height = w \cdot \frac{n_j}{n w} = \frac{n_j}{n}
+$$
+
+So now it is the _area_ of the $j$th rectangle that tells us the proportion of observations in the $j$th interval.
+
+
+```{r echo=FALSE}
+pltA <- ggplot(df, aes(x = days)) + 
+    geom_histogram(aes(y = after_stat(density)), 
+                   color = 'white', fill = 'gray', 
+                   binwidth = 5, boundary = 200) +
+    theme_minimal() +
+    scale_x_continuous(
+        breaks = round(seq(200, max(df$days), by = 10), 0)
+    ) +
+    labs(x = 'Gestation period (days)', y = 'Density', 
+         title = '(a) Density histogram')
+
+# pltA
+```
+
+```{r echo=FALSE}
+a <- 240
+b <- 255
+
+shaded_area <- df |>
+    summarise(prop = mean(days >= a & days <= b)) |>
+    pull(prop)
+```
+
+```{r echo=FALSE}
+dplt <- ggplot_build(pltA)
+dplt$data[[1]] <- dplt$data[[1]] |>
+    mutate(
+            fill = ifelse(xmin >= a & xmax <= b, 'darkolivegreen3', 'gray')
+        )
+dplt$plot$labels$title <- expr("(b) Area between"~!!a~"and"~!!b~"highlighted")
+dplt$plot$labels$subtitle <- sprintf(
+    "Green area = %.3f (corresponds to %.1f%% of observations)", 
+    shaded_area, shaded_area * 100)
+
+# grid::grid.newpage()
+# grid::grid.draw(ggplot_gtable(dplt))
+```
+
+<br>
+
+```{r, echo=FALSE, fig.width = 10, fig.height = 4, out.width='100%'}
+#| label: fig-dens-hist-ab
+#| fig-cap: "Density histogram of the gestation period for the 10,000 women in the study."
+
+gridExtra::grid.arrange(pltA, ggplot_gtable(dplt), nrow = 1)
+```
+
+<br>
+
+In @fig-dens-hist-ab(a) the proportion of women under study whose gestation period falls within any class interval is the area of the corresponding rectangle.
+For example the proportion of women with a gestation period between 240 and 245 days is equal to $area = width \cdot height = 5 \cdot 0.008 = 0.04$, which matches the relative frequency histogram.
+
+Furthermore, we can obtain the proportion of women whose gestation period falls between the limits $a = 240$ days and $b = 255$ days by adding the areas of all the rectangles between these limits. As the graph in @fig-dens-hist-ab(b) tells us, the area of the shaded part is .196. 
+Thus, the proportion of women with a gestation period between 240 and 255 days is 0.196 or 19.6% of the women in the study population.
+
+This correspondence between area and proportions is the foundation on which the probability for continuous random variables is built.
+In fact, we can say that the probability that a randomly picked woman from the study population has a gestation period between 240 and 255 days is 0.196.
+
+Also, note that the total area under a density histogram is
+$$
+\sum \left( \frac{n_j}{n w} \cdot w \right) = \frac{\sum  n_j}{n} = 1
+$$
+
+
+<br>
+
+::: callout-note
+Let's now summarise what we have learned about _**density histograms**_:
+
+- the vertical scale is _**relative frequency / interval width**_
+
+- the total area under the histogram is 1
+
+- the _**proportion**_ of data between $a$ and $b$ is the _**area**_ under the histogram between $a$ and $b$
+:::
+
+
+
+```{r echo=FALSE}
+pltB <- ggplot(df, aes(x = days)) + 
+    geom_histogram(aes(y = after_stat(density)), 
+                   color = 'white', fill = 'gray', 
+                   binwidth = 5, boundary = 200) +
+    geom_function(fun = dnorm, args = list(mean = mu, sd = sigma), size = 1) + 
+    theme_minimal() +
+    scale_x_continuous(
+        breaks = round(seq(200, max(df$days), by = 10), 0)
+    ) +
+    labs(x = 'Gestation period (days)', y = 'Density', title = 'Density histogram')
+
+dpltB <- ggplot_build(pltB)
+dpltB$data[[1]] <- dpltB$data[[1]] |>
+    mutate(
+            fill = ifelse(xmin >= a & xmax <= b, 'darkolivegreen3', 'gray')
+        )
+dpltB$plot$labels$title <- "(c) With approximating curve"
+dpltB$plot$labels$subtitle <- NULL
+
+# grid::grid.newpage()
+# grid::grid.draw(ggplot_gtable(dpltB))
+```
+
+```{r echo=FALSE}
+shaded_prob <- pnorm(b, mu, sigma) - pnorm(a, mu, sigma)
+```
+
+```{r echo=FALSE}
+dfg <- tibble(
+    xg = seq(min(df$days), max(df$days), by = 0.001), 
+    yg = dnorm(xg, mu, sigma)
+)
+
+pltC <- ggplot(dfg, aes(x = xg, y = yg, ymin = 0, ymax = yg)) +
+    geom_ribbon(data=subset(dfg, xg >= a & xg <= b), aes(ymax=yg), 
+                ymin=0, fill="darkolivegreen3") +
+    geom_line(linewidth = 1) +
+    theme_minimal() +
+    scale_x_continuous(
+        breaks = round(seq(200, max(df$days), by = 10), 0)
+    ) +
+    labs(x = 'Gestation period (days)', y = 'Density', 
+         title = expr("(d) Area between"~!!a~"and"~!!b~"highlighted"),
+         subtitle = sprintf(
+             "Green area = %.3f (was %.3f for density histogram)", 
+             shaded_prob, shaded_area))
+
+# pltC
+```
+
+
+<br>
+
+```{r, echo=FALSE, fig.width = 10, fig.height = 4, out.width='100%'}
+#| label: fig-dens-hist-cd
+#| fig-cap: "Density curve of the gestation period for the 10,000 women in the sample."
+
+gridExtra::grid.arrange(ggplot_gtable(dpltB), pltC, nrow = 1)
+```
+
+<br>
+
+
+In @fig-dens-hist-cd(c) we have superimposed an approximating smooth curve on top of the density histogram. @fig-dens-hist-cd(d) displays only the approximating smooth curve. Furthermore, we have also highlighted in green the area under that curve in between the same limit as the histogram ($a = 240$ and $b = 255$) and calculated the highlighted area.
+That area turned out to be 0.194, which is very close to the area of 0.196 computed from the density histogram.
+
+From this, it is quite easy to see how areas under the smooth curve in between two particular limits are in good agreement with the same areas computed using a density histogram, and thus with proportions of people in the study.
+
+Such smooth curve is called a _**density curve**_ or _**density function**_. The probability distribution of a continuous random variable $X$ is specified in terms of its density function. We calculate the probability that the random variable $X$ is between $a$ and $b$ by finding the area under the density curve between $a$ and $b$.
+
+
+
+::: callout-note
+Let's now summarise what we have learned about _**density functions**_:
+
+- The probability distribution of a continuous random variable is specified in terms of a density function (i.e., a density curve).
+
+- Probabilities are obtained as areas under the density curve.
+
+- The total area under the curve is one. 
+  
+  This is because the total probability must be one: $P(R_X) = 1$.
+
+- The curve is always greater than or equal to zero for all possible values of the random variable.
+  
+  This is similar to saying that probabilities cannot be negative.
+
+:::
+
+
+::: callout-note
+**Probability distribution for a continuous random variable**
+
+The _**probability distribution**_ of a continuous random variable $X$ provides the possible values of the random variable and their corresponding _**probability densities**_. 
+
+A probability distribution can be in the form of a graph or mathematical formula.
+:::
+
+
+The density curve is the graphical representation of the probability distribution, while the density function is the mathematical formula of the curve.
+
+## Glossary
+
+- **Continuous random variable.** A variable that takes on numerical values determined by a chance process which can have any number of decimals.
+- **Density function.** The function which provides the probability that a random variable is within an interval in terms of the area under that curve between that interval.

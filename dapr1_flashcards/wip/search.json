@@ -1,0 +1,408 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "DAPR1 flash cards (2026/27)",
+    "section": "",
+    "text": "These flash cards are here to complement your lecture and workshop materials by offering additional guidance and examples on key concepts/topics.\nYou can use the flash cards as supporting documents whilst you work through the workshop exercises. They might also help you revise and keep concepts fresh.\n\n\n\n\n\n\nCautionFind extra content down rabbit holes!\n\n\n\n\n\nIf you want to dive deeper or work toward a more complete understanding of certain topics, we’ve added “rabbit holes” (like this one!) throughout the flash cards.\nWe will not assess any content introduced in the rabbit holes. If you only want to know the basics, you can safely skip them. But if you’re interested in learning more (or if you find yourself doing more complex data analysis in the future), you might find the extra information useful.\n\n\n\nThese flash cards have been developed by Elizabeth Pankratz, Umberto Noè, and Josiah King (who also drew the cute rabbit)!\n\nTip: Develop your own glossary\nA good understanding of R functions is essential for your success in the DAPR curriculum and the degree more generally. We strongly recommend you get into the habit of keeping track of any new R function that you encounter and write a short description of what the function does and which package it comes from. You could save this into a Word or Excel file. You should get into the habit of updating that document as you encounter new R functions. Here’s an example to help you get started:\n\n\n\n\n\n\n\nFunction\nUse and package\n\n\n\n\n&lt;-\nAssignment operator. Stores the value on the right into the named object on the left\n\n\nread_csv\nFor reading comma separated value files. Part of tidyverse package\n\n\nView\nOpens a spreadsheet-like data viewer in RStudio. Base R function\n\n\nhead\nShows the first 6 rows of a dataset (by default). Base R function\n\n\nnrow\nReturns the number of rows. Base R function\n\n\nncol\nReturns the number of columns. Base R function\n\n\ndim\nReturns the dimensions (rows and columns). Base R function\n\n\nglimpse\nSimilar to str. Displays an overview of the data variables with their types. Part of tidyverse package\n\n\nstr\nSimilar to glimpse. Displays an overview of the data variables with their types. Base R function\n\n\nsummary\nProduces summary statistics. Base R function\n\n\nfactor\nCreates or modifies a variable into a categorical one (factor) with levels. Base R function",
+    "crumbs": [
+      "DAPR1 flash cards (2026/27)"
+    ]
+  },
+  {
+    "objectID": "block1/variability.html",
+    "href": "block1/variability.html",
+    "title": "Measure variability",
+    "section": "",
+    "text": "We’ll illustrate measures of variability with the msleep dataset that comes from tidyverse. msleep contains some data about how much different kinds of mammals sleep. Here’s what the first few rows of msleep look like.\nmsleep |&gt; head()\n\n# A tibble: 6 x 11\n  name    genus vore  order conservation sleep_total sleep_rem sleep_cycle awake\n  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;              &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt; &lt;dbl&gt;\n1 Cheetah Acin~ carni Carn~ lc                  12.1      NA        NA      11.9\n2 Owl mo~ Aotus omni  Prim~ &lt;NA&gt;                17         1.8      NA       7  \n3 Mounta~ Aplo~ herbi Rode~ nt                  14.4       2.4      NA       9.6\n4 Greate~ Blar~ omni  Sori~ lc                  14.9       2.3       0.133   9.1\n5 Cow     Bos   herbi Arti~ domesticated         4         0.7       0.667  20  \n6 Three-~ Brad~ herbi Pilo~ &lt;NA&gt;                14.4       2.2       0.767   9.6\n# i 2 more variables: brainwt &lt;dbl&gt;, bodywt &lt;dbl&gt;",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Measure variability"
+    ]
+  },
+  {
+    "objectID": "block1/variability.html#range",
+    "href": "block1/variability.html#range",
+    "title": "Measure variability",
+    "section": "Range",
+    "text": "Range\nThe range is the span between the minimum value and the maximum value. We calculate it as max() - min().\n\nmsleep |&gt;\n  summarise(\n    range_sleep = max(sleep_total) - min(sleep_total)\n  )\n\n# A tibble: 1 x 1\n  range_sleep\n        &lt;dbl&gt;\n1          18\n\n\n\nI’m just seeing “NA”\nIf we try to get the range for sleep_rem, which contains NAs:\n\nmsleep |&gt;\n  summarise(\n    range_REM = max(sleep_rem) - min(sleep_rem)\n  )\n\n# A tibble: 1 x 1\n  range_REM\n      &lt;dbl&gt;\n1        NA\n\n\nTo force min() and max() to overlook the NAs in a variable and only use the values we do have, use the code na.rm = TRUE (na.rm stands for “NA remove”).\n\nmsleep |&gt;\n  summarise(\n    range_REM = max(sleep_rem, na.rm = TRUE) - min(sleep_rem, na.rm = TRUE)\n  )\n\n# A tibble: 1 x 1\n  range_REM\n      &lt;dbl&gt;\n1       6.5",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Measure variability"
+    ]
+  },
+  {
+    "objectID": "block1/variability.html#inter-quartile-range-iqr",
+    "href": "block1/variability.html#inter-quartile-range-iqr",
+    "title": "Measure variability",
+    "section": "Inter-quartile range (IQR)",
+    "text": "Inter-quartile range (IQR)\nIf we sort our variable and then slice it in half, then at that halfway point, we get the median.\nIf we sort our variable and then slice it into quarters, then at each quarter, we get the quartiles. (The second quartile is the same thing as the median.)\nTo see how spread out the data is around the median, we can look at the first quartile and the third quartile and see how far apart they are. The distance between these two quartiles is called the inter-quartile range (IQR).\nTo find the quartiles, we use quantile(variablename, 0.25) (the first quartile) and quantile(variablename, 0775) (the third quartile). For the inter-quartile range, we can subtract those or just use IQR(...).\n\nmsleep |&gt;\n  summarise(\n    Q1_sleep = quantile(sleep_total, 0.25),\n    Q3_sleep = quantile(sleep_total, 0.75),\n    IQR_way1 = Q3_sleep - Q1_sleep,\n    IQR_way2 = IQR(sleep_total)\n  )\n\n# A tibble: 1 x 4\n  Q1_sleep Q3_sleep IQR_way1 IQR_way2\n     &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;\n1     7.85     13.8      5.9      5.9\n\n\n\nI see an error saying “missing values and NaNs not allowed”\nquantile() and IQR() get upset if we give them a variable that contains NAs like sleep_rem.\n\nmsleep |&gt;\n  summarise(\n    Q1_rem   = quantile(sleep_rem, 0.25),\n    Q3_rem   = quantile(sleep_rem, 0.75),\n    IQR_way1 = Q3_rem - Q1_rem,\n    IQR_way2 = IQR(sleep_rem)\n  )\n\nError in `summarise()`:\nℹ In argument: `Q1_rem = quantile(sleep_rem, 0.25)`.\nCaused by error in `quantile.default()`:\n! missing values and NaN's not allowed if 'na.rm' is FALSE\nRun `rlang::last_trace()` to see where the error occurred.\nThe functions will be happy again if you add na.rm = TRUE.\n\nmsleep |&gt;\n  summarise(\n    Q1_rem   = quantile(sleep_rem, 0.25, na.rm = TRUE),\n    Q3_rem   = quantile(sleep_rem, 0.75, na.rm = TRUE),\n    IQR_way1 = Q3_rem - Q1_rem,\n    IQR_way2 = IQR(sleep_rem, na.rm = TRUE)\n  )\n\n# A tibble: 1 x 4\n  Q1_rem Q3_rem IQR_way1 IQR_way2\n   &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;\n1    0.9    2.4      1.5      1.5",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Measure variability"
+    ]
+  },
+  {
+    "objectID": "block1/variability.html#variance",
+    "href": "block1/variability.html#variance",
+    "title": "Measure variability",
+    "section": "Variance",
+    "text": "Variance\nVariance is a measure of how spread-out a variable is around its mean.\nThink of the spread of the data in terms of the distance of each value to the mean. These distances are called “deviations”.\n\n\n\n\n\n\n\n\n\nA first attempt to measure the variance might be to add up these deviations, or find their mean. This should give us a sense of how big they are overall.\nHowever, here’s the problem with that: some deviations will be positive, for all the values on one side of the mean, and some will be negative, for all the values on the other side of the mean. That means that if we add them all up, the positives will cancel out the negatives, and we’ll always get exactly zero, no matter how big or small the deviations all are.\nHere’s the solution: first we’ll square these deviations (i.e., multiply each deviation by itself: \\(3^2 = 3 \\times 3 = 9\\)). This works because\n\na positive number times a positive number = a positive number, AND\na negative number times a negative number = a positive number.\n\nSo we square the deviations, and then we can add them up and get a number that’s different from zero, and also bigger, the larger the deviations are (regardless of whether they were originally positive and negative!). In actual practice, we take the mean of these numbers instead of just adding them up. That number—the average squared deviation from the mean—is a variable’s variance.\nIn R, we use the function var().\n\nmsleep |&gt;\n  summarise(\n    var_sleep = var(sleep_total)\n  )\n\n# A tibble: 1 x 1\n  var_sleep\n      &lt;dbl&gt;\n1      19.8\n\n\nThe downside of variance: its units are “squared deviations”, which is a bit weird to interpret. A more easily interpretable version of variance is the standard deviation (SD).\n\nI’m just seeing “NA”\nIf you get something like this:\n\nmsleep |&gt;\n  summarise(\n    var_rem = var(sleep_rem)\n  )\n\n# A tibble: 1 x 1\n  var_rem\n    &lt;dbl&gt;\n1      NA\n\n\nadd na.rm = TRUE:\n\nmsleep |&gt;\n  summarise(\n    var_rem = var(sleep_rem, na.rm = TRUE)\n  )\n\n# A tibble: 1 x 1\n  var_rem\n    &lt;dbl&gt;\n1    1.69",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Measure variability"
+    ]
+  },
+  {
+    "objectID": "block1/variability.html#standard-deviation-sd",
+    "href": "block1/variability.html#standard-deviation-sd",
+    "title": "Measure variability",
+    "section": "Standard deviation (SD)",
+    "text": "Standard deviation (SD)\nLike the variance, the standard deviation is a measure of how spread-out a variable is around its mean. Unlike the variance, it has the same units as the original variable. For example: if the mean of mammals’ total sleep time is measured in hours, the standard deviation of mammals’ total sleep time is also measured in hours.\nHow does this work?\nThe trick is to first calculate the variance (see above), and then “undo” the squaring operation that gave us positive-only numbers. We can undo this operation by doing its opposite: taking the square root. The square root asks what value, multiplied by itself, produces the given number (for example, \\(\\sqrt{9} = 3\\) because \\(3^2 = 9\\)).\nNow that we’ve undone the squaring operation, we’re back on the original scale that the variable was measured in. That’s good, because it’s a lot easier to interpret both a variable’s central tendency and its spread when both numbers are are on the same scale!\nTLDR: the square root of a variable’s variance is that variable’s standard deviation (SD).\nIn R, we use sd().\n\nmsleep |&gt;\n  summarise(\n    sd_sleep = sd(sleep_total)\n  )\n\n# A tibble: 1 x 1\n  sd_sleep\n     &lt;dbl&gt;\n1     4.45\n\n\n\nI’m just seeing “NA”\nIf you get something like this:\n\nmsleep |&gt;\n  summarise(\n    sd_rem = sd(sleep_rem)\n  )\n\n# A tibble: 1 x 1\n  sd_rem\n   &lt;dbl&gt;\n1     NA\n\n\nadd na.rm = TRUE:\n\nmsleep |&gt;\n  summarise(\n    sd_rem = sd(sleep_rem, na.rm = TRUE)\n  )\n\n# A tibble: 1 x 1\n  sd_rem\n   &lt;dbl&gt;\n1   1.30",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Measure variability"
+    ]
+  },
+  {
+    "objectID": "block1/pipe.html",
+    "href": "block1/pipe.html",
+    "title": "Connect operations with the pipe |>",
+    "section": "",
+    "text": "Before we get started on the statistics, we’re going to briefly introduce a crucial bit of R code. We have seen already seen a few examples of R code such as:\n\n# show the dimensions of the data\ndim(somedata)\n\n# show a summary of the data\nsummary(somedata)\n\n# factorise and show the \"somevariable\" variable in the \"somedata\" dataframe \nas.factor(somedata$somevariable)\n\nAnd we can actually wrap functions inside functions:\n\n# factorise the \"somevariable\" variable in the \"somedata\" dataframe, \n# then show a summary of it\nsummary(as.factor(somedata$somevariable))\n\nR evaluates code from the inside-out!\nYou can end up with functions inside functions inside functions …\n\n# Don't worry about what all these functions do, \n# it's just an example -\nround(mean(log(cumsum(diff(1:10)))))\n\n[1] 1\n\n\nWe can write in a different style, however, and this may help to keep code tidy and easily readable - we can write sequentially:\n\nNotice that what we are doing is using a new symbol: |&gt;\nThis symbol takes the output of whatever is on it’s left-hand side, and uses it as an input for whatever is on the right-hand side. The |&gt; symbol gets called a “pipe”.\nLet’s see it in action with the starwars2 dataset. The data contains information on various characteristics of characters from Star Wars. Before we can use the pipe operator, |&gt;, we need to load the tidyverse packages, because that is where |&gt; is found.\n\nlibrary(tidyverse)\n\nstarwars2 &lt;- read_csv(\"https://uoepsy.github.io/data/starwars2.csv\")\nstarwars2 |&gt;\n    head()\n\n# A tibble: 6 x 6\n  name           height hair_color  eye_color homeworld species\n  &lt;chr&gt;           &lt;dbl&gt; &lt;chr&gt;       &lt;chr&gt;     &lt;chr&gt;     &lt;chr&gt;  \n1 Luke Skywalker    172 blond       blue      Tatooine  Human  \n2 C-3PO             167 &lt;NA&gt;        yellow    Tatooine  Human  \n3 R2-D2              96 &lt;NA&gt;        red       Naboo     Droid  \n4 Darth Vader       202 none        yellow    Tatooine  Human  \n5 Leia Organa       150 brown       brown     Alderaan  Human  \n6 Owen Lars         178 brown, grey blue      Tatooine  Human  \n\nstarwars2 |&gt;\n    summary()\n\n     name               height     hair_color         eye_color        \n Length:75          Min.   : 79   Length:75          Length:75         \n Class :character   1st Qu.:168   Class :character   Class :character  \n Mode  :character   Median :180   Mode  :character   Mode  :character  \n                    Mean   :176                                        \n                    3rd Qu.:191                                        \n                    Max.   :264                                        \n  homeworld           species         \n Length:75          Length:75         \n Class :character   Class :character  \n Mode  :character   Mode  :character  \n                                      \n                                      \n                                      \n\n\nWe can now write code that requires reading it from the inside-out:\n\nsummary(as.factor(starwars2$homeworld))\n\nor which requires reading it from left to right:\n\nstarwars2$homeworld |&gt;\n    as.factor() |&gt;\n    summary()\n\n      Alderaan    Aleen Minor         Bespin     Bestine IV Cato Neimoidia \n             3              1              1              1              1 \n         Cerea       Champala      Chandrila   Concord Dawn       Corellia \n             1              1              1              1              2 \n     Coruscant       Dathomir          Dorin          Endor         Eriadu \n             3              1              1              1              1 \n      Geonosis    Glee Anselm     Haruun Kal        Iktotch       Iridonia \n             1              1              1              1              1 \n         Kalee         Kamino       Kashyyyk      Malastare         Mirial \n             1              3              2              1              2 \n      Mon Cala     Muunilinst          Naboo      Nal Hutta           Ojom \n             1              1              8              1              1 \n       Quermia          Rodia         Ryloth        Serenno          Shili \n             1              1              2              1              1 \n         Skako        Socorro    Springfield        Stewjon        Sullust \n             1              1              2              1              1 \n      Tatooine       Toydaria      Trandosha        Troiken           Tund \n            10              1              1              1              1 \n        Utapau        Vulpter          Zolan \n             1              1              1 \n\n\nAnd that long line of code from above:\n\n# again, don't worry about all these functions, \n# just notice the difference in the two styles.\nround(mean(log(cumsum(diff(1:10)))))\n\nbecomes:\n\n1:10 |&gt;\n    diff() |&gt;\n    cumsum() |&gt;\n    log() |&gt;\n    mean() |&gt;\n    round()\n\nWe’re going to use this way of writing a lot throughout the course, and it pairs really well with a group of functions in the tidyverse packages, which were designed to be used in conjunction with |&gt;.",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Connect operations with the pipe |>"
+    ]
+  },
+  {
+    "objectID": "block1/mutate.html",
+    "href": "block1/mutate.html",
+    "title": "Mutate columns",
+    "section": "",
+    "text": "mutate() is a function from tidyverse that allows us to add on new columns or modify existing ones.\nWe’ll illustrate the use of mutate() with the msleep dataset that comes from tidyverse. msleep contains some data about how much different kinds of mammals sleep. Here’s what the first few rows of msleep look like.\n\nmsleep |&gt; head()\n\n# A tibble: 6 x 11\n  name    genus vore  order conservation sleep_total sleep_rem sleep_cycle awake\n  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;              &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt; &lt;dbl&gt;\n1 Cheetah Acin~ carni Carn~ lc                  12.1      NA        NA      11.9\n2 Owl mo~ Aotus omni  Prim~ &lt;NA&gt;                17         1.8      NA       7  \n3 Mounta~ Aplo~ herbi Rode~ nt                  14.4       2.4      NA       9.6\n4 Greate~ Blar~ omni  Sori~ lc                  14.9       2.3       0.133   9.1\n5 Cow     Bos   herbi Arti~ domesticated         4         0.7       0.667  20  \n6 Three-~ Brad~ herbi Pilo~ &lt;NA&gt;                14.4       2.2       0.767   9.6\n# i 2 more variables: brainwt &lt;dbl&gt;, bodywt &lt;dbl&gt;\n\n\n\nTo convert the categorical vore variable into a factor:\n\nmsleep |&gt;\n  mutate(\n    vore = factor(vore)\n  )\n\n# A tibble: 83 x 11\n   name   genus vore  order conservation sleep_total sleep_rem sleep_cycle awake\n   &lt;chr&gt;  &lt;chr&gt; &lt;fct&gt; &lt;chr&gt; &lt;chr&gt;              &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt; &lt;dbl&gt;\n 1 Cheet~ Acin~ carni Carn~ lc                  12.1      NA        NA      11.9\n 2 Owl m~ Aotus omni  Prim~ &lt;NA&gt;                17         1.8      NA       7  \n 3 Mount~ Aplo~ herbi Rode~ nt                  14.4       2.4      NA       9.6\n 4 Great~ Blar~ omni  Sori~ lc                  14.9       2.3       0.133   9.1\n 5 Cow    Bos   herbi Arti~ domesticated         4         0.7       0.667  20  \n 6 Three~ Brad~ herbi Pilo~ &lt;NA&gt;                14.4       2.2       0.767   9.6\n 7 North~ Call~ carni Carn~ vu                   8.7       1.4       0.383  15.3\n 8 Vespe~ Calo~ &lt;NA&gt;  Rode~ &lt;NA&gt;                 7        NA        NA      17  \n 9 Dog    Canis carni Carn~ domesticated        10.1       2.9       0.333  13.9\n10 Roe d~ Capr~ herbi Arti~ lc                   3        NA        NA      21  \n# i 73 more rows\n# i 2 more variables: brainwt &lt;dbl&gt;, bodywt &lt;dbl&gt;\n\n\nThis code will not modify msleep in R’s memory. It just outputs the modified dataframe so that we can look at it.\nTo add this column to msleep in R’s memory, we need to re-assign the modified dataframe to the same variable name msleep:\n\nmsleep &lt;- msleep |&gt;\n  mutate(\n    vore = factor(vore)\n  )\n\n\nTo add together numbers in two existing columns, sleep_total and awake, and create a new column called total_hours with the sum:\n\nmsleep |&gt;\n  mutate(\n    total_hours = sleep_total + awake \n  )\n\n# A tibble: 83 x 12\n   name   genus vore  order conservation sleep_total sleep_rem sleep_cycle awake\n   &lt;chr&gt;  &lt;chr&gt; &lt;fct&gt; &lt;chr&gt; &lt;chr&gt;              &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt; &lt;dbl&gt;\n 1 Cheet~ Acin~ carni Carn~ lc                  12.1      NA        NA      11.9\n 2 Owl m~ Aotus omni  Prim~ &lt;NA&gt;                17         1.8      NA       7  \n 3 Mount~ Aplo~ herbi Rode~ nt                  14.4       2.4      NA       9.6\n 4 Great~ Blar~ omni  Sori~ lc                  14.9       2.3       0.133   9.1\n 5 Cow    Bos   herbi Arti~ domesticated         4         0.7       0.667  20  \n 6 Three~ Brad~ herbi Pilo~ &lt;NA&gt;                14.4       2.2       0.767   9.6\n 7 North~ Call~ carni Carn~ vu                   8.7       1.4       0.383  15.3\n 8 Vespe~ Calo~ &lt;NA&gt;  Rode~ &lt;NA&gt;                 7        NA        NA      17  \n 9 Dog    Canis carni Carn~ domesticated        10.1       2.9       0.333  13.9\n10 Roe d~ Capr~ herbi Arti~ lc                   3        NA        NA      21  \n# i 73 more rows\n# i 3 more variables: brainwt &lt;dbl&gt;, bodywt &lt;dbl&gt;, total_hours &lt;dbl&gt;\n\n\nThis code will not modify msleep in R’s memory. It just outputs the modified dataframe so that we can look at it.\nTo add this column to msleep in R’s memory, we need to re-assign the modified dataframe to the same variable name msleep:\n\nmsleep &lt;- msleep |&gt;\n  mutate(\n    total_hours = sleep_total + awake \n  )\n\n\nFor lots more detail on mutate(), check out the R for Data Science online textbook.",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Mutate columns"
+    ]
+  },
+  {
+    "objectID": "block1/functions.html",
+    "href": "block1/functions.html",
+    "title": "Compute things with R functions",
+    "section": "",
+    "text": "say(), c(), dim(), str(), read_csv() are all functions.\nFunctions perform specific operations / transformations in computer programming.\nThey can have inputs and outputs. For example, dim() takes some data you have stored in R as its input, and gives the dimensions of the data as its output.",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Compute things with R functions"
+    ]
+  },
+  {
+    "objectID": "block1/functions.html#what-is-a-function-in-r",
+    "href": "block1/functions.html#what-is-a-function-in-r",
+    "title": "Compute things with R functions",
+    "section": "",
+    "text": "say(), c(), dim(), str(), read_csv() are all functions.\nFunctions perform specific operations / transformations in computer programming.\nThey can have inputs and outputs. For example, dim() takes some data you have stored in R as its input, and gives the dimensions of the data as its output.",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Compute things with R functions"
+    ]
+  },
+  {
+    "objectID": "block1/functions.html#get-help-with-functions",
+    "href": "block1/functions.html#get-help-with-functions",
+    "title": "Compute things with R functions",
+    "section": "Get help with functions",
+    "text": "Get help with functions\nIn R, functions come with help pages, where you can see information about the various inputs and outputs, and examples of how to use them.\nIn the console, type ?dim (or ?dim() will work too) and press Enter.\nThe bottom-right pane (where things like plots are also shown), should switch to the Help tab, and open the documentation page for the dim() function!\n\n\n\n\n\n\nNote\n\n\n\nWhy did we ask you to write this bit in the console, whereas previously we’ve been writing stuff in the RMarkdown document in the editor?\nWhen writing an R script, the aim at the end is to have a clear and minimal document which we and other interested readers can use to reproduce our analyses. But the reader doesn’t need to see that we’re looking up how to use some function, just like they don’t need to know that we might look up a word in the dictionary before using it.",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Compute things with R functions"
+    ]
+  },
+  {
+    "objectID": "block1/factor.html",
+    "href": "block1/factor.html",
+    "title": "Manage factor variables",
+    "section": "",
+    "text": "factor() is a function in base R (that is, not in any additional package) that encodes categorical variables in the most R-friendly way.\nWe’ll illustrate the use of factor() with the msleep dataset that comes from tidyverse. msleep contains some data about how much different kinds of mammals sleep. Here’s what the first few rows of msleep look like.\nmsleep |&gt; head()\n\n# A tibble: 6 x 11\n  name    genus vore  order conservation sleep_total sleep_rem sleep_cycle awake\n  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;              &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt; &lt;dbl&gt;\n1 Cheetah Acin~ carni Carn~ lc                  12.1      NA        NA      11.9\n2 Owl mo~ Aotus omni  Prim~ &lt;NA&gt;                17         1.8      NA       7  \n3 Mounta~ Aplo~ herbi Rode~ nt                  14.4       2.4      NA       9.6\n4 Greate~ Blar~ omni  Sori~ lc                  14.9       2.3       0.133   9.1\n5 Cow     Bos   herbi Arti~ domesticated         4         0.7       0.667  20  \n6 Three-~ Brad~ herbi Pilo~ &lt;NA&gt;                14.4       2.2       0.767   9.6\n# i 2 more variables: brainwt &lt;dbl&gt;, bodywt &lt;dbl&gt;",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Manage factor variables"
+    ]
+  },
+  {
+    "objectID": "block1/factor.html#to-convert-a-categorical-variable-to-a-factor",
+    "href": "block1/factor.html#to-convert-a-categorical-variable-to-a-factor",
+    "title": "Manage factor variables",
+    "section": "To convert a categorical variable to a factor",
+    "text": "To convert a categorical variable to a factor\nThis code uses mutate(); for more detail, see the Mutate columns flash card.\n\nmsleep &lt;- msleep |&gt;\n   mutate(\n    vore = factor(vore)\n  ) \n\nmsleep\n\n# A tibble: 83 x 11\n   name   genus vore  order conservation sleep_total sleep_rem sleep_cycle awake\n   &lt;chr&gt;  &lt;chr&gt; &lt;fct&gt; &lt;chr&gt; &lt;chr&gt;              &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt; &lt;dbl&gt;\n 1 Cheet~ Acin~ carni Carn~ lc                  12.1      NA        NA      11.9\n 2 Owl m~ Aotus omni  Prim~ &lt;NA&gt;                17         1.8      NA       7  \n 3 Mount~ Aplo~ herbi Rode~ nt                  14.4       2.4      NA       9.6\n 4 Great~ Blar~ omni  Sori~ lc                  14.9       2.3       0.133   9.1\n 5 Cow    Bos   herbi Arti~ domesticated         4         0.7       0.667  20  \n 6 Three~ Brad~ herbi Pilo~ &lt;NA&gt;                14.4       2.2       0.767   9.6\n 7 North~ Call~ carni Carn~ vu                   8.7       1.4       0.383  15.3\n 8 Vespe~ Calo~ &lt;NA&gt;  Rode~ &lt;NA&gt;                 7        NA        NA      17  \n 9 Dog    Canis carni Carn~ domesticated        10.1       2.9       0.333  13.9\n10 Roe d~ Capr~ herbi Arti~ lc                   3        NA        NA      21  \n# i 73 more rows\n# i 2 more variables: brainwt &lt;dbl&gt;, bodywt &lt;dbl&gt;\n\n\nTo make sure it’s worked, check the data type that str() gives us for vore:\n\nstr(msleep)\n\ntibble [83 x 11] (S3: tbl_df/tbl/data.frame)\n $ name        : chr [1:83] \"Cheetah\" \"Owl monkey\" \"Mountain beaver\" \"Greater short-tailed shrew\" ...\n $ genus       : chr [1:83] \"Acinonyx\" \"Aotus\" \"Aplodontia\" \"Blarina\" ...\n $ vore        : Factor w/ 4 levels \"carni\",\"herbi\",..: 1 4 2 4 2 2 1 NA 1 2 ...\n $ order       : chr [1:83] \"Carnivora\" \"Primates\" \"Rodentia\" \"Soricomorpha\" ...\n $ conservation: chr [1:83] \"lc\" NA \"nt\" \"lc\" ...\n $ sleep_total : num [1:83] 12.1 17 14.4 14.9 4 14.4 8.7 7 10.1 3 ...\n $ sleep_rem   : num [1:83] NA 1.8 2.4 2.3 0.7 2.2 1.4 NA 2.9 NA ...\n $ sleep_cycle : num [1:83] NA NA NA 0.133 0.667 ...\n $ awake       : num [1:83] 11.9 7 9.6 9.1 20 9.6 15.3 17 13.9 21 ...\n $ brainwt     : num [1:83] NA 0.0155 NA 0.00029 0.423 NA NA NA 0.07 0.0982 ...\n $ bodywt      : num [1:83] 50 0.48 1.35 0.019 600 ...\n\n\nvore is stored as a “Factor w/ 4 levels”, and those levels are labelled “carni”, “herbi”, “insecti”, and “omni”.",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Manage factor variables"
+    ]
+  },
+  {
+    "objectID": "block1/factor.html#to-change-the-order-of-levels-in-a-factor",
+    "href": "block1/factor.html#to-change-the-order-of-levels-in-a-factor",
+    "title": "Manage factor variables",
+    "section": "To change the order of levels in a factor",
+    "text": "To change the order of levels in a factor\nBy default, factor levels use the labels’ alphabetical order. To change the factor levels, say to put “insecti” first and “carni” at the end, we can use levels argument of factor():\n\nmsleep &lt;- msleep |&gt;\n   mutate(\n    vore = factor(\n      vore,\n      levels = c('insecti', 'herbi', 'omni', 'carni')  \n      # make sure the labels you type match the existing labels exactly!\n    )\n  ) \n\nmsleep\n\n# A tibble: 83 x 11\n   name   genus vore  order conservation sleep_total sleep_rem sleep_cycle awake\n   &lt;chr&gt;  &lt;chr&gt; &lt;fct&gt; &lt;chr&gt; &lt;chr&gt;              &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt; &lt;dbl&gt;\n 1 Cheet~ Acin~ carni Carn~ lc                  12.1      NA        NA      11.9\n 2 Owl m~ Aotus omni  Prim~ &lt;NA&gt;                17         1.8      NA       7  \n 3 Mount~ Aplo~ herbi Rode~ nt                  14.4       2.4      NA       9.6\n 4 Great~ Blar~ omni  Sori~ lc                  14.9       2.3       0.133   9.1\n 5 Cow    Bos   herbi Arti~ domesticated         4         0.7       0.667  20  \n 6 Three~ Brad~ herbi Pilo~ &lt;NA&gt;                14.4       2.2       0.767   9.6\n 7 North~ Call~ carni Carn~ vu                   8.7       1.4       0.383  15.3\n 8 Vespe~ Calo~ &lt;NA&gt;  Rode~ &lt;NA&gt;                 7        NA        NA      17  \n 9 Dog    Canis carni Carn~ domesticated        10.1       2.9       0.333  13.9\n10 Roe d~ Capr~ herbi Arti~ lc                   3        NA        NA      21  \n# i 73 more rows\n# i 2 more variables: brainwt &lt;dbl&gt;, bodywt &lt;dbl&gt;\n\n\nThe preview doesn’t look any different, but we can see the factor levels have changed order in str(), because now “insecti” is listed first:\n\nstr(msleep)\n\ntibble [83 x 11] (S3: tbl_df/tbl/data.frame)\n $ name        : chr [1:83] \"Cheetah\" \"Owl monkey\" \"Mountain beaver\" \"Greater short-tailed shrew\" ...\n $ genus       : chr [1:83] \"Acinonyx\" \"Aotus\" \"Aplodontia\" \"Blarina\" ...\n $ vore        : Factor w/ 4 levels \"insecti\",\"herbi\",..: 4 3 2 3 2 2 4 NA 4 2 ...\n $ order       : chr [1:83] \"Carnivora\" \"Primates\" \"Rodentia\" \"Soricomorpha\" ...\n $ conservation: chr [1:83] \"lc\" NA \"nt\" \"lc\" ...\n $ sleep_total : num [1:83] 12.1 17 14.4 14.9 4 14.4 8.7 7 10.1 3 ...\n $ sleep_rem   : num [1:83] NA 1.8 2.4 2.3 0.7 2.2 1.4 NA 2.9 NA ...\n $ sleep_cycle : num [1:83] NA NA NA 0.133 0.667 ...\n $ awake       : num [1:83] 11.9 7 9.6 9.1 20 9.6 15.3 17 13.9 21 ...\n $ brainwt     : num [1:83] NA 0.0155 NA 0.00029 0.423 NA NA NA 0.07 0.0982 ...\n $ bodywt      : num [1:83] 50 0.48 1.35 0.019 600 ...",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Manage factor variables"
+    ]
+  },
+  {
+    "objectID": "block1/factor.html#to-change-the-labels-shown-for-factor-levels",
+    "href": "block1/factor.html#to-change-the-labels-shown-for-factor-levels",
+    "title": "Manage factor variables",
+    "section": "To change the labels shown for factor levels",
+    "text": "To change the labels shown for factor levels\nTo relabel “carni” as “carnivore”, “insecti” as “insectivore”, and so on, we can also use the labels argument of factor().\n\nmsleep &lt;- msleep |&gt;\n   mutate(\n    vore = factor(\n      vore,\n      labels = c('insectivore', 'herbivore', 'omnivore', 'carnivore')\n      # make sure the labels match the order of the levels, else you might relabel carnivores as insectivores etc.!\n    )\n  ) \n\nmsleep\n\n# A tibble: 83 x 11\n   name   genus vore  order conservation sleep_total sleep_rem sleep_cycle awake\n   &lt;chr&gt;  &lt;chr&gt; &lt;fct&gt; &lt;chr&gt; &lt;chr&gt;              &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt; &lt;dbl&gt;\n 1 Cheet~ Acin~ carn~ Carn~ lc                  12.1      NA        NA      11.9\n 2 Owl m~ Aotus omni~ Prim~ &lt;NA&gt;                17         1.8      NA       7  \n 3 Mount~ Aplo~ herb~ Rode~ nt                  14.4       2.4      NA       9.6\n 4 Great~ Blar~ omni~ Sori~ lc                  14.9       2.3       0.133   9.1\n 5 Cow    Bos   herb~ Arti~ domesticated         4         0.7       0.667  20  \n 6 Three~ Brad~ herb~ Pilo~ &lt;NA&gt;                14.4       2.2       0.767   9.6\n 7 North~ Call~ carn~ Carn~ vu                   8.7       1.4       0.383  15.3\n 8 Vespe~ Calo~ &lt;NA&gt;  Rode~ &lt;NA&gt;                 7        NA        NA      17  \n 9 Dog    Canis carn~ Carn~ domesticated        10.1       2.9       0.333  13.9\n10 Roe d~ Capr~ herb~ Arti~ lc                   3        NA        NA      21  \n# i 73 more rows\n# i 2 more variables: brainwt &lt;dbl&gt;, bodywt &lt;dbl&gt;\n\n\nThis change is more apparent in the vore column!\nAnd we can also see it using str():\n\nstr(msleep)\n\ntibble [83 x 11] (S3: tbl_df/tbl/data.frame)\n $ name        : chr [1:83] \"Cheetah\" \"Owl monkey\" \"Mountain beaver\" \"Greater short-tailed shrew\" ...\n $ genus       : chr [1:83] \"Acinonyx\" \"Aotus\" \"Aplodontia\" \"Blarina\" ...\n $ vore        : Factor w/ 4 levels \"insectivore\",..: 4 3 2 3 2 2 4 NA 4 2 ...\n $ order       : chr [1:83] \"Carnivora\" \"Primates\" \"Rodentia\" \"Soricomorpha\" ...\n $ conservation: chr [1:83] \"lc\" NA \"nt\" \"lc\" ...\n $ sleep_total : num [1:83] 12.1 17 14.4 14.9 4 14.4 8.7 7 10.1 3 ...\n $ sleep_rem   : num [1:83] NA 1.8 2.4 2.3 0.7 2.2 1.4 NA 2.9 NA ...\n $ sleep_cycle : num [1:83] NA NA NA 0.133 0.667 ...\n $ awake       : num [1:83] 11.9 7 9.6 9.1 20 9.6 15.3 17 13.9 21 ...\n $ brainwt     : num [1:83] NA 0.0155 NA 0.00029 0.423 NA NA NA 0.07 0.0982 ...\n $ bodywt      : num [1:83] 50 0.48 1.35 0.019 600 ...",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Manage factor variables"
+    ]
+  },
+  {
+    "objectID": "block1/central-tendency.html",
+    "href": "block1/central-tendency.html",
+    "title": "Measure central tendency",
+    "section": "",
+    "text": "We’ll illustrate measures of central tendency with the msleep dataset that comes from tidyverse. msleep contains some data about how much different kinds of mammals sleep. Here’s what the first few rows of msleep look like.\nmsleep |&gt; head()\n\n# A tibble: 6 x 11\n  name    genus vore  order conservation sleep_total sleep_rem sleep_cycle awake\n  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;              &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt; &lt;dbl&gt;\n1 Cheetah Acin~ carni Carn~ lc                  12.1      NA        NA      11.9\n2 Owl mo~ Aotus omni  Prim~ &lt;NA&gt;                17         1.8      NA       7  \n3 Mounta~ Aplo~ herbi Rode~ nt                  14.4       2.4      NA       9.6\n4 Greate~ Blar~ omni  Sori~ lc                  14.9       2.3       0.133   9.1\n5 Cow     Bos   herbi Arti~ domesticated         4         0.7       0.667  20  \n6 Three-~ Brad~ herbi Pilo~ &lt;NA&gt;                14.4       2.2       0.767   9.6\n# i 2 more variables: brainwt &lt;dbl&gt;, bodywt &lt;dbl&gt;",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Measure central tendency"
+    ]
+  },
+  {
+    "objectID": "block1/central-tendency.html#mean",
+    "href": "block1/central-tendency.html#mean",
+    "title": "Measure central tendency",
+    "section": "Mean",
+    "text": "Mean\nThe mean is a variable’s average value.\nIt can be computed in two ways:\n\nby summing all observations together using sum(), then dividing by the total number of observations n()\nby using the mean() function\n\nFor example, to find the mean hours of sleep in msleep:\n\nmsleep |&gt;\n  summarise(\n    mean_by_hand     = sum(sleep_total) / n(),\n    mean_by_function = mean(sleep_total)\n  )\n\n# A tibble: 1 x 2\n  mean_by_hand mean_by_function\n         &lt;dbl&gt;            &lt;dbl&gt;\n1         10.4             10.4\n\n\nSame number!\n\nMeans by group\nTo find the mean hours of sleep for each genus in msleep, add group_by() for the variable you want to group by, then pipe that into summarise():\n\nmsleep |&gt;\n  group_by(genus) |&gt;\n  summarise(\n    mean_sleep = mean(sleep_total)\n  )\n\n# A tibble: 77 x 2\n   genus       mean_sleep\n   &lt;chr&gt;            &lt;dbl&gt;\n 1 Acinonyx          12.1\n 2 Aotus             17  \n 3 Aplodontia        14.4\n 4 Blarina           14.9\n 5 Bos                4  \n 6 Bradypus          14.4\n 7 Callorhinus        8.7\n 8 Calomys            7  \n 9 Canis             10.1\n10 Capreolus          3  \n# i 67 more rows\n\n\n\n\nI’m just seeing “NA”\nmean() worked for sleep_total, but if we try it with sleep_rem (hours of REM sleep), we get “NA” instead of a number.\n\nmsleep |&gt;\n  summarise(\n    mean_REM = mean(sleep_rem)\n  )\n\n# A tibble: 1 x 1\n  mean_REM\n     &lt;dbl&gt;\n1       NA\n\n\nThis is because the data has not recorded the REM sleep for every animal. Where the hours of REM sleep are unknown, the data contains the value NA. NA stands for “not available”. And any NAs in this variable will make the mean() function return NA instead of an actual number.\nTo force mean() to overlook the NAs and return the mean of all the values we do have, use the code na.rm = TRUE (na.rm stands for “NA remove”).\n\nmsleep |&gt;\n  summarise(\n    mean_REM = mean(sleep_rem, na.rm = TRUE)\n  )\n\n# A tibble: 1 x 1\n  mean_REM\n     &lt;dbl&gt;\n1     1.88",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Measure central tendency"
+    ]
+  },
+  {
+    "objectID": "block1/central-tendency.html#median",
+    "href": "block1/central-tendency.html#median",
+    "title": "Measure central tendency",
+    "section": "Median",
+    "text": "Median\nThe median is the value for which 50% of observations a lower and 50% are higher. Think of it as the mid-point of the list of sorted values.\n\nmsleep |&gt;\n  summarise(\n    median_sleep = median(sleep_total)\n  )\n\n# A tibble: 1 x 1\n  median_sleep\n         &lt;dbl&gt;\n1         10.1\n\n\n\nMedians by group\n\nmsleep |&gt;\n  group_by(genus) |&gt;\n  summarise(\n    median_sleep = median(sleep_total)\n  )\n\n# A tibble: 77 x 2\n   genus       median_sleep\n   &lt;chr&gt;              &lt;dbl&gt;\n 1 Acinonyx            12.1\n 2 Aotus               17  \n 3 Aplodontia          14.4\n 4 Blarina             14.9\n 5 Bos                  4  \n 6 Bradypus            14.4\n 7 Callorhinus          8.7\n 8 Calomys              7  \n 9 Canis               10.1\n10 Capreolus            3  \n# i 67 more rows\n\n\n\n\nI’m just seeing “NA”\nna.rm works for median() too.\nAttempting to find the median of a variable containing NAs:\n\nmsleep |&gt;\n  summarise(\n    median_REM = median(sleep_rem)\n  )\n\n# A tibble: 1 x 1\n  median_REM\n       &lt;dbl&gt;\n1         NA\n\n\nWith na.rm = TRUE:\n\nmsleep |&gt;\n  summarise(\n    median_REM = median(sleep_rem, na.rm = TRUE)\n  )\n\n# A tibble: 1 x 1\n  median_REM\n       &lt;dbl&gt;\n1        1.5",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Measure central tendency"
+    ]
+  },
+  {
+    "objectID": "block1/central-tendency.html#mode",
+    "href": "block1/central-tendency.html#mode",
+    "title": "Measure central tendency",
+    "section": "Mode",
+    "text": "Mode\nThe mode of a variable is that variable’s most frequent value, or in other words, the value that occurs the most often.\nThere’s no mode() function in R. So we find the mode by generating a frequency table and looking at it to find which value has the greatest frequency.\n\nmsleep |&gt;\n  count(vore)\n\n# A tibble: 5 x 2\n  vore        n\n  &lt;chr&gt;   &lt;int&gt;\n1 carni      19\n2 herbi      32\n3 insecti     5\n4 omni       20\n5 &lt;NA&gt;        7\n\n\nThe mode of vore is “herbi”.\n\n\n\n\n\n\nCautionAdvanced: Sort the table by frequency\n\n\n\n\n\nThe arrange() function from tidyverse will sort whatever column you name in ascending order (i.e., smallest values first).\n\nmsleep |&gt;\n  count(vore) |&gt;\n  arrange(n)\n\n# A tibble: 5 x 2\n  vore        n\n  &lt;chr&gt;   &lt;int&gt;\n1 insecti     5\n2 &lt;NA&gt;        7\n3 carni      19\n4 omni       20\n5 herbi      32\n\n\nTo sort in descending order, use arrange(desc()).\n\nmsleep |&gt;\n  count(vore) |&gt;\n  arrange(desc(n))\n\n# A tibble: 5 x 2\n  vore        n\n  &lt;chr&gt;   &lt;int&gt;\n1 herbi      32\n2 omni       20\n3 carni      19\n4 &lt;NA&gt;        7\n5 insecti     5\n\n\nThe value in the first row of this table is the mode.",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Measure central tendency"
+    ]
+  },
+  {
+    "objectID": "block1/central-tendency.html#which-measures-for-which-variable-types",
+    "href": "block1/central-tendency.html#which-measures-for-which-variable-types",
+    "title": "Measure central tendency",
+    "section": "Which measures for which variable types",
+    "text": "Which measures for which variable types\n\n\n\n\n\n\n\n\n\n\nMode\nMedian\nMean\n\n\n\n\nNominal (unordered categorical)\n✔\n✘\n✘\n\n\nOrdinal (ordered categorical)\n✔\n✔\n?(you may see it for certain types of ordinal data; people disagree)\n\n\nNumeric Continuous\n✔\n✔\n✔",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Measure central tendency"
+    ]
+  },
+  {
+    "objectID": "block1/freq-table.html",
+    "href": "block1/freq-table.html",
+    "title": "Make a frequency table",
+    "section": "",
+    "text": "A frequency table counts up the number of times each level of a categorical variable appears in the data.\nWe’ll make a frequency table using the msleep dataset that comes from tidyverse. msleep contains some data about how much different kinds of mammals sleep. Here’s what the first few rows of msleep look like.\n\nmsleep |&gt; head()\n\n# A tibble: 6 x 11\n  name    genus vore  order conservation sleep_total sleep_rem sleep_cycle awake\n  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;              &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt; &lt;dbl&gt;\n1 Cheetah Acin~ carni Carn~ lc                  12.1      NA        NA      11.9\n2 Owl mo~ Aotus omni  Prim~ &lt;NA&gt;                17         1.8      NA       7  \n3 Mounta~ Aplo~ herbi Rode~ nt                  14.4       2.4      NA       9.6\n4 Greate~ Blar~ omni  Sori~ lc                  14.9       2.3       0.133   9.1\n5 Cow     Bos   herbi Arti~ domesticated         4         0.7       0.667  20  \n6 Three-~ Brad~ herbi Pilo~ &lt;NA&gt;                14.4       2.2       0.767   9.6\n# i 2 more variables: brainwt &lt;dbl&gt;, bodywt &lt;dbl&gt;\n\n\nTo make a frequency table for the variable vore, we take our data frame and pipe it into the tidyverse function count(). Inside the parentheses of count(), we name the column that we want to make the frequency table for.\n\nmsleep |&gt;\n  count(vore)\n\n# A tibble: 5 x 2\n  vore        n\n  &lt;chr&gt;   &lt;int&gt;\n1 carni      19\n2 herbi      32\n3 insecti     5\n4 omni       20\n5 &lt;NA&gt;        7",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Make a frequency table"
+    ]
+  },
+  {
+    "objectID": "block1/intro-ggplot.html",
+    "href": "block1/intro-ggplot.html",
+    "title": "Plot a variable",
+    "section": "",
+    "text": "To make plots, we will use the ggplot() function from tidyverse.\nWe’ll make plots table using the msleep dataset that comes from tidyverse. msleep contains some data about how much different kinds of mammals sleep. Here’s what the first few rows of msleep look like.\nmsleep |&gt; head()\n\n# A tibble: 6 x 11\n  name    genus vore  order conservation sleep_total sleep_rem sleep_cycle awake\n  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;              &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt; &lt;dbl&gt;\n1 Cheetah Acin~ carni Carn~ lc                  12.1      NA        NA      11.9\n2 Owl mo~ Aotus omni  Prim~ &lt;NA&gt;                17         1.8      NA       7  \n3 Mounta~ Aplo~ herbi Rode~ nt                  14.4       2.4      NA       9.6\n4 Greate~ Blar~ omni  Sori~ lc                  14.9       2.3       0.133   9.1\n5 Cow     Bos   herbi Arti~ domesticated         4         0.7       0.667  20  \n6 Three-~ Brad~ herbi Pilo~ &lt;NA&gt;                14.4       2.2       0.767   9.6\n# i 2 more variables: brainwt &lt;dbl&gt;, bodywt &lt;dbl&gt;",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Plot a variable"
+    ]
+  },
+  {
+    "objectID": "block1/intro-ggplot.html#bar-plot",
+    "href": "block1/intro-ggplot.html#bar-plot",
+    "title": "Plot a variable",
+    "section": "Bar plot",
+    "text": "Bar plot\nBar plots let us visualise frequency tables.\n\nmsleep |&gt;\n  ggplot(aes(x = vore)) +\n  geom_bar()\n\n\n\n\n\n\n\n\nSometimes if the labels are long enough, then they’ll overlap if the variable is shown along the x axis. In that case, it’s more reader-friendly to show them along the y axis.\n\nmsleep |&gt;\n  ggplot(aes(y = order)) +\n  geom_bar()\n\n\n\n\n\n\n\n\n\nCustomise your bar plot\nInside geom_bar(), you can use the fill argument to specify a colour for all the bars, or you can use the colour argument to specify a colour to outline each bar. Or both!\n\nmsleep |&gt;\n  ggplot(aes(y = vore)) +\n  geom_bar(fill = 'darkseagreen')\n\n\n\n\n\n\n\n\n\nmsleep |&gt;\n  ggplot(aes(y = vore)) +\n  geom_bar(colour = 'darkslategray', fill = 'darkseagreen')\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nCautionWhat colour options are there?\n\n\n\n\n\nHere are all of the named colours you can choose from.\n\n\n\nFor more detail and other methods for customising colour, check out this page on the R Graph Gallery.",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Plot a variable"
+    ]
+  },
+  {
+    "objectID": "block1/intro-ggplot.html#boxplot",
+    "href": "block1/intro-ggplot.html#boxplot",
+    "title": "Plot a variable",
+    "section": "Boxplot",
+    "text": "Boxplot\nBoxplots visualise the interquartile range (IQR).\n\n\n\n\n\n\n\n\n\nTo create a boxplot:\n\nggplot(data = msleep, aes(x = sleep_total)) +\n  geom_boxplot()\n\n\n\n\n\n\n\n\n\nggplot(data = msleep, aes(y = sleep_total)) +\n  geom_boxplot()\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nCautionWhere are these –0.4, –0.2, 0.0 numbers coming from?\n\n\n\n\n\nThey’re meaningless numbers that ggplot puts there automatically. Why? Because by default, it wants to display some values on both the y axis and the x axis. So it invents these ones to put on the axis that you haven’t defined.\nAdvanced: To suppress those numbers, you can add the following theme() function to your code. (Don’t worry too much about what these bits mean yet.)\n\n\n\nggplot(data = msleep, aes(x = sleep_total)) +\n  geom_boxplot() +\n  theme(\n    axis.text.y = element_blank(),\n    axis.ticks.y = element_blank()\n  )\n\n\n\n\n\n\n\n\n\n\nggplot(data = msleep, aes(y = sleep_total)) +\n  geom_boxplot() +\n  theme(\n    axis.text.x = element_blank(),\n    axis.ticks.x = element_blank()\n  )\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nCautionWhy some people don’t like boxplots\n\n\n\n\n\nIf you specifically want to visualise the data’s median and IQR, the boxplots are fine. But if you want to visualise the true distribution of the data, then boxplots might not meet your needs. See, for example, the article I’ve Stopped Using Box Plots. Should You?).\nAn alternative is a violin plot with jittered points, which you will find if you uncollapse the “More kinds of plots” rabbit hole below!\n\n\n\n\nCustomise your boxplot\nThe fill argument of geom_boxplot() changes the background colour, and the colour argument changes the outline colour.\n\nmsleep |&gt;\n  ggplot(aes(x = sleep_total)) +\n  geom_boxplot(colour = 'brown', fill = 'darksalmon')",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Plot a variable"
+    ]
+  },
+  {
+    "objectID": "block1/intro-ggplot.html#histogram",
+    "href": "block1/intro-ggplot.html#histogram",
+    "title": "Plot a variable",
+    "section": "Histogram",
+    "text": "Histogram\nTo visualise numeric data, we can use a histogram, which shows the frequency of values which fall within bins of an equal width.\n\nggplot(data = msleep, aes(x = sleep_total)) + \n  geom_histogram()\n\n\n\n\n\n\n\n\n\nCustomise your histogram\nThe fill and colour arguments work the same way for histograms as they do for bar plots and boxplots:\n\nggplot(data = msleep, aes(x = sleep_total)) +  \n  geom_histogram(fill = 'cadetblue1', colour = 'cyan4')\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nCautionMore kinds of plots, if you feel inspired\n\n\n\n\n\n\nDensity plot\nA density plot is essentially a smoothed-out histogram.\nThe key with density plots: the taller the curve, the more common the values in that range are. Just like a histogram!\nThe numbers on the y axis are not informative—you can just ignore them.\n\nmsleep |&gt;\n  ggplot(aes(x = sleep_total)) +\n  geom_density()\n\n\n\n\n\n\n\n\n\nmsleep |&gt;\n  ggplot(aes(x = sleep_total)) +\n  geom_density(fill = 'antiquewhite', colour = 'antiquewhite4')\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nCautionBut I want to know what the “density” numbers mean\n\n\n\n\n\nThink of “density” like “relative frequency”, with a twist.\nIn a density plot, mathematically speaking, the total area under the curve is equal to 1.\nSo the values on the y axis are like counts, but scaled, so that the total area under the curve comes to 1.\n\n\n\n\n\nViolin plot\nA violin plot is an alternative to a boxplot if you want to visualise a variable’s whole distribution, not just its IQR.\nA violin plot is essentially a density plot that’s been stood upright on its end, and then mirrored to create a violin-like shape:\n\nmsleep |&gt;\n  ggplot(aes(y = sleep_total, x = 1)) +  \n  # note: aes(x = 1) is not meaningful, \n  # but necessary for the plot to work\n  # if we're only plotting one variable\n  geom_violin()\n\n\n\n\n\n\n\n\nJust like with the boxplots, the values that ggplot invents along the x axis are not meaningful.\nAdvanced: you might want to show the individual data points on top of the violin as well. You can achieve that with geom_jitter(), which plots one point for each observation.\n\nmsleep |&gt;\n  ggplot(aes(y = sleep_total, x = 1)) +  \n  geom_violin() +\n  geom_jitter()\n\n\n\n\n\n\n\n\nHow to interpret geom_jitter()?\nIt looks like a cloud of data points, but only the values on the y axis are actually meaningful. Each data point is plotted at the correct sleep_total position along the y axis, and its position on the x axis is randomly “jittered” so that the data points don’t overlap.\n\n\n\n\n\n\nCautionChanging the amount of jitter\n\n\n\n\n\nHere’s what those data points would look like if they weren’t vertically jittered at all: that is, if they were all lined up at the same y value.\n\nmsleep |&gt;\n  ggplot(aes(y = sleep_total, x = 1)) +  \n  geom_violin() +\n  geom_jitter(width = 0)\n\n\n\n\n\n\n\n\nYou can play with the width argument of geom_jitter() to find your favourite happy medium.\n\nmsleep |&gt;\n  ggplot(aes(y = sleep_total, x = 1)) +  \n  geom_violin() +\n  geom_jitter(width = 0.2)\n\n\n\n\n\n\n\n\n\n\n\nAnd to customise the colours:\n\nmsleep |&gt;\n  ggplot(aes(y = sleep_total, x = 1)) +  \n  geom_violin(\n    fill = 'darkolivegreen3', \n    colour = 'darkgreen'\n    ) +  \n  geom_jitter(colour = 'darkgreen')\n\n\n\n\n\n\n\n\n\n\n\n\n\nFor lots more detail on ggplot(), check out the R for Data Science online textbook.",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Plot a variable"
+    ]
+  },
+  {
+    "objectID": "block1/packages.html",
+    "href": "block1/packages.html",
+    "title": "Use R Packages",
+    "section": "",
+    "text": "A “package” in R is a collection of code that someone out there in the R community wrote. Packages are usually designed for specific purposes.\nFor example:\nWe install a package only once. But each time we start writing in a new R script, we have to load the packages we need.",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Use R Packages"
+    ]
+  },
+  {
+    "objectID": "block1/packages.html#to-install-a-package",
+    "href": "block1/packages.html#to-install-a-package",
+    "title": "Use R Packages",
+    "section": "To install a package",
+    "text": "To install a package\nIn the console (not in your R script), type install.packages(\"cowsay\") and hit Enter.\nLots of red text will come up, and it will take a bit of time.\nWhen it has finished, and R is ready for you to use again, you will see the blue sign &gt;.",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Use R Packages"
+    ]
+  },
+  {
+    "objectID": "block1/packages.html#to-load-a-package",
+    "href": "block1/packages.html#to-load-a-package",
+    "title": "Use R Packages",
+    "section": "To load a package",
+    "text": "To load a package\nIn your R script (not in the console), type library(cowsay) and run the line. This loads the package for us to use it.\n(Why do we load the script in the R script and not the console? We include all library() lines in our R script (rather than running them in the console) so that anyone else who tries to run our code knows what R packages we have used in this specific script.)\n\nlibrary(cowsay)",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Use R Packages"
+    ]
+  },
+  {
+    "objectID": "block1/packages.html#to-use-a-package",
+    "href": "block1/packages.html#to-use-a-package",
+    "title": "Use R Packages",
+    "section": "To use a package",
+    "text": "To use a package\nAfter running library(cowsay), you have access to all the contents of the package cowsay. Here’s an example.\nIn the next line of your R script, type say(\"hello world\", by = \"cow\") and run the line. Hopefully you got a similar result to ours:\n\nsay(\"hey there!\", by = \"cow\")\n\n\n ____________ \n&lt; hey there! &gt;\n ------------ \n      \\\n       \\\n\n        ^__^ \n        (oo)\\ ________ \n        (__)\\         )\\ /\\ \n             ||------w|\n             ||      ||\n\n\nThen why not try this in the next line?\n\nsay(\"what's up?\", by = 'grumpycat')\n\n\n ____________ \n&lt; what's up? &gt;\n ------------ \n     \\\n      \\\n\n      &lt;ef&gt;&lt;be&gt;&lt;8a&gt; _ &lt;ef&gt;&lt;be&gt;&lt;8a&gt;\n      &lt;e0&gt;&lt;b2&gt;&lt;a0&gt; X &lt;e0&gt;&lt;b2&gt;&lt;a0&gt;",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Use R Packages"
+    ]
+  },
+  {
+    "objectID": "block1/packages.html#errors-if-package-not-loaded",
+    "href": "block1/packages.html#errors-if-package-not-loaded",
+    "title": "Use R Packages",
+    "section": "Errors if package not loaded",
+    "text": "Errors if package not loaded\nIf you tried to run that line of code without running library(cowsay) first, R would give you an error message:\nError in say(\"what's up?\", by = \"grumpycat\") : \n  could not find function \"say\"\nIf you think your code should work and the error says something like “could not find function”, then chances are that you’ve either left out or forgotten to run the line that loads that package.",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Use R Packages"
+    ]
+  },
+  {
+    "objectID": "block1/read-data.html",
+    "href": "block1/read-data.html",
+    "title": "Read in and inspect data",
+    "section": "",
+    "text": "To read data from an online source into R, use the following code:\n\nlibrary(tidyverse)\n\ntips2 &lt;- read_csv(\"https://uoepsy.github.io/data/RestaurantTips2.csv\")\n\nread_csv() comes from the tidyverse package, so you’ll need to load the tidyverse package if you haven’t already.",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Read in and inspect data"
+    ]
+  },
+  {
+    "objectID": "block1/read-data.html#to-read-in-data",
+    "href": "block1/read-data.html#to-read-in-data",
+    "title": "Read in and inspect data",
+    "section": "",
+    "text": "To read data from an online source into R, use the following code:\n\nlibrary(tidyverse)\n\ntips2 &lt;- read_csv(\"https://uoepsy.github.io/data/RestaurantTips2.csv\")\n\nread_csv() comes from the tidyverse package, so you’ll need to load the tidyverse package if you haven’t already.",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Read in and inspect data"
+    ]
+  },
+  {
+    "objectID": "block1/read-data.html#to-inspect-data",
+    "href": "block1/read-data.html#to-inspect-data",
+    "title": "Read in and inspect data",
+    "section": "To inspect data",
+    "text": "To inspect data\nTo look at the first few rows, use head():\n\n\n\nhead(tips2)\n\n# A tibble: 6 x 10\n   Bill   Tip Credit Guests Day   Server PctTip HadCoffee   IQ1   IQ2\n  &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1  23.7 10    n           2 f     A        42.2         2    93   100\n2  32.0  5.01 y           2 f     A        15.7         2    96    98\n3  17.4  3.61 y           2 f     B        20.8         2    94    99\n4  15.4  3    n           2 f     B        19.5         2    99   108\n5  18.6  2.5  n           2 f     A        13.4         2   129   106\n6  21.6  3.44 n           2 f     B        16           2    82   118\n\n\n\n\n\n\ntips2 |&gt;\n  head()\n\n# A tibble: 6 x 10\n   Bill   Tip Credit Guests Day   Server PctTip HadCoffee   IQ1   IQ2\n  &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1  23.7 10    n           2 f     A        42.2         2    93   100\n2  32.0  5.01 y           2 f     A        15.7         2    96    98\n3  17.4  3.61 y           2 f     B        20.8         2    94    99\n4  15.4  3    n           2 f     B        19.5         2    99   108\n5  18.6  2.5  n           2 f     A        13.4         2   129   106\n6  21.6  3.44 n           2 f     B        16           2    82   118\n\n\n\n\nNote: Both versions of this code accomplish the same thing. One places tips2 inside the head() function, and the other one uses the pipe to feed tips2 into head().\n\nTo see how many rows and columns are in the data, use dim():\n\n\n\ndim(tips2)\n\n[1] 99 10\n\n\n\n\n\n\ntips2 |&gt;\n  dim()\n\n[1] 99 10\n\n\n\n\n\nTo see how many rows are in the data, use nrow():\n\n\n\nnrow(tips2)\n\n[1] 99\n\n\n\n\n\n\ntips2 |&gt;\n  nrow()\n\n[1] 99\n\n\n\n\n\nTo see how many columns are in the data, use ncol():\n\n\n\nncol(tips2)\n\n[1] 10\n\n\n\n\n\n\ntips2 |&gt;\n  ncol()\n\n[1] 10\n\n\n\n\n\nTo see the structure of the data, use str():\n\n\n\nstr(tips2)\n\nspc_tbl_ [99 x 10] (S3: spec_tbl_df/tbl_df/tbl/data.frame)\n $ Bill     : num [1:99] 23.7 32 17.4 15.4 18.6 ...\n $ Tip      : num [1:99] 10 5.01 3.61 3 2.5 3.44 2.42 3 2 1.25 ...\n $ Credit   : chr [1:99] \"n\" \"y\" \"y\" \"n\" ...\n $ Guests   : num [1:99] 2 2 2 2 2 2 2 2 2 2 ...\n $ Day      : chr [1:99] \"f\" \"f\" \"f\" \"f\" ...\n $ Server   : chr [1:99] \"A\" \"A\" \"B\" \"B\" ...\n $ PctTip   : num [1:99] 42.2 15.7 20.8 19.5 13.4 16 12.4 12.7 10.7 14.2 ...\n $ HadCoffee: num [1:99] 2 2 2 2 2 2 2 2 2 1 ...\n $ IQ1      : num [1:99] 93 96 94 99 129 82 127 93 85 121 ...\n $ IQ2      : num [1:99] 100 98 99 108 106 118 94 91 113 96 ...\n - attr(*, \"spec\")=\n  .. cols(\n  ..   Bill = col_double(),\n  ..   Tip = col_double(),\n  ..   Credit = col_character(),\n  ..   Guests = col_double(),\n  ..   Day = col_character(),\n  ..   Server = col_character(),\n  ..   PctTip = col_double(),\n  ..   HadCoffee = col_double(),\n  ..   IQ1 = col_double(),\n  ..   IQ2 = col_double()\n  .. )\n - attr(*, \"problems\")=&lt;externalptr&gt; \n\n\n\n\n\n\ntips2 |&gt;\n  str()\n\nspc_tbl_ [99 x 10] (S3: spec_tbl_df/tbl_df/tbl/data.frame)\n $ Bill     : num [1:99] 23.7 32 17.4 15.4 18.6 ...\n $ Tip      : num [1:99] 10 5.01 3.61 3 2.5 3.44 2.42 3 2 1.25 ...\n $ Credit   : chr [1:99] \"n\" \"y\" \"y\" \"n\" ...\n $ Guests   : num [1:99] 2 2 2 2 2 2 2 2 2 2 ...\n $ Day      : chr [1:99] \"f\" \"f\" \"f\" \"f\" ...\n $ Server   : chr [1:99] \"A\" \"A\" \"B\" \"B\" ...\n $ PctTip   : num [1:99] 42.2 15.7 20.8 19.5 13.4 16 12.4 12.7 10.7 14.2 ...\n $ HadCoffee: num [1:99] 2 2 2 2 2 2 2 2 2 1 ...\n $ IQ1      : num [1:99] 93 96 94 99 129 82 127 93 85 121 ...\n $ IQ2      : num [1:99] 100 98 99 108 106 118 94 91 113 96 ...\n - attr(*, \"spec\")=\n  .. cols(\n  ..   Bill = col_double(),\n  ..   Tip = col_double(),\n  ..   Credit = col_character(),\n  ..   Guests = col_double(),\n  ..   Day = col_character(),\n  ..   Server = col_character(),\n  ..   PctTip = col_double(),\n  ..   HadCoffee = col_double(),\n  ..   IQ1 = col_double(),\n  ..   IQ2 = col_double()\n  .. )\n - attr(*, \"problems\")=&lt;externalptr&gt; \n\n\n\n\n\nTo take a glimpse at the data types and the first few values of each column of the data, use glimpse():\n\n\n\nglimpse(tips2)\n\nRows: 99\nColumns: 10\n$ Bill      &lt;dbl&gt; 23.70, 31.99, 17.39, 15.41, 18.62, 21.56, 19.58, 23.59, 18.6~\n$ Tip       &lt;dbl&gt; 10.00, 5.01, 3.61, 3.00, 2.50, 3.44, 2.42, 3.00, 2.00, 1.25,~\n$ Credit    &lt;chr&gt; \"n\", \"y\", \"y\", \"n\", \"n\", \"n\", \"n\", \"n\", \"n\", \"n\", \"n\", \"n\", ~\n$ Guests    &lt;dbl&gt; 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, ~\n$ Day       &lt;chr&gt; \"f\", \"f\", \"f\", \"f\", \"f\", \"f\", \"f\", \"f\", \"f\", \"f\", \"f\", \"f\", ~\n$ Server    &lt;chr&gt; \"A\", \"A\", \"B\", \"B\", \"A\", \"B\", \"A\", \"A\", \"B\", \"B\", \"B\", \"C\", ~\n$ PctTip    &lt;dbl&gt; 42.2, 15.7, 20.8, 19.5, 13.4, 16.0, 12.4, 12.7, 10.7, 14.2, ~\n$ HadCoffee &lt;dbl&gt; 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 0, 2, 2, 0, 1, 1, 2, 0, 2, ~\n$ IQ1       &lt;dbl&gt; 93, 96, 94, 99, 129, 82, 127, 93, 85, 121, 94, 76, 76, 98, 1~\n$ IQ2       &lt;dbl&gt; 100, 98, 99, 108, 106, 118, 94, 91, 113, 96, 102, 84, 102, 9~\n\n\n\n\n\n\ntips2 |&gt;\n  glimpse()\n\nRows: 99\nColumns: 10\n$ Bill      &lt;dbl&gt; 23.70, 31.99, 17.39, 15.41, 18.62, 21.56, 19.58, 23.59, 18.6~\n$ Tip       &lt;dbl&gt; 10.00, 5.01, 3.61, 3.00, 2.50, 3.44, 2.42, 3.00, 2.00, 1.25,~\n$ Credit    &lt;chr&gt; \"n\", \"y\", \"y\", \"n\", \"n\", \"n\", \"n\", \"n\", \"n\", \"n\", \"n\", \"n\", ~\n$ Guests    &lt;dbl&gt; 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, ~\n$ Day       &lt;chr&gt; \"f\", \"f\", \"f\", \"f\", \"f\", \"f\", \"f\", \"f\", \"f\", \"f\", \"f\", \"f\", ~\n$ Server    &lt;chr&gt; \"A\", \"A\", \"B\", \"B\", \"A\", \"B\", \"A\", \"A\", \"B\", \"B\", \"B\", \"C\", ~\n$ PctTip    &lt;dbl&gt; 42.2, 15.7, 20.8, 19.5, 13.4, 16.0, 12.4, 12.7, 10.7, 14.2, ~\n$ HadCoffee &lt;dbl&gt; 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 0, 2, 2, 0, 1, 1, 2, 0, 2, ~\n$ IQ1       &lt;dbl&gt; 93, 96, 94, 99, 129, 82, 127, 93, 85, 121, 94, 76, 76, 98, 1~\n$ IQ2       &lt;dbl&gt; 100, 98, 99, 108, 106, 118, 94, 91, 113, 96, 102, 84, 102, 9~",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Read in and inspect data"
+    ]
+  },
+  {
+    "objectID": "block1/vectors.html",
+    "href": "block1/vectors.html",
+    "title": "Store data with vectors",
+    "section": "",
+    "text": "To store a sequence of numbers into R, we combine the values using the combine function c() and give the sequence a name. A sequence of elements all of the same type is called a vector. To view the stored content, simply type the name of the vector.\n\nmyfirstvector &lt;- c(1, 5, 3, 7)\nmyfirstvector\n\n[1] 1 5 3 7\n\n\nWe can perform arithmetic operations on each value of the vector. For example, to add five to each entry:\n\nmyfirstvector + 5\n\n[1]  6 10  8 12\n\n\n\nVectors can hold things other than numbers. They can also hold words, for example, which are of data type “character”. Words need to be written inside quotation marks, e.g. “enquoted”.\n\nwordsvector &lt;- c(\"cat\", \"dog\", \"parrot\", \"peppapig\")\nwordsvector\n\n[1] \"cat\"      \"dog\"      \"parrot\"   \"peppapig\"\n\n\nYou can use either double-quote or single-quote symbols:\n\nc(\"cat\", \"dog\", \"parrot\", \"peppapig\")\n\n[1] \"cat\"      \"dog\"      \"parrot\"   \"peppapig\"\n\nc('cat', 'dog', 'parrot', 'peppapig')\n\n[1] \"cat\"      \"dog\"      \"parrot\"   \"peppapig\"\n\n\nThe function class() will tell you the type of the object. In this case, it is a character vector.\n\nclass(wordsvector)\n\n[1] \"character\"\n\n\nSome operations like addition and multiplication (which only make sense for numbers) will make R upset if you try them on character vectors. For example, if we try to add 5 to each word in wordsvector:\n\nwordsvector + 5\n\nError in wordsvector + 5 : non-numeric argument to binary operator\n\nFinally, R requires that vectors contain elements that are all of the same type. A practical consequence of this is that, if you try to combine numbers and characters in a single vector, then R will transform all of those different things to be of the same type.\nTypically, R chooses the most general or easily-convertible type between the two. In the case below, it makes everything a character—you can tell because all the elements, even the numbers, are within quotation marks.\n\nmysecondvector &lt;- c(4, 5, 6, \"cat\")\nmysecondvector\n\n[1] \"4\"   \"5\"   \"6\"   \"cat\"",
+    "crumbs": [
+      "Block 1",
+      "How to",
+      "Store data with vectors"
+    ]
+  }
+]

@@ -1,0 +1,172 @@
+---
+title: "Measure central tendency"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+library(tidyverse)
+```
+
+We'll illustrate measures of central tendency with the `msleep` dataset that comes from `tidyverse`.
+`msleep` contains some data about how much different kinds of mammals sleep.
+Here's what the first few rows of `msleep` look like.
+
+```{r}
+msleep |> head()
+```
+
+
+## Mean
+
+The mean is a variable's average value.
+
+It can be computed in two ways:
+
+- by summing all observations together using `sum()`, then dividing by the total number of observations `n()`
+- by using the `mean()` function
+
+For example, to find the mean hours of sleep in `msleep`:
+
+```{r}
+msleep |>
+  summarise(
+    mean_by_hand     = sum(sleep_total) / n(),
+    mean_by_function = mean(sleep_total)
+  )
+```
+
+Same number!
+
+### Means by group
+
+To find the mean hours of sleep for each `genus` in `msleep`, add `group_by()` for the variable you want to group by, then pipe that into `summarise()`:
+
+```{r}
+msleep |>
+  group_by(genus) |>
+  summarise(
+    mean_sleep = mean(sleep_total)
+  )
+```
+
+
+### I'm just seeing "NA"
+
+`mean()` worked for `sleep_total`, but if we try it with `sleep_rem` (hours of REM sleep), we get "NA" instead of a number.
+
+```{r}
+msleep |>
+  summarise(
+    mean_REM = mean(sleep_rem)
+  )
+```
+
+This is because the data has not recorded the REM sleep for every animal.
+Where the hours of REM sleep are unknown, the data contains the value NA.
+NA stands for "not available".
+And any NAs in this variable will make the `mean()` function return NA instead of an actual number.
+
+To force `mean()` to overlook the NAs and return the mean of all the values we *do* have, use the code `na.rm = TRUE` (`na.rm` stands for "NA remove").
+
+```{r}
+msleep |>
+  summarise(
+    mean_REM = mean(sleep_rem, na.rm = TRUE)
+  )
+```
+
+
+
+
+## Median
+
+The median is the value for which 50% of observations a lower and 50% are higher.
+Think of it as the mid-point of the list of sorted values.
+
+```{r}
+msleep |>
+  summarise(
+    median_sleep = median(sleep_total)
+  )
+```
+
+
+### Medians by group
+
+```{r}
+msleep |>
+  group_by(genus) |>
+  summarise(
+    median_sleep = median(sleep_total)
+  )
+```
+
+### I'm just seeing "NA"
+
+`na.rm` works for `median()` too.
+
+Attempting to find the median of a variable containing NAs:
+
+```{r}
+msleep |>
+  summarise(
+    median_REM = median(sleep_rem)
+  )
+```
+
+With `na.rm = TRUE`:
+
+```{r}
+msleep |>
+  summarise(
+    median_REM = median(sleep_rem, na.rm = TRUE)
+  )
+```
+
+
+
+## Mode
+
+The mode of a variable is that variable's most frequent value, or in other words, the value that occurs the most often.
+
+There's no `mode()` function in R.
+So we find the mode by generating a frequency table and looking at it to find which value has the greatest frequency.
+
+```{r}
+msleep |>
+  count(vore)
+```
+
+The mode of `vore` is "herbi".
+
+::: {.callout-caution collapse="true"}
+#### Advanced: Sort the table by frequency
+
+The `arrange()` function from `tidyverse` will sort whatever column you name in ascending order (i.e., smallest values first).
+
+```{r}
+msleep |>
+  count(vore) |>
+  arrange(n)
+```
+
+To sort in descending order, use `arrange(desc())`.
+
+```{r}
+msleep |>
+  count(vore) |>
+  arrange(desc(n))
+```
+
+
+The value in the first row of this table is the mode.
+
+:::
+
+## Which measures for which variable types
+
+|   |  Mode |  Median |  Mean |
+|--:|--:|--:|--:| 
+|  Nominal (unordered categorical) | &#10004; | &#10008; | &#10008; | 
+|  Ordinal (ordered categorical) | &#10004; | &#10004; | **?**<br>(you may see it for certain types of ordinal data; people disagree) |
+|  Numeric Continuous  | &#10004; | &#10004; | &#10004; |

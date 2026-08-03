@@ -1,0 +1,273 @@
+---
+title: "Confidence intervals"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+```
+
+
+## Procrastination example
+
+The Procrastination Assessment Scale for Students (PASS) was designed to assess how individuals approach decision situations, specifically the tendency of individuals to postpone decisions ([Solomon & Rothblum, 1984](https://psycnet.apa.org/doiLanding?doi=10.1037%2F0022-0167.31.4.503)).
+
+The PASS assesses the prevalence of procrastination in six areas: writing a paper; studying for an exam; keeping up with reading; administrative tasks; attending meetings; and performing general tasks. For a measure of total endorsement of procrastination, responses to 18 questions (each measured on a 1-5 scale) are summed together, providing a single score for each participant (range 0 to 90). The mean score from [Solomon & Rothblum, 1984](https://psycnet.apa.org/doiLanding?doi=10.1037%2F0022-0167.31.4.503) was 33.
+
+> __Investigation:__
+> 
+> What is the average procrastination score of Edinburgh University students?
+
+To answer this question, we will use data collected for a random sample of students from the University of Edinburgh: <https://uoepsy.github.io/data/pass_scores.csv>
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(kableExtra)
+
+tribble(
+    ~'Variable Name', ~'Description',
+    'sid', 'Subject identifier',
+    'school', 'School each subject belonged to',
+    'PASS', 'Total endorsement of procrastination score'
+) |>
+    kbl() |>
+    kable_styling(full_width = FALSE)
+```
+
+Necessary packages:
+
+::: {.column-margin}
+- tidyverse for using `read_csv()`, using `summarise()` and `ggplot()`.
+- patchwork for arranging plots side by side or underneath
+- kableExtra for creating user-friendly tables
+:::
+
+
+```{r}
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+```
+
+Read the data into R:
+
+```{r}
+pass_scores <- read_csv("https://uoepsy.github.io/data/pass_scores.csv")
+dim(pass_scores)
+```
+
+To inspect the data:
+
+::: {.panel-tabset}
+
+### head()
+```{r}
+head(pass_scores)
+```
+
+### glimpse()
+```{r}
+glimpse(pass_scores)
+```
+
+### summary()
+```{r}
+summary(pass_scores)
+```
+
+:::
+
+Visualise the distribution of `PASS` scores:
+
+::: {.column-margin}
+__Note__
+
+The boxplot highlights an outlier (40). However, this value is well within the plausible range of the scale (0 -- 90), hence it is of no concern and the point can be kept for the analysis.
+:::
+
+```{r}
+plt_hist <- ggplot(pass_scores, aes(x = PASS)) + 
+    geom_histogram(color = 'white')
+
+plt_box <- ggplot(pass_scores, aes(x = PASS)) + 
+    geom_boxplot()
+
+plt_hist / plt_box
+```
+
+Descriptive statistics:
+
+```{r}
+stats <- pass_scores |>
+    summarise(n = n(),
+              Min = min(PASS),
+              Max = max(PASS),
+              M = mean(PASS),
+              SD = sd(PASS))
+```
+
+```{r, eval=FALSE}
+stats
+```
+
+```{r, echo=FALSE}
+#| label: pass-stats
+stats
+```
+
+When estimating a parameter, in this case the mean score on the Procrastination Assessment Scale for Students (PASS) for all Edinburgh University students, we do not just report the estimate (sample average score), but also something that reflects our uncertainty in the estimate. This can either be the standard error or a confidence interval. If asked to compute a 95% confidence interval for the mean score on the Procrastination Assessment Scale for Students (PASS) for all Edinburgh University students, we could do:
+
+```{r}
+# Sample mean
+xbar <- stats$M
+
+# Standard error
+s <- stats$SD
+n <- stats$n
+se <- s / sqrt(n)
+se
+
+# Quantiles
+tstar <- qt(c(0.025, 0.975), df = n - 1)
+tstar
+
+# CI
+xbar + tstar * se
+```
+
+:::{.column-margin}
+__WARNING!__
+
+This code won't work if `stats` stores a kable, i.e. the result of `kbl()`.
+Make sure this only stores the tibble, rather than the pretty version from `kbl()`!
+
+<br>
+__Reporting__
+
+These three code chunks should not be visible in the report. You can simply report the CI in a paragraph using the style [LowerCI, UpperCI].
+:::
+
+ 
+:::{.callout-tip}
+#### Example introduction
+A random sample of 20 students from the University of Edinburgh completed a questionnaire measuring their total endorsement of procrastination. The data, available from <https://uoepsy.github.io/data/pass_scores.csv>, were used to estimate the average procrastination score of all Edinburgh University students. The recorded variables included a subject identifier (`sid`), the school of each subject (`school`), and the total score on the Procrastination Assessment Scale for Students (`PASS`). The data do not include any impossible values for the PASS scores, as they were all within the possible range of 0 -- 90. To answer the question of interest, in the following we will only focus on the total PASS score variable.
+:::
+
+:::{.callout-tip}
+#### Example CI interpretation
+From the sample data we obtain an average procrastination score of $M = 30.7$, 95% CI [29.15, 32.25]. Hence, we are 95% confident that a Edinburgh University student will have a procrastination score between 29.15 and 32.25, which is between 0.75 and 3.85 lower than the average score of 33 reported by Solomon & Rothblum.
+:::
+
+
+
+
+
+
+## NFL salary example
+
+> What was the average yearly salary of a National Football League (NFL) player in 2019? 
+
+This question is about the mean salary of all NFL players in 2019, which is denoted $\mu$ and is a population parameter.
+
+We are going to find the confidence interval around this mean (but what we find will apply to confidence intervals around any estimate).
+We will consider two scenarios:
+
+- Entire population data available (unlikely);  
+- Entire population data are NOT available (more common).
+
+### Population data available (unlikely) {-}
+
+If we have data on the entire population of NFL players and we are interested in a parameter such as the population mean salary, we can simply compute the mean on the available population data. 
+There would be no uncertainty and nothing to estimate: we have the entire population data, so we can easily compute the mean salary, and we would know what the actual parameter value is.
+
+In this scenario, we would have a file containing the yearly salaries (in millions of dollars) for all players being paid in 2019 by a National Football League (NFL) team. This entire dataset represents the entire population of all National Football League players in that year.
+
+The data on the entire population:
+
+```{r}
+library(tidyverse)
+
+nfl_pop <- read_csv("https://uoepsy.github.io/data/NFLContracts2019.csv")
+head(nfl_pop)
+```
+
+The population mean salary: 
+
+```{r}
+mu <- mean(nfl_pop$YearlySalary)
+mu
+```
+
+Say we wanted to check whether 1 million was a plausible average yearly salary for a NFL player in 2019. The answer is no, it isn't. We know the actual average salary which is `r mu |> round(2)` million of dollars, and this is different from 1 million.
+
+
+### Population data NOT available (more common) {-}
+
+Now suppose we didn't know anything from the previous section.
+
+In most research, the data for the entire population is not available as we cannot afford to collect data on the entire population. 
+As a consequence, we cannot compute the population parameter $\mu$, which is **unknown**, and we must rely on random **sampling** to estimate it. It is good practice to use a sample size as large as we can afford in order to obtain good precision.
+
+Let's pretend for now that we don't have the entire NFL population data, and are only able to collect data for 50 players. Fortunately someone else did it for us: they chose 50 players at random and interviewed them to find out their salary. The sample data are:
+
+```{r}
+nfl_sample <- read_csv("https://uoepsy.github.io/data/NFLSample2019.csv")
+nfl_sample
+```
+
+We estimate the **unknown** population mean salary (what we are interested in) with the sample mean salary $\bar x$, which we can compute from the obtained sample. The sample mean salary represents our "best guess" of the population mean salary.
+
+```{r}
+xbar <- mean(nfl_sample$YearlySalary)
+xbar
+```
+
+The average salary in the sample of 50 NFL players is `r xbar |> round(2)` million dollars.
+
+Without knowledge of the full data, we would say that we estimate the average salary of an NFL player in the year 2019 to be `r xbar |> round(2)` million dollars.
+
+However, we know that if we had collected a different sample, the sample mean would be a different number from `r xbar |> round(2)` as it varies from sample to sample.
+
+
+```{r}
+nfl_sample
+```
+
+We need a few elements:
+
+- $\bar{x}$, the sample mean which we already computed before
+- $s$, the sample standard deviation
+- $n$, the sample size
+- the new multipliers to the SD based on the $t(n-1)$ distribution
+
+```{r}
+xbar
+
+s <- sd(nfl_sample$YearlySalary)
+s
+
+n <- nrow(nfl_sample)
+n
+
+qt(c(0.025, 0.975), df = n - 1)
+```
+
+The formula to use:
+
+$$
+\left[
+\bar x - 2.01 \cdot \frac{s}{\sqrt n}
+,\  
+\bar x + 2.01 \cdot \frac{s}{\sqrt n}
+\right]
+$$
+
+In R:
+
+```{r}
+xbar - 2.01 * (s / sqrt(n))
+xbar + 2.01 * (s / sqrt(n))
+```
+
+The 95% confidence interval is then [2.13, 4.58] million dollars. We would write this up as:
+
+> We are 95% confident that the average salary of a NFL player in 2019 is between 2.13 and 4.58 million dollars.

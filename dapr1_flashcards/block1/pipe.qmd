@@ -1,0 +1,93 @@
+---
+title: "Connect operations with the pipe |>"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+```
+
+
+Before we get started on the statistics, we're going to briefly introduce a crucial bit of R code. We have seen already seen a few examples of R code such as: 
+
+```{r eval=FALSE}
+# show the dimensions of the data
+dim(somedata)
+
+# show a summary of the data
+summary(somedata)
+
+# factorise and show the "somevariable" variable in the "somedata" dataframe 
+as.factor(somedata$somevariable)
+```
+
+And we can actually wrap functions inside functions: 
+
+```{r eval=FALSE}
+# factorise the "somevariable" variable in the "somedata" dataframe, 
+# then show a summary of it
+summary(as.factor(somedata$somevariable))
+```
+
+**R evaluates code from the inside-out!**  
+
+You can end up with functions inside functions inside functions ... 
+
+```{r}
+# Don't worry about what all these functions do, 
+# it's just an example -
+round(mean(log(cumsum(diff(1:10)))))
+```
+
+We can write in a different style, however, and this may help to keep code tidy and easily readable - we can write __sequentially__:  
+
+![](images/pipes.png)
+
+Notice that what we are doing is using a new symbol: `|>`  
+This symbol takes the output of whatever is on it's left-hand side, and uses it as an _input_ for whatever is on the right-hand side. The `|>` symbol gets called a "pipe".  
+
+Let's see it in action with the `starwars2` dataset. The data contains information on various characteristics of characters from Star Wars. Before we can use the pipe operator, `|>`, we need to load the tidyverse packages, because that is where `|>` is found.
+
+```{r}
+library(tidyverse)
+
+starwars2 <- read_csv("https://uoepsy.github.io/data/starwars2.csv")
+starwars2 |>
+    head()
+starwars2 |>
+    summary()
+```
+
+We can now write code that requires reading it from the inside-out:
+
+```{r eval=FALSE}
+summary(as.factor(starwars2$homeworld))
+```
+
+or which requires reading it from left to right:
+
+```{r}
+starwars2$homeworld |>
+    as.factor() |>
+    summary()
+```
+
+And that long line of code from above:
+
+```{r eval=FALSE}
+# again, don't worry about all these functions, 
+# just notice the difference in the two styles.
+round(mean(log(cumsum(diff(1:10)))))
+```
+
+becomes:
+
+```{r eval=FALSE}
+1:10 |>
+    diff() |>
+    cumsum() |>
+    log() |>
+    mean() |>
+    round()
+```
+
+We're going to use this way of writing a lot throughout the course, and it pairs really well with a group of functions in the __tidyverse__ packages, which were designed to be used in conjunction with `|>`.
