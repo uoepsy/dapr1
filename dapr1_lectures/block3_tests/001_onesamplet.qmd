@@ -1,0 +1,681 @@
+---
+title: "One-sample t-tests <br> and their assumptions"
+author: "Elizabeth Pankratz (elizabeth.pankratz@ed.ac.uk), <br> Emma Waterston (Emma.Waterston@ed.ac.uk)"
+editor_options: 
+  chunk_output_type: inline
+format:
+  revealjs:
+    smaller: true
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+library(simglm)
+
+dapr1blue <- '#0F4C81'
+
+source('_theme/theme_quarto.R')
+
+theme_update(
+  text = element_text(family = 'Source Sans 3'),
+  panel.grid.minor = element_blank()
+)
+```
+
+# Welcome back to DAPR!
+
+## Welcome back warm-up
+
+TODO WOO
+
+Interactively walk through the logic of NHST somehow: <https://nullworlds.andrewheiss.com>
+
+- thought exercise: imagine a world where the effect we're interested in is not real
+- this is the world where the null hypothesis is true = null world
+- in that world, what would my test results look like
+- some variability here bc of the randomness in the world
+- now i compare my actual test results to that
+- what fraction of null world outcomes are more extreme than my actual test result
+- = how improbable is my actual test result, assuming that the null world is the true world
+- we'll accept a 5% chance of being wrong
+- so we want our actual test result to have a less than 5% chance of occurring in the null world
+
+
+
+## This week's learning objectives
+
+:::dapr1callout
+
+What kind of test do we use to compare a variable's mean to a specific value?
+
+- one-sample t-test
+
+:::
+
+:::dapr1callout
+How do we formalise the hypotheses that we're testing?
+
+- h0h1
+- tailedness depends on directionality of hyp
+:::
+
+:::dapr1callout
+What does this test require/assume to be true about the data that it models?
+
+(0) dependent variable is numeric;
+(1) variable is normally distributed OR sample size >= 30;
+(2) observations are sampled independently
+:::
+
+:::dapr1callout
+How do we check whether we're satisfied with the test's requirements/assumptions?
+
+(0) check that variable is on interval/ratio/integer scale
+(1)  visually with plots (hist, dens, qq), statistically with Shapiro-Wilk
+(2) check that each data point comes from a separate source (e.g., a separate person)
+:::
+
+<!-- :::dapr1callout -->
+<!-- What do we do if we're not satisfied with the test's assumptions? -->
+
+<!-- - Wilcoxon signed-rank test (beyond the scope of DAPR1, you won't be assessed on this, but we mention it so you know what to do if you're in this scenario later) -->
+<!-- ::: -->
+
+
+
+# Recap: One-sample t-test
+
+## One-sample t-test example: College loneliness
+
+With a one-sample t-test, we can test whether a sample's mean is significantly different from some specific value.
+
+**Research question (RQ): Based on the 20-item UCLA Loneliness Scale, do college students report loneliness above the "low loneliness" threshold of 34?**
+
+This example is based on real findings from [Russell (1996)](https://www.tandfonline.com/doi/epdf/10.1207/s15327752jpa6601_2){target="_blank"}.
+
+
+```{r include = F}
+set.seed(1)
+N_SUBJS <- 487
+lonely_data <- tibble(
+  subj_ID =  c( 
+    paste("student_0", 1:9, sep=""),  
+    paste("student_", 10:N_SUBJS, sep="")  
+  ),
+  loneliness = round(rnorm(n = N_SUBJS, mean = 40.08, sd = 9.50)) # from Table 2 (p. 26).
+)
+```
+
+<br>
+
+::::{.columns}
+:::{.column width="50%"}
+```{r}
+lonely_data |> head(12)
+```
+
+:::
+:::{.column width="50%"}
+```{r fig.width = 5, fig.height = 5}
+#| code-fold: true
+lonely_data |>
+  ggplot(aes(y = loneliness)) +
+  geom_boxplot() +
+  # the theme() bit below removes the uninformative x axis numbering
+  theme(
+    axis.ticks.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank()
+  )
+```
+:::
+::::
+
+
+## A few ways to visualise this data
+
+::::{.columns}
+:::{.column width="33%"}
+**Box plot:** 
+
+<br>
+
+```{r fig.width = 4, fig.height = 5}
+#| code-fold: true
+lonely_data |>
+  ggplot(aes(y = loneliness)) +
+  geom_boxplot() +
+  # the theme() bit below removes the uninformative x axis numbering
+  theme(
+    axis.ticks.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank()
+  )
+```
+:::
+:::{.column width="33%"}
+**Violin plot with mean and <br> stacked data points:**
+
+```{r fig.width = 4, fig.height = 5}
+#| code-fold: true
+lonely_data |>
+  ggplot(aes(x = 1, y = loneliness)) +
+  geom_violin() +     # add violin
+  geom_point(         # add points
+    alpha = 0.2,      # make points 20% opaque
+  ) +
+  stat_summary(fun = mean, geom = 'point', size = 5) +  # add big point for mean
+  # the theme() bit below removes the uninformative x axis numbering
+  theme(
+    axis.ticks.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank()
+  )
+```
+:::
+:::{.column width="33%"}
+**Violin plot with mean and <br> jittered data points:**
+
+```{r fig.width = 4, fig.height = 5}
+#| code-fold: true
+lonely_data |>
+  ggplot(aes(x = 1, y = loneliness)) +
+  geom_violin() +     # add violin
+  geom_jitter(        # add points with jitter (random horizontal offset)
+    width = 0.2,      # how big is the max horizontal offset?
+    alpha = 0.2,      # make the points 20% opaque
+    ) +     
+  stat_summary(fun = mean, geom = 'point', size = 5) +  # add big point for mean
+  # the theme() bit below removes the uninformative x axis numbering
+  theme(
+    axis.ticks.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank()
+  )
+```
+:::
+::::
+
+<br>
+
+**Best practice:** make plots that show all the data points *and also* usefully summarise their distribution.
+
+(This is why Elizabeth likes violin + points plots more than box plots.)
+
+
+## From RQ to hypotheses
+
+RQ: Based on the 20-item UCLA Loneliness Scale, do college students report loneliness above the "low loneliness" threshold of 34?
+
+<br>
+
+**The null hypothesis $H_0$ is always that there's no difference, no effect, nothing interesting going on:**
+
+- There's no difference between the mean loneliness of college students ($\mu$) and 34.
+- Formally:
+
+$$
+H_0 : \mu = 34
+$$
+
+<br>
+
+**For the alternative hypothesis $H_1$, we need to decide:**
+
+- Is our RQ **directional?** (Do we expect a specific direction to the effect?) <img style="margin-bottom:0px; width: 1em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-10px; width: 1em;" src="figs/codicon--thumbsdown-filled.svg">
+
+- If our RQ is directional, which alternative hypothesis matches the direction of the effect we expect to see?
+
+::::{.columns}
+:::{.column width="50%"}
+$$
+H_1 : \mu > 34
+$$
+
+:::hcenter
+<img style="width: 2em;" src="figs/codicon--thumbsup-filled.svg">
+:::
+
+
+:::
+:::{.column width="50%"}
+$$
+H_1 : \mu < 34
+$$
+
+:::hcenter
+<img style="width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
+:::
+
+:::
+::::
+
+
+## How do we test our research question?
+
+**RQ: Based on the 20-item UCLA Loneliness Scale, do college students report loneliness above the "low loneliness" threshold of 34?**
+
+A hypothesis test has five parts:
+
+::::{.columns}
+:::{.column width="33%"}
+**(1) The null hypothesis $H_0$**
+:::
+:::{.column width="66%"}
+College students' mean loneliness $\mu$ is exactly equal to 34.
+
+$$
+H_0 : \mu = 34
+$$
+:::
+::::
+
+::::{.columns}
+:::{.column width="33%"}
+**(2) The alternative hypothesis $H_1$**
+:::
+:::{.column width="66%"}
+College students' mean loneliness $\mu$ is above the threshold of 34.
+
+$$
+H_1 : \mu > 34
+$$
+:::
+::::
+
+::::{.columns}
+:::{.column width="33%"}
+**(3) The test statistic**
+:::
+:::{.column width="66%"}
+For testing a mean, we use the t-statistic.
+
+- The t-statistic measures how many SEs away from the hypothesised mean (34) the observed sample mean is.
+
+- It answers the question: How much does the observed data differ from what we would expect if the H0 were true?
+:::
+::::
+
+::::{.columns}
+:::{.column width="33%"}
+**(4) The significance level $\alpha$**
+:::
+:::{.column width="66%"}
+What % of the time do we accept that we will incorrectly reject the H0, even if it is actually true? (Typically $\alpha = .05$.)
+
+<!-- - In Psychology, typically $\alpha = .05$, so we'll incorrectly reject H0 one time in twenty. -->
+:::
+::::
+
+::::{.columns}
+:::{.column width="33%"}
+**(5) The p-value**
+:::
+:::{.column width="66%"}
+Assuming the H0 is true, how probable is it that we would obtain a test statistic at least as extreme as the one we calculated in Step 3?
+:::
+::::
+
+## Run Steps 3, 4, 5 in R
+
+```{r}
+lonely_t <- t.test(
+  lonely_data$loneliness,   # take the loneliness column of lonely_data
+  mu = 34,                  # compare it to the reference value of 34
+  alternative = "greater",  # alternative hypothesis: mu is *greater* than 34
+  conf.level = .95          # confidence level is 1 minus alpha, so 1 – .05
+)
+```
+
+```{r}
+lonely_t
+```
+
+## A visual intuition for Steps 3, 4, 5
+
+```{r echo=F}
+cat( paste0(capture.output(
+  lonely_t
+), '\n')[4:12])
+```
+
+
+```{r echo=F, fig.width = 12, fig.height = 6}
+p_overallt <- tibble(
+  t = seq(-16, 16, length.out = 1000),
+  density = dt(t, df = 486)
+) |>
+  ggplot(aes(x = t, y = density)) +
+  geom_ribbon(aes(ymin = 0, ymax = density), fill = dapr1blue) +
+  geom_text(
+    x = -16, y = 0.35, label = 'a t-distribution\nwith 486\ndegrees of freedom', hjust = 0, size = 7,
+    family = 'Source Sans 3'
+    ) +
+  geom_vline(xintercept = 15, colour = '#BF1932', linewidth = 2) +
+  scale_x_continuous(breaks = seq(-15, 15, by=5)) 
+
+p_zoomt <- tibble(
+  t = seq(14.9, 15.2, length.out = 10),
+  density = dt(t, df = 486)
+) |>
+  ggplot(aes(x = t, y = density)) +
+  geom_ribbon(aes(ymin = 0, ymax = density), fill = dapr1blue) +
+  geom_vline(xintercept = 15, colour = '#BF1932', linewidth = 2) +
+  labs(
+    y = ''
+  )
+
+w <- 6
+layout <- c(
+  area(t = 1, l = 1, b = 5, r = w),
+  area(t = 3, l = w+1, b = 4.5, r = w+3)
+)
+p_overallt + p_zoomt +
+  plot_layout(design = layout)
+```
+
+
+## How would we report this analysis?
+
+<br>
+
+> We wanted to find out whether college students score above the threshold for "low loneliness" on the UCLA Loneliness scale, which is 34.
+At the 5% significance level, we performed a one-sided test of significance against the null hypothesis that college students' loneliness is equal to 34.
+The results indicate that the mean loneliness for college students, 40.3, is significantly higher than the "low loneliness" threshold of 34 ($t$(486) = 15, $p$ < .001, one-sided).
+
+
+# The one-sample t-test is only valid if three things are true
+
+## The one-sample t-test is only valid if three things are true
+
+<br>
+
+::::{.columns}
+:::{.column width="30%"}
+**Data requirements:**
+:::
+:::{.column width="70%"}
+The variable is numeric.
+:::
+::::
+
+::::{.columns}
+:::{.column width="30%"}
+**Assumption of independence:**
+:::
+:::{.column width="70%"}
+The obtained sample data are a random sample from the population of interest.
+:::
+::::
+
+::::{.columns}
+:::{.column width="30%"}
+**Assumption of normality:**
+:::
+:::{.column width="70%"}
+EITHER the population follows a normal distribution <br> OR the sample size $\geq$ 30.
+:::
+::::
+
+<br>
+
+**What if one or more of these things isn't true?**
+
+- Then you shouldn't use a one-sample t-test to analyse your data.
+- Instead, use a test called the "Wilcoxon Signed-Rank Test". (We aren't covering it in DAPR, so you don't need to know anything more about it than this!)
+
+<br>
+
+**How do we check each requirement/assumption?**
+
+## Data requirements for a one-sample t-test
+
+<br>
+
+:::hcenter
+**The variable is numeric.**
+:::
+
+<br>
+
+Look at the data and make sure that the variable we're analysing represents **interval, ratio, or integer data.**
+
+```{r}
+lonely_data
+```
+
+<br>
+
+`loneliness` is integer data: it consists of whole numbers &nbsp; ✅
+
+
+## Assumption of independence for a <br> one-sample t-test
+
+<br>
+
+:::hcenter
+**The obtained sample data are a random sample from the population of interest.**
+:::
+
+<br>
+
+Before generalising the conclusion of our test to some population, we need to first make sure that our sample was randomly selected from that population.
+
+This is more of a study design issue, not something we can test directly.
+
+- Was each observation sampled independently of the others? (e.g., does each observation come from a different person?)
+- Is the sample representative of the population? (so that we avoid sampling bias)
+
+**Let's assume that our data was sampled randomly from the population of all students, and that each observation is independent of each other one ✅**
+
+
+## Assumption of normality for a one-sample t-test
+
+<br>
+
+:::hcenter
+**EITHER the population follows a normal distribution OR the sample size $\geq$ 30.**
+:::
+
+<br>
+
+Backstory: All our formulas for confidence intervals and hypothesis tests are built around the assumption that **the sampling distribution of the sample mean** is normally distributed.
+
+<br>
+
+When is the sample mean's sampling distribution normally distributed?
+
+<br>
+
+When either one of these is true:
+
+- **The population follows a normal distribution** (no matter what size the sample is), or
+- **Our sample size is greater than 30** (no matter how the population data is distributed)
+  - Why 30? 
+  - Think back to the Central Limit Theorem in Semester 1: after we've sampled about 30 observations, the sampling distribution of sample means will become sufficiently normal
+
+
+## Check the sample size
+
+<br>
+
+Check the sample size:
+
+```{r}
+nrow(lonely_data)
+```
+
+<br>
+
+**So the assumption of normality of the sampling distribution of sample means is met, because we have a large enough sample &nbsp; ✅ **
+
+<br>
+
+But for illustration, let's look at how we'd check on the normality of the population.
+
+
+
+## One way to check the population distribution: Plot the sample (1)
+
+We don't know how the population is distributed, **but if our sample is approximately normally distributed, then the population probably is too.**
+
+::::{.columns}
+:::{.column width="50%"}
+**Histogram:**
+
+```{r fig.width = 6, fig.height = 6}
+lonely_data |>
+  ggplot(aes(x = loneliness)) +
+  geom_histogram()
+```
+
+:::
+:::{.column width="50%"}
+**Density plot:**
+
+```{r fig.width = 6, fig.height = 6}
+lonely_data |>
+  ggplot(aes(x = loneliness)) +
+  geom_density()
+```
+:::
+::::
+
+
+## One way to check the population distribution: Plot the sample (2)
+
+A plot specifically designed to check how closely a variable matches a normal distribution: <br> a **Quantile-Quantile plot** aka **Q-Q plot.**
+
+The closer the points are to the diagonal line, the more normally-distributed the variable is.
+
+
+::::{.columns}
+:::{.column width="50%"}
+<br>
+
+```{r eval=F}
+lonely_data |>
+  ggplot(aes(sample = loneliness)) +
+  geom_qq() +
+  geom_qq_line() +
+  labs(
+    x = "Theoretical quantiles",
+    y = 'Sample quantiles'
+  )
+```
+:::
+:::{.column width="50%"}
+```{r echo=F, fig.width = 5, fig.height = 5}
+lonely_data |>
+  ggplot(aes(sample = loneliness)) +
+  geom_qq() +
+  geom_qq_line() +
+  labs(
+    x = "Theoretical quantiles",
+    y = 'Sample quantiles'
+  )
+```
+:::
+::::
+
+
+## Examples of worrisome Q-Q plots
+
+```{r echo=F, fig.width = 9, fig.height = 4}
+df1 <- data.frame(y = rexp(100))
+df2 <- data.frame(y = runif(100, 2, 10))
+plt1 <- ggplot(df1, aes(sample = y)) + 
+    geom_qq() +
+    geom_qq_line() +
+    labs(x = "Theoretical quantiles", 
+         y = "Sample quantiles")
+plt2 <- ggplot(df2, aes(sample = y)) + 
+    geom_qq() +
+    geom_qq_line() +
+    labs(x = "Theoretical quantiles", 
+         y = "Sample quantiles")
+plt1 | plt2
+```
+
+
+
+## Another way to check normality of the population distribution: Shapiro-Wilk test
+
+The Shapiro-Wilk test is a hypothesis test where:
+
+- $H_0$: The population data follow a normal distribution
+- $H_1$: The population data do not follow a normal distribution
+
+We don't want to reject this H0, so **we want a non-significant result!**
+
+<br>
+
+```{r}
+shapiro.test(lonely_data$loneliness)
+```
+
+<br>
+
+> We performed a Shapiro-Wilk test against the null hypothesis of normality of the population data.
+Based on the sample, we could not reject the null hypothesis of normality in the population ($W$ = 1, $p$ = .3).
+
+
+## Recap: Assumption of normality for a <br> one-sample t-test
+
+<br>
+
+:::hcenter
+**EITHER the population follows a normal distribution OR the sample size $\geq$ 30.**
+:::
+
+<br>
+
+- To check if the sample size is greater than 30:
+  - Count the observations in your dataset
+- To check if the population follows a normal distribution:
+  - Plot the sample:
+    - Histogram or density plot
+    - Q-Q plot
+  - Run a Shapiro-Wilk test (you want a non-significant result!)
+
+
+
+# What's the rest of Block 3 about?
+
+## What's the rest of Block 3 about?
+
+<br>
+ 
+**Over the next several weeks, we'll use the tools you've gained so far to explore how psychologists answer different kinds of research questions.**
+
+<br>
+
+So far in DAPR1, you've been looking at just one variable at a time.
+
+But in psychological research, most RQs are about the **associations between variables.**
+
+- So that's our focus for the next five weeks: 
+  - Common ways to statistically test whether the relationship between two variables is different from what we would expect by chance.
+  - The assumptions/requirements of each test and how to check them.
+  
+
+[fragment: show all the kinds of research qs (no tests)]
+
+
+<!-- TODO WOO: -->
+
+<!-- - could practice with diff kinds of RQs, identifying the kinds of variables that they are asking about -->
+
+
+# Back matter
+
+## Revisiting this week's learning objectives
+
+TODO
+
+

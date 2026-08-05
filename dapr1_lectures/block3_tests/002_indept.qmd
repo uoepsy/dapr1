@@ -1,0 +1,386 @@
+---
+title: "Independent samples t-test"
+author: "Elizabeth Pankratz (elizabeth.pankratz@ed.ac.uk), <br> Emma Waterston (Emma.Waterston@ed.ac.uk)"
+editor_options: 
+  chunk_output_type: inline
+format:
+  revealjs:
+    smaller: true
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+library(simglm)
+
+dapr1blue <- '#0F4C81'
+
+source('_theme/theme_quarto.R')
+
+theme_update(
+  text = element_text(family = 'Source Sans 3')
+)
+```
+
+# Welcome back!
+
+## This week's learning objectives
+
+What kind of test do we use to compare the means of two independent groups?
+
+- independent samples t-test
+
+How do we formalise the hypotheses that we're testing?
+
+- h0h1
+- tailedness depends on directionality of hyp
+
+What does this test assume is true about the data that it models?
+
+(0) dependent variable is numeric;
+(1) each group's variable is normally distributed OR each group's size >= 30;
+(2) observations are sampled independently, both within and across groups;
+(3) population variance is the same in both groups
+
+How do we check whether we're satisfied with the test's assumptions?
+
+(0) check that variable is on interval/ratio/integer scale
+(1) descriptively with measures of skew, visually with plots (hist, dens, qq), statistically with Shapiro-Wilks for each group separately
+(2) check that each individual belongs to only one group and has only one obs in group they belong to;
+(3) test statistically with F-test (if not met, use Welch's t-test instead)
+
+What do we do if we're not satisfied with the test's assumptions?
+
+- Welch's t-test (beyond the scope of DAPR1, you won't be assessed on this, but we mention it so you know what to do if you're in this scenario later)
+
+Imagine we have paired data, where e.g. we measure the same people at two different time points. How do we analyse that data using the one-sample t-test machinery?
+
+- compute pairwise diffs
+- compare them to 0
+
+## Where we are in the Block 3 concept map
+
+[rstack fragment: show map up to indep t]
+
+[fragment: add in indep t]
+
+
+# This week's data
+
+## This week's data: Relationship quality and stress
+
+<br>
+
+::::{.columns}
+:::{.column width="30%"}
+
+:::bluebox
+Researchers asked people to label their current or most recent partner relationship as "happy" or "unhappy"
+:::
+:::
+:::{.column width="5%"}
+:::{.hcenter style="font-size:200%;"}
+→
+:::
+:::
+:::{.column width="30%"}
+:::bluebox
+People spent five minutes vividly imagining or remembering their relationship
+:::
+:::
+:::{.column width="5%"}
+:::{.hcenter style="font-size:200%;"}
+→
+:::
+:::
+:::{.column width="30%"}
+:::bluebox
+Researchers measured the cortisol (a stress marker) in people's saliva
+:::
+:::
+::::
+
+<br>
+
+**Our research question (RQ): Do people with happy relationships have lower cortisol than people in unhappy ones?**
+
+<br>
+
+<!-- beware: if we looked at people's stress levels before and after, then our samples are not independent anymore! -->
+
+
+This example is simplified, but it's based on real findings from [Berry & Worthington (2001)](https://psycnet.apa.org/fulltext/2001-11480-010.pdf){target="_blank"}.
+
+```{r include=F}
+# Based on the descriptives in Table 1, p. 451 of BerryWorthington2001
+set.seed(6)
+
+n_ppts <- 39
+
+stress_data <- tibble(
+  subj_ID =  c( 
+    paste("subj0", 1:9, sep=""),  
+    paste("subj", 10:n_ppts, sep="")  
+  ),
+  relationship = c(
+    rep('Happy', 19),
+    rep('Unhappy', 20)
+  ),
+  cortisol = c(
+    rnorm(n = 19, mean = 0.14, sd = 0.08),
+    rnorm(n = 20, mean = 0.18, sd = 0.08)
+  )
+)
+```
+
+##  Do people with happy relationships have lower cortisol than people in unhappy ones? 
+
+<br>
+
+::::{.columns}
+:::{.column width="40%"}
+
+```{r}
+stress_data |> head()
+```
+
+
+:::
+:::{.column width="60%"}
+
+```{r fig.width = 7, fig.height = 6}
+stress_data |>
+  ggplot(aes(x = relationship, y = cortisol)) +
+  geom_violin() +
+  geom_jitter(width = 0.2) +
+  stat_summary(fun = mean, geom = 'point', size = 5)
+```
+
+:::
+::::
+
+## From RQ to hypotheses
+
+RQ: Do people with happy relationships have lower cortisol than people in unhappy ones?
+
+<br>
+
+**The null hypothesis $H_0$ is always that there's no difference, no effect, nothing interesting going on:**
+
+- There's no difference between the mean cortisol of people in happy relationships ($\mu_\text{Happy}$) and the mean cortisol of people in unhappy relationships ($\mu_\text{Unhappy}$)
+- Formally:
+
+$$
+H_0 : \mu_\text{Happy} = \mu_\text{Unhappy}
+$$
+
+<br>
+
+**For the alternative hypothesis $H_1$, we need to decide:**
+
+- Is our RQ **directional?** (Do we expect a specific direction to the effect?) <img style="margin-bottom:0px; width: 1em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-10px; width: 1em;" src="figs/codicon--thumbsdown-filled.svg">
+
+- If our RQ is directional, which alternative hypothesis matches the direction of the effect we expect to see?
+
+::::{.columns}
+:::{.column width="50%"}
+$$
+H_1 : \mu_\text{Happy} > \mu_\text{Unhappy}
+$$
+
+:::hcenter
+<img style="width: 2em;" src="figs/codicon--thumbsup-filled.svg">
+:::
+
+
+:::
+:::{.column width="50%"}
+$$
+H_1 : \mu_\text{Happy} < \mu_\text{Unhappy}
+$$
+
+:::hcenter
+<img style="width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
+:::
+
+:::
+::::
+
+
+
+## How do we test our research question?
+
+**RQ: Based on the 20-item UCLA Loneliness Scale, do college students report loneliness above the "low loneliness" threshold of 34?**
+
+A hypothesis test has five parts:
+
+::::{.columns}
+:::{.column width="33%"}
+**(1) The null hypothesis $H_0$**
+:::
+:::{.column width="66%"}
+People with happy relationships will have the same average cortisol as people with unhappy relationships.
+
+$$
+H_1 : \mu_\text{Happy} = \mu_\text{Unhappy}
+$$
+:::
+::::
+
+::::{.columns}
+:::{.column width="33%"}
+**(2) The alternative hypothesis $H_1$**
+:::
+:::{.column width="66%"}
+People with happy relationships will have lower average cortisol than people with unhappy relationships.
+
+$$
+H_1 : \mu_\text{Happy} < \mu_\text{Unhappy}
+$$
+:::
+::::
+
+::::{.columns}
+:::{.column width="33%"}
+**(3) The test statistic**
+:::
+:::{.column width="66%"}
+For testing differences between means, we can still use the t-statistic.
+
+- The t-statistic measures how many SEs away from zero the observed difference between means is.
+
+- It answers the question: How much does the observed difference between means differ from what we would expect if the H0 were true?
+:::
+::::
+
+::::{.columns}
+:::{.column width="33%"}
+**(4) The significance level $\alpha$**
+:::
+:::{.column width="66%"}
+What % of the time do we accept that we will incorrectly reject the H0, even if it is actually true? (Typically $\alpha = .05$.)
+:::
+::::
+
+::::{.columns}
+:::{.column width="33%"}
+**(5) The p-value**
+:::
+:::{.column width="66%"}
+Assuming the H0 is true, how probable is it that we would obtain a test statistic at least as extreme as the one we calculated in Step 3?
+:::
+::::
+
+
+## Independent-samples t-test in R
+
+Runs Steps 3, 4, 5:
+
+```{r}
+stress_t <- t.test(
+  
+  stress_data$cortisol ~ stress_data$relationship,  
+  # asks: how is `cortisol` different for each value of `relationship`
+  
+  alternative = "less",   
+  # the direction of H1: mean(happy) is less than mean(unhappy)
+  
+  mu = 0,   
+  # the difference we'd expect between groups if H0 were true
+  
+  var.equal = TRUE,   
+  # related to assumptions – we'll come back to this!
+  
+  conf.level = .95   
+  # .95 because our alpha level is .05, and confidence level is 1 – alpha
+  
+)
+```
+
+
+## Interpreting the test results
+
+```{r}
+stress_t
+```
+
+<br>
+
+```{r echo=F, fig.width = 10, fig.height = 4}
+tibble(
+  t = seq(-4, 4, length.out = 100),
+  density = dt(t, df = 37)
+) |>
+  ggplot(aes(x = t, y = density)) +
+  geom_ribbon(aes(ymin = 0, ymax = density), fill = dapr1blue) +
+  geom_text(
+    x = 1.5, y = 0.35, label = 'a t-distribution\nwith 37 df', hjust = 0, size = 7,
+    family = 'Source Sans 3'
+    ) +
+  geom_vline(xintercept = -2, colour = '#BF1932', linewidth = 2) +
+  theme(
+    panel.grid.minor = element_blank()
+  )
+```
+
+
+## Note about how categories are ordered
+
+<br>
+
+You might have noticed that we wrote our H1 as 
+
+$$
+\mu_\text{Happy} < \mu_\text{Unhappy}
+$$
+
+and not as
+
+$$
+\mu_\text{Unhappy} > \mu_\text{Happy}
+$$
+
+Why?
+
+<br>
+
+Because by default, R will compare categories **in alphabetical order.** 
+
+**So the category that comes first alphabetically should also come first in our H0 and H1.**
+
+<br>
+
+This guarantees that we'll choose the right direction for our one-sided tests!
+
+Only `alternative = "less"` runs the test we actually want.
+
+# What the independent-samples t-test assumes about the data
+
+## What the independent-samples t-test assumes about the data
+
+
+## How to check each assumption
+
+
+# A final note: how to analyse non-independent samples
+
+## A final note: how to analyse non-independent samples
+
+before and after cortisol
+
+
+
+(this is more like what the researchers in this cortisol study actually did: they compared the *difference* in cortisol between relationship groups)
+
+
+# Back matter
+
+## Revisiting this week's learning objectives
+
+TODO
+
+
