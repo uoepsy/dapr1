@@ -30,44 +30,54 @@ theme_update(
 
 ## This week's learning objectives
 
+:::dapr1callout
 What kind of test do we use to compare the means of two independent groups?
 
 - independent samples t-test
+:::
 
-How do we formalise the hypotheses that we're testing?
+<!-- :::dapr1callout -->
+<!-- How do we formalise the hypotheses that we're testing? -->
 
-- h0h1
-- tailedness depends on directionality of hyp
+<!-- - h0h1 -->
+<!-- - tailedness depends on directionality of hyp -->
+<!-- ::: -->
 
-What does this test assume is true about the data that it models?
+:::dapr1callout
+What does this test require/assume to be true about the data that it models?
 
 (0) dependent variable is numeric;
 (1) each group's variable is normally distributed OR each group's size >= 30;
 (2) observations are sampled independently, both within and across groups;
 (3) population variance is the same in both groups
+:::
 
+:::dapr1callout
 How do we check whether we're satisfied with the test's assumptions?
 
 (0) check that variable is on interval/ratio/integer scale
-(1) descriptively with measures of skew, visually with plots (hist, dens, qq), statistically with Shapiro-Wilks for each group separately
+(1) visually with plots (hist, dens, qq), statistically with Shapiro-Wilks for each group separately
 (2) check that each individual belongs to only one group and has only one obs in group they belong to;
 (3) test statistically with F-test (if not met, use Welch's t-test instead)
+:::
 
-What do we do if we're not satisfied with the test's assumptions?
+<!-- :::dapr1callout -->
+<!-- What do we do if we're not satisfied with the test's assumptions? -->
 
-- Welch's t-test (beyond the scope of DAPR1, you won't be assessed on this, but we mention it so you know what to do if you're in this scenario later)
+<!-- - Welch's t-test (beyond the scope of DAPR1, you won't be assessed on this, but we mention it so you know what to do if you're in this scenario later) -->
+<!-- ::: -->
 
+:::dapr1callout
 Imagine we have paired data, where e.g. we measure the same people at two different time points. How do we analyse that data using the one-sample t-test machinery?
 
 - compute pairwise diffs
 - compare them to 0
+:::
+
 
 ## Where we are in the Block 3 concept map
 
-[rstack fragment: show map up to indep t]
-
-[fragment: add in indep t]
-
+[TODO figure]
 
 # This week's data
 
@@ -145,25 +155,28 @@ stress_data <- tibble(
 :::{.column width="40%"}
 
 ```{r}
-stress_data |> head()
+stress_data |> head(12)
 ```
 
 
 :::
 :::{.column width="60%"}
 
-```{r fig.width = 7, fig.height = 6}
+```{r fig.width = 6, fig.height = 5}
+#| code-fold: true
 stress_data |>
   ggplot(aes(x = relationship, y = cortisol)) +
   geom_violin() +
-  geom_jitter(width = 0.2) +
-  stat_summary(fun = mean, geom = 'point', size = 5)
+  geom_jitter(width = 0.2, alpha = 0.5, size = 3) +
+  stat_summary(fun = mean, geom = 'point', size = 8)
 ```
 
 :::
 ::::
 
 ## From RQ to hypotheses
+
+<br>
 
 RQ: Do people with happy relationships have lower cortisol than people in unhappy ones?
 
@@ -214,7 +227,11 @@ $$
 
 ## How do we test our research question?
 
-**RQ: Based on the 20-item UCLA Loneliness Scale, do college students report loneliness above the "low loneliness" threshold of 34?**
+<br>
+
+RQ: Do people with happy relationships have lower cortisol than people in unhappy ones?
+
+<br>
 
 A hypothesis test has five parts:
 
@@ -223,10 +240,10 @@ A hypothesis test has five parts:
 **(1) The null hypothesis $H_0$**
 :::
 :::{.column width="66%"}
-People with happy relationships will have the same average cortisol as people with unhappy relationships.
+<!-- People with happy relationships will have the same average cortisol as people with unhappy relationships. -->
 
 $$
-H_1 : \mu_\text{Happy} = \mu_\text{Unhappy}
+H_0 : \mu_\text{Happy} = \mu_\text{Unhappy}
 $$
 :::
 ::::
@@ -236,7 +253,7 @@ $$
 **(2) The alternative hypothesis $H_1$**
 :::
 :::{.column width="66%"}
-People with happy relationships will have lower average cortisol than people with unhappy relationships.
+<!-- People with happy relationships will have lower average cortisol than people with unhappy relationships. -->
 
 $$
 H_1 : \mu_\text{Happy} < \mu_\text{Unhappy}
@@ -285,6 +302,7 @@ stress_t <- t.test(
   
   stress_data$cortisol ~ stress_data$relationship,  
   # asks: how is `cortisol` different for each value of `relationship`
+  # cortisol is the "dependent variable"
   
   alternative = "less",   
   # the direction of H1: mean(happy) is less than mean(unhappy)
@@ -358,23 +376,499 @@ This guarantees that we'll choose the right direction for our one-sided tests!
 
 Only `alternative = "less"` runs the test we actually want.
 
-# What the independent-samples t-test assumes about the data
+# What the independent-samples t-test requires / assumes about the data
 
-## What the independent-samples t-test assumes about the data
+## What the independent-samples t-test requires / assumes about the data
+
+<br>
+
+::::{.columns}
+:::{.column width="30%"}
+**Data requirements:**
+:::
+:::{.column width="70%"}
+The dependent variable is numeric.
+:::
+::::
+
+::::{.columns}
+:::{.column width="30%"}
+**Assumption of independence:**
+:::
+:::{.column width="70%"}
+The obtained sample data are a random sample from the population of interest, both within and across groups.
+:::
+::::
+
+::::{.columns}
+:::{.column width="30%"}
+**Assumption of normality:**
+:::
+:::{.column width="70%"}
+EITHER the population for each group follows a normal distribution <br> OR each group's sample size $\geq$ 30.
+:::
+::::
+
+::::{.columns}
+:::{.column width="30%"}
+**Assumption of equal variance:**
+:::
+:::{.column width="70%"}
+The population variance is the same for both groups.
+:::
+::::
+
+<br>
+
+**What if one or more of these things isn't true?**
+
+- Then you shouldn't use an independent-samples t-test to analyse your data.
+- A common alternative that makes fewer assumptions is the "Welch's t-test". (We aren't covering it in DAPR, so you don't need to know anything more about it than this!)
+
+<br>
+
+**How do we check each requirement/assumption?**
+
+## Data requirements for the <br> independent-samples t-test
+
+:::hcenter
+**The dependent variable is numeric.**
+:::
+
+<br>
+
+Look at the data and make sure that the variable we're analysing represents **interval, ratio, or integer data.**
+
+```{r}
+stress_data
+```
+
+<br>
+
+`cortisol` is ratio data: it is positive-only with a true zero point &nbsp; ✅
+
+## Independence assumption for the <br> independent-samples t-test
+
+:::hcenter
+**The obtained sample data are a random sample from the population of interest, <br> both within and across groups.**
+:::
+
+<br>
+
+This is more of a study design issue, not something we can test directly.
+
+- Does each individual who contributed data belong to only one group?
+- Does each individual have only one observation in the group they belong to?
+- Within groups, is each sample representative of the population?
+- Were people allocated to each group at random?
+  - In this case, they weren't! 
+  - People described their own relationships as "Happy" or "Unhappy", so in a way, they allocated themselves to groups.
+  - This might limit our conclusions: maybe people with higher cortisol tend to be in unhappy relationships?
+  - (Note: the actual study by Berry & Worthington did account for this, but our example does not!)
 
 
-## How to check each assumption
+## Normality assumption for the <br> independent-samples t-test
+
+:::hcenter
+**EITHER the population for each group follows a normal distribution OR each group’s sample size ≥ 30.**
+:::
+
+<br>
+
+The independent-samples t-test is designed on the premise that the sampling distributions of each group's sample means are normally distributed.
+
+The sampling distribution of both group's sample means is normal as long as either one of the conditions above is true!
+
+<br>
+
+Check the size of each group:
+
+```{r}
+stress_data |>
+  group_by(relationship) |>
+  count()
+```
 
 
-# A final note: how to analyse non-independent samples
-
-## A final note: how to analyse non-independent samples
-
-before and after cortisol
+The groups both contain less than 30 observations, so we can't support the assumption of normality this way.
 
 
+## One way to check the population distributions: Plot the sample
 
-(this is more like what the researchers in this cortisol study actually did: they compared the *difference* in cortisol between relationship groups)
+We don't know how the population is distributed, **but if our sample is approximately normally distributed, then the population probably is too.**
+
+<br>
+
+::::{.columns}
+:::{.column width="42%"}
+```{r eval = F}
+stress_data |>
+  ggplot(aes(x = cortisol)) +
+  geom_density() +
+  facet_wrap(~ relationship)
+```
+:::
+:::{.column width="58%"}
+```{r echo=F, fig.width = 7, fig.height = 3}
+stress_data |>
+  ggplot(aes(x = cortisol)) +
+  geom_density() +
+  facet_wrap(~ relationship)
+```
+:::
+::::
+
+
+::::{.columns}
+:::{.column width="42%"}
+```{r eval=F}
+stress_data |>
+  ggplot(aes(sample = cortisol)) +
+  geom_qq() +
+  geom_qq_line() +
+  facet_wrap(~ relationship) +
+  labs(
+    x = "Theoretical quantiles",
+    y = 'Sample quantiles'
+  ) 
+```
+
+:::
+:::{.column width="58%"}
+```{r echo=F, fig.width = 7, fig.height = 3}
+stress_data |>
+  ggplot(aes(sample = cortisol)) +
+  geom_qq() +
+  geom_qq_line() +
+  facet_wrap(~ relationship) +
+  labs(
+    x = "Theoretical quantiles",
+    y = 'Sample quantiles'
+  ) 
+```
+:::
+::::
+
+
+## Another way to check the population distributions: Shapiro-Wilk tests
+
+Use `filter()` then `pull()` to extract the `cortisol` data from each group separately.
+For example:
+
+```{r}
+stress_data |>
+  filter(relationship == 'Happy') |>
+  pull(cortisol)
+```
+
+
+<br>
+
+Pipe that data directly into `shapiro.test()`:
+
+::::{.columns}
+:::{.column width="50%"}
+```{r}
+stress_data |>
+  filter(relationship == 'Happy') |>
+  pull(cortisol) |>
+  shapiro.test()
+```
+:::
+:::{.column width="50%"}
+```{r}
+stress_data |>
+  filter(relationship == 'Unhappy') |>
+  pull(cortisol) |>
+  shapiro.test()
+```
+:::
+::::
+
+<br>
+
+We fail to reject the Shapiro-Wilk test's H0 that the population data is normally distributed &nbsp; ✅ 
+
+
+
+## Equal variance assumption for the <br> independent-samples t-test
+
+:::hcenter
+**The population variance is the same for both groups.**
+:::
+
+<br>
+
+We test whether the population variances in the two groups are equal using something called the F-test.
+
+<br>
+
+The F-test is a hypothesis test where:
+
+- $H_0$: The population variances are equal
+- $H_1$: The population variances are not equal
+
+<br>
+
+We don't want to reject this H0, so **we want a non-significant result!**
+
+
+## F-test for equal variance
+
+
+```{r}
+var.test(
+  stress_data$cortisol ~ stress_data$relationship, 
+  ratio = 1
+)
+```
+
+**Why `ratio = 1`?** If variances are equal (say they're both 25), then the ratio of variances equals 1:
+
+$$
+\frac{\text{variance}_\text{Happy}}{\text{variance}_\text{Unhappy}} = \frac{25}{25} = 1
+$$
+
+Take-home message: &nbsp; ✅
+
+> We ran an F-test against the null hypothesis that the populations that each group was sampled from have equal variance.
+Based on the sample, we could not reject the null hypothesis of equal variances in the population ($F$(18, 19) = 0.6, $p$ = .3).
+
+
+# A final note: How to analyse non-independent samples
+
+## One example of non-independent samples
+
+
+::::{.columns}
+:::{.column width="30%"}
+
+:::bluebox
+Researchers measured the cortisol in people's saliva before the experiment
+:::
+:::
+:::{.column width="5%"}
+:::{.hcenter style="font-size:200%;"}
+→
+:::
+:::
+:::{.column width="30%"}
+:::bluebox
+People spent five minutes vividly imagining or remembering a happy relationship
+:::
+:::
+:::{.column width="5%"}
+:::{.hcenter style="font-size:200%;"}
+→
+:::
+:::
+:::{.column width="30%"}
+:::bluebox
+Researchers measured the cortisol in people's saliva again
+:::
+:::
+::::
+
+
+**RQ: Does cortisol decrease after imagining a happy relationship?**
+
+```{r include=F}
+# Based on the descriptives in Table 1, p. 451 of BerryWorthington2001
+set.seed(3)
+
+baseline_data <- tibble(
+  subj_ID =  c( 
+    paste("subj0", 1:9, sep=""),  
+    paste("subj", 10:n_ppts, sep="")  
+  ),
+  relationship = c(
+    rep('Happy', 19),
+    rep('Unhappy', 20)
+  ),
+  cortisol = c(
+    rnorm(n = 19, mean = 0.19, sd = 0.11),
+    rnorm(n = 20, mean = 0.20, sd = 0.10)
+  )
+)
+
+stress_data2 <- bind_rows(
+  t1 = baseline_data,
+  t2 = stress_data,
+  .id = 'time'
+) |>
+  filter(relationship == 'Happy') |>
+  select(-relationship) |>
+  arrange(subj_ID, time)
+```
+
+
+::::{.columns}
+:::{.column width="50%"}
+<br>
+
+```{r}
+stress_data2 |> head(10)
+```
+:::
+:::{.column width="50%"}
+
+```{r fig.width = 6, fig.height = 5}
+#| code-fold: true
+stress_data2 |>
+  ggplot(aes(x = time, y = cortisol)) +
+  geom_violin() +
+  geom_jitter(width = 0.2, alpha = 0.5, size = 3) +
+  stat_summary(fun = mean, geom = 'point', size = 8) +
+  labs(
+    x = 'time'
+  )
+```
+:::
+::::
+
+## These two samples are paired
+
+Paired groups are a specific type of non-independence where one observation in each group is matched with an observation in the other group.
+
+Here, each subject has contributed data to both groups:
+
+```{r echo=F, fig.width = 12, fig.height= 7}
+set.seed(1)
+stress_data2 |>
+  rowwise() |>
+  mutate(
+    jittertime = ifelse(time == 't1', 1, 2) + rnorm(n = 1, sd = 0.1),
+  ) |>
+  ggplot(aes(x = jittertime, y = cortisol)) +
+  geom_violin(aes(group = time)) +
+  geom_point(aes(colour = subj_ID), alpha = 0.5, size = 5) +
+  geom_line(aes(group = subj_ID, colour = subj_ID)) +
+  scale_x_continuous(breaks = c(1, 2), limits = c(0.7, 2.3)) +
+  labs(
+    x = 'time'
+  ) 
+```
+
+
+## Here's the trick: Paired samples can become <br> a one-sample t-test!
+
+<br>
+
+If you notice that your data contains paired samples, then you can analyse it as follows:
+
+1. Make a new variable that represents the **difference** between the two groups
+2. Run a one-sample t-test on that variable, comparing it to 0.
+
+<br>
+
+For Step 1, we'll need to do some data wrangling.
+
+::::{.columns}
+
+:::{.column width="50%"}
+
+**What we've got:**
+
+```{r}
+stress_data2 |> head()
+```
+
+:::
+
+:::{.column width="50%"}
+
+**What we want:**
+
+```{r include=F}
+stress_data2_wide <- stress_data2 |>
+  pivot_wider(
+    names_from = time,
+    values_from = cortisol
+  ) |>
+  mutate(
+    cortisol_diff = t2 - t1
+  )
+```
+
+```{r}
+stress_data2_wide |> head()
+```
+
+:::
+::::
+
+
+## Rearrange the data with `pivot_wider()`
+
+```{r}
+stress_data2 |>
+  pivot_wider(
+    names_from = time,      # values of `time` become new column names
+    values_from = cortisol  # values of `cortisol` become the column contents
+  ) |> 
+  head()
+```
+
+
+## Subtract `t1` from `t2` with `mutate()`
+
+```{r}
+stress_data2 |>
+  pivot_wider(
+    names_from = time,      # values of `time` become new column names
+    values_from = cortisol  # values of `cortisol` become the column contents
+  ) |>
+  mutate(
+    cortisol_diff = t2 - t1
+  ) |> 
+  head()
+```
+
+
+## Run a one-sample t-test on `cortisol_diff`
+
+**RQ: Does cortisol decrease after imagining a happy relationship?**
+
+- For H0: If there's no change in cortisol, then the difference will be equal to 0.
+- For H1: The RQ predicts that cortisol is higher at `t1` and lower at `t2`.
+  - `t2 - t1` = a small number minus a big number = a number less than zero.
+
+$$
+\begin{align}
+H_0 &: \mu = 0 \\
+H_1 &: \mu < 0\\
+\end{align}
+$$
+
+::::{.columns}
+:::{.column width="60%"}
+```{r}
+t.test(
+  stress_data2_wide$cortisol_diff,
+  mu = 0,
+  alternative = 'less',
+  conf.level = .95
+)
+```
+:::
+:::{.column width="5%"}
+:::
+:::{.column width="35%"}
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+>  We fail to reject the H0 that there's no difference in cortisol before and after imagining a happy relationship.
+In other words, we find no evidence that thinking about a happy relationship reduces salivary cortisol ($t$(18) = –0.7, $p$ = 0.2, one-sided).
+
+:::
+::::
+
+
+
 
 
 # Back matter
