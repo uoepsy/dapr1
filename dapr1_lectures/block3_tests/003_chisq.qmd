@@ -1,0 +1,344 @@
+---
+title: "Chi-squared test of independence"
+author: "Elizabeth Pankratz (elizabeth.pankratz@ed.ac.uk)"
+editor_options: 
+  chunk_output_type: inline
+format:
+  revealjs:
+    smaller: true
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(patchwork)
+
+dapr1blue <- '#0F4C81'
+
+source('_theme/theme_quarto.R')
+
+theme_update(
+  text = element_text(family = 'Source Sans 3'),
+  panel.grid.minor = element_blank(),
+  strip.background = element_blank(),
+  strip.text.x = element_text(size = 24)
+)
+```
+
+# Welcome back!
+
+## This week's learning objectives
+
+- TODO
+
+## Where we are in the Block 3 concept map
+
+[TODO figure]
+
+
+# This week's data
+
+## This week's data: Co-occurrence of ASD and ADHD in children
+
+**ASD** = Autism Spectrum Disorder; **ADHD** = Attention Deficit Hyperactive Disorder
+
+<br>
+
+**Do ASD and ADHD co-occur in children more often than we would expect, based on the prevalence of each neurotype alone?**
+
+```{r include=F}
+# counts from Table 1, p. 3
+federico <- tribble(
+  ~sex, ~yesADHD_noASD, ~noADHD_yesASD, ~yesADHD_yesASD, ~noADHD_noASD,
+  'female', 2437, 224, 233, 31385,
+  'male', 4971, 883, 906, 29874
+) |>
+  pivot_longer(
+    cols = yesADHD_noASD:noADHD_noASD,
+    names_to = 'diagnosis',
+    values_to = 'count'
+  )
+
+# aggregating over sex for this lecture
+neurotype_data <- federico |>
+  group_by(diagnosis) |>
+  summarise(count = sum(count)) |>
+  separate(diagnosis, into = c('ADHD', 'ASD')) |>
+  # mutate(
+  #   ADHD = gsub('ADHD', '', ADHD),
+  #   ASD = gsub('ASD', '', ASD),
+  # ) |>
+  uncount(count)
+```
+
+
+::::{.columns}
+:::{.column width="35%"}
+
+```{r}
+neurotype_data
+```
+
+:::
+:::{.column width="65%"}
+
+```{r fig.width = 7, fig.height = 5}
+#| code-fold: true
+
+p_neuro_obs <- neurotype_data |>
+  ggplot(aes(x = ADHD, fill = ADHD)) +
+  geom_bar() +
+  facet_wrap(~ ASD) +
+  theme(
+    legend.position = 'none'
+  ) +
+  labs(
+    x = ''
+  )
+p_neuro_obs
+```
+
+:::
+::::
+
+
+This example uses real data from [Federico et al. (2024)](https://linkinghub.elsevier.com/retrieve/pii/S1936657423000845){target="_blank"}.
+
+
+
+## How can we find out whether ASD+ADHD <br> co-occur unexpectedly often?
+
+Same idea as always: **We take the data we observed and compare it to what we would expect to find, if the effect/difference we care about didn't exist.** 
+
+::::{.columns}
+:::{.column width="50%"}
+
+:::hcenter
+**Observed:**
+:::
+
+```{r}
+#| code-fold: true
+library(stats)
+xtabs(~ ADHD + ASD, data = neurotype_data)
+```
+
+
+:::
+:::{.column width="50%"}
+
+:::hcenter
+**Expected:**
+:::
+
+```{r}
+#| code-fold: true
+neurotype_chisq <- chisq.test(neurotype_data$ADHD, neurotype_data$ASD)
+neurotype_chisq$expected
+```
+
+:::
+::::
+
+<br>
+
+
+::::{.columns}
+:::{.column width="50%"}
+
+```{r echo=F, fig.width = 6.5, fig.height = 5}
+p_neuro_obs
+```
+
+:::
+:::{.column width="50%"}
+
+```{r echo=F, fig.width = 6.5, fig.height = 5}
+neurotype_chisq$expected |>
+  as.data.frame() |>
+  rownames_to_column(var = 'ADHD') |>
+  pivot_longer(cols = ends_with('ASD'), names_to = 'ASD', values_to = 'count') |>
+  ggplot(aes(x = ADHD, y = count, fill = ADHD)) +
+  geom_col() +
+  facet_wrap(~ ASD) +
+  theme(
+    legend.position = 'none'
+  ) +
+  labs(
+    x = ''
+  ) +
+  scale_fill_manual(values = c('#888', '#222'))
+```
+
+
+
+:::
+::::
+
+
+
+## Where do the expected counts come from?
+
+**Expected counts are essentially fancy averages, calculated on a table of numbers, not a list of numbers.**
+
+You do not need to memorise how to calculate them! The working-out is here only in case you're curious.
+
+<br>
+
+<!-- I include this slide to help demystify the process, only in case you're curious. -->
+
+$$
+\text{expected counts} ~=~ \frac{\text{total counts in row} \times \text{total counts in column}}{\text{sample size}}
+$$
+
+<br>
+
+For example, the expected count for `yesADHD` and `yesASD`, based on the counts observed:
+
+::::{.columns}
+:::{.column width="50%"}
+<br>
+
+```{r echo=F}
+xtabs(~ ADHD + ASD, data = neurotype_data)
+```
+:::
+:::{.column width="50%"}
+
+```{r include=F}
+((7408 + 1139) * (1107 + 1139)) / 70913
+```
+
+
+$$
+\begin{align}
+\text{expected counts} &= \frac{(7408 + 1139) \times (1107 + 1139)}{70913} \\[.5em]
+  &= \frac{8547 \times 2246}{70,913} \\[.5em]
+  &= \frac{19,196,562}{70,913} \\[.5em]
+  &= 271
+\end{align}
+$$
+
+:::
+::::
+
+If the co-occurrence between ADHD and ASD were _only_ based on how common each neurotype is individually, we would expect them to co-occur in 271 cases.
+
+Instead we observed a co-occurrence in 1139 cases—more than we'd expect. But is it **significantly more?**
+
+
+## How do we compare observed and expected counts?
+
+We use a chi-squared ($\chi^2$, pronounced "kye") test! 
+
+The idea is really similar to the t-tests you're already familiar with:
+
+::::{.columns}
+:::{.column width="48%"}
+**In a t-test:**
+
+The difference between **two group means** is measured using a **t-statistic.**
+:::
+:::{.column width="4%"}
+:::
+:::{.column width="48%"}
+**In a $\chi^2$ test:**
+
+The difference between **observed and expected counts** is measured using a **$\chi^2$ statistic.**
+:::
+::::
+
+::::{.columns}
+:::{.column width="48%"}
+To find out if **group means** differ significantly, we compare the **t-statistic** to a **t-distribution** that represents the world in which **groups** do not differ.
+:::
+:::{.column width="4%"}
+:::
+:::{.column width="48%"}
+To find out if **observed and expected counts** differ significantly, we compare the **$\chi^2$ statistic** to a **$\chi^2$ distribution** that represents the world in which **counts** do not differ.
+:::
+::::
+
+::::{.columns}
+:::{.column width="48%"}
+If the **t-statistic** is far enough into the tails of that distribution, we conclude that our observed data is very unlikely **if the true difference between group means were zero;** we reject H0.
+:::
+:::{.column width="4%"}
+:::
+:::{.column width="48%"}
+If the **$\chi^2$-statistic** is far enough into the tails of that distribution, we conclude that our observed data is very unlikely **if the expected counts were the true counts;** we reject H0.
+:::
+::::
+
+## The chi-squared statistic
+
+
+
+## The chi-squared distribution
+
+
+
+
+## The formal hypotheses of a chi-squared test
+
+
+## Chi-squared test in R
+
+
+```{r}
+neurotype_test <- chisq.test(neurotype_data$ADHD, neurotype_data$ASD)
+neurotype_test$residuals
+neurotype_test$expected
+```
+
+
+## Interpreting the test results
+
+
+# What does the chi-squared test require / assume about the data?
+
+## What does the chi-squared test require / assume about the data?
+
+
+<br>
+
+::::{.columns}
+:::{.column width="30%"}
+**Data requirements:**
+:::
+:::{.column width="70%"}
+x
+:::
+::::
+
+::::{.columns}
+:::{.column width="30%"}
+**Assumption of independence:**
+:::
+:::{.column width="70%"}
+x
+:::
+::::
+
+
+
+<br>
+
+**What if one or more of these things isn't true?**
+
+- x
+
+<br>
+
+**How do we check each requirement/assumption?**
+
+# Back matter
+
+## Revisiting this week's learning objectives
+
+TODO
+
+
+# Appendix {.appendix}
