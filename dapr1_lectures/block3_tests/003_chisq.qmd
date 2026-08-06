@@ -116,7 +116,7 @@ Same idea as always: **We take the data we observed and compare it to what we wo
 :::{.column width="50%"}
 
 :::hcenter
-**Observed:**
+**Observed contingency table:**
 :::
 
 ```{r}
@@ -130,7 +130,7 @@ xtabs(~ ADHD + ASD, data = neurotype_data)
 :::{.column width="50%"}
 
 :::hcenter
-**Expected:**
+**Expected contingency table:**
 :::
 
 ```{r}
@@ -228,12 +228,29 @@ If the co-occurrence between ADHD and ASD were _only_ based on how common each n
 
 Instead we observed a co-occurrence in 1139 cases—more than we'd expect. But is it **significantly more?**
 
+# How do we compare observed and expected counts?
 
 ## How do we compare observed and expected counts?
 
 We use a chi-squared ($\chi^2$, pronounced "kye") test! 
 
-The idea is really similar to the t-tests you're already familiar with:
+Specifically: a **$\chi^2$ test of independence,** since we're essentially testing **if ASD and ADHD occur independently from one another.**
+
+<br>
+
+**The null and alternative hypotheses that we're testing:**
+
+- $H_0$: ASD is independent of ADHD
+- $H_1$: ASD is not independent of ADHD
+
+(Don't worry about mathematical notation for these hypotheses!)
+
+
+## The logic of a chi-squared test of independence
+
+<br>
+
+The idea is really similar to the t-tests you're already familiar with!
 
 ::::{.columns}
 :::{.column width="48%"}
@@ -252,12 +269,12 @@ The difference between **observed and expected counts** is measured using a **$\
 
 ::::{.columns}
 :::{.column width="48%"}
-To find out if **group means** differ significantly, we compare the **t-statistic** to a **t-distribution** that represents the world in which **groups** do not differ.
+To find out if **group means** differ significantly, we compare the **t-statistic** to a **t-distribution** that represents the world in which **the true difference between groups means is zero.**
 :::
 :::{.column width="4%"}
 :::
 :::{.column width="48%"}
-To find out if **observed and expected counts** differ significantly, we compare the **$\chi^2$ statistic** to a **$\chi^2$ distribution** that represents the world in which **counts** do not differ.
+To find out if **observed and expected counts** differ significantly, we compare the **$\chi^2$ statistic** to a **$\chi^2$ distribution** that represents the world in which **the true counts are the expected  (independent) counts.**
 :::
 ::::
 
@@ -268,34 +285,202 @@ If the **t-statistic** is far enough into the tails of that distribution, we con
 :::{.column width="4%"}
 :::
 :::{.column width="48%"}
-If the **$\chi^2$-statistic** is far enough into the tails of that distribution, we conclude that our observed data is very unlikely **if the expected counts were the true counts;** we reject H0.
+If the **$\chi^2$-statistic** is far enough into the tails of that distribution, we conclude that our observed data is very unlikely **if the true counts were the expected (independent) counts;** we reject H0.
 :::
 ::::
 
-## The chi-squared statistic
-
-
-
 ## The chi-squared distribution
 
-
-
-
-## The formal hypotheses of a chi-squared test
-
-
-## Chi-squared test in R
-
+How $\chi^2$ statistics would be distributed if the true counts were the expected counts <br> (i.e., if the H0 of independence is true):
 
 ```{r}
-neurotype_test <- chisq.test(neurotype_data$ADHD, neurotype_data$ASD)
-neurotype_test$residuals
-neurotype_test$expected
+#| echo: false
+
+tibble(x = c(0, 15)) |>
+  ggplot(aes(x = x)) +
+  stat_function(fun = dchisq, args = list(df = 2), colour = '#002060', linewidth = 2) +
+  stat_function(fun = dchisq, args = list(df = 4), colour = '#BF1932', linewidth = 2) +
+  stat_function(fun = dchisq, args = list(df = 6), colour = '#88B04B', linewidth = 2) +
+  stat_function(fun = dchisq, args = list(df = 8), colour = '#FCBB06', linewidth = 2) +
+  labs(x=expression(chi^{2}), y = 'Probability density') +
+  annotate(geom = 'text', x = 12, y = 0.45, label = 'df = 2', colour = '#002060', size = 8) +
+  annotate(geom = 'text', x = 12, y = 0.4,  label = 'df = 4', colour = '#BF1932', size = 8) +
+  annotate(geom = 'text', x = 12, y = 0.35, label = 'df = 6', colour = '#88B04B', size = 8) +
+  annotate(geom = 'text', x = 12, y = 0.3,  label = 'df = 8', colour = '#FCBB06', size = 8) +
+  NULL
+```
+
+Like the t-distribution, the exact shape of the $\chi^2$ distribution depends on degrees of freedom (df).
+
+For $\chi^2$, degrees of freedom are based on the size of your contingency table:
+
+$$(\text{number of rows} - 1) \times (\text{number of columns} - 1)$$
+
+
+
+<!-- - Shape of the distribution depends on the degrees of freedom $(df)$  -->
+<!--   - For $\chi^2$ distribution, $df$ is based on the number of groups $(g)$ within your data -->
+
+<!-- - As the number of comparison groups increases, the distribution curve flattens -->
+<!--   - Larger $\chi^2$ values become more probable -->
+<!--   - A wider range of $\chi^2$ values become more likely -->
+
+<!-- - The $\chi^2$ distribution begins at 0 -->
+<!--   - Categorical variables don't have direction -->
+<!--   - $p$-value is computed only in one direction (right-tail) as the Probability of observing a $\chi^2$ statistic as big or bigger than the one obtained -->
+
+## Finding p-values
+
+- We take our observed $\chi^2$ statistic
+- We compare it to the $\chi^2$ distribution with appropriate df
+- We see how probable it is to observe a $\chi^2$ statistic as extreme or more extreme than the one we observed
+  - That probability = the area under the distribution to the right of our observed $\chi^2$ statistic 
+  - That probability = **our test's p-value**
+
+<br>
+
+```{r echo=F, warning=F, fig.width = 9, fig.height = 5}
+nx <- seq(0.1, 6, length.out = 1000)
+p_chisq <- tibble(
+  x = nx,
+  chisq_dens = dchisq(x = nx, df=1)
+) |>
+  ggplot(aes(x, y = chisq_dens)) +
+  geom_line(linewidth = 2) +
+  annotate(geom = 'text', x = 5.5, y = 1.15, label = 'df = 1', colour = '#000', size = 8) +
+  labs(y = 'Probability density', x = expression(chi^{2})) +
+  NULL
+p_chisq
 ```
 
 
-## Interpreting the test results
+## Finding p-values {visibility="uncounted"}
 
+- We take our observed $\chi^2$ statistic
+- We compare it to the $\chi^2$ distribution with appropriate df
+- We see how probable it is to observe a $\chi^2$ statistic as extreme or more extreme than the one we observed
+  - That probability = the area under the distribution to the right of our observed $\chi^2$ statistic 
+  - That probability = **our test's p-value**
+
+<br>
+
+```{r echo=F, warning=F, fig.width = 9, fig.height = 5}
+chisq_stat <- 1
+
+p_chisq +
+  geom_ribbon( aes( x = ifelse(x >= chisq_stat, x, NA), ymin = 0, ymax = chisq_dens ), alpha = 0.3, fill = dapr1blue) +
+  geom_vline(xintercept = chisq_stat, linewidth = 1, colour = dapr1blue) +
+  annotate( geom = 'text', x = chisq_stat + 0.1, y = 0.88, hjust = 0, label = paste( 'chi-squared\nstatistic:', chisq_stat ), colour = dapr1blue, size = 8) +
+  annotate( geom = 'text', x = 5.5, y = 0.14,  label = paste( 'p-value:', round(pchisq(chisq_stat, df = 1, lower.tail=FALSE), 2) ),  colour = dapr1blue, size = 8) +
+  NULL
+```
+
+## Finding p-values {visibility="uncounted"}
+
+- We take our observed $\chi^2$ statistic
+- We compare it to the $\chi^2$ distribution with appropriate df
+- We see how probable it is to observe a $\chi^2$ statistic as extreme or more extreme than the one we observed
+  - That probability = the area under the distribution to the right of our observed $\chi^2$ statistic 
+  - That probability = **our test's p-value**
+
+<br>
+
+```{r echo=F, warning=F, fig.width = 9, fig.height = 5}
+chisq_stat <- 3.5
+
+p_chisq +
+  geom_ribbon( aes( x = ifelse(x >= chisq_stat, x, NA), ymin = 0, ymax = chisq_dens ), alpha = 0.3, fill = dapr1blue) +
+  geom_vline(xintercept = chisq_stat, linewidth = 1, colour = dapr1blue) +
+  annotate( geom = 'text', x = chisq_stat + 0.1, y = 0.88, hjust = 0, label = paste( 'chi-squared\nstatistic:', chisq_stat ), colour = dapr1blue, size = 8) +
+  annotate( geom = 'text', x = 5.5, y = 0.14,  label = paste( 'p-value:', round(pchisq(chisq_stat, df = 1, lower.tail=FALSE), 2) ),  colour = dapr1blue, size = 8) +
+  NULL
+```
+
+## Finding p-values {visibility="uncounted"}
+
+- We take our observed $\chi^2$ statistic
+- We compare it to the $\chi^2$ distribution with appropriate df
+- We see how probable it is to observe a $\chi^2$ statistic as extreme or more extreme than the one we observed
+  - That probability = the area under the distribution to the right of our observed $\chi^2$ statistic 
+  - That probability = **our test's p-value**
+
+<br>
+
+```{r echo=F, warning=F, fig.width = 9, fig.height = 5}
+chisq_stat <- 4.1
+
+p_chisq +
+  geom_ribbon( aes( x = ifelse(x >= chisq_stat, x, NA), ymin = 0, ymax = chisq_dens ), alpha = 0.3, fill = dapr1blue) +
+  geom_vline(xintercept = chisq_stat, linewidth = 1, colour = dapr1blue) +
+  annotate( geom = 'text', x = chisq_stat + 0.1, y = 0.88, hjust = 0, label = paste( 'chi-squared\nstatistic:', chisq_stat ), colour = dapr1blue, size = 8) +
+  annotate( geom = 'text', x = 5.5, y = 0.14,  label = paste( 'p-value:', round(pchisq(chisq_stat, df = 1, lower.tail=FALSE), 2) ),  colour = dapr1blue, size = 8) +
+  NULL
+```
+
+
+
+
+## Run the chi-squared test in R
+
+```{r}
+neurotype_chisq <- chisq.test(
+  neurotype_data$ADHD,   # name one variable
+  neurotype_data$ASD,    # name the other variable (order doesn't matter)
+  correct = FALSE        # run the basic version of the test, not "corrected"
+)
+neurotype_chisq
+```
+
+<br>
+
+
+```{r echo=F, warning=F, fig.width = 9, fig.height = 5}
+chisq_stat <- 3267
+
+nx <- seq(0.1, 4000, length.out = 1000)
+tibble(
+  x = nx,
+  chisq_dens = dchisq(x = nx, df=1)
+) |>
+  ggplot(aes(x, y = chisq_dens)) +
+  geom_line(linewidth = 2) +
+  labs(y = 'Probability density', x = expression(chi^{2})) +
+  geom_ribbon( aes( x = ifelse(x >= chisq_stat, x, NA), ymin = 0, ymax = chisq_dens ), alpha = 0.3, fill = dapr1blue) +
+  geom_vline(xintercept = chisq_stat, linewidth = 1, colour = dapr1blue) +
+  NULL
+```
+
+
+## Explore results in more detail
+
+Based on the significance test, we can reject the H0 that ASD and ADHD are independent.
+
+But that's very general!
+How do we find out specifically if ASD and ADHD co-occur **more than we would expect?**
+
+<br>
+
+<!-- We can look at *how* different the observed data is from the expected data. -->
+
+We can find this out from the $\chi^2$ test's **residuals:**
+
+
+```{r}
+neurotype_chisq$residuals
+```
+
+<br>
+
+- **Negative** residuals = counts were **lower than expected** in that cell.
+- **Positive** residuals = counts were **higher than expected** in that cell.
+
+<br>
+
+For the mathy among you:
+
+$$
+\chi^2 ~ \text{residuals} ~=~ \frac{\text{observed} - \text{expected}}{\text{square root(expected)}}
+$$
 
 # What does the chi-squared test require / assume about the data?
 
@@ -342,3 +527,17 @@ TODO
 
 
 # Appendix {.appendix}
+
+## Calculating the chi-squared statistic
+
+<br>
+
+For each cell in the contingency table, calculate:
+
+$$
+\frac{\text{(observed minus expected)}^\text{squared}}{\text{expected}}
+$$
+
+then add all those numbers up.
+
+The result is the $\chi^2$ statistic.

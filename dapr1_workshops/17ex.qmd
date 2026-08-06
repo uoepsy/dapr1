@@ -43,7 +43,18 @@ attach_data <- ridgefeeney1998_tab2 |>
   summarise(
     count = sum(count)
   ) |>
-  ungroup()
+  ungroup() |>
+  uncount(count)
+
+attach_data
+
+stats::xtabs(~ style + sexuality, data = attach_data)
+
+attach_test <- chisq.test(attach_data$style, attach_data$sexuality)
+attach_test
+
+attach_test$residuals
+attach_test$expected  
 
 # TODO write_csv and save to data repo
 ```
@@ -86,8 +97,8 @@ TODO
 # **RQ: Do homosexual and heterosexual people show different patterns of attachment styles?**
 
 attach_data |>
-  ggplot(aes(x = sexuality, y = count, fill = sexuality)) +
-  geom_col() +
+  ggplot(aes(x = sexuality, fill = sexuality)) +
+  geom_bar() +
   facet_wrap(~ style, nrow = 1) +
   theme(
     legend.position = 'none'
