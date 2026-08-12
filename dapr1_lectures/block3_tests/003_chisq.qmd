@@ -33,6 +33,11 @@ theme_update(
 
 - TODO
 
+What kind of test do we use to analyse whether combinations of two categorical variables are more frequent than we'd expect?
+
+
+
+
 ## Where we are in the Block 3 concept map
 
 [TODO figure]
@@ -462,7 +467,7 @@ How do we find out specifically if ASD and ADHD co-occur **more than we would ex
 
 <!-- We can look at *how* different the observed data is from the expected data. -->
 
-We can find this out from the $\chi^2$ test's **residuals:**
+We can find this out from the $\chi^2$ test's **residual:**
 
 
 ```{r}
@@ -513,7 +518,8 @@ x
 
 **What if one or more of these things isn't true?**
 
-- x
+- If expected values are less than 5: Fisher's Exact test (not covered in DAPR, you don't need to know anything more about it).
+
 
 <br>
 
@@ -528,9 +534,7 @@ TODO
 
 # Appendix {.appendix}
 
-## Calculating the chi-squared statistic
-
-<br>
+## Calculating the chi-squared statistic (1)
 
 For each cell in the contingency table, calculate:
 
@@ -539,5 +543,85 @@ $$
 $$
 
 then add all those numbers up.
-
 The result is the $\chi^2$ statistic.
+
+
+::::{.columns}
+:::{.column width="50%"}
+**Observed:**
+```{r echo=F}
+obs <- xtabs(~ ADHD + ASD, data = neurotype_data) |> unname()
+obs
+```
+
+:::
+:::{.column width="50%"}
+**Expected:**
+```{r echo=F}
+exp <- neurotype_chisq$expected |> unname()
+exp
+```
+
+:::
+::::
+
+<br>
+
+**So:** (calculation continued on next slide)
+
+|         | noASD                                  | yesASD                         |
+| ------- | :------------------------------------: | :----------------------------: |
+| <b>noADHD</b>  | $$\frac{(61,259 - 60,391)^2}{60,391}$$ | $$\frac{(1107-1975)^2}{1975}$$ |
+| <b>yesADHD</b> | $$\frac{(7408-8276)^2}{8276}$$         | $$\frac{(1139-271)^2}{271}$$   |
+||||
+
+## Calculating the chi-squared statistic (2)
+
+
+
+**Subtract terms in the numerator to get:** (cool how the same number comes out everywhere!)
+
+|         | noASD                                  | yesASD                         |
+| ------- | :------------------------------------: | :----------------------------: |
+| <b>noADHD</b>  | $$\frac{868^2}{60,391}$$ | $$\frac{-868^2}{1975}$$ |
+| <b>yesADHD</b> | $$\frac{-868^2}{8276}$$         | $$\frac{868^2}{271}$$   |
+||||
+
+<br>
+
+**Square the numerator to get:**
+
+|         | noASD                                  | yesASD                         |
+| ------- | :------------------------------------: | :----------------------------: |
+| <b>noADHD</b>  | $$\frac{753,935}{60,391}$$ | $$\frac{753,935}{1975}$$ |
+| <b>yesADHD</b> | $$\frac{753,935}{8276}$$         | $$\frac{753,935}{271}$$   |
+||||
+
+<br>
+
+(continued on next slide)
+
+
+## Calculating the chi-squared statistic (3)
+
+**Divide numerator by denominator to get:**
+
+|         | noASD                                  | yesASD                         |
+| ------- | :------------------------------------: | :----------------------------: |
+| <b>noADHD</b>  | $$12.5$$ | $$381.7$$  |
+| <b>yesADHD</b> | $$91.1$$ | $$2785.1$$ |
+||||
+
+<br>
+
+<!-- **(Sense check in R)** -->
+
+<!-- ```{r} -->
+<!-- (obs - exp)^2 / exp -->
+<!-- ``` -->
+
+**Add up all those numbers:**
+
+$$
+12.5 + 381.7 + 91.1 + 2785.1 = 3270 = \chi^2 \text{ statistic}
+$$
