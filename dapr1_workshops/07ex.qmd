@@ -1,0 +1,281 @@
+---
+title: "W7: Z Scores and Probability"
+params: 
+    SHOW_SOLS: TRUE
+    TOGGLE: TRUE
+format: html
+---
+
+```{r}
+#| include: false
+library(tidyverse)
+source('assets/dropdowns.R')
+source('assets/setup.R')
+```
+
+<!-- MAX 5 QUESTIONS -->
+<!-- make each question ~10 minute work -->
+<!-- MAX 5 QUESTIONS -->
+<!-- MAX 5 QUESTIONS -->
+
+:::frame
+Pick someone new to be the driver this week. If everyone in the group has already had a week as the driver, start going round again!  
+
+The driver will type the code. The rest of you are navigators, you need to tell the driver where to go (i.e., what to type!). 
+
+Driver instructions:
+
+1. Log in to the bigger screen at your table
+2. Open [RStudio Server](https://rstudio.ppls.ed.ac.uk){target="_blank"}
+3. Listen to your navigators
+
+Navigator instructions:
+
+1. Tell your driver where to go (i.e., what to type)!
+
+:::
+
+`r qbegin(qcounter())`
+We're continuing to use the same survey data for the remainder of the semester. The data are stored at [https://uoepsy.github.io/data/dapr1_2526_survey.csv](https://uoepsy.github.io/data/dapr1_2526_survey.csv){target="_blank"}. By now, as a group you will have read in the data numerous times. Just check back to your work from the previous weeks to remind yourself if needs be.  
+
+This week we are working with the two questions about peoples outlook (pessimism/optimism) and their chronotype (evening/morning person).  
+
+![](images/optimism_ampm.png)
+
+These are on quite different scales (-100 to 100, and 0 to 10). Which means someone scoring 10 on `outlook` means a very different thing to them scoring 10 on `ampm`.  
+
+**Task:** Read in the data, and create two new variables, which are the **standardised** (or **Z-**) scores on these variables. 
+
+
+:::flash
+TODO
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+library(tidyverse)
+sdata <- read_csv("https://uoepsy.github.io/data/dapr1_2526_survey.csv")
+
+sdata <- sdata |>
+  mutate(
+    outlookZ = ( outlook - mean(outlook) ) / sd(outlook),
+    ampmZ = ( ampm - mean(ampm) ) / sd(ampm)
+  )
+```
+
+`r solend()`
+
+
+
+`r qbegin(qcounter())`
+
+Find the pseudonyms, scores, and Z-scores of the three people who reported being the most optimistic, and the three who identified the most as "morning people".  
+
+
+::: {.callout-tip collapse="true"}
+#### Hint
+
+One way to do this is to take the data (line 1 below), and then sort it by a variable, in descending order (line 2), before taking a "slice" of it and asking for specific row numbers (line 3). You can then, to make it easier to see stuff in the output, choose only the variables that you want to see (line 4): 
+```{r}
+#| eval: false
+#| code-line-numbers: true
+data |>
+  arrange(desc(variable)) |>
+  slice(1:5) |>
+  select(variable, variable2, variable3)
+```
+
+TODO flash?
+
+
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+```{r}
+sdata |> 
+  arrange(desc(outlook)) |>
+  slice(1:3) |>
+  select(pseudonym, outlook, outlookZ)
+
+sdata |> 
+  arrange(desc(ampm)) |>
+  slice(1:3) |>
+  select(pseudonym, ampm, ampmZ)
+```
+
+`r solend()`
+
+`r qbegin(qcounter())`
+
+Plot the standardised outlook scores as a density curve. 
+
+Once you have made your plot, add this bit of code to the end of it. It will add a normal distribution (with mean of 0 and standard deviation of 1).
+```{r}
+#| eval: false
+... 
+  ... +
+  stat_function(fun = dnorm, args = list(mean = 0, sd = 1), 
+                colour = "red")
+```
+
+
+:::flash
+🗂️
+See the [Plot a variable > Histogram](https://uoepsy.github.io/dapr1/2627/flashcards/block1/intro-ggplot.html#histogram){target="_blank"} flash card. Only we don't want a `geom_histogram()`, we want a `geom_density()`!  
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+```{r}
+ggplot(sdata , aes(x = outlookZ)) +
+  geom_density() +
+  stat_function(fun = dnorm, args = list(mean = 0, sd = 1), colour = "red")
+```
+
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+```{r}
+#| echo: false
+#| out-width: "600px"
+#| out-height: "400px"
+x <- seq(-4, 4, length.out = 1000)
+y <- dnorm(x, mean = 0, sd = 1)
+df <- data.frame(x = x, y = y)
+zz <- qnorm(.9)
+df2 <- subset(df, x <= zz)
+ggplot(df, aes(x = x, y = y)) +
+  geom_line(linewidth = 1, color = "black") +
+  geom_area(data = df2, aes(y = y), 
+            fill = "#0F4C81", alpha = 0.6) +
+    geom_vline(xintercept = zz, 
+               linetype = "dashed", color = "red") +
+    annotate("text", x = 0, y = 0.2, 
+             label = paste0(round(.9*100),"%"),
+             size = 5, fontface = "bold") +
+    labs(x = "Z", y = "Density") +
+    scale_x_continuous(breaks=c(-4:0,1.28,2:4))+
+    theme_classic()
+```
+
+
+::: {.callout-caution collapse="true"}
+#### Rabbit hole: how to find this out for any %
+
+In "the olden days" when everything was black and white, there were big tables of numbers that people had to look through to figure out this sort of thing.  
+
+Computers can do it in an instant. The `qnorm()` function in R takes a probability, and returns the value at which that area under the normal distribution falls. 
+
+Computers can do this in an instant. In R, the `qnorm()` function takes a probability and tells you the exact value where the area under the standard normal distribution curve reaches that amount. 
+
+E.g., 40% of the distribution falls to the left of: 
+```{r}
+qnorm(0.4)
+```
+And 50% of the distribution falls to the left of...  
+(we actually don't need to calculate this - take a look above at the plot and think!)
+```{r}
+qnorm(0.5)
+```
+:::
+
+In a "standard normal" distribution -- a normal distribution with mean of 0 and sd of 1, often written "N(0,1)" -- 90% of the distribution falls below **1.28**. In other words, there is a 90% probability that a randomly drawn observation is < 1.28.  
+
+
+Given this information, if we make the assumption for now that `outlook` is normally distributed, we should be able to figure out the value of the original `outlook` variable at which we would expect 90% of the distribution to fall. 
+
+As we calculated the Z scores using $Z = \frac{x - M}{SD}$, we are essentially asking what value of $X$ results in $Z = 1.28$.  
+
+We'll take this opportunity ot introduce an alternative way to access variables in a dataframe. As well as calculating means and standard deviations using `data |> summarise()`, we can also get a specific variable using `data$variable`. This is easier for doing quick calculations such as: 
+
+The Z score for some hypothetical person who scored 20 on the optimism question: 
+```{r}
+(20 - mean(sdata$outlook)) / sd(sdata$outlook)
+```
+
+**Task:** can you rearrange $1.28 = \frac{x - M}{SD}$, and then figure out the value at which 90% of outlook scores are below?  
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+```{r}
+(1.28*sd(sdata$outlook)) + mean(sdata$outlook)
+```
+
+`r solend()`
+
+
+
+`r qbegin(qcounter())`
+
+Find the outlook value for one of your group members. They will need to remember the pseudonym used to fill the survey.  
+
+We can extract a specific row with the `filter()` function, where we use two equals signs to ask "is a variable equal to \<specific value\>?".  
+For example, to find any row where the pseudonym "dougal" was used:   
+
+```{r}
+#| eval: false
+sdata |> 
+  filter(pseudonym == "dougal")
+```
+
+
+Assuming outlook is normally distributed, what is the probability of seeing somebody less optimistic than your chosen group member? And more optimistic?
+
+Do the values satisfy the requirements of probabilities? Check that they are positive, less than 1, and they sum to 1  
+
+:::flash
+TODO flashcard pnorm? or link to lectures?
+:::
+
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+Dougal is a little bit of a pessimist: 
+```{r}
+sdata |> 
+  filter(pseudonym == "dougal") |>
+  select(pseudonym, outlook)
+```
+
+His outlook score of 16, when transformed to a Z-score, is:  
+```{r}
+dougalZ = (-16 - mean(sdata$outlook)) / sd(sdata$outlook)
+```
+
+There is a `r round(pnorm(dougalZ)*100)`% probability of seeing someone less optimistic than Dougal, and a `r 100-round(pnorm(dougalZ)*100)`% probability of seeing someone more optimistic. 
+```{r}
+pnorm(dougalZ)
+1-pnorm(dougalZ)
+```
+
+`r solend()`
+
+
+
+
+:::frame
+__Finishing up__  
+
+Once you've finished, don't forget to: 
+
+1. Save your R script
+2. Post the R script to the group discussion space on Learn, to ensure that everyone has access to it! (For step-by-step instructions on how to do this, click [here](00serverfiles.html){target="_blank"})  
+
+
+:::
+
+
+
+
+
+
+
+

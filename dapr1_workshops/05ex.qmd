@@ -86,12 +86,12 @@ See [Measure variability > SD](https://uoepsy.github.io/dapr1/2627/flashcards/bl
 ```{r}
 sdata |> 
   summarise(
-    sleep_m = mean(sleepqual, na.rm = TRUE),
-    sleep_s = sd(sleepqual, na.rm = TRUE),
-    procr_m = mean(procrast, na.rm = TRUE),
-    procr_s = sd(procrast, na.rm = TRUE),
-    mutli_m = mean(multitask, na.rm = TRUE),
-    multi_s = sd(multitask, na.rm = TRUE)
+    sleep_M = mean(sleepqual, na.rm = TRUE),
+    sleep_SD = sd(sleepqual, na.rm = TRUE),
+    procr_M = mean(procrast, na.rm = TRUE),
+    procr_SD = sd(procrast, na.rm = TRUE),
+    mutli_M = mean(multitask, na.rm = TRUE),
+    multi_SD = sd(multitask, na.rm = TRUE)
   )
 ```
 
@@ -113,8 +113,7 @@ See [Measure variability > Range](https://uoepsy.github.io/dapr1/2627/flashcards
 ```{r}
 sdata |> 
   summarise(
-    sleep_min = min(sleepqual, na.rm = TRUE),
-    sleep_max = max(sleepqual, na.rm = TRUE)
+    sleep_R = max(sleepqual, na.rm = TRUE) - min(sleepqual, na.rm = TRUE)
   )
 ```
 
@@ -123,7 +122,7 @@ sdata |>
 
 
 `r qbegin(qcounter())`
-In one call to `summarise()` (that is, using the function `summarise()` only once), calculate descriptive statistics of central tendency and variability for all three variables `sleepqual`, `procrast` and `multitask`.  
+In one call to `summarise()` (that is, using the function only once), calculate descriptive statistics of central tendency and variability for **all three** variables `sleepqual`, `procrast` and `multitask`.  
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
@@ -145,10 +144,57 @@ sdata |>
 
 
 `r qbegin(qcounter())`
-Using the summary statistics that you computed in the previous questions, write up a description of the respondents to the survey. 
+The survey also included questions asking about whether people perceive themselves as pessimists vs optimists (the `outlook` variable), and as an "evening person" vs a "morning person" (the `ampm` variable). 
+
+![](images/optimism_ampm.png)
+
+TODO UPDATE ONCE SURVEY DATA IS IN
+
+
+Fill in the blanks in this description. 
+
+> A total sample of **(1)______** participants completed the survey. 
+> 
+> In their general outlook on life (measured with **(2)______**), participants reported an average score of **(3)______** (**(4)______**), indicating a **(5)______** disposition overall.  
+>
+> For chronotype --- as measured on a sliding scale from 0 ("evening person") to 10 ("morning person") --- the distribution was **(6)______**. Consequently, the central tendency for chronotype is best described by the **(7)______** of **(8)______** (**(9)______**), with scores ranging from **(10)______** to **(11)______**.
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+1. how many people are there in the data? (check back to week 2, or the [Read in and inspect data](https://uoepsy.github.io/dapr1/2627/flashcards/block1/read-data.html#to-inspect-data){target="_blank"} flashcard)
+2. give a brief explanation of how the optimism/pessimism was measured. Otherwise the reader won't really know what any of the numbers mean! 
+3. calculate an appropriate measure of central tendency for the `outlook` variable.
+4. calculate an appropriate measure of dispersion for the `outlook` variable.
+5. what do 3 & 4 tell you about the sample?  
+6. describe the shape of the distribution of the `ampm` variable (you'll need to plot it!)
+7. what metric is best for characterising the central tendency of the `ampm` variable
+8. calculate an appropriate measure of central tendency for the `ampm` variable.
+9. calculate an appropriate measure of dispersion for the `ampm` variable.
+10. calculate the range for the `ampm` variable.
+11. calculate the range for the `ampm` variable.
+
+
+:::
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+#| include: false
+outlookm = mean(sdata$outlook,na.rm=T)
+disp = ifelse(outlookm>0,"optimistic","pessimistic")
+adj = ifelse(abs(outlookm)-30<0, "slightly",
+              ifelse(abs(outlookm)-60<0, "moderately",
+                     "highly"))
+```
+
+
+A total sample of **`r nrow(sdata)`** participants completed the survey. 
+
+In their general outlook on life (measured with **a sliding scale from -100 to 100, with 'Pessimist' and 'Optimist' at the extreme labels**), participants reported an average score of **`r outlookm`** (**SD = `r sd(sdata$outlook,na.rm=T)`**), indicating a **paste(adj,disp)** disposition overall.  
+
+For chronotype --- as measured by a sliding scale from 0 ("evening person") to 10 ("morning person") --- the distribution was **(6) TODO **. Consequently, the central tendency for chronotype is best described by the **(7) TODO** of **(8) TODO ** (**(9) TODO **), with scores ranging from **`r min(sdata$ampm,na.rm=T)`** to **`r max(sdata$ampm,na.rm=T)`**.
+
 
 `r solend()`
 

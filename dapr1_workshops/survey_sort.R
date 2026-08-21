@@ -31,4 +31,42 @@ outdf <- tibble(
   threewords = tolower(df$q17)
 )
 
-readr::write_csv(df,file="../../data/dapr1_2526_survey.csv")
+testdf = outdf
+while(TRUE){
+  if(shapiro.test(testdf$outlook)$p.value > .05){
+    if(nrow(testdf)>40){
+      break
+    }
+  }
+  toadd = slice_sample(outdf,n=1) |>
+    mutate(
+      pseudonym=NA,
+      birthmonth = sample(tolower(month.name),1),
+      n_sibling = rpois(1,1),
+      eye_colour = 
+        sample(c("brown","blue","green","hazel","amber"),1,
+               prob = c(.5,.2,.1,.09,.01)),
+      distance_born = rgamma(1,shape=3,scale=5e2),
+      outlook = round(rnorm(1,
+                            mean(testdf$outlook),
+                            sd(testdf$outlook))),
+      ampm = round(rnorm(1,mean(testdf$ampm,ampm=T),
+                         sd(testdf$ampm,na.rm=T)),1),
+      sleepqual = round(rnorm(1,mean(testdf$sleepqual,na.rm=T),
+                              sd(testdf$sleepqual,na.rm=T))),
+      procrast = round(rnorm(1,mean(testdf$procrast,na.rm=T),
+                             sd(testdf$procrast,na.rm=T))),
+      multitask = round(rnorm(1,mean(testdf$multitask,na.rm=T),
+                              sd(testdf$multitask,na.rm=T))),
+      threewords = NA
+      )
+      testdf = bind_rows(testdf,toadd) |> slice_sample(prop=1)
+}
+
+dim(testdf)
+hist(testdf$outlook,breaks=20)
+# summary(testdf |> mutate_if(is.character,as.factor))
+# 
+# testdf |> select_if(is.numeric) |> psych::pairs.panels()
+
+# readr::write_csv(testdf,file="../../data/dapr1_2526_survey.csv")
