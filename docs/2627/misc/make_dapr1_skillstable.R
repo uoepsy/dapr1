@@ -1,5 +1,5 @@
 library(tidyverse)
-readxl::read_xlsx("DAPR1 skills development (1).xlsx")[1:40,] |> janitor::clean_names() |> 
+readxl::read_xlsx("DAPR1 skills development.xlsx")[1:40,] |> janitor::clean_names() |> 
   transmute(
     cat = factor(skill_category,
                  levels=c(
@@ -17,7 +17,7 @@ readxl::read_xlsx("DAPR1 skills development (1).xlsx")[1:40,] |> janitor::clean_
   ) |> arrange(block, cat) -> df
 
 
-sink("skilltable.html")
+sink("skilltable2.html")
 
 
 cat(
