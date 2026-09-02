@@ -29,7 +29,8 @@ Driver instructions:
 
 1. Log in to the bigger screen at your table
 2. Open [RStudio Server](https://rstudio.ppls.ed.ac.uk){target="_blank"}
-3. Listen to your navigators
+3. Open a new .R script, and load the **tidyverse** package.
+4. Listen to your navigators
 
 Navigator instructions:
 
@@ -40,7 +41,7 @@ Navigator instructions:
 
 
 `r qbegin(qcounter())`
-For the exercises this week, we are going to assume that the distribution of `outlook` scores (pessimism/optimism measured on the -100 to 100 scale) for the wider population has a mean of 45 and a standard deviation of 20.  
+For the exercises this week, we are going to pretend that we know that the distribution of `outlook` scores (pessimism/optimism measured on the -100 to 100 scale) for the wider population has a mean of 35 and a standard deviation of 20.  
 
 So **if** we could ask every person in the world to fill out our questionnaire, we would see something like this:^[(the "8e+08" on the y-axis is a way of writing an eight followed by eight zeros, or 800,000,000 - there are 8 Billion people in the world, so the numbers in each of these histogram bins are going to be huge!)]
 ```{r}
@@ -48,7 +49,7 @@ So **if** we could ask every person in the world to fill out our questionnaire, 
 #| out-width: "600px"
 #| out-height: "400px"
 tibble(
-  outlook = round(rnorm(1e6,45,20))
+  outlook = round(rnorm(1e6,35,20))
 ) |>
   ggplot(aes(x=outlook))+geom_histogram() +
   scale_y_continuous(labels = scales::label_scientific(scale = 8000))
@@ -59,8 +60,8 @@ We can generate a pretend sample of outlook scores by using the `rnorm()` functi
 Try playing around with this code. Run each line a couple of times to see how the output changes.  
 
 ```{r}
-#| echo: false
-fake_sample <- rnorm(n = 20, mean = 45, sd = 20)
+#| echo: true
+fake_sample <- rnorm(n = 20, mean = 35, sd = 20)
 fake_sample
 mean(fake_sample)
 ```
@@ -90,9 +91,9 @@ The function `replicate()` can let us do something in R lots of times.
 Can you figure out what these two lines of code do?  
 Raise your hand if you want a tutor to come and help explain.  
 ```{r}
-means20 <- replicate(1000, mean(rnorm(n = 20, mean = 45, sd = 20)))
+means20 <- replicate(1000, mean(rnorm(n = 20, mean = 35, sd = 20)))
 
-means100 <- replicate(1000, mean(rnorm(n = 100, mean = 45, sd = 20)))
+means100 <- replicate(1000, mean(rnorm(n = 100, mean = 35, sd = 20)))
 ```
 
 `r qend()`
@@ -123,7 +124,7 @@ mydata <-
 
 :::flash
 🗂️
-See [flashcard](https://uoepsy.github.io/dapr1/2627/flashcards/){target="_blank"} flash card.
+See [TODO making a tibble/df flashcard](https://uoepsy.github.io/dapr1/2627/flashcards/){target="_blank"} flash card.
 :::
 
 ::: {.callout-tip collapse="true"}
@@ -147,12 +148,12 @@ mydataframe <-
 ```{r}
 data20 <- 
   tibble(
-    estimates = means20
+    estimate = means20
   )
 
 data100 <- 
   tibble(
-    estimates = means100
+    estimate = means100
   )
 ```
 
@@ -162,7 +163,7 @@ data100 <-
 
 `r qbegin(qcounter())`
 We should now have two dataframes. 
-One contains the means from 1000 random samples of size 20 (taken from our supposed population of optimism scores that are assumed to be normally distributed with mean of 45 and standard deviation of 20).  
+One contains the means from 1000 random samples of size 20 (taken from our supposed population of optimism scores that are assumed to be normally distributed with mean of 35 and standard deviation of 20).  
 The second contains the means from 1000 random samples of size 100.  
 
 Make a plot of each of these sets of 1000 estimated means.  
@@ -190,10 +191,10 @@ See [TODO patchwork](https://uoepsy.github.io/dapr1/2627/flashcards/){target="_b
 ```{r}
 library(patchwork)
 
-p20 <- ggplot(data20, aes(x = estimates)) +
+p20 <- ggplot(data20, aes(x = estimate)) +
   geom_histogram()
 
-p100 <- ggplot(data100, aes(x = estimates)) +
+p100 <- ggplot(data100, aes(x = estimate)) +
   geom_histogram()
 
 p20 + p100
@@ -211,7 +212,7 @@ $$
 
 In the two scenarios we have been creating, we have seen how the means from samples of $n=20$ vary, as well as means from samples of $n=100$.  
 
-Because we started this by assuming that optimism scores in the population have mean of 45 and standard deviation of 20, we can calculate:  
+Because we started this by assuming that optimism scores in the population have mean of 35 and standard deviation of 20, we can calculate:  
 
 ::::{.columns}
 :::{.column width="50%"}
@@ -246,11 +247,11 @@ So we can simply use the calculations to get at a *theoretical* probability dist
 #| echo: false
 #| fig-height: 4
 #| fig-width: 12
-mean_20 <- mean(data20$estimates, na.rm = TRUE)
-sd_20   <- sd(data20$estimates, na.rm = TRUE)
+mean_20 <- mean(data20$estimate, na.rm = TRUE)
+sd_20   <- sd(data20$estimate, na.rm = TRUE)
 bw=1
 
-p1 <- ggplot(data20, aes(x = estimates)) +
+p1 <- ggplot(data20, aes(x = estimate)) +
   geom_histogram(binwidth = bw,alpha=.5) +
   stat_function(
     fun = function(x) dnorm(x, mean = mean_20, sd = sd_20) * 1000 * bw,
@@ -281,11 +282,11 @@ p1 <- ggplot(data20, aes(x = estimates)) +
 
 
 
-mean_100 <- mean(data100$estimates, na.rm = TRUE)
-sd_100   <- sd(data100$estimates, na.rm = TRUE)
+mean_100 <- mean(data100$estimate, na.rm = TRUE)
+sd_100   <- sd(data100$estimate, na.rm = TRUE)
 bw2=.45
 
-p2 <- ggplot(data100, aes(x = estimates)) +
+p2 <- ggplot(data100, aes(x = estimate)) +
   geom_histogram(binwidth = bw2,alpha=.5) +
   stat_function(
     fun = function(x) dnorm(x, mean = mean_100, sd = sd_100) * 1000 * bw2,
@@ -328,6 +329,11 @@ Check them now.
 
 This is just like calculating the standard deviation for any other variable! 
 
+:::flash
+🗂️
+[Measuring Variability (standard deviation)](https://uoepsy.github.io/dapr1/2627/flashcards/block1/variability.html#standard-deviation-sd){target="_blank"} flash card.
+:::
+
 :::
 
 `r qend()`
@@ -338,12 +344,12 @@ getwd()
 
 data20 |>
   summarise(
-    sd = sd(estimates)
+    sd = sd(estimate)
   )
 
 data100 |>
   summarise(
-    sd = sd(estimates)
+    sd = sd(estimate)
   )
 ```
 

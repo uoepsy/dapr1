@@ -3,7 +3,8 @@ library(tidyverse)
 
 df <- fetch_survey("SV_7VxqkFo12wBita6") |> 
   janitor::clean_names() |>
-  filter(status != "Survey Preview")
+  filter(status != "Survey Preview") |>
+  filter(progress > 90)
 
 outdf <- tibble(
   pseudonym = tolower(df$q2),
@@ -35,7 +36,7 @@ testdf = outdf
 while(TRUE){
   if(shapiro.test(testdf$outlook)$p.value > .05){
     if(nrow(testdf)>40){
-      break
+      if(mean(testdf$outlook)>30) { break }
     }
   }
   toadd = slice_sample(outdf,n=1) |>
@@ -48,8 +49,8 @@ while(TRUE){
                prob = c(.5,.2,.1,.09,.01)),
       distance_born = rgamma(1,shape=3,scale=5e2),
       outlook = round(rnorm(1,
-                            mean(testdf$outlook),
-                            sd(testdf$outlook))),
+                            40,
+                            25)),
       ampm = round(rnorm(1,mean(testdf$ampm,ampm=T),
                          sd(testdf$ampm,na.rm=T)),1),
       sleepqual = round(rnorm(1,mean(testdf$sleepqual,na.rm=T),
@@ -59,8 +60,15 @@ while(TRUE){
       multitask = round(rnorm(1,mean(testdf$multitask,na.rm=T),
                               sd(testdf$multitask,na.rm=T))),
       threewords = NA
-      )
-      testdf = bind_rows(testdf,toadd) |> slice_sample(prop=1)
+      ) |>
+    mutate(
+      outlook = pmin(100,pmax(-100,outlook)),
+      ampm = pmin(10,pmax(0,ampm)),
+      sleepqual = pmin(100, pmax(0, sleepqual)),
+      procrast = pmin(100, pmax(0, procrast)),
+      multitask = pmin(100, pmax(0, multitask))
+    )
+  testdf = bind_rows(testdf,toadd) |> slice_sample(prop=1)
 }
 
 dim(testdf)

@@ -1,0 +1,267 @@
+---
+title: "W10: Null Hypothesis Significance Testing (NHST)"
+params: 
+    SHOW_SOLS: TRUE
+    TOGGLE: TRUE
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+#| include: false
+library(tidyverse)
+source('assets/dropdowns.R')
+source('assets/setup.R')
+```
+
+<!-- MAX 5 QUESTIONS -->
+<!-- make each question ~10 minute work -->
+<!-- MAX 5 QUESTIONS -->
+<!-- MAX 5 QUESTIONS -->
+
+:::frame
+Pick someone new to be the driver this week. If everyone in the group has already had a week as the driver, start going round again!  
+
+The driver will type the code. The rest of you are navigators, you need to tell the driver where to go (i.e., what to type!). 
+
+Driver instructions:
+
+1. Log in to the bigger screen at your table
+2. Open [RStudio Server](https://rstudio.ppls.ed.ac.uk){target="_blank"}
+3. Open a new .R script, and load the **tidyverse** package.
+4. Listen to your navigators
+
+Navigator instructions:
+
+1. Tell your driver where to go (i.e., what to type)!
+
+:::
+
+
+q1
+define hyp
+h0 = \bar x - \mu = 0
+h1 = \bar x - \mu > 0
+
+q2
+collect data and determine comparison dist
+data = sdata
+given
+\mu = 35, \sigma = 20
+
+q3
+calculate test stat
+z = ( mean(sdata$outlook) - 35 ) / 
+  ( 20 / sqrt(nrow(sdata)) )
+
+q4
+make a decision (p v alpha)
+1-pnorm(z)
+
+q5
+writing up. fill in blanks
+
+TODO CHECK UN - are you okay with all of this being called Z even though it should technically be t? the idea being that the explanation (at least a very brief one) comes next week
+
+
+`r qbegin(qcounter())`
+
+This week, we're going to draw on the ideas we covered over the last few weeks and go step-by-step through the process of performing a 'null hypothesis significance test'.  
+
+We start with a research question: 
+
+> **Research Question:** Do first year undergraduate students have similar levels of optimism to adults in general?  
+>   *Operationalisation*: We surveyed students on a first year undergraduate statistics course (that's you!), and asked them to indicate their level of pessimism/optimism on a sliding scale from -100 (pessimist) to +100 (optimist). Previous research using this measure suggests that the overall adult population has an average score of 35.  
+> **Data:** [https://uoepsy.github.io/data/dapr1_2526_survey.csv](https://uoepsy.github.io/data/dapr1_2526_survey.csv){target="_blank"}  
+
+**Task:** Define the null and alternative hypotheses.  
+
+
+:::flash
+🗂️
+See [TODO defining h0 h1? flashcard](https://uoepsy.github.io/dapr1/2627/flashcards/){target="_blank"} flash card.
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+
+$H_0: \mu - 35 = 0$
+$H_1: \mu - 35 \neq 0$
+
+`r solend()`
+
+
+
+`r qbegin(qcounter())`
+In future, we're going to learn and use functions in R that do all the steps of NHST for us, but for this week we're going to break down the process, so we're going to need all the different parts.   
+
+We're going to need:  
+
+a. the size of our sample
+b. the mean that we observe in our sample
+c. the hypothesised value that we are testing if our sample mean is equal to
+d. (an estimate of) how much we expect samples of our size to vary
+
+Write down or calculate each of these now.  
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+for d., this is the "standard error". We have seen the formula for this a few times, it's $\frac{\sigma}{\sqrt{n}}$. As this is real research, we don't know $\sigma$ (the standard deviation of scores in the population), so we'll estimate it using $s$, the standard deviation in our sample.   
+
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+library(tidyverse)
+sdata <- read_csv("https://uoepsy.github.io/data/dapr1_2526_survey.csv")
+
+nrow(sdata)
+mean(sdata$outlook)
+35
+sd(sdata$outlook) / sqrt(nrow(sdata))
+```
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+
+Together, the information from the previous question allow us to build up a picture of "what would sample means be like **if** the null hypothesis ($H_0$) were true".  
+We can then calculate the probability of seeing a sample mean at least as extreme as the one we _have_ seen, if the null hypothesis were true:    
+
+```{r}
+#| echo: false
+#| label: fig-nhst
+#| fig-cap: "Null hypothesis testing in a nutshell. SE stands for 'standard error'."
+set.seed(2394)
+samplemeans <- replicate(2000, mean(rnorm(n=100, mean=0, sd=5)))
+ss = sd(samplemeans)
+g <- ggplot(data=tibble(samplemeans),aes(x=samplemeans))+
+  #geom_histogram(alpha=.3)+
+  stat_function(geom="line",fun=~dnorm(.x, mean=0,sd=sd(samplemeans))*270,lwd=1)
+
+ld <- layer_data(g) |> filter(x <= sd(samplemeans)+.02 & x >= (-sd(samplemeans)-.02))
+ld2 <- layer_data(g) |> filter(x <= 2*sd(samplemeans)+.02 & x >= (-2*sd(samplemeans))-.02)
+ld3 <- layer_data(g) |> filter(x >= 1.2)
+ld4 <- layer_data(g) |> filter(x <= -1.2)
+
+g + geom_area(data=ld,aes(x=x,y=y),fill="grey30",alpha=.3) + 
+  geom_area(data=ld2,aes(x=x,y=y),fill="grey30",alpha=.1) +
+  geom_area(data=ld3,aes(x=x,y=y),fill="tomato1",alpha=.3) +
+  geom_area(data=ld4,aes(x=x,y=y),fill="tomato1",alpha=.3) +
+  geom_segment(aes(x=0,xend=0,y=0,yend=dnorm(0,0,sd=sd(samplemeans))*280), lty="dashed")+
+  geom_segment(aes(x=1.2,xend=1.2,y=0,yend=180), lty="dashed", col="#2b8ce0")+ 
+  # geom_vline(aes(xintercept=1.2),lty="dashed",col="tomato1")+
+  labs(x = "statistic")+
+  scale_y_continuous(NULL, breaks=NULL, limits=c(0,275))+
+  annotate("text",x=0, y=260, label="population mean\naccording to\nnull hypothesis", col="grey30")+
+  annotate("text",x=-1.5, y=210, label="means we would expect from\nsamples of size n if the\nnull hypothesis is true", col="grey30")+
+  annotate("text",x=1.2, y=220, label="mean we observe\nin our sample", col="#2b8ce0")+
+  annotate("text",x=1.5, y=40, label="probability of seeing\na mean at least\nas extreme\n(if null is true)", col="tomato1",
+           hjust=0,size=4)+
+  geom_curve(aes(x=0, xend=0, y=240, yend=225), col="grey30", size=0.5, curvature = 0, arrow = arrow(length = unit(0.03, "npc")))+
+  geom_curve(aes(x=-1, xend=-0.5, y=190, yend=150), col="grey30", size=0.5, curvature = 0.2, arrow = arrow(length = unit(0.03, "npc")))+
+  geom_curve(aes(x=1.2, xend=1.2, y=205, yend=185), col="#2b8ce0", size=0.5, curvature = 0, arrow = arrow(length = unit(0.03, "npc"))) +
+  geom_curve(aes(x=1.45, xend=1.3, y=35, yend=2.5), col="tomato1", size=0.5, curvature = 0, arrow = arrow(length = unit(0.02, "npc")))+
+  geom_curve(aes(x=1.45, xend=-1.3, y=35, yend=2.5), col="tomato1", size=0.5, curvature = 0, arrow = arrow(length = unit(0.02, "npc")))+
+  scale_x_continuous(NULL, breaks=c(-2:2)*ss, 
+                     labels=c("-2*SE","-1*SE","","1*SE","2*SE"),
+                     limits=c(-2.5,2.5))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+  
+```
+
+
+To calculate the probability areas, we're going to need to get convert our mean into a "test statistic". 
+
+This is called a "Z-statistic", and it bears a similar resemblance to what we did a few weeks back in calculating "Z-scores". In this case, however, we are doing the process on the weird abstract theoretical distribution of "the means from all the possible samples we _could have taken_".  
+
+$$
+Z = \frac{M - \mu_0}{SE}
+$$
+
+**Task:** Calculate Z 
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+```{r}
+zstat <- 
+  ( mean(sdata$outlook) - 35 ) / 
+    ( sd(sdata$outlook) / sqrt(nrow(sdata)) )
+
+zstat
+```
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+Now that we have our test statistic, we can calculate the "p-value".  
+This is "probability of seeing a sample mean at least as extreme as the one we _have_ seen, if the null hypothesis were true", and corresponds to the shaded red areas in @fig-nhst.  
+
+Z statistics are normally distributed with a mean of 0 and standard deviation of 1, so we just need to use `pnorm()` to find the area of the normal distribution curve that is beyond *our* Z statistic.  
+
+
+::: {.callout-tip collapse="true"}
+#### Hint
+
+TODO. i think we need a hint here
+
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+Area greater:  
+```{r}
+1-pnorm(zstat)
+```
+
+We want both tails! 
+```{r}
+2*(1-pnorm(zstat))
+```
+
+`r solend()`
+
+
+
+`r qbegin(qcounter())`
+
+Fill in the blanks 
+
+TODO take example write up from Lecture when available, and copy but leave blanks
+
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+
+`r solend()`
+
+
+
+
+:::frame
+__Finishing up__  
+
+Once you've finished, don't forget to: 
+
+1. Save your R script
+2. Post the R script to the group discussion space on Learn, to ensure that everyone has access to it! (For step-by-step instructions on how to do this, click [here](00serverfiles.html){target="_blank"})  
+
+
+:::
+
+
+
+
+
+
+
+
