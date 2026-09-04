@@ -38,32 +38,8 @@ Navigator instructions:
 
 :::
 
-
-q1
-define hyp
-h0 = \bar x - \mu = 0
-h1 = \bar x - \mu > 0
-
-q2
-collect data and determine comparison dist
-data = sdata
-given
-\mu = 35, \sigma = 20
-
-q3
-calculate test stat
-z = ( mean(sdata$outlook) - 35 ) / 
-  ( 20 / sqrt(nrow(sdata)) )
-
-q4
-make a decision (p v alpha)
-1-pnorm(z)
-
-q5
-writing up. fill in blanks
-
 TODO CHECK UN - are you okay with all of this being called Z even though it should technically be t? the idea being that the explanation (at least a very brief one) comes next week
-
+TODO CHECK UN - would you prefer this is two-sided?
 
 `r qbegin(qcounter())`
 
@@ -71,7 +47,7 @@ This week, we're going to draw on the ideas we covered over the last few weeks a
 
 We start with a research question: 
 
-> **Research Question:** Do first year undergraduate students have similar levels of optimism to adults in general?  
+> **Research Question:** Are first year undergraduate students more optimistic than adults in general?  
 >   *Operationalisation*: We surveyed students on a first year undergraduate statistics course (that's you!), and asked them to indicate their level of pessimism/optimism on a sliding scale from -100 (pessimist) to +100 (optimist). Previous research using this measure suggests that the overall adult population has an average score of 35.  
 > **Data:** [https://uoepsy.github.io/data/dapr1_2526_survey.csv](https://uoepsy.github.io/data/dapr1_2526_survey.csv){target="_blank"}  
 
@@ -88,7 +64,7 @@ See [TODO defining h0 h1? flashcard](https://uoepsy.github.io/dapr1/2627/flashca
 
 
 $H_0: \mu - 35 = 0$
-$H_1: \mu - 35 \neq 0$
+$H_1: \mu - 35 > 0$
 
 `r solend()`
 
@@ -161,13 +137,16 @@ g + geom_area(data=ld,aes(x=x,y=y),fill="grey30",alpha=.3) +
   annotate("text",x=0, y=260, label="population mean\naccording to\nnull hypothesis", col="grey30")+
   annotate("text",x=-1.5, y=210, label="means we would expect from\nsamples of size n if the\nnull hypothesis is true", col="grey30")+
   annotate("text",x=1.2, y=220, label="mean we observe\nin our sample", col="#2b8ce0")+
-  annotate("text",x=1.5, y=40, label="probability of seeing\na mean at least\nas extreme\n(if null is true)", col="tomato1",
-           hjust=0,size=4)+
+  annotate("text",x=1.5, y=40, label="probability of seeing\na mean at least\nas extreme\nif null is true", col="tomato1", hjust=0,size=4)+
+  
+  annotate("text",x=-1.5, y=40, label="probability of seeing\na mean at least\nas extreme (in other\ndirection) if null is true", col="tomato1", hjust=1,size=4)+
+  
+  
   geom_curve(aes(x=0, xend=0, y=240, yend=225), col="grey30", size=0.5, curvature = 0, arrow = arrow(length = unit(0.03, "npc")))+
   geom_curve(aes(x=-1, xend=-0.5, y=190, yend=150), col="grey30", size=0.5, curvature = 0.2, arrow = arrow(length = unit(0.03, "npc")))+
   geom_curve(aes(x=1.2, xend=1.2, y=205, yend=185), col="#2b8ce0", size=0.5, curvature = 0, arrow = arrow(length = unit(0.03, "npc"))) +
   geom_curve(aes(x=1.45, xend=1.3, y=35, yend=2.5), col="tomato1", size=0.5, curvature = 0, arrow = arrow(length = unit(0.02, "npc")))+
-  geom_curve(aes(x=1.45, xend=-1.3, y=35, yend=2.5), col="tomato1", size=0.5, curvature = 0, arrow = arrow(length = unit(0.02, "npc")))+
+  geom_curve(aes(x=-1.45, xend=-1.3, y=35, yend=2.5), col="tomato1", size=0.5, curvature = 0, arrow = arrow(length = unit(0.02, "npc")))+
   scale_x_continuous(NULL, breaks=c(-2:2)*ss, 
                      labels=c("-2*SE","-1*SE","","1*SE","2*SE"),
                      limits=c(-2.5,2.5))+
@@ -202,15 +181,14 @@ zstat
 
 `r qbegin(qcounter())`
 Now that we have our test statistic, we can calculate the "p-value".  
-This is "probability of seeing a sample mean at least as extreme as the one we _have_ seen, if the null hypothesis were true", and corresponds to the shaded red areas in @fig-nhst.  
+This is "probability of seeing a sample mean at least as extreme as the one we _have_ seen, if the null hypothesis were true", and corresponds to one, or both, of the shaded red areas in @fig-nhst, depending on how we phrased $H_1$.  
 
 Z statistics are normally distributed with a mean of 0 and standard deviation of 1, so we just need to use `pnorm()` to find the area of the normal distribution curve that is beyond *our* Z statistic.  
-
 
 ::: {.callout-tip collapse="true"}
 #### Hint
 
-TODO. i think we need a hint here
+think i need a hint here about direction
 
 :::
 
@@ -222,10 +200,6 @@ Area greater:
 1-pnorm(zstat)
 ```
 
-We want both tails! 
-```{r}
-2*(1-pnorm(zstat))
-```
 
 `r solend()`
 
@@ -235,7 +209,7 @@ We want both tails!
 
 Fill in the blanks 
 
-TODO take example write up from Lecture when available, and copy but leave blanks
+TODO take example write up from Lecture when available, and leave blanks
 
 
 `r qend()`

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>W7: Z Scores &amp; the Normal Distribution – DAPR1 Workshops</title>
+<title>W11: One Sample T test – DAPR1 Workshops</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -254,7 +254,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">W7: Z Scores &amp; the Normal Distribution</h1>
+<h1 class="title">W11: One Sample T test</h1>
 </div>
 
 
@@ -290,46 +290,39 @@ window.Quarto = {
 <li>Tell your driver where to go (i.e., what to type)!</li>
 </ol>
 </div>
+<p>q1 t.test(sdata$outlook, mu=35, alternative=“greater”) q2 RQ “are DAPR1 students identify more as evening people or as morning people?” set up hypothesis q3 plot q4 t test q5 write up</p>
 <div class="question-begin">
 Question 1
 </div>
 <div class="question-body">
-<p>We’re continuing to use the same survey data for the remainder of the semester. The data are stored at <a href="https://uoepsy.github.io/data/dapr1_2526_survey.csv" target="_blank">https://uoepsy.github.io/data/dapr1_2526_survey.csv</a>. By now, as a group you will have read in the data numerous times. Just check back to your work from the previous weeks to remind yourself if needs be.</p>
-<p>This week we are working with the two questions about peoples outlook (pessimism/optimism) and their chronotype (evening/morning person).</p>
-<p><img src="images/optimism_ampm.png" class="img-fluid"></p>
-<p>These are on quite different scales (-100 to 100, and 0 to 10). Which means someone scoring 10 on <code>outlook</code> means a very different thing to them scoring 10 on <code>ampm</code>.</p>
-<p><strong>Task:</strong> Read in the data, and create two new variables, which are the <strong>standardised</strong> (or <strong>Z-</strong>) scores on these variables.</p>
-<div class="flash">
-<p>🗂️ <a href="https://uoepsy.github.io/dapr1/2627/flashcards/" target="_blank">TODO calc z score flashcard</a> flash card.</p>
-</div>
-</div>
-<p class="question-end">
-</p>
-<div class="solution-begin">
-<button id="sol-start-1" class="jk-circle-right solution-icon clickable" onclick="toggle_visibility('sol-body-1', 'sol-start-1')">
-Solution
-</button>
-</div>
-<div id="sol-body-1" class="solution-body proof solution" style="display: none;">
-<p><span class="proof-title"><em>Solution 1</em>. </span></p>
+<p>Our work last week culminated in performing our first null hypothesis test. We were testing whether the average optimism score in DAPR1 students is greater than the general population average (35).</p>
+<p>To do this, we calculated a test statistic (Lines 6-9 below) and then computed the p-value (Line 11), to quantify the probability of observing a test-statistic at least as extreme as the one we have got.</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>sdata <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"https://uoepsy.github.io/data/dapr1_2526_survey.csv"</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>sdata <span class="ot">&lt;-</span> sdata <span class="sc">|&gt;</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">outlookZ =</span> ( outlook <span class="sc">-</span> <span class="fu">mean</span>(outlook) ) <span class="sc">/</span> <span class="fu">sd</span>(outlook),</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">ampmZ =</span> ( ampm <span class="sc">-</span> <span class="fu">mean</span>(ampm) ) <span class="sc">/</span> <span class="fu">sd</span>(ampm)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># packages:</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># data:</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>sdata <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"https://uoepsy.github.io/data/dapr1_2526_survey.csv"</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># standard error of mean:</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>se <span class="ot">&lt;-</span> <span class="fu">sd</span>(sdata<span class="sc">$</span>outlook) <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">nrow</span>(sdata))</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># test statistic:  </span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>zstat <span class="ot">&lt;-</span> (<span class="fu">mean</span>(sdata<span class="sc">$</span>outlook) <span class="sc">-</span> <span class="dv">35</span>) <span class="sc">/</span> se</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># p-value</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="sc">-</span><span class="fu">pnorm</span>(zstat)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.0311</code></pre>
 </div>
 </div>
-<p class="solution-end">
-</p>
-<div class="question-begin">
-Question 2
+<p>Good news everyone! There’s a function in R that does this test for us! It’s the <code>t.test()</code> function.</p>
+<p>Note… it’s <span class="math inline">\(t\)</span>, and not <span class="math inline">\(Z\)</span>. That’s because when we have been calculating the standard error, we have been using our <em>sample</em> standard deviation, <code>sd(sdata$outlook)</code>, rather than the population standard deviation <span class="math inline">\(\sigma\)</span>. That’s because we <strong>don’t know</strong> what <span class="math inline">\(\sigma\)</span> is.</p>
+<p>When we use the sample standard deviation, we’re using an <em>estimate</em> of <span class="math inline">\(\sigma\)</span>, which means we are introducing more uncertainty. This uncertainty depends on how big our sample is.</p>
+<p>Our test statistic <span class="math inline">\(\frac{M-35}{s/\sqrt{n}}\)</span>, when we use <span class="math inline">\(s\)</span> not <span class="math inline">\(\sigma\)</span>, is <em>actually</em> a <span class="math inline">\(t\)</span>-statistic. It doesn’t follow a normal distribution, it follows a <span class="math inline">\(t\)</span>-distribution.</p>
+<p><span class="math inline">\(t\)</span>-distributions look very like the normal distribution, but the tails get thicker as the “degrees of freedom” decrease. The “degrees of freedom” here are <span class="math inline">\(n-1\)</span>, because we have <span class="math inline">\(n\)</span> observations and need to use 1 estimate (the mean) to calculate <span class="math inline">\(s\)</span>.</p>
+<p><strong>Task:</strong> Use <code>t.test()</code> to perform the same hypothesis test but as a <span class="math inline">\(t\)</span>-test, not <span class="math inline">\(z\)</span>.<br>
+<strong>Challenge yourselves:</strong> compared to the output from the code above, you might be able to predict which bits will be different and which bits will be the same!</p>
+<div class="flash">
+<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/" target="_blank">t test flashcard</a> flash card.</p>
 </div>
-<div class="question-body">
-<p>Find the pseudonyms, scores, and Z-scores of the three people who reported being the most optimistic, and the three who identified the most as “morning people”.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -342,19 +335,50 @@ Question 2
 </div>
 <div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>One way to do this is to take the data (line 1 below), and then sort it by a variable, in descending order (line 2), before taking a “slice” of it and asking for specific row numbers (line 3). You can then, to make it easier to see stuff in the output, choose only the variables that you want to see (line 4):</p>
+<p>it’s just one line of code!</p>
+</div>
+</div>
+</div>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<button id="sol-start-1" class="jk-circle-right solution-icon clickable" onclick="toggle_visibility('sol-body-1', 'sol-start-1')">
+Solution
+</button>
+</div>
+<div id="sol-body-1" class="solution-body proof solution" style="display: none;">
+<p><span class="proof-title"><em>Solution 1</em>. </span>We have the same test statistic (we’re just calling it <span class="math inline">\(t\)</span> now)<br>
+we have the same mean, but we should have a different (slightly) p-value.</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-label="1"></a>data <span class="sc">|&gt;</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-label="2"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(variable)) <span class="sc">|&gt;</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-label="3"></a>  <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>) <span class="sc">|&gt;</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-label="4"></a>  <span class="fu">select</span>(variable, variable2, variable3)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">t.test</span>(sdata<span class="sc">$</span>outlook, <span class="at">mu =</span> <span class="dv">35</span>, <span class="at">alternative =</span> <span class="st">"greater"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    One Sample t-test
+
+data:  sdata$outlook
+t = 2, df = 40, p-value = 0.03
+alternative hypothesis: true mean is greater than 35
+95 percent confidence interval:
+ 35.7  Inf
+sample estimates:
+mean of x 
+     42.7 </code></pre>
 </div>
-<div class="flash">
-<p>🗂️ <a href="https://uoepsy.github.io/dapr1/2627/flashcards/" target="_blank">TODO EP any flashcards potentially relevant?</a> flash card.</p>
 </div>
 </div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 2
 </div>
-</div>
+<div class="question-body">
+<blockquote class="blockquote">
+<p><strong>New Research Question:</strong> Do first year undergraduate students identify more as morning people or as evening people?</p>
+</blockquote>
+<p>Here’s what the question in the survey looked like. In our data it is the <code>ampm</code> variable.<br>
+<img src="images/ampm.png" class="img-fluid"></p>
+<p>Specify the null and alternative hypotheses to address the research question.</p>
 </div>
 <p class="question-end">
 </p>
@@ -364,33 +388,8 @@ Solution
 </button>
 </div>
 <div id="sol-body-2" class="solution-body proof solution" style="display: none;">
-<p><span class="proof-title"><em>Solution 2</em>. </span></p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>sdata <span class="sc">|&gt;</span> </span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(outlook)) <span class="sc">|&gt;</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>) <span class="sc">|&gt;</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(pseudonym, outlook, outlookZ)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 3 × 3
-  pseudonym outlook outlookZ
-  &lt;chr&gt;       &lt;dbl&gt;    &lt;dbl&gt;
-1 &lt;NA&gt;          100     2.17
-2 &lt;NA&gt;           93     1.91
-3 &lt;NA&gt;           86     1.64</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>sdata <span class="sc">|&gt;</span> </span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(ampm)) <span class="sc">|&gt;</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>) <span class="sc">|&gt;</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(pseudonym, ampm, ampmZ)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 3 × 3
-  pseudonym   ampm ampmZ
-  &lt;chr&gt;      &lt;dbl&gt; &lt;dbl&gt;
-1 allscratch    10  1.55
-2 &lt;NA&gt;          10  1.55
-3 &lt;NA&gt;          10  1.55</code></pre>
-</div>
-</div>
+<p><span class="proof-title"><em>Solution 2</em>. </span><span class="math inline">\(H_0: \mu = 5\)</span><br>
+<span class="math inline">\(H_1: \mu \neq 5\)</span></p>
 </div>
 <p class="solution-end">
 </p>
@@ -398,16 +397,11 @@ Solution
 Question 3
 </div>
 <div class="question-body">
-<p>Plot the standardised outlook scores as a density curve.</p>
-<p>Once you have made your plot, add this bit of code to the end of it. It will add a normal distribution (with mean of 0 and standard deviation of 1).</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>... </span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  ... <span class="sc">+</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_function</span>(<span class="at">fun =</span> dnorm, <span class="at">args =</span> <span class="fu">list</span>(<span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="dv">1</span>), </span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">colour =</span> <span class="st">"red"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
+<p>Create a visualisation that presents the data in a way that is relevant to the research question.<br>
+There are lot’s of different ways you could do this - the choice is yours!<br>
+Have some fun with it. Change colours, tidy up axis labels etc.</p>
 <div class="flash">
-<p>🗂️ See the <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block1/intro-ggplot.html#histogram" target="_blank">Plot a variable &gt; Histogram</a> flash card. Only we don’t want a <code>geom_histogram()</code>, we want a <code>geom_density()</code>!</p>
+<p>🗂️ See the <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block1/intro-ggplot.html" target="_blank">plot a variable</a> flash card.</p>
 </div>
 </div>
 <p class="question-end">
@@ -420,13 +414,16 @@ Solution
 <div id="sol-body-3" class="solution-body proof solution" style="display: none;">
 <p><span class="proof-title"><em>Solution 3</em>. </span></p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(sdata , <span class="fu">aes</span>(<span class="at">x =</span> outlookZ)) <span class="sc">+</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>() <span class="sc">+</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_function</span>(<span class="at">fun =</span> dnorm, <span class="at">args =</span> <span class="fu">list</span>(<span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="dv">1</span>), <span class="at">colour =</span> <span class="st">"red"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(sdata, <span class="fu">aes</span>(<span class="at">x =</span> ampm)) <span class="sc">+</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">alpha =</span> .<span class="dv">5</span>, <span class="at">fill =</span> <span class="st">"#0F4C81"</span>) <span class="sc">+</span> </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">5</span>, <span class="at">lty =</span> <span class="st">"dotted"</span>) <span class="sc">+</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">mean</span>(sdata<span class="sc">$</span>ampm), <span class="at">lty =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="st">"Chronotype</span><span class="sc">\n</span><span class="st">(evening person &lt;--&gt; morning person)"</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                     <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">10</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="07ex_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
+<p><img src="11ex_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
@@ -438,76 +435,9 @@ Solution
 Question 4
 </div>
 <div class="question-body">
-<p>In a “standard normal” distribution – a normal distribution with mean of 0 and sd of 1, often written <span class="math inline">\(N(0,1)\)</span> – 90% of the distribution falls below <strong>1.28</strong>. In other words, there is a 90% probability that a randomly drawn observation is &lt; 1.28.</p>
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="07ex_files/figure-html/unnamed-chunk-7-1.png" class="quarto-figure quarto-figure-center figure-img" width="400" height="200"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="callout callout-style-default callout-caution callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Caution</span>Rabbit hole: how to find this out for any %
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-2" class="callout-2-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>In “the olden days” when everything was black and white, there were big tables of numbers that people had to look through to figure out this sort of thing.</p>
-<p>Computers can do it in an instant. The <code>qnorm()</code> function in R takes a probability, and returns the value at which that area under the normal distribution falls.</p>
-<p>Computers can do this in an instant. In R, the <code>qnorm()</code> function takes a probability and tells you the exact value where the area under the standard normal distribution curve reaches that amount.</p>
-<p>E.g., 40% of the distribution falls to the left of:</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">qnorm</span>(<span class="fl">0.4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] -0.253</code></pre>
-</div>
-</div>
-<p>And 50% of the distribution falls to the left of…<br>
-(we actually don’t need to calculate this - take a look above at the plot and think!)</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">qnorm</span>(<span class="fl">0.5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 0</code></pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<p>Given this information, if we make the assumption for now that <code>outlook</code> is normally distributed, we should be able to figure out the value of the original <code>outlook</code> variable at which we would expect 90% of the distribution to fall.</p>
-<p>Because we calculated the Z scores using <span class="math inline">\(z = \frac{x - M}{SD}\)</span>, we are essentially asking what value of <span class="math inline">\(x\)</span> results in <span class="math inline">\(z = 1.28\)</span>. To do this we can <em>rearrange</em> <span class="math inline">\(Z = \frac{x - M}{SD}\)</span> to <span class="math inline">\(x = (z \cdot SD) + M\)</span>, and then “plug in” the relevant numbers to calculate <span class="math inline">\(x\)</span>.</p>
-<p>We’ll take this opportunity to introduce an alternative way to access variables in a dataframe. As well as calculating means and standard deviations using <code>data |&gt; summarise()</code>, we can also get a specific variable using <code>data$variable</code>. This is easier for doing quick calculations such as:</p>
-<p>The Z score for some hypothetical person who scored 20 on the optimism question:</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>(<span class="dv">20</span> <span class="sc">-</span> <span class="fu">mean</span>(sdata<span class="sc">$</span>outlook)) <span class="sc">/</span> <span class="fu">sd</span>(sdata<span class="sc">$</span>outlook)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] -0.86</code></pre>
-</div>
-</div>
-<p><strong>Task:</strong> calculate the value below which 90% of outlook scores fall.</p>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Hints
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-3" class="callout-3-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>We’re wanting to calculate <span class="math inline">\(x\)</span>, using <span class="math inline">\(x = (z \cdot SD) + M\)</span>.</p>
-<p>We know we want <span class="math inline">\(z = 1.28\)</span>, and we can use <code>mean(sdata$outlook)</code> and <code>sd(sdata$outlook)</code> for <span class="math inline">\(M\)</span> and <span class="math inline">\(SD\)</span> respectively.</p>
-</div>
-</div>
+<p>Perform a <code>t.test()</code> to test the hypotheses you specified above.</p>
+<div class="flash">
+<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/" target="_blank">TODO t test flashcard</a> flash card.</p>
 </div>
 </div>
 <p class="question-end">
@@ -520,9 +450,19 @@ Solution
 <div id="sol-body-4" class="solution-body proof solution" style="display: none;">
 <p><span class="proof-title"><em>Solution 4</em>. </span></p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>(<span class="fl">1.28</span><span class="sc">*</span><span class="fu">sd</span>(sdata<span class="sc">$</span>outlook)) <span class="sc">+</span> <span class="fu">mean</span>(sdata<span class="sc">$</span>outlook)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">t.test</span>(sdata<span class="sc">$</span>ampm, <span class="at">mu =</span> <span class="dv">5</span>, <span class="at">alternative =</span> <span class="st">"two.sided"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 76.4</code></pre>
+<pre><code>
+    One Sample t-test
+
+data:  sdata$ampm
+t = 35, df = 40, p-value &lt;2e-16
+alternative hypothesis: true mean is not equal to 5
+95 percent confidence interval:
+ 8.68 9.13
+sample estimates:
+mean of x 
+      8.9 </code></pre>
 </div>
 </div>
 </div>
@@ -532,32 +472,12 @@ Solution
 Question 5
 </div>
 <div class="question-body">
-<p>Find the outlook value for one of your group members. They will need to remember the pseudonym used to fill the survey.</p>
-<p>We can extract a specific row with the <code>filter()</code> function, where we use two equals signs to ask “is a variable equal to &lt;specific value&gt;?”.<br>
-For example, to find any row where the pseudonym “dougal” was used:</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>sdata <span class="sc">|&gt;</span> </span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(pseudonym <span class="sc">==</span> <span class="st">"dougal"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Assuming outlook is normally distributed, what is the probability of seeing somebody less optimistic than your chosen group member? And more optimistic?</p>
-<p>Do the values satisfy the requirements of probabilities? Check that they are positive, less than 1, and they sum to 1</p>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Hints
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-4" class="callout-4-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>See this week’s lecture slides - we’ll want to use <code>pnorm()</code>!</p>
-<p>TODO I don’t know if we want a pnorm flashcard? do we have a link to the slides or are they only hosted on learn?</p>
-</div>
-</div>
-</div>
+<p>Write it up!</p>
+<p>To help, here’s the example write-up from the lecture:</p>
+<blockquote class="blockquote">
+<p>To investigate whether the mean body temperature of all healthy humans differs from the commonly thought value of <span class="math inline">\(37^\circ\text{C}\)</span>, we performed (at the 5% significance level) a one-sample t-test of <span class="math inline">\(H_0: \mu = 37^\circ\text{C}\)</span> against <span class="math inline">\(H_0: \mu \neq 37^\circ\text{C}\)</span>.<br>
+The sample results provided very strong evidence against the null hypothesis (<span class="math inline">\(t(49)=-3.14, p = .003\)</span>, two-sided). We therefore concluded that the mean body temperature of healthy humans differs from 37 and, with 95% confidence, is likely to be between <span class="math inline">\(36.69^\circ\text{C}\)</span> and <span class="math inline">\(36.93^\circ\text{C}\)</span>.</p>
+</blockquote>
 </div>
 <p class="question-end">
 </p>
@@ -567,33 +487,7 @@ Solution
 </button>
 </div>
 <div id="sol-body-5" class="solution-body proof solution" style="display: none;">
-<p><span class="proof-title"><em>Solution 5</em>. </span>Dougal is a little bit of a pessimist:</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>sdata <span class="sc">|&gt;</span> </span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(pseudonym <span class="sc">==</span> <span class="st">"dougal"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(pseudonym, outlook)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1 × 2
-  pseudonym outlook
-  &lt;chr&gt;       &lt;dbl&gt;
-1 dougal        -16</code></pre>
-</div>
-</div>
-<p>His outlook score of 16, when transformed to a Z-score, is:</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>dougalZ <span class="ot">=</span> (<span class="sc">-</span><span class="dv">16</span> <span class="sc">-</span> <span class="fu">mean</span>(sdata<span class="sc">$</span>outlook)) <span class="sc">/</span> <span class="fu">sd</span>(sdata<span class="sc">$</span>outlook)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>There is a 1% probability of seeing someone less optimistic than Dougal, and a 99% probability of seeing someone more optimistic.</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pnorm</span>(dougalZ)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.013</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="sc">-</span><span class="fu">pnorm</span>(dougalZ)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.987</code></pre>
-</div>
-</div>
+<p><span class="proof-title"><em>Solution 5</em>. </span></p>
 </div>
 <p class="solution-end">
 </p>
