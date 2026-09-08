@@ -1,10 +1,11 @@
 library(tidyverse)
+setwd("Desktop/uoepsy_courses/dapr1/docs/2627/misc/")
 readxl::read_xlsx("DAPR1 skills development.xlsx")[1:40,] |> janitor::clean_names() |> 
   transmute(
     cat = factor(skill_category,
                  levels=c(
-                   "Programming","Summarising","Visualising","Analysing","Inferring",
-                   "Communicating","Reflecting"), ordered=T),
+                   "Summarising","Visualising","Analysing","Inferring",
+                   "Communicating","Programming","Reflecting"), ordered=T),
     block = block_introduced,
     skill = case_when(
       block == 1 & requires_human_grading!="N" ~ paste0(skill,"*<br><small>(marked after B1, B2, B3, B4)</small>"),
@@ -140,12 +141,12 @@ cat(
 <table>
   <tr>
     <th></th>
-    <th>Programming<br><small>(not in the exam)</small></th>
     <th>Summarising</th>
     <th>Visualising</th>
     <th>Analysing</th>
     <th>Inferring</th>
     <th>Communicating</th>
+    <th>Programming<br><small>(not in the exam)</small></th>
     <th>Reflecting<br><small>(not in the exam)</small></th>
   </tr>
   
