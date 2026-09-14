@@ -8,10 +8,10 @@ readxl::read_xlsx("DAPR1 skills development.xlsx")[1:40,] |> janitor::clean_name
                    "Communicating","Programming","Reflecting"), ordered=T),
     block = block_introduced,
     skill = case_when(
-      block == 1 & requires_human_grading!="N" ~ paste0(skill,"*<br><small>(marked after B1, B2, B3, B4)</small>"),
-      block == 2 & requires_human_grading!="N" ~ paste0(skill,"*<br><small>(marked after B2, B3, B4)</small>"),
-      block == 3 & requires_human_grading!="N" ~ paste0(skill,"*<br><small>(marked after B3, B4)</small>"),
-      block == 4 & requires_human_grading!="N" ~ paste0(skill,"*<br><small>(marked after B4)</small>"),
+      block == 1 & requires_human_grading!="N" ~ paste0(skill,"*<br><small>(marked after Block1, Block2, Block3, Block4)</small>"),
+      block == 2 & requires_human_grading!="N" ~ paste0(skill,"*<br><small>(marked after Block2, Block3, Block4)</small>"),
+      block == 3 & requires_human_grading!="N" ~ paste0(skill,"*<br><small>(marked after Block3, Block4)</small>"),
+      block == 4 & requires_human_grading!="N" ~ paste0(skill,"*<br><small>(marked after Block4)</small>"),
       TRUE ~ skill
     ),
     stext = assessment_level_skill
