@@ -124,7 +124,7 @@ Researchers measured the cortisol (a stress marker) in people's saliva
 <!-- beware: if we looked at people's stress levels before and after, then our samples are not independent anymore! -->
 
 
-This example is simplified, but it uses real data from [Berry & Worthington (2001)](https://psycnet.apa.org/fulltext/2001-11480-010.pdf){target="_blank"}.
+This example is simplified, but it's based on real data from [Berry & Worthington (2001)](https://psycnet.apa.org/fulltext/2001-11480-010.pdf){target="_blank"}.
 
 ```{r include=F}
 # Based on the descriptives in Table 1, p. 451 of BerryWorthington2001
@@ -377,6 +377,52 @@ This guarantees that we'll choose the right direction for our one-sided tests!
 
 Only `alternative = "less"` runs the test we actually want.
 
+# How to report an independent-samples t-test
+
+## Some additional descriptive statistics
+
+We'll need to compute the mean and SD of each group's cortisol.
+
+We'll also need a count of how many people were in each group.
+
+```{r}
+stress_data |>
+  group_by(relationship) |>
+  summarise(
+    M  = mean(cortisol),
+    SD = sd(cortisol),
+    N  = n()
+  )
+```
+
+<!-- To round mean and SD to two decimal places: -->
+
+<!-- ```{r} -->
+<!-- stress_data |> -->
+<!--   group_by(relationship) |> -->
+<!--   summarise( -->
+<!--     M  = round( mean(cortisol), 2), -->
+<!--     SD = round( sd(cortisol), 2), -->
+<!--     N  = n() -->
+<!--   ) -->
+<!-- ``` -->
+
+
+## How to report an independent-samples t-test
+
+<br>
+
+> To find out whether people in happy relationships have lower cortisol than people in unhappy relationships, we ran an independent-samples t-test with $\alpha$ = .05.
+We found a significant difference between the cortisol in the happy relationship group ($N$ = 19, $M$ = 0.15, $SD$ = 0.08) and the unhappy relationship group ($N$ = 20, $M$ = 0.20, $SD$ = 0.10): cortisol was significantly lower for people in happy relationships ($t$(37) = –2, $p$ = 0.04, one-tailed).
+
+
+<br>
+
+APA notation format for reporting the key inferential values:
+
+$t$([degrees of freedom]) = [t-statistic], $p$ = [p-value], [one-tailed/two-tailed]
+
+
 # What the independent-samples t-test requires / assumes about the data
 
 ## What the independent-samples t-test requires / assumes about the data
@@ -425,6 +471,7 @@ The population variance is the same for both groups.
 
 - Then you shouldn't use an independent-samples t-test to analyse your data.
 - A common alternative that makes fewer assumptions is the "Welch's t-test". (We aren't covering it in DAPR, so you don't need to know anything more about it than this!)
+- For a specific kind of non-independence, there's a trick that I'll show you at the end of this lecture.
 
 <br>
 
@@ -441,12 +488,20 @@ The population variance is the same for both groups.
 Look at the data and make sure that the variable we're analysing represents **interval, ratio, or integer data.**
 
 ```{r}
-stress_data
+stress_data |> head()
 ```
 
 <br>
 
-`cortisol` is ratio data: it is positive-only with a true zero point &nbsp; ✅
+:::{.dapr1callout .hcenter}
+
+Are you satisfied that this requirement is met?
+
+<img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
+
+:::
+
+<!-- `cortisol` is ratio data: it is positive-only with a true zero point &nbsp; ✅ -->
 
 ## Independence assumption for the <br> independent-samples t-test
 
@@ -456,16 +511,38 @@ stress_data
 
 <br>
 
-This is more of a study design issue, not something we can test directly.
+This is more of a study design issue, not something we can test directly. 
 
-- Does each individual who contributed data belong to only one group?
-- Does each individual have only one observation in the group they belong to?
-- Within groups, is each sample representative of the population?
-- Were people allocated to each group at random?
-  - In this case, they weren't! 
-  - People described their own relationships as "Happy" or "Unhappy", so in a way, they allocated themselves to groups.
-  - This might limit our conclusions: maybe people with higher cortisol tend to be in unhappy relationships?
-  - (Note: the actual study by Berry & Worthington did account for this, but our example does not!)
+But we can look at the data and double-check things like:
+
+::::{.columns}
+:::{.column width="55%"}
+<br>
+
+- Does each individual who contributed data belong to only one group? <img style="margin-bottom:0px; width: 1em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-10px; width: 1em;" src="figs/codicon--thumbsdown-filled.svg">
+
+- Does each individual have only one observation in the group they belong to? <img style="margin-bottom:0px; width: 1em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-10px; width: 1em;" src="figs/codicon--thumbsdown-filled.svg">
+
+- Were people allocated to each group at random? <img style="margin-bottom:0px; width: 1em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-10px; width: 1em;" src="figs/codicon--thumbsdown-filled.svg">
+
+  <!-- - In this case, they weren't!  -->
+  <!-- - People described their own relationships as "Happy" or "Unhappy", so in a way, they allocated themselves to groups. -->
+  <!-- - This might limit our conclusions: maybe people with higher cortisol tend to be in unhappy relationships? -->
+  <!-- - (Note: the actual study by Berry & Worthington did account for this, but our example does not!) -->
+:::
+:::{.column width="5%"}
+:::
+:::{.column width="40%"}
+
+```{r}
+stress_data |> head()
+```
+
+
+:::
+::::
+
+
 
 
 ## Normality assumption for the <br> independent-samples t-test
@@ -482,7 +559,7 @@ The sampling distribution of both group's sample means is normal as long as eith
 
 <br>
 
-Check the size of each group:
+First, let's quickly check the size of each group:
 
 ```{r}
 stress_data |>
@@ -490,11 +567,18 @@ stress_data |>
   count()
 ```
 
+:::{.dapr1callout .hcenter}
 
-The groups both contain less than 30 observations, so we can't support the assumption of normality this way.
+Are you satisfied that this assumption is met via sufficient sample size?
+
+<img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
+
+:::
+
+<!-- The groups both contain less than 30 observations, so we can't support the assumption of normality this way. -->
 
 
-## One way to check the population distributions: Plot the sample
+## One way to check normality: Plot the sample
 
 We don't know how the population is distributed, **but if our sample is approximately normally distributed, then the population probably is too.**
 
@@ -551,7 +635,7 @@ stress_data |>
 ::::
 
 
-## Another way to check the population distributions: Shapiro-Wilk tests
+## Another way to check normality: Shapiro-Wilk
 
 Use `filter()` then `pull()` to extract the `cortisol` data from each group separately.
 For example:
@@ -588,7 +672,15 @@ stress_data |>
 
 <br>
 
-We fail to reject the Shapiro-Wilk test's H0 that the population data is normally distributed &nbsp; ✅ 
+:::{.dapr1callout .hcenter}
+
+Are you satisfied that this assumption is met via normal distribution of the sample?
+
+<img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
+
+:::
+
+<!-- We fail to reject the Shapiro-Wilk test's H0 that the population data is normally distributed &nbsp; ✅  -->
 
 
 
@@ -630,10 +722,28 @@ $$
 \frac{\text{variance}_\text{Happy}}{\text{variance}_\text{Unhappy}} = \frac{25}{25} = 1
 $$
 
-Take-home message: &nbsp; ✅
+
+:::{.dapr1callout .hcenter}
+
+Are you satisfied that this assumption is met?
+
+<img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
+
+:::
+
+## Reporting the F-test for equal variance
+
+
+<br>
 
 > We ran an F-test against the null hypothesis that the populations that each group was sampled from have equal variance.
 Based on the sample, we could not reject the null hypothesis of equal variances in the population ($F$(18, 19) = 0.6, $p$ = .3).
+
+<br>
+
+APA notation format for F-test of equal variance:
+
+$F$([numerator degrees of freedom], [denominator degrees of freedom]) = [F-statistic], $p$ = [p-value]
 
 
 # A final note: How to analyse non-independent samples

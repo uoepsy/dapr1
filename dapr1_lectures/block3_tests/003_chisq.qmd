@@ -31,10 +31,23 @@ theme_update(
 
 ## This week's learning objectives
 
-- TODO
-
 What kind of test do we use to analyse whether combinations of two categorical variables are more frequent than we'd expect?
 
+:::dapr1callout
+What does this test require/assume to be true about the data that it models?
+
+(0) variables are categorical;
+(1) expected counts >= 5
+(2) The obtained sample data are a random sample from the population of interest.
+:::
+
+:::dapr1callout
+How do we check whether we're satisfied with the test's assumptions?
+
+(0) check that variables are on ordinal/nominal scale
+(1) extract from R: chisq.test(...)$expected
+(2) check that each observation appears only in a single cell
+:::
 
 
 
@@ -75,7 +88,11 @@ neurotype_data <- federico |>
   #   ADHD = gsub('ADHD', '', ADHD),
   #   ASD = gsub('ASD', '', ASD),
   # ) |>
-  uncount(count)
+  uncount(count) |>
+  mutate(
+    ADHD = factor(ADHD),
+    ASD = factor(ASD)
+  )
 ```
 
 
@@ -109,7 +126,7 @@ p_neuro_obs
 ::::
 
 
-This example uses real data from [Federico et al. (2024)](https://linkinghub.elsevier.com/retrieve/pii/S1936657423000845){target="_blank"}.
+This example is based on real data from [Federico et al. (2024)](https://linkinghub.elsevier.com/retrieve/pii/S1936657423000845){target="_blank"}.
 
 
 
@@ -121,7 +138,7 @@ Same idea as always: **We take the data we observed and compare it to what we wo
 :::{.column width="50%"}
 
 :::hcenter
-**Observed contingency table:**
+**Observed "contingency table":**
 :::
 
 ```{r}
@@ -135,7 +152,7 @@ xtabs(~ ADHD + ASD, data = neurotype_data)
 :::{.column width="50%"}
 
 :::hcenter
-**Expected contingency table:**
+**Expected "contingency table":**
 :::
 
 ```{r}
@@ -438,6 +455,8 @@ neurotype_chisq
 
 <br>
 
+::::{.columns}
+:::{.column width="70%"}
 
 ```{r echo=F, warning=F, fig.width = 9, fig.height = 5}
 chisq_stat <- 3267
@@ -454,13 +473,25 @@ tibble(
   geom_vline(xintercept = chisq_stat, linewidth = 1, colour = dapr1blue) +
   NULL
 ```
+:::
+:::{.column width="30%"}
+:::{.dapr1callout .hcenter}
+
+Can we reject the H0 that ASD and ADHD are independent?
+
+<img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
+
+:::
+
+:::
+::::
+
 
 
 ## Explore results in more detail
 
-Based on the significance test, we can reject the H0 that ASD and ADHD are independent.
+There are lots of different outcomes that are consistent with H1 (that ADHD and ASD are not independent).
 
-But that's very general!
 How do we find out specifically if ASD and ADHD co-occur **more than we would expect?**
 
 <br>
@@ -487,6 +518,23 @@ $$
 \chi^2 ~ \text{residuals} ~=~ \frac{\text{observed} - \text{expected}}{\text{square root(expected)}}
 $$
 
+
+## Reporting the chi-squared test
+
+<br>
+
+> To find out whether occurrence frequencies of ADHD and ASD are independent in children, we performed a $\chi^2$ test of independence.
+We found a significant association between ADHD and ASD ($\chi^2$(1, N = 70,913) = 3270, p < .001).
+Therefore, at $\alpha = .05$, we reject the H0 that ADHD and ASD are independent in children.
+Specifically, the test's residuals indicate that ADHD and ASD co-occur in children more frequently than we'd expect.
+
+<br>
+
+APA notation format for reporting the key inferential values:
+
+$\chi^2$([degrees of freedom], N = [sample size]) = [chi-squared test statistic], $p$ = [p-value]
+
+
 # What does the chi-squared test require / assume about the data?
 
 ## What does the chi-squared test require / assume about the data?
@@ -499,7 +547,9 @@ $$
 **Data requirements:**
 :::
 :::{.column width="70%"}
-x
+Both variables are categorical.
+
+Expected counts in each cell of the contingency table $\geq$ 5.
 :::
 ::::
 
@@ -508,7 +558,7 @@ x
 **Assumption of independence:**
 :::
 :::{.column width="70%"}
-x
+The obtained sample data are a random sample from the population of interest.
 :::
 ::::
 
@@ -518,12 +568,119 @@ x
 
 **What if one or more of these things isn't true?**
 
-- If expected values are less than 5: Fisher's Exact test (not covered in DAPR, you don't need to know anything more about it).
+- Then you shouldn't use a chi-squared test of independence to analyse your data.
 
+- If expected values are less than 5: use Fisher's Exact test (not covered in DAPR, you don't need to know anything more about it).
+
+- If data aren't independent: you'll learn about some statistical machinery in DAPR2/DAPR3 to deal with this.
 
 <br>
 
 **How do we check each requirement/assumption?**
+
+
+
+
+## Data requirements for the chi-squared test (1)
+
+:::hcenter
+**Both variables are categorical.**
+:::
+
+<br>
+
+Review your dataset:
+
+- Your variables should be measured at an ordinal or nominal level.
+- Your variables should be stored as factors.
+
+```{r}
+glimpse(neurotype_data)
+```
+
+<br>
+
+:::{.dapr1callout .hcenter}
+
+Are you satisfied that this requirement is met?
+
+<img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
+
+:::
+
+
+## Data requirements for the chi-squared test (2)
+
+:::hcenter
+**Expected counts in each cell of the contingency table $\geq$ 5.**
+:::
+
+<br>
+
+Extract expected counts from the test using:
+
+```{r}
+neurotype_chisq$expected
+```
+
+<br>
+
+:::{.dapr1callout .hcenter}
+
+Are you satisfied that this requirement is met?
+
+<img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
+
+:::
+
+
+## Independence assumption for the <br> chi-squared test
+
+:::hcenter
+**The obtained sample data are a random sample from the population of interest.**
+:::
+
+<br>
+
+This is more of a study design issue, not something we can test directly.
+
+But we can at least make sure each observation contributes to the count in only one cell of the contingency table.
+
+::::{.columns}
+:::{.column width="50%"}
+**The data:**
+
+```{r}
+head(neurotype_data)
+```
+
+:::
+:::{.column width="50%"}
+**The contingency table:**
+
+```{r}
+xtabs(~ ADHD + ASD, data = neurotype_data)
+```
+
+:::
+::::
+
+
+
+
+<br>
+
+:::{.dapr1callout .hcenter}
+
+Are you satisfied that this assumption is met?
+
+<img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
+
+:::
+
+
+
+
 
 # Back matter
 
