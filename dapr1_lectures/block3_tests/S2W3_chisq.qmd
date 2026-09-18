@@ -1,0 +1,830 @@
+---
+title: "Chi-squared test of independence"
+author: "Dr. Elizabeth Pankratz (elizabeth.pankratz@ed.ac.uk)"
+editor_options: 
+  chunk_output_type: inline
+format:
+  revealjs:
+    smaller: true
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(patchwork)
+
+dapr1blue <- '#0F4C81'
+
+source('_theme/theme_quarto.R')
+
+theme_update(
+  text = element_text(family = 'Source Sans 3'),
+  panel.grid.minor = element_blank(),
+  strip.background = element_blank(),
+  strip.text.x = element_text(size = 24)
+)
+```
+
+# Welcome back!
+
+## This week's learning objectives
+
+<br>
+
+:::{.dapr1callout .fragment}
+What kind of test do we use to analyse whether combinations of two categorical variables are more frequent than we'd expect?
+
+<!-- - a chi-squared test of independence -->
+:::
+
+:::{.dapr1callout .fragment}
+What does this test require/assume to be true about the data that it models?
+
+<!-- 1. variables are categorical; -->
+<!-- 1. expected counts $\geq$ 5 -->
+<!-- 1. The obtained sample data are a random independent sample from the population of interest. -->
+:::
+
+:::{.dapr1callout .fragment}
+How do we check whether we're satisfied with the test's assumptions?
+
+<!-- 1. check that variables are on ordinal/nominal scale -->
+<!-- 1. extract from R: `chisq.test(...)$expected` -->
+<!-- 1. think about study design, and check that each observation appears only in a single cell -->
+:::
+
+
+
+## Where we are in the Block 3 plan
+
+![](figs/block3-2.svg){fig-align="center"}
+
+
+# This week's data
+
+## This week's data: Co-occurrence of ASD and ADHD in children
+
+**ASD** = Autism Spectrum Disorder; **ADHD** = Attention Deficit Hyperactive Disorder
+
+<br>
+
+**Do ASD and ADHD co-occur in children more often than we would expect, based on the prevalence of each neurotype alone?**
+
+```{r include=F}
+# counts from Table 1, p. 3
+federico <- tribble(
+  ~sex, ~yesADHD_noASD, ~noADHD_yesASD, ~yesADHD_yesASD, ~noADHD_noASD,
+  'female', 2437, 224, 233, 31385,
+  'male', 4971, 883, 906, 29874
+) |>
+  pivot_longer(
+    cols = yesADHD_noASD:noADHD_noASD,
+    names_to = 'diagnosis',
+    values_to = 'count'
+  )
+
+# aggregating over sex for this lecture
+neurotype_data <- federico |>
+  group_by(diagnosis) |>
+  summarise(count = sum(count)) |>
+  separate(diagnosis, into = c('ADHD', 'ASD')) |>
+  # mutate(
+  #   ADHD = gsub('ADHD', '', ADHD),
+  #   ASD = gsub('ASD', '', ASD),
+  # ) |>
+  uncount(count) |>
+  mutate(
+    ADHD = factor(ADHD),
+    ASD = factor(ASD)
+  )
+```
+
+
+::::{.columns}
+:::{.column width="35%"}
+
+```{r}
+neurotype_data
+```
+
+:::
+:::{.column width="65%"}
+
+```{r fig.width = 7, fig.height = 5}
+#| code-fold: true
+
+p_neuro_obs <- neurotype_data |>
+  ggplot(aes(x = ADHD, fill = ADHD)) +
+  geom_bar() +
+  facet_wrap(~ ASD) +
+  theme(
+    legend.position = 'none'
+  ) +
+  labs(
+    x = ''
+  )
+p_neuro_obs
+```
+
+:::
+::::
+
+
+This example is based on real data from [Federico et al. (2024)](https://linkinghub.elsevier.com/retrieve/pii/S1936657423000845){target="_blank"}.
+
+
+
+## How can we find out whether ASD+ADHD <br> co-occur unexpectedly often?
+
+Same idea as always: **We take the data we observed and compare it to what we would expect to find, if the effect/difference we care about didn't exist.** 
+
+::::{.columns}
+:::{.column width="50%"}
+
+:::hcenter
+**Observed "contingency table":**
+:::
+
+```{r}
+#| code-fold: true
+library(stats)
+xtabs(~ ADHD + ASD, data = neurotype_data)
+```
+
+
+:::
+:::{.column width="50%"}
+
+:::hcenter
+**Expected "contingency table":**
+:::
+
+```{r}
+#| code-fold: true
+neurotype_chisq <- chisq.test(neurotype_data$ADHD, neurotype_data$ASD)
+neurotype_chisq$expected
+```
+
+:::
+::::
+
+<br>
+
+
+::::{.columns}
+:::{.column width="50%"}
+
+```{r echo=F, fig.width = 6.5, fig.height = 5}
+p_neuro_obs
+```
+
+:::
+:::{.column width="50%"}
+
+```{r echo=F, fig.width = 6.5, fig.height = 5}
+neurotype_chisq$expected |>
+  as.data.frame() |>
+  rownames_to_column(var = 'ADHD') |>
+  pivot_longer(cols = ends_with('ASD'), names_to = 'ASD', values_to = 'count') |>
+  ggplot(aes(x = ADHD, y = count, fill = ADHD)) +
+  geom_col() +
+  facet_wrap(~ ASD) +
+  theme(
+    legend.position = 'none'
+  ) +
+  labs(
+    x = ''
+  ) +
+  scale_fill_manual(values = c('#888', '#222'))
+```
+
+
+
+:::
+::::
+
+
+
+## Where do the expected counts come from?
+
+**Expected counts are essentially fancy averages, calculated on a table of numbers, not a list of numbers.**
+
+You do not need to memorise how to calculate them! The working-out is here only in case you're curious.
+
+<br>
+
+<!-- I include this slide to help demystify the process, only in case you're curious. -->
+
+$$
+\text{expected counts} ~=~ \frac{\text{total counts in row} \times \text{total counts in column}}{\text{sample size}}
+$$
+
+<br>
+
+For example, the expected count for `yesADHD` and `yesASD`, based on the counts observed:
+
+::::{.columns}
+:::{.column width="50%"}
+<br>
+
+```{r echo=F}
+xtabs(~ ADHD + ASD, data = neurotype_data)
+```
+:::
+:::{.column width="50%"}
+
+```{r include=F}
+((7408 + 1139) * (1107 + 1139)) / 70913
+```
+
+
+$$
+\begin{align}
+\text{expected counts} &= \frac{(7408 + 1139) \times (1107 + 1139)}{70913} \\[.5em]
+  &= \frac{8547 \times 2246}{70,913} \\[.5em]
+  &= \frac{19,196,562}{70,913} \\[.5em]
+  &= 271
+\end{align}
+$$
+
+:::
+::::
+
+If the co-occurrence between ADHD and ASD were _only_ based on how common each neurotype is individually, we would expect them to co-occur in 271 cases.
+
+Instead we observed a co-occurrence in 1139 cases—more than we'd expect. But is it **significantly more?**
+
+# How do we compare observed and expected counts?
+
+## How do we compare observed and expected counts?
+
+We use a chi-squared ($\chi^2$, pronounced "kye") test! 
+
+Specifically: a **$\chi^2$ test of independence,** since we're essentially testing **if ASD and ADHD occur independently from one another.**
+
+<br>
+
+**The null and alternative hypotheses that we're testing:**
+
+- $H_0$: ASD is independent of ADHD
+- $H_1$: ASD is not independent of ADHD
+
+(Don't worry about mathematical notation for these hypotheses!)
+
+
+## The logic of a chi-squared test of independence
+
+<br>
+
+The idea is really similar to the t-tests you're already familiar with!
+
+::::{.columns}
+:::{.column width="48%"}
+**In a t-test:**
+
+The difference between **two group means** is measured using a **t-statistic.**
+:::
+:::{.column width="4%"}
+:::
+:::{.column width="48%"}
+**In a $\chi^2$ test:**
+
+The difference between **observed and expected counts** is measured using a **$\chi^2$ statistic.**
+:::
+::::
+
+::::{.columns}
+:::{.column width="48%"}
+To find out if **group means** differ significantly, we compare the **t-statistic** to a **t-distribution** that represents the world in which **the true difference between groups means is zero.**
+:::
+:::{.column width="4%"}
+:::
+:::{.column width="48%"}
+To find out if **observed and expected counts** differ significantly, we compare the **$\chi^2$ statistic** to a **$\chi^2$ distribution** that represents the world in which **the true counts are the expected  (independent) counts.**
+:::
+::::
+
+::::{.columns}
+:::{.column width="48%"}
+If the **t-statistic** is far enough into the tails of that distribution, we conclude that our observed data is very unlikely **if the true difference between group means were zero;** we reject H0.
+:::
+:::{.column width="4%"}
+:::
+:::{.column width="48%"}
+If the **$\chi^2$-statistic** is far enough into the tails of that distribution, we conclude that our observed data is very unlikely **if the true counts were the expected (independent) counts;** we reject H0.
+:::
+::::
+
+## The chi-squared distribution
+
+How $\chi^2$ statistics would be distributed if the true counts were the expected counts <br> (i.e., if the H0 of independence is true):
+
+```{r}
+#| echo: false
+
+tibble(x = c(0, 15)) |>
+  ggplot(aes(x = x)) +
+  stat_function(fun = dchisq, args = list(df = 2), colour = '#002060', linewidth = 2) +
+  stat_function(fun = dchisq, args = list(df = 4), colour = '#BF1932', linewidth = 2) +
+  stat_function(fun = dchisq, args = list(df = 6), colour = '#88B04B', linewidth = 2) +
+  stat_function(fun = dchisq, args = list(df = 8), colour = '#FCBB06', linewidth = 2) +
+  labs(x=expression(chi^{2}), y = 'Probability density') +
+  annotate(geom = 'text', x = 12, y = 0.45, label = 'df = 2', colour = '#002060', size = 8) +
+  annotate(geom = 'text', x = 12, y = 0.4,  label = 'df = 4', colour = '#BF1932', size = 8) +
+  annotate(geom = 'text', x = 12, y = 0.35, label = 'df = 6', colour = '#88B04B', size = 8) +
+  annotate(geom = 'text', x = 12, y = 0.3,  label = 'df = 8', colour = '#FCBB06', size = 8) +
+  NULL
+```
+
+Like the t-distribution, the exact shape of the $\chi^2$ distribution depends on degrees of freedom (df).
+
+For $\chi^2$, degrees of freedom are based on the size of your contingency table:
+
+$$(\text{number of rows} - 1) \times (\text{number of columns} - 1)$$
+
+
+
+<!-- - Shape of the distribution depends on the degrees of freedom $(df)$  -->
+<!--   - For $\chi^2$ distribution, $df$ is based on the number of groups $(g)$ within your data -->
+
+<!-- - As the number of comparison groups increases, the distribution curve flattens -->
+<!--   - Larger $\chi^2$ values become more probable -->
+<!--   - A wider range of $\chi^2$ values become more likely -->
+
+<!-- - The $\chi^2$ distribution begins at 0 -->
+<!--   - Categorical variables don't have direction -->
+<!--   - $p$-value is computed only in one direction (right-tail) as the Probability of observing a $\chi^2$ statistic as big or bigger than the one obtained -->
+
+## Finding p-values
+
+- We take our observed $\chi^2$ statistic
+- We compare it to the $\chi^2$ distribution with appropriate df
+- We see how probable it is to observe a $\chi^2$ statistic as extreme or more extreme than the one we observed
+  - That probability = the area under the distribution to the right of our observed $\chi^2$ statistic 
+  - That probability = **our test's p-value**
+
+<br>
+
+```{r echo=F, warning=F, fig.width = 9, fig.height = 5}
+nx <- seq(0.1, 6, length.out = 1000)
+p_chisq <- tibble(
+  x = nx,
+  chisq_dens = dchisq(x = nx, df=1)
+) |>
+  ggplot(aes(x, y = chisq_dens)) +
+  geom_line(linewidth = 2) +
+  annotate(geom = 'text', x = 5.5, y = 1.15, label = 'df = 1', colour = '#000', size = 8) +
+  labs(y = 'Probability density', x = expression(chi^{2})) +
+  NULL
+p_chisq
+```
+
+
+## Finding p-values {visibility="uncounted"}
+
+- We take our observed $\chi^2$ statistic
+- We compare it to the $\chi^2$ distribution with appropriate df
+- We see how probable it is to observe a $\chi^2$ statistic as extreme or more extreme than the one we observed
+  - That probability = the area under the distribution to the right of our observed $\chi^2$ statistic 
+  - That probability = **our test's p-value**
+
+<br>
+
+```{r echo=F, warning=F, fig.width = 9, fig.height = 5}
+chisq_stat <- 1
+
+p_chisq +
+  geom_ribbon( aes( x = ifelse(x >= chisq_stat, x, NA), ymin = 0, ymax = chisq_dens ), alpha = 0.3, fill = dapr1blue) +
+  geom_vline(xintercept = chisq_stat, linewidth = 1, colour = dapr1blue) +
+  annotate( geom = 'text', x = chisq_stat + 0.1, y = 0.88, hjust = 0, label = paste( 'chi-squared\nstatistic:', chisq_stat ), colour = dapr1blue, size = 8) +
+  annotate( geom = 'text', x = 5.5, y = 0.14,  label = paste( 'p-value:', round(pchisq(chisq_stat, df = 1, lower.tail=FALSE), 2) ),  colour = dapr1blue, size = 8) +
+  NULL
+```
+
+## Finding p-values {visibility="uncounted"}
+
+- We take our observed $\chi^2$ statistic
+- We compare it to the $\chi^2$ distribution with appropriate df
+- We see how probable it is to observe a $\chi^2$ statistic as extreme or more extreme than the one we observed
+  - That probability = the area under the distribution to the right of our observed $\chi^2$ statistic 
+  - That probability = **our test's p-value**
+
+<br>
+
+```{r echo=F, warning=F, fig.width = 9, fig.height = 5}
+chisq_stat <- 3.5
+
+p_chisq +
+  geom_ribbon( aes( x = ifelse(x >= chisq_stat, x, NA), ymin = 0, ymax = chisq_dens ), alpha = 0.3, fill = dapr1blue) +
+  geom_vline(xintercept = chisq_stat, linewidth = 1, colour = dapr1blue) +
+  annotate( geom = 'text', x = chisq_stat + 0.1, y = 0.88, hjust = 0, label = paste( 'chi-squared\nstatistic:', chisq_stat ), colour = dapr1blue, size = 8) +
+  annotate( geom = 'text', x = 5.5, y = 0.14,  label = paste( 'p-value:', round(pchisq(chisq_stat, df = 1, lower.tail=FALSE), 2) ),  colour = dapr1blue, size = 8) +
+  NULL
+```
+
+## Finding p-values {visibility="uncounted"}
+
+- We take our observed $\chi^2$ statistic
+- We compare it to the $\chi^2$ distribution with appropriate df
+- We see how probable it is to observe a $\chi^2$ statistic as extreme or more extreme than the one we observed
+  - That probability = the area under the distribution to the right of our observed $\chi^2$ statistic 
+  - That probability = **our test's p-value**
+
+<br>
+
+```{r echo=F, warning=F, fig.width = 9, fig.height = 5}
+chisq_stat <- 4.1
+
+p_chisq +
+  geom_ribbon( aes( x = ifelse(x >= chisq_stat, x, NA), ymin = 0, ymax = chisq_dens ), alpha = 0.3, fill = dapr1blue) +
+  geom_vline(xintercept = chisq_stat, linewidth = 1, colour = dapr1blue) +
+  annotate( geom = 'text', x = chisq_stat + 0.1, y = 0.88, hjust = 0, label = paste( 'chi-squared\nstatistic:', chisq_stat ), colour = dapr1blue, size = 8) +
+  annotate( geom = 'text', x = 5.5, y = 0.14,  label = paste( 'p-value:', round(pchisq(chisq_stat, df = 1, lower.tail=FALSE), 2) ),  colour = dapr1blue, size = 8) +
+  NULL
+```
+
+
+
+
+## Run the chi-squared test in R
+
+```{r}
+neurotype_chisq <- chisq.test(
+  neurotype_data$ADHD,   # name one variable
+  neurotype_data$ASD,    # name the other variable (order doesn't matter)
+  correct = FALSE        # run the basic version of the test, not "corrected"
+)
+neurotype_chisq
+```
+
+<br>
+
+::::{.columns}
+:::{.column width="70%"}
+
+```{r echo=F, warning=F, fig.width = 9, fig.height = 5}
+chisq_stat <- 3267
+
+nx <- seq(0.1, 4000, length.out = 1000)
+tibble(
+  x = nx,
+  chisq_dens = dchisq(x = nx, df=1)
+) |>
+  ggplot(aes(x, y = chisq_dens)) +
+  geom_line(linewidth = 2) +
+  labs(y = 'Probability density', x = expression(chi^{2})) +
+  geom_ribbon( aes( x = ifelse(x >= chisq_stat, x, NA), ymin = 0, ymax = chisq_dens ), alpha = 0.3, fill = dapr1blue) +
+  geom_vline(xintercept = chisq_stat, linewidth = 1, colour = dapr1blue) +
+  NULL
+```
+:::
+:::{.column width="30%"}
+:::{.dapr1callout .hcenter}
+
+Can we reject the H0 that ASD and ADHD are independent?
+
+<img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
+
+:::
+
+:::
+::::
+
+
+
+## Explore results in more detail
+
+There are lots of different outcomes that are consistent with H1 (that ADHD and ASD are not independent).
+
+How do we find out specifically if ASD and ADHD co-occur **more than we would expect?**
+
+<br>
+
+<!-- We can look at *how* different the observed data is from the expected data. -->
+
+We can find this out from the $\chi^2$ test's **residual:**
+
+
+```{r}
+neurotype_chisq$residuals
+```
+
+<br>
+
+- **Negative** residuals = counts were **lower than expected** in that cell.
+- **Positive** residuals = counts were **higher than expected** in that cell.
+
+<br>
+
+For the mathy among you:
+
+$$
+\chi^2 ~ \text{residuals} ~=~ \frac{\text{observed} - \text{expected}}{\text{square root(expected)}}
+$$
+
+
+## Reporting the chi-squared test
+
+<br>
+
+> To find out whether occurrence frequencies of ADHD and ASD are independent in children, we performed a $\chi^2$ test of independence.
+We found a significant association between ADHD and ASD ($\chi^2$(1, N = 70,913) = 3270, p < .001).
+Therefore, at $\alpha = .05$, we reject the H0 that ADHD and ASD are independent in children.
+Specifically, the test's residuals indicate that ADHD and ASD co-occur in children more frequently than we'd expect.
+
+<br>
+
+APA notation format for reporting the key inferential values:
+
+$\chi^2$([degrees of freedom], N = [sample size]) = [chi-squared test statistic], $p$ = [p-value]
+
+
+# What does the chi-squared test require / assume about the data?
+
+## What does the chi-squared test require / assume about the data?
+
+
+<br>
+
+::::{.columns}
+:::{.column width="30%"}
+**Data requirements:**
+:::
+:::{.column width="70%"}
+Both variables are categorical.
+
+Expected counts in each cell of the contingency table $\geq$ 5.
+:::
+::::
+
+::::{.columns}
+:::{.column width="30%"}
+**Assumption of independence:**
+:::
+:::{.column width="70%"}
+The obtained sample data are a random sample from the population of interest.
+:::
+::::
+
+
+
+<br>
+
+**What if one or more of these things isn't true?**
+
+- Then you shouldn't use a chi-squared test of independence to analyse your data.
+
+- If expected values are less than 5: use Fisher's Exact test (not covered in DAPR, you don't need to know anything more about it).
+
+- If data aren't independent: you'll learn about some statistical machinery in DAPR2/DAPR3 to deal with this.
+
+<br>
+
+**How do we check each requirement/assumption?**
+
+
+
+
+## Data requirements for the chi-squared test (1)
+
+:::hcenter
+**Both variables are categorical.**
+:::
+
+<br>
+
+Review your dataset:
+
+- Your variables should be measured at an ordinal or nominal level.
+- Your variables should be stored as factors.
+
+```{r}
+glimpse(neurotype_data)
+```
+
+<br>
+
+:::{.dapr1callout .hcenter}
+
+Are you satisfied that this requirement is met?
+
+<img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
+
+:::
+
+
+## Data requirements for the chi-squared test (2)
+
+:::hcenter
+**Expected counts in each cell of the contingency table $\geq$ 5.**
+:::
+
+<br>
+
+Extract expected counts from the test using:
+
+```{r}
+neurotype_chisq$expected
+```
+
+<br>
+
+:::{.dapr1callout .hcenter}
+
+Are you satisfied that this requirement is met?
+
+<img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
+
+:::
+
+
+## Independence assumption for the <br> chi-squared test
+
+:::hcenter
+**The obtained sample data are a random sample from the population of interest.**
+:::
+
+<br>
+
+This is more of a study design issue, not something we can test directly.
+
+But we can at least make sure each observation contributes to the count in only one cell of the contingency table.
+
+::::{.columns}
+:::{.column width="50%"}
+**The data:**
+
+```{r}
+head(neurotype_data)
+```
+
+:::
+:::{.column width="50%"}
+**The contingency table:**
+
+```{r}
+xtabs(~ ADHD + ASD, data = neurotype_data)
+```
+
+:::
+::::
+
+
+
+
+<br>
+
+:::{.dapr1callout .hcenter}
+
+Are you satisfied that this assumption is met?
+
+<img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
+
+:::
+
+
+
+## What questions do you have right now?
+
+<br>
+
+:::hcenter
+:::woo
+https://app.wooclap.com/events/DAXIQCZ/
+:::
+:::
+
+
+# Back matter {.appendix}
+
+## Revisiting this week's learning objectives
+
+:::{.dapr1callout}
+**What kind of test do we use to analyse whether combinations of two categorical variables are more frequent than we'd expect?**
+
+- a chi-squared test of independence
+:::
+
+:::{.dapr1callout}
+**What does this test require/assume to be true about the data that it models?**
+
+1. variables are categorical;
+1. expected counts $\geq$ 5
+1. The obtained sample data are a random independent sample from the population of interest.
+:::
+
+:::{.dapr1callout}
+**How do we check whether we're satisfied with the test's assumptions?**
+
+1. check that variables are on ordinal/nominal scale
+1. extract from R: `chisq.test(...)$expected`
+1. think about study design, and check that each observation appears only in a single cell
+:::
+
+
+## Block 3 skills involved in this week's lecture and/or workshop
+
+- **S5:**	I can compute measures that summarise how two variables are related.
+- **V3:**	I can appropriately describe patterns of data shown in a plot.
+- **V4:**	I can appropriately plot how two variables are related.
+- **A6:**	I can implement a given statistical test.
+- **A4:**	I can check the assumptions underlying basic statistical tests.
+- **I5:**	I can identify whether I can or cannot reject the null hypothesis.
+- **I7:**	I can define appropriate null and alternative hypotheses for a given research question.
+- **C1:**	I can describe the steps taken in a given analysis.
+- **C2:**	I can describe in writing the results of a given basic statistical test.
+
+
+## Calculating the chi-squared statistic (1)
+
+For each cell in the contingency table, calculate:
+
+$$
+\frac{\text{(observed minus expected)}^\text{squared}}{\text{expected}}
+$$
+
+then add all those numbers up.
+The result is the $\chi^2$ statistic.
+
+
+::::{.columns}
+:::{.column width="50%"}
+**Observed:**
+```{r echo=F}
+obs <- xtabs(~ ADHD + ASD, data = neurotype_data) |> unname()
+obs
+```
+
+:::
+:::{.column width="50%"}
+**Expected:**
+```{r echo=F}
+exp <- neurotype_chisq$expected |> unname()
+exp
+```
+
+:::
+::::
+
+<br>
+
+**So:** (calculation continued on next slide)
+
+|         | noASD                                  | yesASD                         |
+| ------- | :------------------------------------: | :----------------------------: |
+| <b>noADHD</b>  | $$\frac{(61,259 - 60,391)^2}{60,391}$$ | $$\frac{(1107-1975)^2}{1975}$$ |
+| <b>yesADHD</b> | $$\frac{(7408-8276)^2}{8276}$$         | $$\frac{(1139-271)^2}{271}$$   |
+||||
+
+## Calculating the chi-squared statistic (2)
+
+
+
+**Subtract terms in the numerator to get:** (cool how the same number comes out everywhere!)
+
+|         | noASD                                  | yesASD                         |
+| ------- | :------------------------------------: | :----------------------------: |
+| <b>noADHD</b>  | $$\frac{868^2}{60,391}$$ | $$\frac{-868^2}{1975}$$ |
+| <b>yesADHD</b> | $$\frac{-868^2}{8276}$$         | $$\frac{868^2}{271}$$   |
+||||
+
+<br>
+
+**Square the numerator to get:**
+
+|         | noASD                                  | yesASD                         |
+| ------- | :------------------------------------: | :----------------------------: |
+| <b>noADHD</b>  | $$\frac{753,935}{60,391}$$ | $$\frac{753,935}{1975}$$ |
+| <b>yesADHD</b> | $$\frac{753,935}{8276}$$         | $$\frac{753,935}{271}$$   |
+||||
+
+<br>
+
+(continued on next slide)
+
+
+## Calculating the chi-squared statistic (3)
+
+**Divide numerator by denominator to get:**
+
+|         | noASD                                  | yesASD                         |
+| ------- | :------------------------------------: | :----------------------------: |
+| <b>noADHD</b>  | $$12.5$$ | $$381.7$$  |
+| <b>yesADHD</b> | $$91.1$$ | $$2785.1$$ |
+||||
+
+<br>
+
+<!-- **(Sense check in R)** -->
+
+<!-- ```{r} -->
+<!-- (obs - exp)^2 / exp -->
+<!-- ``` -->
+
+**Add up all those numbers:**
+
+$$
+12.5 + 381.7 + 91.1 + 2785.1 = 3270 = \chi^2 \text{ statistic}
+$$

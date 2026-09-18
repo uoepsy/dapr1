@@ -1,5 +1,5 @@
 library(tidyverse)
-setwd("Desktop/uoepsy_courses/dapr1/docs/2627/misc/")
+#setwd("Desktop/uoepsy_courses/dapr1/docs/2627/misc/")
 readxl::read_xlsx("DAPR1 skills development.xlsx")[1:40,] |> janitor::clean_names() |> 
   transmute(
     cat = factor(skill_category,
