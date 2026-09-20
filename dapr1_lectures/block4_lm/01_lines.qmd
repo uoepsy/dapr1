@@ -164,11 +164,90 @@ TODO flowchart
 
 # Lines
 
-## Correlation
+## Correlation {.smaller}
 
-> If two variables are correlated, then as the value of one variable changes, the value of the other variable changes too.
+If two variables are **correlated,** then as the value of one variable changes, the value of the other variable changes too.
 
-> Put differently: you can make a reasonable guess about the value of one variable based on the value of the other one.
+Put differently: you can make a reasonable guess about the value of one variable based on the value of the other one.
+
+
+<br>
+
+::::{.columns}
+:::{.column width="30%"}
+**Not correlated:**
+
+```{r echo=F, fig.height = 4, fig.width = 4}
+set.seed(3)
+df1 <- MASS::mvrnorm(
+  n = 100,
+  mu = c(0, 0),
+  Sigma = matrix(c(100, 0, 0, 100), nrow = 2)
+)
+colnames(df1) <- c('x', 'y')
+
+df1 |>
+  ggplot(aes(x = x, y = y)) +
+  geom_point(size = 3)
+```
+
+
+For any given value of `x`, you can't really predict what kind of value `y` is likely to have.
+
+:::
+:::{.column width="5%"}
+:::
+:::{.column width="30%"}
+**Positively correlated:**
+
+```{r echo=F, fig.height = 4, fig.width = 4}
+set.seed(2)
+cov <- 80
+df <- MASS::mvrnorm(
+  n = 100,
+  mu = c(0, 0),
+  Sigma = Matrix::nearPD(matrix(c(100, cov, cov, 100), nrow = 2))$mat
+)
+colnames(df) <- c('x', 'y')
+
+df |>
+  ggplot(aes(x = x, y = y)) +
+  geom_point(size = 3)
+```
+
+If `x` increases, then `y` increases.
+
+If `x` decreases, then `y` decreases.
+
+:::
+:::{.column width="5%"}
+:::
+:::{.column width="30%"}
+
+**Negatively correlated:**
+
+```{r echo=F, fig.height = 4, fig.width = 4}
+set.seed(1)
+cov <- -80
+df <- MASS::mvrnorm(
+  n = 100,
+  mu = c(0, 0),
+  Sigma = Matrix::nearPD(matrix(c(100, cov, cov, 100), nrow = 2))$mat
+)
+colnames(df) <- c('x', 'y')
+
+df |>
+  ggplot(aes(x = x, y = y)) +
+  geom_point(size = 3)
+```
+
+
+If `x` increases, then `y` decreases.
+
+If `x` decreases, then `y` increases.
+
+:::
+::::
 
 
 ## Correlation
@@ -239,13 +318,6 @@ p4 <- ggplot(df4, aes(x=notifications,y=unlocks))+
   p4 + stat_smooth(method=lm,se=F,col="#0F4C81",lwd=2) )
 
 ```
-
-
-
-# A shift in focus
-
-## i like lines
-
 
 
 ## What defines a line?
@@ -442,6 +514,298 @@ viewof linearModel = {
 }
 ```
 
+## How do we find the line? 
+
+
+```{ojs}
+//| echo: false
+d3 = require("d3@7", "d3-regression@1")
+
+html`<div id="regression-app" style="width: 800px; margin: 0 auto;"></div>`
+
+{
+  const container = d3.select("#regression-app");
+  container.html(""); // Clear container
+
+  // 1. Initial Data Generation (15 points)
+  const numPoints = 4, xScaleVal = 10, xShift = 5, yScaleVal = 10, yShift = 0;
+  const data = d3.range(numPoints).map(() => {
+    const xCoord = xShift + xScaleVal * d3.randomUniform()();
+    const yCoord = yShift + xCoord + yScaleVal * d3.randomUniform()();
+    return [xCoord, yCoord];
+  });
+
+  // 2. Controls Setup
+  const controls = container.append("div")
+    .style("display", "flex")
+    .style("gap", "20px")
+    .style("align-items", "center")
+    .style("margin-bottom", "10px")
+    .style("font-family", "sans-serif")
+    .style("font-size", "14px");
+
+  controls.append("span").style("font-weight", "bold").text("View:");
+  
+  const radioGroup = controls.append("div").style("display", "flex").style("gap", "10px");
+  ["None", "Absolute Error", "Squared Error"].forEach((mode, i) => {
+    const label = radioGroup.append("label").style("cursor", "pointer");
+    label.append("input")
+      .attr("type", "radio")
+      .attr("name", "errorMode")
+      .attr("value", mode)
+      .property("checked", i === 1);
+    label.append("span").text(" " + mode);
+  });
+
+  // Option A: Standard Reset (restores initial 15 points)
+  const resetBtn = controls.append("button")
+    .style("margin-left", "auto")
+    .style("padding", "4px 12px")
+    .style("cursor", "pointer")
+    .text("Reset");
+
+  // Option B: Clear All Button (uncomment if you want a complete clear)
+  // const clearBtn = controls.append("button")
+  //   .style("padding", "4px 12px")
+  //   .style("cursor", "pointer")
+  //   .text("Clear All");
+
+  // 3. Main Plot Engine
+  function createRegressionPlot() {
+    const r = 6, marginTop = 20, marginRight = 30, marginBottom = 30, marginLeft = 40, inset = r * 2;
+    const width = 800, height = 450, showGrid = true;
+    const errorColor = d3.schemeSet3[3];
+    let errorLinesOpacity = 1, errorSquaresOpacity = 0, idCounter = 0;
+
+    let localData = data.map(d => ({ xCoord: d[0], yCoord: d[1], id: idCounter++ }));
+    const initData = localData.map(d => ({ ...d }));
+
+    const xDomain = [0, d3.max(localData, d => d.xCoord) + 5];
+    const yDomain = [0, d3.max(localData, d => d.yCoord) + 5];
+
+    const linearRegression = d3.regressionLinear().x(d => d.xCoord).y(d => d.yCoord).domain(xDomain);
+    const xScale = d3.scaleLinear().domain(xDomain).range([marginLeft + inset, width - marginRight - inset]);
+    const yScale = d3.scaleLinear().domain(yDomain).range([height - marginBottom - inset, marginTop + inset]);
+
+    const svg = container.append("svg")
+      .attr("width", width).attr("height", height)
+      .attr("viewBox", [0, 0, width, height]);
+
+    // Axes & Grid
+    const xGroup = svg.append("g").attr("transform", `translate(0,${height - marginBottom})`).call(d3.axisBottom(xScale).ticks(width / 80));
+    xGroup.select(".domain").remove();
+    xGroup.selectAll(".tick line").clone().attr("y2", marginTop + marginBottom - height)
+      .attr("stroke-opacity", d => (d === 0 ? 1 : showGrid ? 0.1 : 0));
+
+    const yGroup = svg.append("g").attr("transform", `translate(${marginLeft},0)`).call(d3.axisLeft(yScale).ticks(height / 80));
+    yGroup.select(".domain").remove();
+    yGroup.selectAll(".tick line").clone().attr("x2", width - marginLeft - marginRight)
+      .attr("stroke-opacity", d => (d === 0 ? 1 : showGrid ? 0.1 : 0));
+
+    let errorSquares = svg.append("g").selectAll("rect");
+    let errorLines = svg.append("g").selectAll("line");
+    let regressionLine = svg.append("g").attr("stroke", "black").attr("stroke-width", 2).selectAll("line");
+
+    // Click to add points
+    svg.append("rect").attr("width", width).attr("height", height).attr("opacity", 0)
+       .on("click", (event) => {
+         const [xm, ym] = d3.pointer(event);
+         localData.push({ xCoord: xScale.invert(xm), yCoord: yScale.invert(ym), id: idCounter++ });
+         update(localData);
+       });
+
+    let circles = svg.append("g").attr("fill", "black").selectAll("circle");
+
+    // Drag behavior
+    const drag = d3.drag().on("drag", function (event, d) {
+      d.xCoord = xScale.invert(event.x);
+      d.yCoord = yScale.invert(event.y);
+      d3.select(this).attr("cx", event.x).attr("cy", event.y);
+      update(localData, false);
+    });
+
+    function update(dataVal, transition = true) {
+      if (dataVal.length < 2) {
+        // Hide regression line and errors if fewer than 2 points exist
+        regressionLine.attr("opacity", 0);
+        errorLines.attr("opacity", 0);
+        errorSquares.attr("opacity", 0);
+      } else {
+        const regData = linearRegression(dataVal);
+
+        // Update Line
+        regressionLine = regressionLine.data([regData]).join("line").call(l => {
+          if (transition) l = l.transition();
+          l.attr("opacity", 1)
+           .attr("x1", d => xScale(d[0][0])).attr("x2", d => xScale(d[1][0]))
+           .attr("y1", d => yScale(d[0][1])).attr("y2", d => yScale(d[1][1]));
+        });
+
+        // Update Error Lines
+        errorLines = errorLines.data(dataVal, d => d.id).join(
+          enter => enter.append("line").attr("stroke", errorColor).attr("stroke-width", 2)
+            .attr("opacity", errorLinesOpacity)
+            .attr("x1", d => xScale(d.xCoord)).attr("y1", d => yScale(d.yCoord))
+            .attr("x2", d => xScale(d.xCoord)).attr("y2", d => yScale(d.yCoord))
+            .call(e => e.transition().attr("y2", d => yScale(regData.predict(d.xCoord)))),
+          update => update.call(u => {
+            if (transition) u = u.transition();
+            u.attr("opacity", errorLinesOpacity)
+             .attr("x1", d => xScale(d.xCoord)).attr("y1", d => yScale(d.yCoord))
+             .attr("x2", d => xScale(d.xCoord)).attr("y2", d => yScale(regData.predict(d.xCoord)));
+          }),
+          exit => exit.transition().attr("y2", d => yScale(d.yCoord)).remove()
+        );
+
+        // Update Error Squares
+        const computeHeight = d => Math.abs(yScale(regData.predict(d.xCoord)) - yScale(d.yCoord));
+        const computeTransform = d => `rotate(${yScale(regData.predict(d.xCoord)) - yScale(d.yCoord) < 0 ? -90 : 90}, ${xScale(d.xCoord)}, ${yScale(d.yCoord)})`;
+
+        errorSquares = errorSquares.data(dataVal, d => d.id).join(
+          enter => enter.append("rect").attr("fill", errorColor).attr("opacity", errorSquaresOpacity)
+            .attr("transform", computeTransform)
+            .attr("x", d => xScale(d.xCoord)).attr("y", d => yScale(d.yCoord))
+            .attr("width", 0).attr("height", 0)
+            .call(e => e.transition().attr("width", computeHeight).attr("height", computeHeight)),
+          update => update.call(u => {
+            u.attr("transform", computeTransform);
+            if (transition) u = u.transition();
+            u.attr("opacity", errorSquaresOpacity)
+             .attr("x", d => xScale(d.xCoord)).attr("y", d => yScale(d.yCoord))
+             .attr("width", computeHeight).attr("height", computeHeight);
+          }),
+          exit => exit.transition().attr("width", 0).attr("height", 0).remove()
+        );
+      }
+
+      // Update Points
+      circles = circles.data(dataVal, d => d.id).join(
+        enter => enter.append("circle")
+          .attr("cx", d => xScale(d.xCoord)).attr("cy", d => yScale(d.yCoord))
+          .attr("r", 0).call(drag)
+          .on("click", (event, dCurr) => {
+            if (event.defaultPrevented) return;
+            localData = localData.filter(d => d.id !== dCurr.id);
+            update(localData);
+          })
+          .call(e => e.transition().ease(d3.easeBackOut.overshoot(1.7)).attr("r", r)),
+        update => (transition ? update.transition() : update).attr("cx", d => xScale(d.xCoord)).attr("cy", d => yScale(d.yCoord)),
+        exit => exit.transition().ease(d3.easeBackIn.overshoot(1.7)).attr("r", 0).remove()
+      );
+    }
+
+    // Radio button listeners
+    controls.selectAll("input[name='errorMode']").on("change", function() {
+      if (this.value === "None") { errorLinesOpacity = 0; errorSquaresOpacity = 0; }
+      else if (this.value === "Absolute Error") { errorLinesOpacity = 1; errorSquaresOpacity = 0; }
+      else if (this.value === "Squared Error") { errorLinesOpacity = 0; errorSquaresOpacity = 0.5; }
+      update(localData, true);
+    });
+
+    // Reset button listener (Restores baseline 15 points)
+    resetBtn.on("click", () => {
+      localData = initData.map(d => ({ ...d }));
+      update(localData, true);
+    });
+
+    // Initial setup and entrance animation
+    update(localData.slice(0, 1));
+
+    const totalTime = 6000;
+    const ease = d3.easeQuadOut;
+    d3.range(1, data.length).forEach((i) => {
+      setTimeout(() => {
+        const [xCoord, yCoord] = data[i];
+        localData.push({ xCoord, yCoord, id: idCounter++ });
+        update(localData, true);
+      }, totalTime * ease(i / data.length));
+    });
+  }
+
+  createRegressionPlot();
+}
+```
+
+:::{aside}
+I can't make interactive visuals this nicely. This is from   <https://observablehq.com/@yizhe-ang/interactive-visualization-of-linear-regression>
+:::
+
+
+## A shift in focus
+
+![](jk_sandbox/cor2line.gif)
+```{r}
+#| eval: false
+#| echo: false
+fit <- lm(wpm ~ hrs_awake, data = df3)
+b0 <- coef(fit)[1]
+b1 <- coef(fit)[2]
+## rise run trias
+df_triangles <- data.frame(hrs_awake = c(10, 15, 20)) |>
+  mutate(
+    run_length = 5,
+    x1 = hrs_awake,
+    y1 = b0 + b1 * x1,
+    x2 = hrs_awake + run_length,
+    y2 = y1,
+    x3 = x2,
+    y3 = b0 + b1 * x2
+  )
+df_points <- bind_rows(
+  df3 |> mutate(stage = 1, point_alpha = 1),
+  df3 |> mutate(stage = 2, point_alpha = 0.1)
+)
+df_line <- data.frame(
+  hrs_awake = range(df3$hrs_awake),
+  wpm = b0 + b1 * range(df3$hrs_awake)
+)
+df_line <- bind_rows(
+  df_line |> mutate(stage = 1, line_alpha = .1),
+  df_line |> mutate(stage = 2, line_alpha = 1),
+)
+df_tri_anim <- bind_rows(
+  df_triangles |> mutate(stage = 1, tri_alpha = 0),
+  df_triangles |> mutate(stage = 2, tri_alpha = 1)
+)
+
+p_anim <- ggplot() +
+  geom_point(data = df_points, aes(x = hrs_awake, 
+                                   y = wpm, 
+                                   alpha = point_alpha, 
+                                   group = paste(hrs_awake, wpm)),
+             size = 3) +
+  geom_line(data = df_line, 
+    aes(x = hrs_awake, y = wpm, alpha = line_alpha), 
+    col="#0F4C81",lwd=2) +
+  geom_segment(data = df_tri_anim,
+    aes(x = x1, y = y1, xend = x2, yend = y2, alpha = tri_alpha),
+    color = "firebrick", linewidth = 1, linetype = "dashed"
+  ) +
+  geom_segment(data = df_tri_anim,
+    aes(x = x2, y = y2, xend = x3, yend = y3, alpha = tri_alpha),
+    color = "firebrick", linewidth = 1, linetype = "dashed"
+  ) +
+  scale_alpha_identity() +
+  labs(
+    x = "X", 
+    y = "Y",
+    title = "r = -0.4"
+  ) +
+  scale_x_continuous(breaks=c(0,10,20,30),labels=0:3)+
+  theme_minimal() +
+  transition_states(stage, transition_length = 2, state_length = 1)
+
+animp <- animate(p_anim, nframes = 180,
+        fps = 15, end_pause = 45, res=150,
+        width = 800, height = 500, 
+        renderer = gifski_renderer())
+
+anim_save("jk_sandbox/cor2line.gif",animp)
+
+```
+
+
+
 ## correlations...
  
 ```{r}
@@ -547,67 +911,85 @@ anim_save("jk_sandbox/lines.gif",animp)
 
 ## the only equation you'll ever need
 
-::::{.columns}
-:::{.column width="50%"}
 
 $$
 \color{red}{\text{outcome}} = \color{blue}{\text{model}} + \color{black}{\text{error}}
 $$
 
+
+::::{.columns .fragment fragment-index=1}
+:::{.column width="65%"}
 :::
-:::{.column width="50%" .fragment}
-<br>
+:::{.column width="35%"}
 
-<<< The $\text{error}$ is the bit that makes it a *statistical* model
-
-- ideally:
-  - $\color{blue}{\text{model}}$ contains systematic patterns
-  - $\color{black}{\text{error}}$ is just random leftover variation, unrelated to our model
+^   
+  The $\text{error}$ is the bit that makes it a *statistical* model
 
 :::
 ::::
+
+::::{.columns .fragment fragment-index=2}
+:::{.column width="50%"}
+:::
+:::{.column width="50%"}
+
+ideally:  
+
+  - $\color{blue}{\text{model}}$ contains systematic patterns
+  - $\color{black}{\text{error}}$ is just random leftover variation, unrelated to our model
+:::
+::::
+
+
+
+
+
 
 ## the linear regression model
 
-::::{.columns}
-:::{.column width="50%"}
-
+$$
 \begin{align}
-\color{red}{\text{outcome}} &= \color{blue}{\text{model}} &+& \color{black}{\text{error}} \\
+\color{red}{\text{outcome}} &= \color{blue}{\text{model}} &+& \quad \quad \color{black}{\text{error}} \\
 \quad \\
 \quad \\
 \quad \\
-\color{red}{y} &= \color{blue}{\underset{\underset{\text{intercept}}{\uparrow}}{b_0} + \underset{\underset{\text{slope}}{\uparrow}}{b_1} \cdot x} & +& \color{black}{\epsilon}
+\color{red}{y} &= \color{blue}{\underset{\underset{\text{intercept}}{\uparrow}}{b_0} + \underset{\underset{\text{slope}}{\uparrow}}{b_1} \cdot x} & + & \quad \quad \color{black}{\epsilon}
 \end{align}
+$$
 
-
-:::
-:::{.column width="50%"}
-:::
-::::
-
-
-## lines
-
-slide correlation++ with values of b0, b1 on them
-
-## aside - how it gets fitted
-
-
-how does the model get fitted? 
-	1. minimise resid SS (just an animation to show the idea of RSS differing depending on line)
-
-https://setosa.io/ev/ordinary-least-squares-regression/
 
 # Activity break! 
 quiz - b0 b1 neg/pos, values etc. 
 
 # using models to answer questions
 
+
 ## some models are useful
 
 	1. correlation describes a pattern but lm is a model you can *use*
 	2. use how? to estimate a quantity of interest! 
+	
+	
+## Example
+
+> **RQ:** How do consecutive days of interrupted sleep affect cognitive skills?  
+> We recruit 80 people and randomly allocate them to receiving between 0 to 7 days of sleep disruption. 
+> Upon waking up after their final night of allocated disrupted sleep, participants completed a short task based on Wordle, that gives a score somewhere between 0 and 100 (lower scores are better)
+
+```{r}
+#| echo: false
+set.seed(65683728)
+sleepwordle <- tibble(
+  sleep_disrupt = rep(0:7,e=10),
+  time = rgamma(80,(sleep_disrupt+1)/2,1)*60,
+  guesses = rbinom(80, 5, plogis(.6+.5*scale(sleep_disrupt)))+1,
+  wordle = time + (60*guesses)
+) 
+sleepwordle |> ggplot(aes(x=sleep_disrupt,y=wordle))+
+  geom_point(size=3)
+```
+
+
 	
 ## example: continuous RCT. 
 
@@ -615,6 +997,19 @@ quiz - b0 b1 neg/pos, values etc.
 	2. correlation = when X is higher, Y is higher
 
 ## example: continuous RCT:
+
+
+$$
+\begin{align}
+\color{red}{\text{outcome}} &= \color{blue}{\text{model}} &+& \quad \quad \color{black}{\text{error}} \\
+\quad \\
+\quad \\
+\color{red}{y} &= \color{blue}{\underset{\underset{\text{intercept}}{\uparrow}}{b_0} + \underset{\underset{\text{slope}}{\uparrow}}{b_1} \cdot x} & + & \quad \quad \color{black}{\epsilon}
+\quad \\
+\quad \\
+\color{red}{y_i} &= \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot x_i} & + & \quad \quad \color{black}{\epsilon_i}
+\end{align}
+$$
 
 	1. model predictions (use faces as units of interest - see old dapr3 refresh)
 		1. wordle score with 1 day of disrupted sleep: hat y = b0 + b1 (x=1)
