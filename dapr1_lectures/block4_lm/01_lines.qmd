@@ -359,26 +359,26 @@ viewof linearModel = {
   const line = svg.append("line")
     .attr("x1", xScale(-2))
     .attr("x2", xScale(10))
-    .attr("stroke", "#0F4C81")
+    .attr("stroke", "#000000")
     .attr("stroke-width", 3)
     .attr("pointer-events", "none");
   // add rise run triangle
   const slopeHorizontal = svg.append("line")
-    .attr("stroke", "#000000")
+    .attr("stroke", "#0000FF")
     .attr("stroke-width", 2)
     .attr("stroke-dasharray", "4,4");
   const slopeVertical = svg.append("line")
-    .attr("stroke", "#000000")
+    .attr("stroke", "#0000FF")
     .attr("stroke-width", 2)
     .attr("stroke-dasharray", "4,4");
   // intercept
   const interceptMarker = svg.append("circle")
     .attr("r", 5)
-    .attr("fill", "#27ae60");
+    .attr("fill", "#0000FF");
   // intercept circle
   const handleLeft = svg.append("circle")
     .attr("r", 6)
-    .attr("fill", "#c0392b")
+    .attr("fill", "#0000FF")
     .attr("cursor", "ns-resize");
   // right hand drag point. invisible
   const handleRight = svg.append("circle")
@@ -387,16 +387,16 @@ viewof linearModel = {
     .attr("cursor", "ns-resize");
   // LABELS!
   const labelRun = svg.append("text")
-    .attr("fill", "#000000")
+    .attr("fill", "#0000FF")
     .attr("font-size", "13px")
     .attr("font-weight", "bold")
     .attr("text-anchor", "middle");
   const labelRise = svg.append("text")
-    .attr("fill", "#000000")
+    .attr("fill", "#0000FF")
     .attr("font-size", "13px")
     .attr("font-weight", "bold");
   const interceptText = svg.append("text")
-    .attr("fill", "#c0392b")
+    .attr("fill", "#0000FF")
     .attr("font-size", "13px")
     .attr("font-weight", "bold");
 
@@ -779,11 +779,11 @@ p_anim <- ggplot() +
     col="#0F4C81",lwd=2) +
   geom_segment(data = df_tri_anim,
     aes(x = x1, y = y1, xend = x2, yend = y2, alpha = tri_alpha),
-    color = "firebrick", linewidth = 1, linetype = "dashed"
+    color = "blue", linewidth = 1, linetype = "dashed"
   ) +
   geom_segment(data = df_tri_anim,
     aes(x = x2, y = y2, xend = x3, yend = y3, alpha = tri_alpha),
-    color = "firebrick", linewidth = 1, linetype = "dashed"
+    color = "blue", linewidth = 1, linetype = "dashed"
   ) +
   scale_alpha_identity() +
   labs(
@@ -853,11 +853,11 @@ p3_1 <- p3 +
                 ", slope: ",round(coef(m3)[2],1))) +
   geom_abline(intercept=coef(m3)[1],slope=coef(m3)[2],
               col="#0F4C81",lwd=1) +
-  geom_point(x=0,y=coef(m3)[1],size=4,col="#c0392b")+
+  geom_point(x=0,y=coef(m3)[1],size=4,col="#0000FF")+
   geom_segment(data = segs3, aes(x=x1,xend=x2,y=y1,yend=y1),
-               lty="dashed",col="#228B22")+
+               lty="dashed",col="#0000FF")+
   geom_segment(data = segs3, aes(x=x2,xend=x2,y=y1,yend=y2),
-               lty="dashed",col="#228B22") 
+               lty="dashed",col="#0000FF") 
  
 p3a_1 <- p3a + 
   labs(title=
@@ -865,11 +865,11 @@ p3a_1 <- p3a +
                 ", slope: ",round(coef(m3a)[2],1))) +
   geom_abline(intercept=coef(m3a)[1],slope=coef(m3a)[2],
               col="#0F4C81",lwd=1) +
-  geom_point(x=0,y=coef(m3a)[1],size=4,col="#c0392b")+
+  geom_point(x=0,y=coef(m3a)[1],size=4,col="#0000FF")+
   geom_segment(data = segs3a, aes(x=x1,xend=x2,y=y1,yend=y1),
-               lty="dashed",col="#228B22")+
+               lty="dashed",col="#0000FF")+
   geom_segment(data = segs3a, aes(x=x2,xend=x2,y=y1,yend=y2),
-               lty="dashed",col="#228B22")
+               lty="dashed",col="#0000FF")
 
 p3_1 + p3a_1
 ```
@@ -964,16 +964,19 @@ quiz - b0 b1 neg/pos, values etc.
 # using models to answer questions
 
 
-## some models are useful
+## sometimes, models are useful
 
-	1. correlation describes a pattern but lm is a model you can *use*
-	2. use how? to estimate a quantity of interest! 
-	
+a correlation just describes a pattern.  
+
+but a linear model can be **used** - 
+  
+  - used how? to make predictions and to estimate a quantity of interest! 
+
 	
 ## Example
 
-> **RQ:** How do consecutive days of interrupted sleep affect cognitive skills?  
-> We recruit 80 people and randomly allocate them to receiving between 0 to 7 days of sleep disruption. 
+> **RQ:** How does an additional day of interrupted sleep affect cognitive skills?  
+> We recruit 80 people and randomly allocate them to receiving between 0 to 7 days of sleep disruption. <br>
 > Upon waking up after their final night of allocated disrupted sleep, participants completed a short task based on Wordle, that gives a score somewhere between 0 and 100 (lower scores are better)
 
 ```{r}
@@ -985,31 +988,130 @@ sleepwordle <- tibble(
   guesses = rbinom(80, 5, plogis(.6+.5*scale(sleep_disrupt)))+1,
   wordle = time + (60*guesses)
 ) 
-sleepwordle |> ggplot(aes(x=sleep_disrupt,y=wordle))+
-  geom_point(size=3)
 ```
 
 
 	
-## example: continuous RCT. 
+## Example - as a correlation
 
-	1. wordle_score ~ sleep deprivation. randomised 1 to 7 days sleep disturbance
-	2. correlation = when X is higher, Y is higher
+::::{.columns}
+:::{.column width="50%"}
 
-## example: continuous RCT:
+```{r}
+#| echo: true
+cor.test(sleepwordle$sleep_disrupt, sleepwordle$wordle)
+```
+
+:::
+:::{.column width="50%"}
+
+```{r}
+#| echo: false
+sleepwordle |> ggplot(aes(x=sleep_disrupt,y=wordle))+
+  geom_point(size=3)
+```
+
+:::
+::::
+
+
+
+
+## Example - as a model
+
+::::{.columns}
+:::{.column width="50%" style="font-size:.7em"}
 
 
 $$
 \begin{align}
-\color{red}{\text{outcome}} &= \color{blue}{\text{model}} &+& \quad \quad \color{black}{\text{error}} \\
+\color{red}{\text{outcome}} &= \color{blue}{\text{model}} + \color{black}{\text{error}} \\
 \quad \\
+\color{red}{y} &= \color{blue}{\underset{\underset{\text{intercept}}{\uparrow}}{b_0} + \underset{\underset{\text{slope}}{\uparrow}}{b_1} \cdot x} + \color{black}{\varepsilon}
 \quad \\
-\color{red}{y} &= \color{blue}{\underset{\underset{\text{intercept}}{\uparrow}}{b_0} + \underset{\underset{\text{slope}}{\uparrow}}{b_1} \cdot x} & + & \quad \quad \color{black}{\epsilon}
+\color{red}{\text{Wordle_Score}} &= \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot \text{Days_Disrupted}} + \color{black}{\varepsilon} \\
 \quad \\
-\quad \\
-\color{red}{y_i} &= \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot x_i} & + & \quad \quad \color{black}{\epsilon_i}
+\color{red}{\text{Wordle_Score}} &= \,\,\,\color{blue}{245 \,\,\,+ 37 \cdot \text{Days_Disrupted}} + \color{black}{\varepsilon}
 \end{align}
 $$
+
+:::
+:::{.column width="50%"}
+
+```{r}
+#| echo: false
+fitw = lm(wordle~sleep_disrupt,sleepwordle)
+
+segsw <- tibble(x1 = 0:6, x2 = x1+1) |> 
+  mutate(
+    y1 = map_dbl(x1,~(c(1,.)%*%coef(fitw))[1]),
+    y2 = map_dbl(x2,~(c(1,.)%*%coef(fitw))[1]),
+    xlp = (x1+x2)/2,
+    ylp = (y1+y2)/2
+  )
+sleepwordle |> 
+  ggplot(aes(x=sleep_disrupt,y=wordle))+
+  geom_point(size=3,col="tomato1",alpha=.5)+
+  stat_smooth(method=lm,se=FALSE,color="#0000FF",lwd=1) +
+  geom_point(x=0,y=coef(fitw)[1],col="#0000FF",size=5)+
+  geom_segment(data = segsw, aes(x=x1,xend=x2,y=y1,yend=y1),
+               lty="dashed",col="#0000FF")+
+  geom_segment(data = segsw, aes(x=x2,xend=x2,y=y1,yend=y2),
+               lty="dashed",col="#0000FF") 
+```
+
+:::
+::::
+
+
+
+
+## Example - predictions
+
+::::{.columns}
+:::{.column width="50%" style="font-size:.7em"}
+
+
+$$
+\begin{align}
+\color{red}{\text{outcome}} &= \color{blue}{\text{model}} + \color{black}{\text{error}} \\
+\quad \\
+\color{red}{\text{Wordle_Score}} &= \color{blue}{b_0 + b_1 \cdot \text{Days_Disrupted}} + \color{black}{\varepsilon}
+\quad \\
+\quad \\
+\color{red}{\text{Wordle_Score}_i} &= \color{blue}{b_0 + b_1 \cdot \text{Days_Disrupted}_i} + \color{black}{\epsilon_i}
+\quad \\
+\quad \\
+\color{purple}{\widehat{\text{Wordle_Score}}_i} &= \color{blue}{b_0 + b_1 \cdot \text{Days_Disrupted}_i}  
+\end{align}
+$$
+:::
+:::{.column width="50%"}
+```{r}
+#| echo: false
+
+sleepwordle |> 
+  ggplot(aes(x=sleep_disrupt,y=wordle))+
+  geom_point(size=3,alpha=.3,col="tomato1")+
+  stat_smooth(method=lm,se=FALSE,color="blue",lwd=2)+
+  geom_segment(x=5,xend=5,y=sleepwordle$wordle[52],
+               yend = (coef(fitw) %*% c(1,5))[1],
+               lty = "dotted", col="black", lwd=1) +
+  geom_point(x = 5, y = sleepwordle$wordle[52],
+             size = 3,col="tomato1") +
+  geom_point(x = 5, y = (coef(fitw) %*% c(1,5))[1],
+             size = 3,col="purple")
+
+```
+:::
+::::
+
+
+
+
+
+
+## Example - quantity of interest
 
 	1. model predictions (use faces as units of interest - see old dapr3 refresh)
 		1. wordle score with 1 day of disrupted sleep: hat y = b0 + b1 (x=1)
