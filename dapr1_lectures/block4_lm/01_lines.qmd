@@ -37,7 +37,7 @@ block2_lecs = c("week 7 topic",
                 "week 10 topic",
                 "week 11 topic")
 
-source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+source("../../../../uoepsy_other/junk/R/course_table.R")
 
 course_table(block1_name,block2_name,block1_lecs,block2_lecs,week=11)
 ```
@@ -64,7 +64,7 @@ block4_lecs = c("week 7 topic",
                 "week 10 topic",
                 "week 11 topic")
 
-source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
+source("../../../../uoepsy_other/junk/R/course_table.R")
 
 course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=6)
 ```
@@ -726,7 +726,7 @@ html`<div id="regression-app" style="width: 800px; margin: 0 auto;"></div>`
 }
 ```
 
-:::{aside}
+:::{.aside}
 I can't make interactive visuals this nicely. This is from   <https://observablehq.com/@yizhe-ang/interactive-visualization-of-linear-regression>
 :::
 
@@ -968,26 +968,30 @@ quiz - b0 b1 neg/pos, values etc.
 
 a correlation just describes a pattern.  
 
-but a linear model can be **used** - 
+  - x varies along with y
+  - x varies in the opposite direction to y
+
+but a linear model can be **used**  
   
-  - used how? to make predictions and to estimate a quantity of interest! 
+how?
+
+  - to make predictions and to estimate a quantity of interest! 
 
 	
 ## Example
 
-> **RQ:** How does an additional day of interrupted sleep affect cognitive skills?  
-> We recruit 80 people and randomly allocate them to receiving between 0 to 7 days of sleep disruption. <br>
-> Upon waking up after their final night of allocated disrupted sleep, participants completed a short task based on Wordle, that gives a score somewhere between 0 and 100 (lower scores are better)
+> **RQ:** How does an additional day of interrupted sleep affect cognitive skills?  <br><br>
+> We recruit 80 people and randomly allocate them to receiving between 0 to 7 days of sleep disruption. Upon waking up after their final night of allocated disrupted sleep, participants completed a short task based on Wordle, that gives a score somewhere between 0 and 100 (lower scores are better)
 
 ```{r}
 #| echo: false
 set.seed(65683728)
 sleepwordle <- tibble(
-  sleep_disrupt = rep(0:7,e=10),
-  time = rgamma(80,(sleep_disrupt+1)/2,1)*60,
-  guesses = rbinom(80, 5, plogis(.6+.5*scale(sleep_disrupt)))+1,
+  n_disrupted = rep(0:7,e=10),
+  time = rgamma(80,(n_disrupted+1)/2,1)*60,
+  guesses = rbinom(80, 5, plogis(.6+.5*scale(n_disrupted)))+1,
   wordle = time + (60*guesses)
-) 
+) |> slice_sample(prop=1)
 ```
 
 
@@ -996,19 +1000,27 @@ sleepwordle <- tibble(
 
 ::::{.columns}
 :::{.column width="50%"}
-
 ```{r}
 #| echo: true
-cor.test(sleepwordle$sleep_disrupt, sleepwordle$wordle)
+#| eval: false
+cor.test(sleepwordle$n_disrupted, 
+         sleepwordle$wordle)
 ```
+:::{style="font-size:.7em"}
+```{r}
+#| echo: false
+cor.test(sleepwordle$n_disrupted, sleepwordle$wordle)
+```
+:::
 
 :::
 :::{.column width="50%"}
 
 ```{r}
-#| echo: false
-sleepwordle |> ggplot(aes(x=sleep_disrupt,y=wordle))+
-  geom_point(size=3)
+#| code-fold: true
+sleepwordle |> 
+  ggplot(aes(x = n_disrupted, y = wordle))+
+  geom_point(size = 3)
 ```
 
 :::
@@ -1022,16 +1034,26 @@ sleepwordle |> ggplot(aes(x=sleep_disrupt,y=wordle))+
 ::::{.columns}
 :::{.column width="50%" style="font-size:.7em"}
 
-
+**The idea:**  
 $$
 \begin{align}
 \color{red}{\text{outcome}} &= \color{blue}{\text{model}} + \color{black}{\text{error}} \\
 \quad \\
 \color{red}{y} &= \color{blue}{\underset{\underset{\text{intercept}}{\uparrow}}{b_0} + \underset{\underset{\text{slope}}{\uparrow}}{b_1} \cdot x} + \color{black}{\varepsilon}
-\quad \\
-\color{red}{\text{Wordle_Score}} &= \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot \text{Days_Disrupted}} + \color{black}{\varepsilon} \\
-\quad \\
-\color{red}{\text{Wordle_Score}} &= \,\,\,\color{blue}{245 \,\,\,+ 37 \cdot \text{Days_Disrupted}} + \color{black}{\varepsilon}
+\end{align}
+$$
+
+**Our model:**  
+$$
+\begin{align}
+\color{red}{\text{Wordle_Score}} &= \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot \text{Nights_Disrupted}} + \color{black}{\varepsilon} \\
+\end{align}
+$$
+
+**Our estimated model:**  
+$$
+\begin{align}
+\color{red}{\text{Wordle_Score}} &= \,\,\,\color{blue}{245 \,\,\,+ 37 \cdot \text{Nights_Disrupted}} + \color{black}{\varepsilon}
 \end{align}
 $$
 
@@ -1040,7 +1062,7 @@ $$
 
 ```{r}
 #| echo: false
-fitw = lm(wordle~sleep_disrupt,sleepwordle)
+fitw = lm(wordle~n_disrupted,sleepwordle)
 
 segsw <- tibble(x1 = 0:6, x2 = x1+1) |> 
   mutate(
@@ -1050,7 +1072,7 @@ segsw <- tibble(x1 = 0:6, x2 = x1+1) |>
     ylp = (y1+y2)/2
   )
 sleepwordle |> 
-  ggplot(aes(x=sleep_disrupt,y=wordle))+
+  ggplot(aes(x=n_disrupted,y=wordle))+
   geom_point(size=3,col="tomato1",alpha=.5)+
   stat_smooth(method=lm,se=FALSE,color="#0000FF",lwd=1) +
   geom_point(x=0,y=coef(fitw)[1],col="#0000FF",size=5)+
@@ -1066,32 +1088,62 @@ sleepwordle |>
 
 
 
-## Example - predictions
+## Example - Predictions
 
 ::::{.columns}
 :::{.column width="50%" style="font-size:.7em"}
 
-
+**The idea:**  
 $$
 \begin{align}
 \color{red}{\text{outcome}} &= \color{blue}{\text{model}} + \color{black}{\text{error}} \\
 \quad \\
-\color{red}{\text{Wordle_Score}} &= \color{blue}{b_0 + b_1 \cdot \text{Days_Disrupted}} + \color{black}{\varepsilon}
-\quad \\
-\quad \\
-\color{red}{\text{Wordle_Score}_i} &= \color{blue}{b_0 + b_1 \cdot \text{Days_Disrupted}_i} + \color{black}{\epsilon_i}
-\quad \\
-\quad \\
-\color{purple}{\widehat{\text{Wordle_Score}}_i} &= \color{blue}{b_0 + b_1 \cdot \text{Days_Disrupted}_i}  
+\color{red}{y} &= \color{blue}{\underset{\underset{\text{intercept}}{\uparrow}}{b_0} + \underset{\underset{\text{slope}}{\uparrow}}{b_1} \cdot x} + \color{black}{\varepsilon}
+\end{align}
+$$
+
+**Our model, for specific person $i$:**  
+$$
+\begin{align}
+\color{red}{\text{Wordle_Score}_i} &= \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot \text{Nights_Disrupted}_i} + \color{black}{\epsilon_i} \\
+\end{align}
+$$
+
+**Our estimated model, for specific person $i$:**  
+$$
+\begin{align}
+\color{red}{\text{Wordle_Score}_i} &= \,\,\,\color{blue}{245 \,\,\,+ 37 \cdot \text{Nights_Disrupted}_i} + \color{black}{\epsilon_i}
+\end{align}
+$$
+
+:::{.fragment fragment-index=1}
+**Our predicted value, for specific person $i$:**  
+$$
+\begin{align}
+\color{purple}{\widehat{\text{Wordle_Score}}_i} &= \color{blue}{245 + 37 \cdot \text{Nights_Disrupted}_i}  
 \end{align}
 $$
 :::
+
+:::
 :::{.column width="50%"}
+
+:::{.r-stack}
 ```{r}
 #| echo: false
 
 sleepwordle |> 
-  ggplot(aes(x=sleep_disrupt,y=wordle))+
+  ggplot(aes(x=n_disrupted,y=wordle))+
+  geom_point(size=3,alpha=.3,col="tomato1")+
+  stat_smooth(method=lm,se=FALSE,color="blue",lwd=2)
+```
+
+:::{.fragment fragment-index=2}
+```{r}
+#| echo: false
+
+sleepwordle |> 
+  ggplot(aes(x=n_disrupted,y=wordle))+
   geom_point(size=3,alpha=.3,col="tomato1")+
   stat_smooth(method=lm,se=FALSE,color="blue",lwd=2)+
   geom_segment(x=5,xend=5,y=sleepwordle$wordle[52],
@@ -1104,30 +1156,114 @@ sleepwordle |>
 
 ```
 :::
+:::
+
+:::{.fragment fragment-index=2 style="font-size:.7em"}
+For this poor participant who had 5 nights of disrupted sleep, we predict their score to be:  
+$$
+\begin{align}
+\color{purple}{\widehat{\text{Wordle_Score}}_i} &= \color{blue}{245 + 37 \cdot \text{Nights_Disrupted}_i} \\
+&= \color{blue}{245 + 37 \cdot 5} \\
+&= \color{blue}{245 + 185} \\
+&= \color{blue}{430} \\
+\end{align}
+$$
+:::
+
+:::
 ::::
 
+## Example - Predictions (2)
 
+1. predictions x0,x5,x7
 
-
-
+TODO line of predictions
++37 +37 +37 +37 +37 +37 +37 +37
+it's linear!  
 
 ## Example - quantity of interest
 
-	1. model predictions (use faces as units of interest - see old dapr3 refresh)
-		1. wordle score with 1 day of disrupted sleep: hat y = b0 + b1 (x=1)
-		2. wordle score with 1 week (7 days) of disrupted sleep: hat y = b0 + b1 (x=7)
-		3. difference that an extra day makes: hat y(1) - hat y(0) 
-			1. oh look, it's the coefficient b1! 
+> **RQ:** How does an additional day of interrupted sleep affect cognitive skills?
 
-## the how to (fitting models in R)
-	1. formula notation  outcome ~ model
-	2. lm(wordle ~ sleep_dep)
+what happens to someone's wordle score when i disrupt their sleep for another night?
 
-## the how to (model predictions in R)
+predict(person_i, days = person_i days) vs 
+  predict(person_i, days = person_i days + 1) 
 
-	1. predict.lm
+oh look, it's that coefficient! 
+
+:::{.aside}
+we're basing these predictions on groups of _different_ people. i.e., to answer our question we're comparing: 
+  person_A with 4 days sleep dep 
+  vs 
+  personB with 5 days sleep dep
+
+this only targets our quantity _if_ we can think of persons A and B as exchangeable! 
+:::
+
+## The How-to (in R)
+
+::::{.columns}
+:::{.column width="50%"}
+a new function:  
+
+`lm(......, data = datasetname)`
+
+(L is for linear, M is for model)  
+:::
+:::{.column width="50%"}
+
+a new(ish) notation: 
+
+`outcome ~ predictor`
+
+read as `outcome "is predicted by" predictor`
+
+:::
+::::
+
+## Example - in R
+
+::::{.columns}
+:::{.column width="50%"}
+The data
+
+```{r}
+head(sleepwordle)
+```
 
 
+:::
+:::{.column width="50%"}
+The model  
+
+```{r}
+sleep_mdl <- lm(wordle ~ n_disrupted, data = sleepwordle)
+
+sleep_mdl
+```
+
+:::
+::::
+
+## The How-to - predictions
+
+1. make a new little dataframe:
+```{r}
+data.frame(n_disrupted = 0:7)
+```
+
+2. get predictions:
+```{r}
+predict(sleep_mdl, 
+        newdata = data.frame(n_disrupted = 0:7))
+```
+
+
+3. get predictions for observed data:
+```{r}
+predict(sleep_mdl)
+```
 
 
 # End
