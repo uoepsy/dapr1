@@ -102,6 +102,26 @@ data |>
   select(variable, variable2, variable3)
 ```
 
+You should also do the above separately for the two variables. Otherwise, arrange will sort the data by one variable first, and then by the second variable within that. For example:
+
+```{r}
+ex <- tibble(ID = c("PPT1","PPT2","PPT3","PPT4","PPT5","PPT6","PPT7","PPT8","PPT9"), 
+             a = c(5,5,5,6,6,6,7,7,7), 
+             b = c(.11,.22,.13,.23,.17,.18,.21,.19,.14))
+
+# Arranging by both a and b, in descending order, will sort by a first, and then by b within each value of a
+ex |>
+  arrange(desc(a), desc(b))
+
+# Arranging by a only, in descending order, will sort by a only
+ex |>
+  arrange(desc(a))
+
+# Arranging by b only, in descending order, will sort by b only
+ex |>
+  arrange(desc(b))
+```
+
 
 :::flash
 🗂️
@@ -125,6 +145,7 @@ sdata |>
   select(pseudonym, ampm, ampmZ)
 ```
 
+TODO - add paragraph about pseudonyms when survey data available.
 `r solend()`
 
 `r qbegin(qcounter())`
@@ -140,7 +161,12 @@ Once you have made your plot, add this bit of code to the end of it. It will add
                 colour = "red")
 ```
 
+You won't have to remember the above, but it means:
 
+- `stat_function()` adds a statistical function to the plot
+- `fun = dnorm` specifies that the function (fun) to add is the normal (norm) distribution (d)
+- `args = list(mean = 0, sd = 1)` specifies that the function should use a mean of 0 and a standard deviation of 1, which are the parameters of the normal distribution
+- `colour = "red"` specifies the colour (red) of the normal distribution
 :::flash
 🗂️
 See the [Plot a variable > Histogram](https://uoepsy.github.io/dapr1/2627/flashcards/block1/intro-ggplot.html#histogram){target="_blank"} flash card. Only we don't want a `geom_histogram()`, we want a `geom_density()`!  
@@ -191,16 +217,18 @@ ggplot(df, aes(x = x, y = y)) +
 
 In "the olden days" when everything was black and white, there were big tables of numbers that people had to look through to figure out this sort of thing.  
 
-Computers can do it in an instant. The `qnorm()` function in R takes a probability, and returns the value at which that area under the normal distribution falls. 
+Computers can do it in an instant. The `qnorm()` function in R takes a probability, and returns the value along the x-axis at which that area under the normal distribution falls. 
 
 Computers can do this in an instant. In R, the `qnorm()` function takes a probability and tells you the exact value where the area under the standard normal distribution curve reaches that amount. 
 
 E.g., 40% of the distribution falls to the left of: 
+
 ```{r}
 qnorm(0.4)
 ```
-And 50% of the distribution falls to the left of...  
-(we actually don't need to calculate this - take a look above at the plot and think!)
+
+And 50% of the distribution falls to the left of... (we actually don't need to calculate this - take a look above at the plot and think!)
+
 ```{r}
 qnorm(0.5)
 ```
@@ -236,6 +264,8 @@ We know we want $z = 1.28$, and we can use `mean(sdata$outlook)` and `sd(sdata$o
 (1.28*sd(sdata$outlook)) + mean(sdata$outlook)
 ```
 
+90% of outlook scores are below 76.40. Equivalently, someone in the top 10% of the optimism scale would have a score of 76.40 or higher.
+
 `r solend()`
 
 
@@ -263,7 +293,7 @@ Do the values satisfy the requirements of probabilities? Check that they are pos
 
 See this week's lecture slides - we'll want to use `pnorm()`!
 
-TODO I don't know if we want a pnorm flashcard? do we have a link to the slides or are they only hosted on learn?
+TODO I don't know if we want a pnorm flashcard?
 
 :::
 
@@ -279,10 +309,12 @@ sdata |>
 
 His outlook score of 16, when transformed to a Z-score, is:  
 ```{r}
-dougalZ = (-16 - mean(sdata$outlook)) / sd(sdata$outlook)
+dougalZ <- (-16 - mean(sdata$outlook)) / sd(sdata$outlook)
+dougalZ
 ```
 
-There is a `r round(pnorm(dougalZ)*100)`% probability of seeing someone less optimistic than Dougal, and a `r 100-round(pnorm(dougalZ)*100)`% probability of seeing someone more optimistic. 
+There is a `r round(pnorm(dougalZ)*100, 2)`% probability of seeing someone less optimistic than Dougal, and a `r 100-round(pnorm(dougalZ)*100, 2)`% probability of seeing someone more optimistic. 
+
 ```{r}
 pnorm(dougalZ)
 1-pnorm(dougalZ)

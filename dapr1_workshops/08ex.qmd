@@ -27,6 +27,9 @@ WHEN RENDERING:
 library(tidyverse)
 source('assets/dropdowns.R')
 source('assets/setup.R')
+
+
+set.seed(789)
 ```
 
 <!-- MAX 5 QUESTIONS -->
@@ -55,7 +58,7 @@ Navigator instructions:
 
 
 `r qbegin(qcounter())`
-For the exercises this week, we are going to pretend that we know that the distribution of `outlook` scores (pessimism/optimism measured on the -100 to 100 scale) for the wider population has a mean of 35 and a standard deviation of 20.  
+For the exercises this week, we are going to **pretend** that we know that the distribution of `outlook` scores^[(pessimism/optimism measured on the -100 to 100 scale)] for the full population has a mean of 15 and a standard deviation of 25.  
 
 So **if** we could ask every person in the world to fill out our questionnaire, we would see something like this:^[(the "8e+08" on the y-axis is a way of writing an eight followed by eight zeros, or 800,000,000 - there are 8 Billion people in the world, so the numbers in each of these histogram bins are going to be huge!)]
 ```{r}
@@ -63,7 +66,7 @@ So **if** we could ask every person in the world to fill out our questionnaire, 
 #| out-width: "600px"
 #| out-height: "400px"
 tibble(
-  outlook = round(rnorm(1e6,35,20))
+  outlook = round(rnorm(1e6,15,25))
 ) |>
   ggplot(aes(x=outlook))+geom_histogram() +
   scale_y_continuous(labels = scales::label_scientific(scale = 8000))
@@ -75,7 +78,7 @@ Try playing around with this code. Run each line a couple of times to see how th
 
 ```{r}
 #| echo: true
-fake_sample <- rnorm(n = 20, mean = 35, sd = 20)
+fake_sample <- rnorm(n = 20, mean = 15, sd = 25)
 fake_sample
 mean(fake_sample)
 ```
@@ -86,6 +89,23 @@ mean(fake_sample)
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
 
+Your numbers will look different to the ones below because of randomness in sampling.
+
+**One sample:**
+
+```{r}
+fake_sample <- rnorm(n = 20, mean = 15, sd = 25)
+fake_sample
+mean(fake_sample)
+```
+
+**Another sample:**
+
+```{r}
+fake_sample <- rnorm(n = 20, mean = 15, sd = 25)
+fake_sample
+mean(fake_sample)
+```
 
 `r solend()`
 
@@ -98,21 +118,37 @@ From the previous question, you have hopefully noticed 3 things:
 2. Each time we do 1, we get a new, different, sample.  
 3. Each time we do 1, the new sample we get has a slightly different mean.  
 
-What we now want to start thinking about is "all the samples we *could* have taken", and how their means will vary.  
+What we now want to start thinking about is "all the samples we *could* have taken", and how their means will vary. Of course we cannot really take ALL the samples, but we can take many (say 1000).
 
 The function `replicate()` can let us do something in R lots of times. 
 
 Can you figure out what these two lines of code do?  
 Raise your hand if you want a tutor to come and help explain.  
 ```{r}
-means20 <- replicate(1000, mean(rnorm(n = 20, mean = 35, sd = 20)))
+means20 <- replicate(1000, mean(rnorm(n = 20, mean = 15, sd = 25)))
 
-means100 <- replicate(1000, mean(rnorm(n = 100, mean = 35, sd = 20)))
+means100 <- replicate(1000, mean(rnorm(n = 100, mean = 15, sd = 25)))
 ```
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
 
+- `rnorm(n = 20, mean = 15, sd = 25)` generates a random sample of n = 20 scores from a normal distribution with mean 15 and standard deviation 25.
+- `mean(rnorm(n = 20, mean = 15, sd = 25))` computes the mean of the above 20 numbers.
+- `replicate(1000, mean(rnorm(n = 20, mean = 15, sd = 25)))` repeats the above process 1000 times, giving us 1000 means (each mean summarising a sample of 20 numbers).
+
+```{r}
+means20 <- replicate(1000, mean(rnorm(n = 20, mean = 15, sd = 25)))
+head(means20) # show the first 6 values
+```
+
+
+The below computes the means from 1000 samples of size n = 100 each, rather than n = 20 each. You should recall from the lecture that bigger samples should lead to less variability in the means.
+
+```{r}
+means100 <- replicate(1000, mean(rnorm(n = 100, mean = 15, sd = 25)))
+head(means100) # show the first 6 values
+```
 
 `r solend()`
 
@@ -134,7 +170,7 @@ mydata <-
   )
 ```
 
-**Task** Make two dataframes, call them something like `data20` and `data100`. Each one should have just one column, which contains the values in `means20` and `means100`. 
+**Task** Make two dataframes, call them something like `data20` and `data100` respectively. Each one should have just one column named `estimate`, which contains the values in `means20` and `means100` respectively.
 
 :::flash
 🗂️
@@ -152,7 +188,7 @@ myvector <- c(1,2,5,7,3,5)
 
 mydataframe <- 
   tibble(
-    thing = myvector
+    name_of_column = myvector
   )
 ```
 :::
@@ -177,18 +213,22 @@ data100 <-
 
 `r qbegin(qcounter())`
 We should now have two dataframes. 
-One contains the means from 1000 random samples of size 20 (taken from our supposed population of optimism scores that are assumed to be normally distributed with mean of 35 and standard deviation of 20).  
+One contains the means from 1000 random samples of size 20 (taken from our supposed population of optimism scores that are assumed to be normally distributed with mean of 15 and standard deviation of 25).  
 The second contains the means from 1000 random samples of size 100.  
 
 Make a plot of each of these sets of 1000 estimated means.  
 (What sort of plot? That's up to you!).  
 
 When you have made them, let's display them side by side. To do this, we can use the **patchwork** package (you might need to install it first!). 
-Then we can arrange multiple plots by 1. assigning each plot a name, and 2. using things like `+` and `/` to but them next to/above one another.  
+Then we can arrange multiple plots by:
+
+1. assigning each plot a name, e.g. `plot1 <- ...` and `plot2 <- ...`, and then 
+2. using `+` to place them side by side (`plot1 + plot2`) or `/` to place them underneath each other (`plot1 / plot2`)
 
 Each of the plots shows "means from 1000 samples we might see". Because each sample is a random selection people's optimism scores, the means of the samples differed (some samples were full of more optimistic people, some with less optimistic people).  
 
-Where can you see differences between the two plots?   Bonus challenge: why?  
+- Where can you see differences between the two plots?
+- Bonus challenge: why?  
 
 
 
@@ -213,6 +253,9 @@ p100 <- ggplot(data100, aes(x = estimate)) +
 
 p20 + p100
 ```
+
+
+Means from samples of size n = 20 range between 0 and 30 roughly. Means from samples of size n = 100 range between 8 and 22 roughly, showing that means from bigger samples vary less than means from smaller samples. This is because bigger samples should include a bigger part of the population, so their means should be more similar to that of the full population.
 `r solend()`
 
 
@@ -226,15 +269,15 @@ $$
 
 In the two scenarios we have been creating, we have seen how the means from samples of $n=20$ vary, as well as means from samples of $n=100$.  
 
-Because we started this by assuming that optimism scores in the population have mean of 35 and standard deviation of 20, we can calculate:  
+Because we started this by assuming that optimism scores in the population have mean of 15 and standard deviation of 25, we can calculate:  
 
 ::::{.columns}
 :::{.column width="50%"}
 $$
 \begin{align}
-SE_{\text{mean, n=20}} &= \frac{20}{\sqrt{20}} \\
+SE_{\text{mean, n=20}} &= \frac{25}{\sqrt{20}} \\
 \quad \\
-&= 4.47 \\
+&= 5.59 \\
 \end{align}
 $$
 :::
@@ -242,9 +285,9 @@ $$
 
 $$
 \begin{align}
-SE_{\text{mean, n=100}} &= \frac{20}{\sqrt{100}} \\
+SE_{\text{mean, n=100}} &= \frac{25}{\sqrt{100}} \\
 \quad \\
-&= 2 \\
+&= 2.5 \\
 \end{align}
 $$
 
@@ -276,19 +319,19 @@ p1 <- ggplot(data20, aes(x = estimate)) +
              color = "blue", linetype = "dashed", linewidth = 0.8)+
   geom_vline(xintercept = c(mean_20 - 2*sd_20, mean_20 + 2*sd_20), 
              color = "blue", linetype = "dotted", linewidth = 0.8) +
-  annotate("text", x = mean_20 - 2*sd_20, y = 100, label = "Mean - 4.47*2",
+  annotate("text", x = mean_20 - 2*sd_20, y = 100, label = "Mean - 2 * 5.59",
            angle=90,
            vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
-  annotate("text", x = mean_20 - sd_20, y = 100, label = "Mean - 4.47",
+  annotate("text", x = mean_20 - sd_20, y = 100, label = "Mean - 1 * 5.59",
            angle=90,
            vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
   annotate("text", x = mean_20, y = 100, label = "Mean",
            angle=90,
            vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
-  annotate("text", x = mean_20 + sd_20, y = 100, label = "Mean + 4.47",
+  annotate("text", x = mean_20 + sd_20, y = 100, label = "Mean + 1 * 5.59",
            angle=90,
            vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
-  annotate("text", x = mean_20 + 2*sd_20, y = 100, label = "Mean + 4.47*2",
+  annotate("text", x = mean_20 + 2*sd_20, y = 100, label = "Mean + 2 * 5.59",
            angle=90,
            vjust = -0.5, color = "blue", size = 3.5, fontface = "bold")+
   scale_y_continuous("count",limits=c(0,115))+
@@ -311,19 +354,19 @@ p2 <- ggplot(data100, aes(x = estimate)) +
              color = "blue", linetype = "dashed", linewidth = 0.8)+
   geom_vline(xintercept = c(mean_100 - 2*sd_100, mean_100 + 2*sd_100), 
              color = "blue", linetype = "dotted", linewidth = 0.8) +
-  annotate("text", x = mean_100 - 2*sd_100, y = 100, label = "Mean - 2*2",
+  annotate("text", x = mean_100 - 2*sd_100, y = 100, label = "Mean - 2 * 2.5",
            angle=90,
            vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
-  annotate("text", x = mean_100 - sd_100, y = 100, label = "Mean - 2",
+  annotate("text", x = mean_100 - sd_100, y = 100, label = "Mean - 1 * 2.5",
            angle=90,
            vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
   annotate("text", x = mean_100, y = 100, label = "Mean",
            angle=90,
            vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
-  annotate("text", x = mean_100 + sd_100, y = 100, label = "Mean + 2",
+  annotate("text", x = mean_100 + sd_100, y = 100, label = "Mean + 1 * 2.5",
            angle=90,
            vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
-  annotate("text", x = mean_100 + 2*sd_100, y = 100, label = "Mean + 2*2",
+  annotate("text", x = mean_100 + 2*sd_100, y = 100, label = "Mean + 2 * 2.5",
            angle=90,
            vjust = -0.5, color = "blue", size = 3.5, fontface = "bold")+
   scale_y_continuous("count",limits=c(0,115))+
@@ -335,8 +378,10 @@ p1 + p2
 
 
 Just to give ourselves confirmation, we can compare the calculations above with our simulation, by getting the standard deviation of all the means from samples of size 20, and of all the means from samples of size 100.  
-They won't *exactly* match the formula calculations above, but they should be close.  
+They won't *exactly* match the formula calculations above, but they should be close.^[That's why the $SE = \sigma / \sqrt{n}$ formula is so useful! It gives us how much sample means vary from sample to sample without having to take all possible samples.]
+
 Check them now.  
+
 
 ::: {.callout-tip collapse="true"}
 #### Hint
@@ -354,8 +399,6 @@ This is just like calculating the standard deviation for any other variable!
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
 
 ```{r}
-getwd()
-
 data20 |>
   summarise(
     sd = sd(estimate)

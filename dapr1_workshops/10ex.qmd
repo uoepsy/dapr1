@@ -52,9 +52,6 @@ Navigator instructions:
 
 :::
 
-TODO CHECK UN - are you okay with all of this being called Z even though it should technically be t? the idea being that the explanation (at least a very brief one) comes next week
-TODO CHECK UN - would you prefer this is two-sided?
-
 `r qbegin(qcounter())`
 
 This week, we're going to draw on the ideas we covered over the last few weeks and go step-by-step through the process of performing a 'null hypothesis significance test'.  
@@ -62,7 +59,7 @@ This week, we're going to draw on the ideas we covered over the last few weeks a
 We start with a research question: 
 
 > **Research Question:** Are first year undergraduate students more optimistic than adults in general?  
->   *Operationalisation*: We surveyed students on a first year undergraduate statistics course (that's you!), and asked them to indicate their level of pessimism/optimism on a sliding scale from -100 (pessimist) to +100 (optimist). Previous research using this measure suggests that the overall adult population has an average score of 35.  
+>   *Operationalisation*: We surveyed students on a first year undergraduate statistics course (that's you!), and asked them to indicate their level of pessimism/optimism on a sliding scale from -100 (pessimist) to +100 (optimist). Previous research using this measure suggests that the overall adult population has an average score of 15 and standard deviation of 25.  
 > **Data:** [https://uoepsy.github.io/data/dapr1_2526_survey.csv](https://uoepsy.github.io/data/dapr1_2526_survey.csv){target="_blank"}  
 
 **Task:** Define the null and alternative hypotheses.  
@@ -76,9 +73,13 @@ See [TODO defining h0 h1? flashcard](https://uoepsy.github.io/dapr1/2627/flashca
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
 
+The symbol $\mu$ will denote the mean optimism score of all adults (i.e. the population mean).
 
-$H_0: \mu - 35 = 0$
-$H_1: \mu - 35 > 0$
+We are testing the two competing hypotheses:
+
+$$H_0: \mu = 15$$
+
+$$H_1: \mu > 15$$
 
 `r solend()`
 
@@ -92,15 +93,14 @@ We're going to need:
 a. the size of our sample
 b. the mean that we observe in our sample
 c. the hypothesised value that we are testing if our sample mean is equal to
-d. (an estimate of) how much we expect samples of our size to vary
+d. how much we expect samples of our size to vary
 
 Write down or calculate each of these now.  
 
 ::: {.callout-tip collapse="true"}
 #### Hints
 
-for d., this is the "standard error". We have seen the formula for this a few times, it's $\frac{\sigma}{\sqrt{n}}$. As this is real research, we don't know $\sigma$ (the standard deviation of scores in the population), so we'll estimate it using $s$, the standard deviation in our sample.   
-
+For d., this is the "standard error". We have seen the formula for this a few times, it's $\frac{\sigma}{\sqrt{n}}$ (or $\frac{s}{\sqrt{n}}$ if the population standard deviation is unknown). In this case, we are told that the population standard deviation is 25, so $\sigma = 25$.
 :::
 
 `r qend()`
@@ -109,10 +109,14 @@ for d., this is the "standard error". We have seen the formula for this a few ti
 library(tidyverse)
 sdata <- read_csv("https://uoepsy.github.io/data/dapr1_2526_survey.csv")
 
-nrow(sdata)
-mean(sdata$outlook)
-35
-sd(sdata$outlook) / sqrt(nrow(sdata))
+n <- nrow(sdata)
+n
+xbar <- mean(sdata$outlook)
+xbar
+mu <- 15
+sigma <- 25
+SE <- sigma / sqrt(n)
+SE
 ```
 
 `r solend()`
@@ -169,12 +173,12 @@ g + geom_area(data=ld,aes(x=x,y=y),fill="grey30",alpha=.3) +
 ```
 
 
-To calculate the probability areas, we're going to need to get convert our mean into a "test statistic". 
+To calculate the probability areas, we're going to need to get convert our mean into a "test statistic", which measures the departure between our sample mean and the hypothesised population mean in terms of how much we expect sample means to vary.
 
-This is called a "Z-statistic", and it bears a similar resemblance to what we did a few weeks back in calculating "Z-scores". In this case, however, we are doing the process on the weird abstract theoretical distribution of "the means from all the possible samples we _could have taken_".  
+In this case, the test statistic is the z-score or z-statistic. In this case, however, we are doing the process on the weird abstract theoretical distribution of "the means from all the possible samples we _could have taken_".  
 
 $$
-Z = \frac{M - \mu_0}{SE}
+Z = \frac{M - \mu}{SE}
 $$
 
 **Task:** Calculate Z 
@@ -183,10 +187,7 @@ $$
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
 
 ```{r}
-zstat <- 
-  ( mean(sdata$outlook) - 35 ) / 
-    ( sd(sdata$outlook) / sqrt(nrow(sdata)) )
-
+zstat <- (xbar - mu) / SE
 zstat
 ```
 
@@ -202,16 +203,22 @@ Z statistics are normally distributed with a mean of 0 and standard deviation of
 ::: {.callout-tip collapse="true"}
 #### Hint
 
-think i need a hint here about direction
+The direction is always the same as the direction of $H_1$:
 
+- If $H_1$ includes the > symbol, then you need to find the area to the right of your Z statistic.
+- If $H_1$ includes the < symbol, then you need to find the area to the left of your Z statistic.
+- If $H_1$ is two-sided, then you need both areas.
 :::
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
 
-Area greater:  
+As $H_1 : \mu > 15$, we need to find the area to the right of our Z statistic.
+
+Area to the right = 1 - area to the left: 
+
 ```{r}
-1-pnorm(zstat)
+1 - pnorm(zstat)
 ```
 
 
@@ -221,14 +228,29 @@ Area greater:
 
 `r qbegin(qcounter())`
 
-Fill in the blanks 
+Fill in the blanks:
 
-TODO take example write up from Lecture when available, and leave blanks
-
+Let $\mu$ denote the (1)____. At the (2)____ significance level, we performed a one sample z-
+test of (3)____ against (4)____.
+The sample mean (5)____ (_M_ = (6)____, _SD_ = (7)____) was (8)____ (_z_ = (9)____, _p_ = (10)____, (11)____).
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
 
+- (1): mean optimism score of all adults
+- (2): 5%
+- (3): $H_0: \mu = 15$
+- (4): $H_1: \mu > 15$
+- (5): optimism score of first year undergraduate students
+- (6): 42.70
+- (7): 26.38
+- (8): significantly higher than the mean optimism score of all adults
+- (9): 7.09
+- (10): < .001
+- (11): one-sided
+
+Let $\mu$ denote the **mean optimism score of all adults**. At the **5%** significance level, we performed a one sample z-test of $H_0: \mu = 15$ against $H_1: \mu > 15$.
+The sample mean **optimism score of first year undergraduate students** (_M_ = **42.7**, _SD_ = **26.38**) was **significantly higher than the mean optimism score of all adults** (_z_ = **7.09**, _p_ < **.001**, **one-sided**).
 
 `r solend()`
 
