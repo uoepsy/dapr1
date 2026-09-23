@@ -52,33 +52,34 @@ Navigator instructions:
 
 `r qbegin(qcounter())`
 
-The code below gives us the means from lots and lots of samples. Last week we saw this used to get estimated means from 1000 samples, but this week we'll up it to 10,000!  
+The code below gives us the means from lots and lots of samples. Last week we saw this used to get estimated means from 1000 samples, but this week we'll up it to 10000! 
 
 ```{r}
-means100 <- replicate(10000, mean(rnorm(n = 100, mean = 35, sd = 20)))
+means100 <- replicate(10000, mean(rnorm(n = 100, mean = 15, sd = 25)))
 ```
 
 ::: {.callout-tip collapse="true"}
 #### reminder/breakdown of how the code works
 
-This bit of code takes a sample of size 100, from a distribution that has a mean of 35 and a standard deviation of 20.  
-It gives 100 numbers --- in our example, each one of them is a persons' "outlook" score.  
+This bit of code takes a sample of size 100, from a distribution that has a mean of 15 and a standard deviation of 25.  
+It gives 100 numbers --- in our example, each one of them is the "outlook" score for a person.
+
 ```{r}
 #| eval: false
-rnorm(n = 100, mean = 35, sd = 20)
+rnorm(n = 100, mean = 15, sd = 25)
 ```
 
 Wrapping the whole bit inside `mean()` makes it so that instead of returning all 100 scores in the sample, it returns just the mean of the 100 scores
 ```{r}
 #| eval: false
-mean( rnorm(n = 100, mean = 35, sd = 20) )
+mean( rnorm(n = 100, mean = 15, sd = 25) )
 ```
 
-Finally, the function `replicate()` is used to "run code n times". In this case, we're running the `mean(rnorm(...))` bit of code 10000 times. Each time, it takes a sample of 100 people's scores and returns the estimated mean. So we get back 10000 means.  
+Finally, the function `replicate()` is used to "run code X times". In this case, we're running the `mean(rnorm(...))` bit of code 10000 times. Each time, it takes a sample of 100 people's scores and returns the estimated mean. So we get back 10000 means. 
 
 ```{r}
 #| eval: false
-replicate(10000, mean( rnorm(n = 100, mean = 35, sd = 20) ) )
+replicate(10000, mean( rnorm(n = 100, mean = 15, sd = 25) ) )
 ```
 
 Finally, it stores those 10000 means in R using the name `means100`  
@@ -91,7 +92,9 @@ Because `means100` is a vector (it just has one dimension), if we want to find t
 means100[10]
 ```
 
-We also saw how we can create a dataframe object (with rows and columns), by using code such as the below. We've added a little extra bit here. Line 5 takes the dataframe created in lines 2-4, and arranges it (i.e. sorts it) according to the value in the `estimate` column. Which means the first row is now the smallest estimate, and the last row (row 10000) is the largest. 
+To check if something is a vector, you can run `dim(means100)`. If it returns `NULL`, then it is a vector with entries. If it returns a number, then it is a tibble or dataframe with rows and columns.
+
+We also saw how we can create a dataframe object (with rows and columns), by using code such as the below. We've added a little extra bit here. Line 5 takes the dataframe created in lines 2-4, and arranges it (i.e. sorts it) in ascending order according to the value in the `estimate` column. Which means the first row is now the smallest estimate, and the last row (row 10000) is the largest. 
 ```{r}
 #| code-line-numbers: true
 data100 <- 
@@ -102,8 +105,8 @@ data100 <-
 ```
 
 
-**Task:** What is the estimate for the 5000th row of the dataframe?  
-Bonus challenge: can we find this out another way?  
+- **Task:** What is the estimate for the 5000th row of the dataframe?  
+- Bonus challenge: can we find this out another way?  
 
 :::flash
 🗂️
@@ -133,10 +136,17 @@ data100 |>
 
 `r qbegin(qcounter())`
 
-Create a new column of standardised (z-scored) estimates. 
+Create a new column of standardised (or z-scored) estimates. 
 
+::: {.callout-tip collapse="true"}
+#### Hint
+
+Remember that a standardised variable has a mean of 0 and standard deviation of 1.
+
+:::
 
 :::flash
+
 Look back to how we did this in week 7! See also...
 
 🗂️
@@ -160,14 +170,14 @@ data100 <-
 
 `r qbegin(qcounter())`
 
-last week we saw two ways to quantify how much variability in an estimated mean we would expect due to sampling:  
+Last week we saw two ways to quantify how much variability in an estimated mean we would expect due to sampling:  
 
 1. We could generate lots of samples of size $n$, estimate their means, and calculate the standard deviation of all those estimated means
 2. We could use the formula $\frac{\sigma}{\sqrt{n}}$, where $\sigma$ is the standard deviation of scores in the population, and $n$ is the size of the sample.  
 
-Both of these give us the "standard error", or 'how estimates from samples of size n vary around the population mean'. Another very useful way to express the precision in our estimate is to give the range between which 95% of the sample estimates will fall. This is known as a "confidence interval".  
+Both of these give us the "standard error", or 'how estimates from samples of size n vary around the population mean'. Another very useful way to express the precision in our estimate is to give the range between which 95% of the sample estimates will fall. This is known as a "confidence interval". The 95% value is our confidence level.
 
-We can, again, do this by either:  
+Instead of quantifying the precision in our estimate using the standard error (report M and SE), we can quantify it by providing a confidence interval.
 
 1. Generate lots of samples of size $n$, estimate their means, and see where the middle 95% of the means fall
 2. Use the formula $\frac{\sigma}{\sqrt{n}}$, along with the fact that 95% of a normal distribution falls within 1.96 SD of the mean.  
@@ -182,7 +192,7 @@ Bonus-- what do you notice about the values of the z-scored/standardised column 
 ::: {.callout-tip collapse="true"}
 #### Hint
 
-if we have 10000 things, then the middle 9500 are between 250 and 9750!  
+If we have 10000 things, then the middle 9500 (= 0.95 * 10000) are between 250 and 9750!  
 
 :::flash
 🗂️
@@ -210,14 +220,14 @@ Let's compare the interval we got in the previous question, to the one we get wh
 
 2. Use the formula $\frac{\sigma}{\sqrt{n}}$, along with the fact that 95% of a normal distribution falls within 1.96 SD of the mean.  
 
-We know that the mean is 35, and the standard deviation ($\sigma$) is 20. And we are taking samples of size $n = 100$.
+We know that the mean is 15, and the standard deviation ($\sigma$) is 25. And we are taking samples of size $n = 100$.
 All this means that we can calculate a confidence interval using:  
 
 $$
 \begin{align}
 \mu \pm 1.96 \cdot \frac{\sigma}{\sqrt{n}} \\
 \quad \\
-35 \pm 1.96 \cdot \frac{20}{\sqrt{2}} \\
+15 \pm 1.96 \cdot \frac{25}{\sqrt{100}} \\
 \end{align}
 $$
 
@@ -235,8 +245,8 @@ This is just plugging in numbers and using R like a basic calculator.
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
 
 ```{r}
-35 - (1.96 * 20/sqrt(100))
-35 + (1.96 * 20/sqrt(100))
+15 - (1.96 * 25/sqrt(100))
+15 + (1.96 * 25/sqrt(100))
 ```
 
 `r solend()`
@@ -244,13 +254,13 @@ This is just plugging in numbers and using R like a basic calculator.
 
 
 `r qbegin(qcounter())`
-In all of what we have done this week and last week, we've been assuming that **we already know the population mean and population standard deviation**!! 
+In all of what we have done earlier, we've been **assuming that we already know the population mean and population standard deviation**!! 
 
-When we have been generating samples, we knew to put 35 and 20 into the code `rnorm(100, mean = .., sd = ..)`.  
+When we have been generating samples, we knew to put 15 and 25 into the code `rnorm(100, mean = .., sd = ..)`.  
 
 And when we have been using the formula, we have used those values in place of $\mu$ and $\sigma$.  
 
-But in reality, **we don't know anything about the population**. That's what we're actually trying to learn about!  
+But in reality, **we don't know anything about the population, so we don't know $\mu$ or $\sigma$**. That's what we're actually trying to learn about!  
 
 In real research, all we have is a single sample, and we have to go from there... 
 
@@ -279,7 +289,7 @@ See [flashcard](https://uoepsy.github.io/dapr1/2627/flashcards/){target="_blank"
 ::: {.callout-tip collapse="true"}
 #### Hint
 
-We'll need to replace parts of the calculation we used in the previous question. Instead of $n=100$ we now have $n = `r length(sdata[['outlook']])`$, and we will also need to replace the numbers 35 and 20 with code to calculate sample estimate: `mean(sdata$outlook)` and `sd(sdata$outlook)`
+We'll need to replace parts of the calculation we used in the previous question. Instead of $n=100$ we now have $n = `r length(sdata[['outlook']])`$, and we will also need to replace the numbers 15 and 25 with code to calculate sample estimate: `mean(sdata$outlook)` and `sd(sdata$outlook)`
 
 :::
 
@@ -287,8 +297,8 @@ We'll need to replace parts of the calculation we used in the previous question.
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
 
 ```{r}
-mean(sdata$outlook) - (1.96 * sd(sdata$outlook)/sqrt(41))
-mean(sdata$outlook) + (1.96 * sd(sdata$outlook)/sqrt(41))
+mean(sdata$outlook) - (1.96 * sd(sdata$outlook)/sqrt(nrow(sdata)))
+mean(sdata$outlook) + (1.96 * sd(sdata$outlook)/sqrt(nrow(sdata)))
 ```
 
 `r solend()`
