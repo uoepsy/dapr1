@@ -66,7 +66,7 @@ block4_lecs = c("week 7 topic",
 
 source("../../../../uoepsy_other/junk/R/course_table.R")
 
-course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=6)
+course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=7)
 ```
 
 :::
@@ -76,33 +76,147 @@ course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=6)
 ## This week
 
 1. where my p-values at?
-2. NHS tests and confidence intervals for the intercept and slope
+2. tests and confidence intervals for the intercept and slope
 3. the other bits.. 
 
 # Where did we get to last week?
 
-## outcome = model + error
+## the linear model {.smaller}
 
-model equation
+::::{.columns}
+:::{.column width="50%"}
+$$
+\begin{align}
+\color{red}{\text{outcome}} &= \color{blue}{\text{model}} &+& \quad \quad \color{black}{\text{error}} \\
+\quad \\
+\quad \\
+\quad \\
+\color{red}{y} &= \color{blue}{\underset{\underset{\text{intercept}}{\uparrow}}{b_0} + \underset{\underset{\text{slope}}{\uparrow}}{b_1} \cdot x} & + & \quad \quad \color{black}{\epsilon}
+\end{align}
+$$
+:::
+:::{.column width="50%" .fragment fragment-index=1}
+```{r}
+#| include: false
+somedata <- tibble(
+  x = round(runif(10,4,20)),
+  y = round(rnorm(10,40+1*x,4))
+)
+# egfit <- lm(y~x,somedata)
+# egsegs <- tibble(x1 = 0:6, x2 = x1+1) |> 
+#   mutate(
+#     y1 = map_dbl(x1,~(c(1,.)%*%coef(egfit))[1]),
+#     y2 = map_dbl(x2,~(c(1,.)%*%coef(egfit))[1]),
+#     xlp = (x1+x2)/2,
+#     ylp = (y1+y2)/2
+#   )
+# 
+# ggplot(somedata,aes(x=x,y=y))+
+#   geom_point(alpha=.1,size=3)+
+#   stat_smooth(method=lm,se=FALSE,color="#0000FF",lwd=1) +
+#   geom_point(x=0,y=coef(egfit)[1],col="#0000FF",size=5)+
+#   geom_segment(data = egsegs, aes(x=x1,xend=x2,y=y1,yend=y1),
+#                lty="dashed",col="#0000FF")+
+#   geom_segment(data = egsegs, aes(x=x2,xend=x2,y=y1,yend=y2),
+#                lty="dashed",col="#0000FF") 
+```
+```{r}
+#| echo: true
+#| eval: false
+my_model <- lm(y ~ x, data = somedata)
 
-in R
+my_model
+```
+```
+Call:
+lm(formula = y ~ x, data = somedata)
 
-## using models
+Coefficients:
+(Intercept)            x  
+     ....           ....  
+```
+:::
+::::
 
-what quantity will answer my question?  
-e.g. 
 
-> **RQ:** How does an additional day of interrupted sleep affect cognitive skills?
+## using models {.smaller}
 
-predicted change in Y when X increases by 1
+```{r}
+#| echo: false
+set.seed(65683728)
+sleepwordle <- tibble(
+  n_disrupted = rep(0:7,e=10),
+  time = rgamma(80,(n_disrupted+1)/2,1)*60,
+  guesses = rbinom(80, 5, plogis(.6+.5*scale(n_disrupted)))+1,
+  wordle = time + (60*guesses)
+) |> slice_sample(prop=1)
+```
 
+
+
+> **RQ:** How does an additional night of interrupted sleep affect cognitive skills?
+
+What quantity will answer my question?  
+  - expected change in Score as the night of disrupted sleep increases by 1.  
+
+
+::::{.columns}
+:::{.column width="50%"}
+```{r}
+head(sleepwordle)
+
+sleep_mdl <- lm(wordle ~ n_disrupted, data = sleepwordle)
+
+sleep_mdl
+```
+:::
+:::{.column width="50%"}
+
+```{r}
+#| echo: false
+fitw = lm(wordle~n_disrupted,sleepwordle)
+
+segsw <- tibble(x1 = 0:6, x2 = x1+1) |> 
+  mutate(
+    y1 = map_dbl(x1,~(c(1,.)%*%coef(fitw))[1]),
+    y2 = map_dbl(x2,~(c(1,.)%*%coef(fitw))[1]),
+    xlp = (x1+x2)/2,
+    ylp = (y1+y2)/2
+  )
+sleepwordle |> 
+  ggplot(aes(x=n_disrupted,y=wordle))+
+  geom_point(size=3,col="tomato1",alpha=.5)+
+  stat_smooth(method=lm,se=FALSE,color="#0000FF",lwd=1) +
+  geom_point(x=0,y=coef(fitw)[1],col="#0000FF",size=5)+
+  geom_segment(data = segsw, aes(x=x1,xend=x2,y=y1,yend=y1),
+               lty="dashed",col="#0000FF")+
+  geom_segment(data = segsw, aes(x=x2,xend=x2,y=y1,yend=y2),
+               lty="dashed",col="#0000FF") 
+```
+
+:::
+::::
+
+
+:::{.aside}
+We're basing these predictions on groups of _different_ people. i.e., to answer our question we're comparing: 
+  person_A with 4 nights sleep dep 
+  vs 
+  personB with 5 nights sleep dep
+
+this only targets our quantity _if_ we can think of persons A and B as exchangeable!  
+the random allocation of people to number of nights disrupted gives us this!  
+:::
 
 
 # where'd the tests go?  
 
 ## summary()
 
-there's lots of stuff
+```{r}
+summary(sleep_mdl)
+```
+
 
 ## coefficients
 
@@ -111,18 +225,44 @@ or, as we've seen
 - intercept is predict(x=0)
 - slope of x is predict(x=x+1)-predict(x=x)
 
-## the hypotheses tested
+## what are the hypotheses being tested?  
 
-$H_0: b_0 = 0 \,\,\,\, H_1: b_0 \neq 0$   
-probably not that interesting?  
-why would we ever assume $H_0$ in first place?  
+**The intercept:**  
+$$H_0: b_0 = 0 \quad\quad\quad\quad H_1: b_0 \neq 0$$   
 
-$H_0: b_1 = 0 \,\,\,\, H_1: b_1 \neq 0$
-testing the 
+Often not that interesting.  
+Why would we ever believe $H_0$ in first place?  
 
-## under the null hypothesis:  
+**The slope:**  
 
+$$H_0: b_1 = 0 \quad\quad\quad\quad H_1: b_1 \neq 0$$   
+$b_1$ corresponds to the quantity we're interested in!  
+
+## under the null hypothesis
+
+- pretend $b_1 = 0$.  
+- what would lines from 80 people look like in that universe?  
+
+:::{.fragment fragment-index=1}
+- what did we actually see?  
+:::
+
+:::{.r-stack}
 ```{r}
+#| echo: false
+sims = MASS::mvrnorm(n=1000,mu=c(coef(sleep_mdl)[1],0),
+                     Sigma = vcov(sleep_mdl)) |>
+  as.data.frame() |>
+  rename(int = `(Intercept)`,slp = V2)
+
+ggplot(sleepwordle, aes(x = n_disrupted,y=wordle))+
+  geom_point(alpha=0)+
+  geom_abline(data = sims, aes(intercept = int, slope = slp), alpha=.05)+
+  ylim(150,700)
+```
+:::{.fragment fragment-index=1}
+```{r}
+#| echo: false
 sims = MASS::mvrnorm(n=1000,mu=c(coef(sleep_mdl)[1],0),
                      Sigma = vcov(sleep_mdl)) |>
   as.data.frame() |>
@@ -135,12 +275,25 @@ ggplot(sleepwordle, aes(x = n_disrupted,y=wordle))+
               col="#0F4C81",lwd=1)+
   ylim(150,700)
 ```
+:::
+:::
 
 ## a confidence interval
 
-uses that same estimated variability:  
+Using that same estimated uncertainty:  
 
 ```{r}
+#| code-fold: true
+#| eval: false
+ggplot(sleepwordle, aes(x = n_disrupted,y=wordle))+
+  geom_smooth(method = lm)+
+  ylim(150,700)
+```
+
+:::{.r-stack}
+
+```{r}
+#| echo: false
 sims = MASS::mvrnorm(n=1000,mu=coef(sleep_mdl),
                      Sigma = vcov(sleep_mdl)) |>
   as.data.frame() |>
@@ -154,19 +307,57 @@ ggplot(sleepwordle, aes(x = n_disrupted,y=wordle))+
   ylim(150,700)
 ```
 
-
+:::{.fragment fragment-index=1}
 ```{r}
+#| echo: false
 ggplot(sleepwordle, aes(x = n_disrupted,y=wordle))+
   geom_smooth(method = lm)+
+  geom_abline(intercept=coef(sleep_mdl)[1],
+              slope=coef(sleep_mdl)[2],
+              col="blue",lwd=1)+
   ylim(150,700)
 ```
+:::
 
 # activity break
 
 
 # the other bits
 
+## ...
+
+```{r}
+summary(sleep_mdl)
+```
+
 ## all the variance in the outcome
+
+```{r}
+#| echo: false
+
+sleepwordle |>
+  mutate(
+         my = mean(wordle),
+         f1 = mean(wordle),
+         f2 = predict(sleep_mdl),
+         xjit = rnorm(n(),n_disrupted,.1)) |>
+  pivot_longer(f1:f2,names_to="frame",values_to="pred") |>
+  filter(frame=="f1") |>
+  ggplot(aes(x=xjit,y=wordle))+
+  geom_point(size=3)+
+  geom_hline(yintercept = mean(sleepwordle$wordle),
+             col="blue",lwd=1,alpha=1,lty="dashed")+
+  # geom_abline(intercept=coef(sleep_mdl)[1],
+  #             slope=coef(sleep_mdl)[2],
+  #             col="blue",lwd=1)+
+  geom_segment(aes(x=xjit,xend=xjit,
+                   y=pred,yend=my),
+               col="black",lty="dotted",lwd=.75)+
+  geom_segment(aes(x=xjit,xend=xjit,
+                   y=pred,yend=wordle),
+               col="tomato1",lty="dotted",lwd=.75)
+```
+
 
 plot flat line, resids
 line is just the mean. so it's sort of a model, but the simplest model possible. 
@@ -174,6 +365,39 @@ line is just the mean. so it's sort of a model, but the simplest model possible.
 all the variability in the outcome is distance back to mean
 
 ## explaining variance in the outcome
+
+```{r}
+p_anim <-
+  sleepwordle |>
+  mutate(
+         my = mean(wordle),
+         f1 = mean(wordle),
+         f2 = predict(sleep_mdl),
+         xjit = rnorm(n(),n_disrupted,.1)) |>
+  pivot_longer(f1:f2,names_to="frame",values_to="pred") |>
+  mutate(int = ifelse(frame=="f1",my,coef(sleep_mdl)[1]),
+         slp = ifelse(frame=="f1",0,coef(sleep_mdl)[2])) |>
+  #filter(frame=="f2") |>
+  ggplot(aes(x=xjit,y=wordle))+
+  geom_point(size=3)+
+  geom_hline(yintercept = mean(sleepwordle$wordle),
+             col="blue",lwd=1,alpha=1,lty="dashed")+
+  geom_abline(aes(intercept=int,slope=slp),
+              col="blue",lwd=1)+
+  geom_segment(aes(x=xjit,xend=xjit,
+                   y=pred,yend=my),
+               col="black",lty="dotted",lwd=.75)+
+  geom_segment(aes(x=xjit,xend=xjit,
+                   y=pred,yend=wordle),
+               col="tomato1",lty="dotted",lwd=.75)+
+  theme_minimal() +
+  transition_states(frame, transition_length = 2, state_length = 1)
+
+animp <- animate(p_anim, nframes = 180,
+        fps = 15, end_pause = 45, res=150,
+        width = 800, height = 500, 
+        renderer = gifski_renderer())
+```
 
 regression line. 
 resids are smaller. 
