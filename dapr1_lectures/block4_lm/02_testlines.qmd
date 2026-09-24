@@ -1,5 +1,5 @@
 ---
-title: "Lines as Models"
+title: "Statistical Tests in Linear Models"
 editor_options: 
   chunk_output_type: console
 ---
@@ -11,6 +11,7 @@ editor_options:
 library(tidyverse)
 library(gganimate)
 library(patchwork)
+source("_theme/helpers.R")
 ```
 
 
@@ -75,9 +76,8 @@ course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=7)
 
 ## This week
 
-1. where my p-values at?
-2. tests and confidence intervals for the intercept and slope
-3. the other bits.. 
+1. Where my p-values at? (tests & CIs for the intercept and slope)
+3. The other bits.. 
 
 # Where did we get to last week?
 
@@ -123,13 +123,13 @@ somedata <- tibble(
 ```{r}
 #| echo: true
 #| eval: false
-my_model <- lm(y ~ x, data = somedata)
+my_model <- lm(y ~ 1 + x, data = somedata)
 
 my_model
 ```
 ```
 Call:
-lm(formula = y ~ x, data = somedata)
+lm(formula = y ~ 1 + x, data = somedata)
 
 Coefficients:
 (Intercept)            x  
@@ -153,11 +153,11 @@ sleepwordle <- tibble(
 ```
 
 
+What quantity will answer my question?  
 
 > **RQ:** How does an additional night of interrupted sleep affect cognitive skills?
 
-What quantity will answer my question?  
-  - expected change in Score as the night of disrupted sleep increases by 1.  
+- expected change in wordle score as the night of disrupted sleep increases by 1.  
 
 
 ::::{.columns}
@@ -165,7 +165,7 @@ What quantity will answer my question?
 ```{r}
 head(sleepwordle)
 
-sleep_mdl <- lm(wordle ~ n_disrupted, data = sleepwordle)
+sleep_mdl <- lm(wordle ~ 1 + n_disrupted, data = sleepwordle)
 
 sleep_mdl
 ```
@@ -209,7 +209,7 @@ the random allocation of people to number of nights disrupted gives us this!
 :::
 
 
-# where'd the tests go?  
+# Where my p-values at?
 
 ## summary()
 
@@ -220,10 +220,21 @@ summary(sleep_mdl)
 
 ## coefficients
 
-the intercept and slope (b0, b1)
-or, as we've seen
-- intercept is predict(x=0)
-- slope of x is predict(x=x+1)-predict(x=x)
+```{r}
+#| eval: false
+summary(sleep_mdl)
+```
+```{r}
+#| echo: false
+.pp(summary(sleep_mdl),l = list(0,c(9:12),0))
+```
+
+the intercept and slope (b0, b1) in $y = b_0 + b_1 \cdot x$
+
+put another way, as we've seen:
+
+- intercept = predicted Y when X=0
+- slope of x =  is predicted Y when X goes from x to x+1
 
 ## what are the hypotheses being tested?  
 
@@ -233,6 +244,8 @@ $$H_0: b_0 = 0 \quad\quad\quad\quad H_1: b_0 \neq 0$$
 Often not that interesting.  
 Why would we ever believe $H_0$ in first place?  
 
+## what are the hypotheses being tested?  
+
 **The slope:**  
 
 $$H_0: b_1 = 0 \quad\quad\quad\quad H_1: b_1 \neq 0$$   
@@ -240,12 +253,19 @@ $b_1$ corresponds to the quantity we're interested in!
 
 ## under the null hypothesis
 
-- pretend $b_1 = 0$.  
-- what would lines from 80 people look like in that universe?  
+::::{.columns}
+:::{.column width="50%"}
+
+- Pretend universe where $b_1 = 0$ for the *population*.  
+  
+- What would lines from samples of 80 people look like in that universe?  
 
 :::{.fragment fragment-index=1}
-- what did we actually see?  
+- What did we actually see?  
 :::
+
+:::
+:::{.column width="50%"}
 
 :::{.r-stack}
 ```{r}
@@ -272,13 +292,17 @@ ggplot(sleepwordle, aes(x = n_disrupted,y=wordle))+
   geom_point(alpha=0)+
   geom_abline(data = sims, aes(intercept = int, slope = slp), alpha=.05)+
   geom_abline(intercept=coef(sleep_mdl)[1],slope=coef(sleep_mdl)[2],
-              col="#0F4C81",lwd=1)+
+              col="blue",lwd=1)+
   ylim(150,700)
 ```
 :::
 :::
 
-## a confidence interval
+:::
+::::
+
+
+## A confidence interval
 
 Using that same estimated uncertainty:  
 
@@ -303,8 +327,8 @@ ggplot(sleepwordle, aes(x = n_disrupted,y=wordle))+
   geom_point(alpha=0)+
   geom_abline(data = sims, aes(intercept = int, slope = slp), alpha=.05)+
   geom_abline(intercept=coef(sleep_mdl)[1],slope=coef(sleep_mdl)[2],
-              col="#0F4C81",lwd=1)+
-  ylim(150,700)
+              col="blue",lwd=1)+
+  ylim(100,800)
 ```
 
 :::{.fragment fragment-index=1}
@@ -315,12 +339,14 @@ ggplot(sleepwordle, aes(x = n_disrupted,y=wordle))+
   geom_abline(intercept=coef(sleep_mdl)[1],
               slope=coef(sleep_mdl)[2],
               col="blue",lwd=1)+
-  ylim(150,700)
+  ylim(100,800)
 ```
 :::
+:::
 
-# activity break
+## write up
 
+TODO example
 
 # the other bits
 
@@ -330,17 +356,20 @@ ggplot(sleepwordle, aes(x = n_disrupted,y=wordle))+
 summary(sleep_mdl)
 ```
 
-## all the variance in the outcome
+- Instead of individual parameters, consider the model as a whole.  
+
+- Does it explain why the outcome is higher/lower? How much does it explain?  
+
+## All the variance in the outcome
 
 ```{r}
 #| echo: false
-
-sleepwordle |>
+p1 <- sleepwordle |>
   mutate(
          my = mean(wordle),
          f1 = mean(wordle),
          f2 = predict(sleep_mdl),
-         xjit = rnorm(n(),n_disrupted,.1)) |>
+         xjit = rnorm(n(),n_disrupted,.05)) |>
   pivot_longer(f1:f2,names_to="frame",values_to="pred") |>
   filter(frame=="f1") |>
   ggplot(aes(x=xjit,y=wordle))+
@@ -355,18 +384,45 @@ sleepwordle |>
                col="black",lty="dotted",lwd=.75)+
   geom_segment(aes(x=xjit,xend=xjit,
                    y=pred,yend=wordle),
-               col="tomato1",lty="dotted",lwd=.75)
+               col="tomato1",lty="dotted",lwd=.75)+
+  labs(x="n_disrupted")+
+  theme_minimal()
+
+p1
 ```
 
+## aside: the mean is a model! 
 
-plot flat line, resids
-line is just the mean. so it's sort of a model, but the simplest model possible. 
+::::{.columns}
+:::{.column width="50%"}
+The simplest possible model: 
 
-all the variability in the outcome is distance back to mean
+- the "intercept-only" model
+    - "y is predicted by a single number"  
+  
+```{r}
+sleep_mdl0 <- lm(wordle ~ 1, data = sleepwordle)
+
+sleep_mdl0
+```
+:::
+:::{.column width="50%" .fragment}
+```{r}
+sleepwordle |>
+  summarise(
+    meanwordle = mean(wordle)
+  )
+```
+:::
+
+::::
+
 
 ## explaining variance in the outcome
 
 ```{r}
+#| include: false
+#| eval: false
 p_anim <-
   sleepwordle |>
   mutate(
@@ -391,58 +447,110 @@ p_anim <-
                    y=pred,yend=wordle),
                col="tomato1",lty="dotted",lwd=.75)+
   theme_minimal() +
+  labs(x="n_disrupted") + 
   transition_states(frame, transition_length = 2, state_length = 1)
 
 animp <- animate(p_anim, nframes = 180,
         fps = 15, end_pause = 45, res=150,
         width = 800, height = 500, 
         renderer = gifski_renderer())
+
+anim_save("jk_sandbox/ssmodel.gif",animp)
 ```
 
-regression line. 
-resids are smaller. 
+:::{.r-stack}
 
-explained/model 
-unexplained/residual 
+```{r}
+p1
+```
 
-## R2
+:::{.fragment}
+![](jk_sandbox/ssmodel.gif)
+:::
+:::
 
-total = model + residual
+- red is residual/unexplained variance in outcome
+- black is model explained variance in outcome
 
-model explained variance / total variance
+## $R^2$
 
-"proportion of variance in Y accounted for by X"  
+$$\frac{\text{explained}}{\text{explained} + \text{unexplained}}$$
 
-## the test bit... 
+$R^2$ is the "proportion of variance in Y accounted for by X"  
 
-explained variance / 2 things (int + slope)
-vs
-residual variance / all the other bits (n-2)
+```{r}
+#| eval: false
+summary(sleep_mdl)
+```
 
-if model isn't accounting for anything more than randomness would, then 1
-if model is, then >1
+```{r}
+#| echo: false
+.pp(summary(sleep_mdl), l = list(0,c(16:19)))
+```
 
-## note it's all the same!  
+## 2 things explain stuff, n-2 things leftover
+... rabbit hole warning
 
-slope changing animation, resids shrinking animation 
+- We've used two things (an intercept and a slope across X) to explain some of the variance in Y
+
+- The unexplained variance in Y is created by $n-2$ things.  
+
+- why $n-2$?  
+- i can place $n-2$ of the datapoints *absolutely anywhere*, and still get the same line by fixing the last 2 datapoints. 
+- think "give me 5 numbers that add up to 100". Once you've chosen the first 4, the last one is fixed!  
+- this is referred to as "degrees of freedom"  
+
+## The F bit
+
+does the addition of the predictor to the model explain more variance than would expect by chance?  
+
+adding the predictor = adding 1 slope, and explaining some variance
+
+$\frac{\text{explained variance}/1}{\text{unexplained variance}/n-2}$
+
+## it's all the same! 
+
+```{r}
+#| echo: false
+.pp(summary(sleep_mdl), l = list(0,c(9:12),0,c(18:19)))
+```
+
+as the slope changes, it explains variance... 
 
 even p-value is identical
 
 ## so what's the point
 
-in this case 
+In DAPR1, there isn't really one!  
 
-outcome ~ predictor
+we have just one predictor, meaning that "the model as a whole" is really just that single slope!  
 
-there isn't one.
-
-in future cases (dapr2)
+looking ahead (DAPR2):
 
 outcome ~ predictor1 + predictor2
 
-it might sometimes become more useful
+it might on occasion be useful to ask if \{set of predictors\} explains stuff in Y
 
-## quiz q
+## Quick quiz..
 
 what is R2 for lm(y~1)? 
+
+
+
+## Block 4 skills involved in this week's lecture and/or workshop
+
+- **A8** I can appropriately interpret the parameters of a simple linear model.
+- **I8** I can identify the null hypothesis being tested for the parameters of a linear model.
+- **C3** I can describe in writing the results of a given simple linear model.
+
+
+
+<!-- - **A7** I can use a fitted simple linear model to predict an outcome value for a given predictor value -->
+<!-- - **A8** I can appropriately interpret the parameters of a simple linear model. -->
+<!-- - **A9** I can explain how both a t-test and a correlation can be expressed as a linear model. -->
+<!-- - **A10** I can represent binary predictors using treatment coding. -->
+<!-- - **C3** I can describe in writing the results of a given simple linear model. -->
+<!-- - **I8** I can identify the null hypothesis being tested for the parameters of a linear model. -->
+<!-- - **V5** I can visually estimate the parameters of a line from a plot. -->
+
 
