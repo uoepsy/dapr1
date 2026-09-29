@@ -1,0 +1,117 @@
+---
+title: "Calculate z-scores"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+library(tidyverse)
+```
+
+
+We'll calculate z-scores using the `msleep` dataset that comes from `tidyverse`.
+`msleep` contains some data about how much different kinds of mammals sleep.
+Here's what the first few rows of `msleep` look like.
+
+```{r}
+msleep |> head()
+```
+
+**Let's convert each mammal's total hours of sleep (in column `sleep_total`) into z-scores.**
+
+# What is a z-score?
+
+A z-score is a standardised version of a variable.
+
+What does it mean for a variable to be "standardised"?
+
+- The mean of a z-scored variable is always zero, no matter what the variable's original mean was.
+- The SD of a z-scored variable is always one, no matter what the variable's original SD was.
+
+These properties are "standard" for all z-scores.
+
+# How to convert a variable into z-scores
+
+The formula for converting one observation from a given variable into a z-score:
+
+$$
+\text{z-score} = \frac{\text{observation – variable's mean}}{\text{variable's SD}}
+$$
+
+or purely in mathematical form:
+
+$$
+Z = \frac{X - M}{SD}
+$$
+
+
+## Method 1: Use `mutate()` from tidyverse
+
+```{r}
+msleep <- msleep |>
+  mutate(
+    Z_sleep_total = (sleep_total - mean(sleep_total)) / sd(sleep_total)
+  )
+```
+
+<br>
+
+Now let's check the result.
+
+Let's have a look at just the columns `name`, `sleep_total`, and `Z_sleep_total` (for more detail on subsetting using `select()`, see the [Subset a dataframe](subset.qmd){target="_blank"} flash card).
+
+```{r}
+msleep |>
+  select(name, sleep_total, Z_sleep_total)
+```
+
+- Animals with positive z-scores, like cheetahs and three-toed sloths, sleep more than this sample's average.
+- Animals with negative z-scores, like cows and vesper mice, sleep less than this sample's average.
+
+Sense check that the mean is 0 and the SD is 1:
+
+```{r}
+msleep |>
+  summarise(
+    mean_Z_sleep = mean(Z_sleep_total),
+    sd_Z_sleep   = sd(Z_sleep_total),
+  )
+```
+
+This mean value `-2.98e-17` is an abbreviated way (using scientific notation) of writing the VERY small number 0.0000000000000000298.
+
+
+For technical computational reasons, R sometimes will give us very small numbers when really it means zero.
+
+So our mission is accomplished!
+
+## Method 2: Calculate manually using the formula
+
+We extract the column `sleep_total` from `msleep` using the dollar sign notation.
+And we create a new column, `Z_sleep_total`, in `msleep`, using the dollar sign notation too.
+(for more detail on the dollar sign notation, see the [Subset a dataframe](subset.qmd){target="_blank"} flash card)
+
+```{r}
+msleep$Z_sleep_total <- (msleep$sleep_total - mean(msleep$sleep_total)) / sd(msleep$sleep_total)
+```
+
+
+Sense check that the mean is 0 and the SD is 1 (this time, rounding the output to the nearest whole number, so that the very small number above will be rounded to 0):
+
+```{r}
+msleep |>
+  summarise(
+    mean_Z_sleep = round(mean(Z_sleep_total)),
+    sd_Z_sleep   = round(sd(Z_sleep_total)),
+  )
+```
+
+
+# How to convert z-scores back onto the original scale
+
+You'll need to know the original scale's mean and SD.
+
+RESUME
+
+
+
+

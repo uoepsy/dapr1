@@ -1,0 +1,88 @@
+---
+title: "Combine plots with `patchwork`"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+library(tidyverse)
+```
+
+
+We'll use the `msleep` dataset that comes from `tidyverse`.
+`msleep` contains some data about how much different kinds of mammals sleep.
+Here's what the first few rows of `msleep` look like.
+
+```{r}
+msleep |> head()
+```
+
+# Load library
+
+You'll need to (install and) load the library `patchwork`.
+
+```{r}
+library(patchwork)
+```
+
+
+# Make plots
+
+Let's say we want to combine these two plots into a single graphic.
+
+The first plot:
+
+```{r}
+msleep |>
+  ggplot(aes(y = vore)) +
+  geom_bar(colour = 'darkslategray', fill = 'darkseagreen')
+```
+
+The second plot:
+
+```{r}
+msleep |>
+  ggplot(aes(x = sleep_total)) +  
+  geom_histogram(fill = 'cadetblue1', colour = 'cyan4')
+```
+
+
+# Combine plots
+
+To patchwork two plots together, you'll first need to store each of the plots under their own name, for example:
+
+```{r}
+# the first plot
+plot_vorebar <- msleep |>
+  ggplot(aes(y = vore)) +
+  geom_bar(colour = 'darkslategray', fill = 'darkseagreen')
+
+# the second plot
+plot_sleephist <- msleep |>
+  ggplot(aes(x = sleep_total)) +  
+  geom_histogram(fill = 'cadetblue1', colour = 'cyan4')
+```
+
+### Side by side
+
+Then as long as you've got the `patchwork` library loaded, you can write the two names with a + sign in between, and you'll get the two plots placed side by side:
+
+```{r}
+# the first plot + the second plot
+plot_vorebar + plot_sleephist
+```
+
+(If `patchwork` is not loaded, you'll get an error about bad use of arithmetic operator, because R won't know how to handle the + sign.)
+
+### One above the other
+
+You can also write the two names with a / sign in between, and you'll get one plot placed on top of the other:
+
+```{r}
+# the first plot / the second plot
+plot_vorebar / plot_sleephist
+```
+
+(If `patchwork` is not loaded, you'll get an error about bad use of arithmetic operator, because R won't know how to handle the / sign.)
+
+You can do a LOT more than this with `patchwork`, it is a very sophisticated tool!
+Check out [the patchwork website for more](https://patchwork.data-imaginist.com){target="_blank"}.
