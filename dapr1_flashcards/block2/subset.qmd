@@ -1,5 +1,5 @@
 ---
-title: "Sort a dataframe with `arrange()`"
+title: "Subset a dataframe"
 ---
 
 ```{r setup, include=FALSE}
@@ -7,8 +7,9 @@ source('../assets/setup.R')
 library(tidyverse)
 ```
 
+There are lots of different ways to subset a dataframe, depending on the kind of output you want.
 
-We'll use the `msleep` dataset that comes from `tidyverse`.
+We'll illustrate using the `msleep` dataset that comes from `tidyverse`.
 `msleep` contains some data about how much different kinds of mammals sleep.
 Here's what the first few rows of `msleep` look like.
 
@@ -16,3 +17,121 @@ Here's what the first few rows of `msleep` look like.
 msleep |> head()
 ```
 
+
+## Extracting cells
+
+### Square-bracket indexing
+
+In computer programming, an "index" is a number that tells you what position some element is in.
+For example, a row with index 1 is the first row in the dataframe; a column with index 3 is the third column in the dataframe.
+And where those two intersect, in row 1 and column 3, there is one cell of the dataframe.
+
+As for the "square bracket" part: you can name a dataframe (e.g., `my_df`), then write an opening square bracket `[`, write the row index you want, then a comma `,`, then the column index you want, the finish by writing the closing square bracket `]`.
+
+For example, to get the cell in the first row and the third column of `msleep`:
+
+```{r}
+msleep[1, 3]
+```
+
+
+## Extracting column(s)
+
+### Dollar-sign notation
+
+Use this method if you want to quickly grab one single column and treat it as a vector.
+
+In dollar-sign notation, we write the name of the dataframe (e.g., `my_df`), a dollar sign `$`, then the name of the column we want to extract(e.g., `my_column`): `my_df$my_column`.
+
+For example, to get the column `name` from `msleep`:
+
+```{r}
+msleep$name
+```
+
+
+### `pull()`
+
+Use the tidyverse function `pull()` if you already have a sequence of piped-together functions and want to finish by extracting one single column and treating it as a vector.
+
+You can pipe any dataframe into `pull()` and name the column you'd like to extract:
+
+```{r}
+msleep |>
+  pull(name)
+```
+
+
+
+### `select()`
+
+Use the tidyverse function `select()` if you want to select one or more columns and keep them in dataframe/tibble form.
+
+For example, to select only name and genus from `msleep`:
+
+```{r}
+msleep |>
+  select(name, genus)
+```
+
+
+### Square-bracket indexing
+
+If you only want to extract a column with a specific index, you can do that by leaving the "row" part of the square bracket `[row index, column index]` notation blank.
+
+You still need the comma though!! 
+That's how R knows whether it's the column or the row that you're after.
+
+For example, to grab column 4:
+
+```{r}
+msleep[, 4]
+```
+
+It looks weird, but it works!
+
+
+## Extract row(s) 
+
+### `slice()`
+
+The tidyverse function `slice()` fits well into a string of piped-together functions.
+
+Imagine we want to keep rows 2 through 7:
+
+```{r}
+msleep |>
+  slice(2:7)
+```
+
+
+
+### Square-bracket indexing
+
+If you only want to extract a row with a specific index, you can do that by leaving the "column" part of the square bracket `[row index, column index]` notation blank.
+
+You still need the comma though!! 
+That's how R knows whether it's the column or the row that you're after.
+
+For example, to grab row 4:
+
+```{r}
+msleep[4, ]
+```
+
+### Rows that meet a condition: `filter()`
+
+Use the tidyverse function `filter()` if you want to keep only the rows that match some specific condition.
+
+For example, to keep only the rows of `msleep` that contain carnivores, we want to filter `msleep` for the rows where the value of `vore` is `"carni"`.
+
+(An important note: we write this as `vore == "carni"`, with two equals signs!
+Try it yourself with one equals sign and see what happens.)
+
+```{r}
+msleep |>
+  filter(vore == "carni")
+```
+
+There's a LOT more you can do with `filter()`!
+[Click here for some examples from the official documentation.](https://dplyr.tidyverse.org/reference/filter.html#ref-examples){target="_blank"}
