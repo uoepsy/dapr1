@@ -12,6 +12,7 @@ library(tidyverse)
 library(gganimate)
 library(patchwork)
 source("_theme/helpers.R")
+source('_theme/theme_quarto.R')
 ```
 
 
@@ -81,10 +82,10 @@ course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=7)
 
 # Where did we get to last week?
 
-## the linear model {.smaller}
+## the linear model
 
 ::::{.columns}
-:::{.column width="50%"}
+:::{.column width="50%" style="font-size:.7em"}
 $$
 \begin{align}
 \color{red}{\text{outcome}} &= \color{blue}{\text{model}} &+& \quad \quad \color{black}{\text{error}} \\
@@ -96,6 +97,7 @@ $$
 $$
 :::
 :::{.column width="50%" .fragment fragment-index=1}
+<br>
 ```{r}
 #| include: false
 somedata <- tibble(
@@ -144,28 +146,28 @@ Coefficients:
 ```{r}
 #| echo: false
 set.seed(65683728)
-sleepwordle <- tibble(
+sleepdf <- tibble(
   n_disrupted = rep(0:7,e=10),
-  time = rgamma(80,(n_disrupted+1)/2,1)*60,
-  guesses = rbinom(80, 5, plogis(.6+.5*scale(n_disrupted)))+1,
-  wordle = time + (60*guesses)
+  psolve = (58 - 1.5 * n_disrupted) + 
+    residuals(lm(rnorm(80,0,13) ~ rep(0:7,e=10)))
 ) |> slice_sample(prop=1)
+
 ```
 
 
 What quantity will answer my question?  
 
-> **RQ:** How does an additional night of interrupted sleep affect cognitive skills?
+> **RQ:** How does an additional night of interrupted sleep affect problem solving ability?  
 
-- expected change in wordle score as the night of disrupted sleep increases by 1.  
+- expected change in score as the night of disrupted sleep increases by 1.  
 
 
 ::::{.columns}
 :::{.column width="50%"}
 ```{r}
-head(sleepwordle)
+head(sleepdf)
 
-sleep_mdl <- lm(wordle ~ 1 + n_disrupted, data = sleepwordle)
+sleep_mdl <- lm(psolve ~ 1 + n_disrupted, data = sleepdf)
 
 sleep_mdl
 ```
@@ -174,7 +176,7 @@ sleep_mdl
 
 ```{r}
 #| echo: false
-fitw = lm(wordle~n_disrupted,sleepwordle)
+fitw = lm(psolve~n_disrupted,sleepdf)
 
 segsw <- tibble(x1 = 0:6, x2 = x1+1) |> 
   mutate(
@@ -183,8 +185,8 @@ segsw <- tibble(x1 = 0:6, x2 = x1+1) |>
     xlp = (x1+x2)/2,
     ylp = (y1+y2)/2
   )
-sleepwordle |> 
-  ggplot(aes(x=n_disrupted,y=wordle))+
+sleepdf |> 
+  ggplot(aes(x=n_disrupted,y=psolve))+
   geom_point(size=3,col="tomato1",alpha=.5)+
   stat_smooth(method=lm,se=FALSE,color="#0000FF",lwd=1) +
   geom_point(x=0,y=coef(fitw)[1],col="#0000FF",size=5)+
@@ -198,16 +200,6 @@ sleepwordle |>
 ::::
 
 
-:::{.aside}
-We're basing these predictions on groups of _different_ people. i.e., to answer our question we're comparing: 
-  person_A with 4 nights sleep dep 
-  vs 
-  personB with 5 nights sleep dep
-
-this only targets our quantity _if_ we can think of persons A and B as exchangeable!  
-the random allocation of people to number of nights disrupted gives us this!  
-:::
-
 
 # Where my p-values at?
 
@@ -218,7 +210,7 @@ summary(sleep_mdl)
 ```
 
 
-## coefficients
+## Coefficients
 
 ```{r}
 #| eval: false
@@ -229,14 +221,13 @@ summary(sleep_mdl)
 .pp(summary(sleep_mdl),l = list(0,c(9:12),0))
 ```
 
-the intercept and slope (b0, b1) in $y = b_0 + b_1 \cdot x$
-
-put another way, as we've seen:
+- the estimate intercept and slope of the line
+    - the $b_0$ and $b_1$ in $y = b_0 + b_1 \cdot x$  
 
 - intercept = predicted Y when X=0
-- slope of x =  is predicted Y when X goes from x to x+1
+- slope of x =  change in predicted Y when X goes from x to x+1
 
-## what are the hypotheses being tested?  
+## What are the hypotheses being tested?  
 
 **The intercept:**  
 $$H_0: b_0 = 0 \quad\quad\quad\quad H_1: b_0 \neq 0$$   
@@ -253,6 +244,47 @@ $b_1$ corresponds to the quantity we're interested in!
 
 ## under the null hypothesis
 
+```{r}
+#| include: false
+#| eval: false
+sims = MASS::mvrnorm(n=1000,mu=c(coef(sleep_mdl)[1],0),
+                     Sigma = vcov(sleep_mdl)) |>
+  as.data.frame() |>
+  rename(int = `(Intercept)`,slp = V2) |>
+  mutate(sim_id = row_number())
+
+p <- ggplot(sleepdf, aes(x = n_disrupted,y=psolve))+
+  geom_point(alpha=0)+
+  geom_abline(data = sims, aes(intercept = int, slope = slp), alpha=.05)+
+  transition_states(sim_id, transition_length = 0, state_length = 1) +
+  shadow_mark(past = TRUE, alpha = 0.2) +
+  ylim(25,90)
+
+animp <- animate(p, nframes = 500,
+        fps = 4, end_pause = 45, res=150,
+        width = 800, height = 500, 
+        renderer = gifski_renderer())
+
+anim_save("jk_sandbox/null_lines.gif", animp)
+
+sims = MASS::mvrnorm(n=1000,mu=c(coef(sleep_mdl)[1],0),
+                     Sigma = vcov(sleep_mdl)) |>
+  as.data.frame() |>
+  rename(int = `(Intercept)`,slp = V2)
+
+ggplot(sleepdf, aes(x = n_disrupted,y=psolve))+
+  geom_point(alpha=0)+
+  geom_abline(data = sims, aes(intercept = int, slope = slp), alpha=.05)+
+  geom_abline(intercept=coef(sleep_mdl)[1],slope=coef(sleep_mdl)[2],
+              col="blue",lwd=1)+
+  ylim(25,90)
+
+
+ggsave(filename = "jk_sandbox/null_lines2.png",
+  plot = last_plot(), width = 800 / 150,
+  height = 500 / 150, dpi = 150)
+```
+
 ::::{.columns}
 :::{.column width="50%"}
 
@@ -268,33 +300,11 @@ $b_1$ corresponds to the quantity we're interested in!
 :::{.column width="50%"}
 
 :::{.r-stack}
-```{r}
-#| echo: false
-sims = MASS::mvrnorm(n=1000,mu=c(coef(sleep_mdl)[1],0),
-                     Sigma = vcov(sleep_mdl)) |>
-  as.data.frame() |>
-  rename(int = `(Intercept)`,slp = V2)
 
-ggplot(sleepwordle, aes(x = n_disrupted,y=wordle))+
-  geom_point(alpha=0)+
-  geom_abline(data = sims, aes(intercept = int, slope = slp), alpha=.05)+
-  ylim(150,700)
-```
+![](jk_sandbox/null_lines.gif)
+
 :::{.fragment fragment-index=1}
-```{r}
-#| echo: false
-sims = MASS::mvrnorm(n=1000,mu=c(coef(sleep_mdl)[1],0),
-                     Sigma = vcov(sleep_mdl)) |>
-  as.data.frame() |>
-  rename(int = `(Intercept)`,slp = V2)
-
-ggplot(sleepwordle, aes(x = n_disrupted,y=wordle))+
-  geom_point(alpha=0)+
-  geom_abline(data = sims, aes(intercept = int, slope = slp), alpha=.05)+
-  geom_abline(intercept=coef(sleep_mdl)[1],slope=coef(sleep_mdl)[2],
-              col="blue",lwd=1)+
-  ylim(150,700)
-```
+![](jk_sandbox/null_lines2.png)
 :::
 :::
 
@@ -304,42 +314,63 @@ ggplot(sleepwordle, aes(x = n_disrupted,y=wordle))+
 
 ## A confidence interval
 
+```{r}
+#| include: false
+#| eval: false
+sims = MASS::mvrnorm(n=1000,mu=coef(sleep_mdl),
+                     Sigma = vcov(sleep_mdl)) |>
+  as.data.frame() |>
+  rename(int = `(Intercept)`,slp = n_disrupted) |>
+  mutate(sim_id = row_number())
+
+p <- ggplot(sleepdf, aes(x = n_disrupted,y=psolve))+
+  geom_point(alpha=0)+
+  geom_abline(data = sims, aes(intercept = int, slope = slp), alpha=.05)+
+  geom_abline(intercept=coef(sleep_mdl)[1],slope=coef(sleep_mdl)[2],
+              col="blue",lwd=1)+
+  transition_states(sim_id, transition_length = 0, state_length = 1) +
+  shadow_mark(past = TRUE, alpha = 0.2) +
+  ylim(25,90)
+
+animp <- animate(p, nframes = 500,
+        fps = 4, end_pause = 45, res=150,
+        width = 800, height = 500, 
+        renderer = gifski_renderer())
+
+anim_save("jk_sandbox/ci_lines.gif", animp)
+
+ggplot(sleepdf, aes(x = n_disrupted,y=psolve))+
+  geom_smooth(method = lm)+
+  geom_abline(intercept=coef(sleep_mdl)[1],
+              slope=coef(sleep_mdl)[2],
+              col="blue",lwd=1)+
+  ylim(25,90)
+
+ggsave(filename = "jk_sandbox/ci_lines2.png",
+  plot = last_plot(), width = 800 / 150,
+  height = 500 / 150, dpi = 150)
+```
+
+
 Using that same estimated uncertainty:  
 
 ```{r}
 #| code-fold: true
 #| eval: false
-ggplot(sleepwordle, aes(x = n_disrupted,y=wordle))+
+ggplot(sleepdf, aes(x = n_disrupted,y=psolve))+
   geom_smooth(method = lm)+
-  ylim(150,700)
+  ylim(25,75)
 ```
 
 :::{.r-stack}
 
-```{r}
-#| echo: false
-sims = MASS::mvrnorm(n=1000,mu=coef(sleep_mdl),
-                     Sigma = vcov(sleep_mdl)) |>
-  as.data.frame() |>
-  rename(int = `(Intercept)`,slp = n_disrupted)
+![](jk_sandbox/ci_lines.gif)
 
-ggplot(sleepwordle, aes(x = n_disrupted,y=wordle))+
-  geom_point(alpha=0)+
-  geom_abline(data = sims, aes(intercept = int, slope = slp), alpha=.05)+
-  geom_abline(intercept=coef(sleep_mdl)[1],slope=coef(sleep_mdl)[2],
-              col="blue",lwd=1)+
-  ylim(100,800)
-```
 
 :::{.fragment fragment-index=1}
 ```{r}
 #| echo: false
-ggplot(sleepwordle, aes(x = n_disrupted,y=wordle))+
-  geom_smooth(method = lm)+
-  geom_abline(intercept=coef(sleep_mdl)[1],
-              slope=coef(sleep_mdl)[2],
-              col="blue",lwd=1)+
-  ylim(100,800)
+
 ```
 :::
 :::
@@ -364,17 +395,17 @@ summary(sleep_mdl)
 
 ```{r}
 #| echo: false
-p1 <- sleepwordle |>
+p1 <- sleepdf |>
   mutate(
-         my = mean(wordle),
-         f1 = mean(wordle),
+         my = mean(psolve),
+         f1 = mean(psolve),
          f2 = predict(sleep_mdl),
          xjit = rnorm(n(),n_disrupted,.05)) |>
   pivot_longer(f1:f2,names_to="frame",values_to="pred") |>
   filter(frame=="f1") |>
-  ggplot(aes(x=xjit,y=wordle))+
+  ggplot(aes(x=xjit,y=psolve))+
   geom_point(size=3)+
-  geom_hline(yintercept = mean(sleepwordle$wordle),
+  geom_hline(yintercept = mean(sleepdf$psolve),
              col="blue",lwd=1,alpha=1,lty="dashed")+
   # geom_abline(intercept=coef(sleep_mdl)[1],
   #             slope=coef(sleep_mdl)[2],
@@ -383,7 +414,7 @@ p1 <- sleepwordle |>
                    y=pred,yend=my),
                col="black",lty="dotted",lwd=.75)+
   geom_segment(aes(x=xjit,xend=xjit,
-                   y=pred,yend=wordle),
+                   y=pred,yend=psolve),
                col="tomato1",lty="dotted",lwd=.75)+
   labs(x="n_disrupted")+
   theme_minimal()
@@ -401,16 +432,16 @@ The simplest possible model:
     - "y is predicted by a single number"  
   
 ```{r}
-sleep_mdl0 <- lm(wordle ~ 1, data = sleepwordle)
+sleep_mdl0 <- lm(psolve ~ 1, data = sleepdf)
 
 sleep_mdl0
 ```
 :::
 :::{.column width="50%" .fragment}
 ```{r}
-sleepwordle |>
+sleepdf |>
   summarise(
-    meanwordle = mean(wordle)
+    meanpsolve = mean(psolve)
   )
 ```
 :::
@@ -424,19 +455,19 @@ sleepwordle |>
 #| include: false
 #| eval: false
 p_anim <-
-  sleepwordle |>
+  sleepdf |>
   mutate(
-         my = mean(wordle),
-         f1 = mean(wordle),
+         my = mean(psolve),
+         f1 = mean(psolve),
          f2 = predict(sleep_mdl),
          xjit = rnorm(n(),n_disrupted,.1)) |>
   pivot_longer(f1:f2,names_to="frame",values_to="pred") |>
   mutate(int = ifelse(frame=="f1",my,coef(sleep_mdl)[1]),
          slp = ifelse(frame=="f1",0,coef(sleep_mdl)[2])) |>
   #filter(frame=="f2") |>
-  ggplot(aes(x=xjit,y=wordle))+
+  ggplot(aes(x=xjit,y=psolve))+
   geom_point(size=3)+
-  geom_hline(yintercept = mean(sleepwordle$wordle),
+  geom_hline(yintercept = mean(sleepdf$psolve),
              col="blue",lwd=1,alpha=1,lty="dashed")+
   geom_abline(aes(intercept=int,slope=slp),
               col="blue",lwd=1)+
@@ -444,7 +475,7 @@ p_anim <-
                    y=pred,yend=my),
                col="black",lty="dotted",lwd=.75)+
   geom_segment(aes(x=xjit,xend=xjit,
-                   y=pred,yend=wordle),
+                   y=pred,yend=psolve),
                col="tomato1",lty="dotted",lwd=.75)+
   theme_minimal() +
   labs(x="n_disrupted") + 

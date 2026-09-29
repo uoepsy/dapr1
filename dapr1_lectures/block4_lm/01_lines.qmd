@@ -12,6 +12,7 @@ library(tidyverse)
 library(gganimate)
 library(patchwork)
 source("_theme/helpers.R")
+source('_theme/theme_quarto.R')
 ```
 
 
@@ -87,24 +88,38 @@ junk::course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=6)
 ## Block 1 - Exploratory Data Analysis {.smaller}
 
 - We were "Exploratory" because we weren't yet talking about research questions or hypotheses.  
-- More generally, think "how to summarise/visualise distributions" 
-    - mean/median/mode
-    - variance/standard deviation
-    - counts/frequencies/proportions
+- More generally, think "how to summarise/visualise distributions"  
 
-All things we can use to specify questions! 
+::::{.columns}
+:::{.column width="50%"}
+
+  - mean/median/mode
+  - variance/standard deviation
+  - counts/frequencies/proportions
+    
+:::
+:::{.column width="50%" .fragment fragment-index=1}
+
+<br>
+<<< All things we can use to specify questions! 
+
+:::
+::::
+
 
 <br> 
 
+:::{.fragment fragment-index=1}
+
 |    |    |
 | -- | -- |
-| Has the average body temperature of healthy humans changed from the long-thought 37 °C? | mean $\neq$ 37?   |
-| Are first year undergraduate students more optimistic than adults in general? | mean > 35? |
-| TODO from EP lec 2 sample t test q | mean - mean $\neq$ 0? |
-| TODO from EP lec chi-squ test q | observed proportions - expected proportions $\neq$ 0? |
-| TODO from EP lec corr q | variance of XX coincide with variance of YY? | 
+| **Has the average body temperature of healthy humans changed from the long-thought 37 °C?** | mean $\neq$ 37?   |
+| **Are first year undergraduate students more optimistic than adults in general?** | mean > 35? |
+| **Do people with happy relationships have lower cortisol than people in unhappy ones?** | $\text{mean}_\text{Happy} < \text{mean}_\text{Unhappy}$ |
+| **Do ASD and ADHD co-occur in children more often than we would expect?** | observed counts vs expected counts |
+| **Do students from higher-income families achieve higher scores on the reading comprehension section of the SAT ("SAT Verbal")?** | Does variance in incomes coincide with variance in SAT? | 
 
-
+:::
 
 
 
@@ -160,9 +175,7 @@ TODO ask UN for key 2/3 bullet summary
 
 ## Block 3 - Common Statistical Tests
 
-Testing how two variables are related
-
-TODO flowchart
+![](jk_sandbox/block3-4.svg)
 
 # Lines
 
@@ -516,8 +529,241 @@ viewof linearModel = {
 }
 ```
 
+
+
+
+## cor(x,y) == cor(y,x)
+ 
+```{r}
+#| echo: false
+p3a <- ggplot(df3, aes(y=hrs_awake,x=wpm))+
+  geom_point(size=3)+
+  labs(y="Time since waking (Hrs)",x="Typing Speed (10WPM)",
+       title = "r = -0.4")
+p3 + p3a
+```
+
+
+## line for x and y != line for y and x 
+
+```{r}
+#| echo: false
+
+p3a <- ggplot(df3, aes(y=hrs_awake,x=wpm))+
+  geom_point(size=3)+
+  labs(y="Time since waking (Hrs)",x="Typing Speed (10WPM)",
+       title = "r = -0.4")
+
+
+m3 <- lm(wpm~hrs_awake,df3)
+m3a <- lm(hrs_awake~wpm,df3)
+
+segs3 <- tibble(x1 = 0:5, x2 = x1+1) |> 
+  mutate(
+    y1 = map_dbl(x1,~(c(1,.)%*%coef(m3))[1]),
+    y2 = map_dbl(x2,~(c(1,.)%*%coef(m3))[1]),
+    xlp = (x1+x2)/2,
+    ylp = (y1+y2)/2
+  )
+segs3a <- tibble(x1 = 0:5, x2 = x1+1) |> 
+  mutate(
+    y1 = map_dbl(x1,~(c(1,.)%*%coef(m3a))[1]),
+    y2 = map_dbl(x2,~(c(1,.)%*%coef(m3a))[1]),
+    xlp = (x1+x2)/2,
+    ylp = (y1+y2)/2
+  )
+
+p3_1 <- p3 + 
+  labs(title=
+         paste0("intercept: ",round(coef(m3)[1],1),
+                ", slope: ",round(coef(m3)[2],1))) +
+  geom_abline(intercept=coef(m3)[1],slope=coef(m3)[2],
+              col="#0F4C81",lwd=1) +
+  geom_point(x=0,y=coef(m3)[1],size=4,col="#0000FF")+
+  geom_segment(data = segs3, aes(x=x1,xend=x2,y=y1,yend=y1),
+               lty="dashed",col="#0000FF")+
+  geom_segment(data = segs3, aes(x=x2,xend=x2,y=y1,yend=y2),
+               lty="dashed",col="#0000FF") 
+ 
+p3a_1 <- p3a + 
+  labs(title=
+         paste0("intercept: ",round(coef(m3a)[1],1),
+                ", slope: ",round(coef(m3a)[2],1))) +
+  geom_abline(intercept=coef(m3a)[1],slope=coef(m3a)[2],
+              col="#0F4C81",lwd=1) +
+  geom_point(x=0,y=coef(m3a)[1],size=4,col="#0000FF")+
+  geom_segment(data = segs3a, aes(x=x1,xend=x2,y=y1,yend=y1),
+               lty="dashed",col="#0000FF")+
+  geom_segment(data = segs3a, aes(x=x2,xend=x2,y=y1,yend=y2),
+               lty="dashed",col="#0000FF")
+
+p3_1 + p3a_1
+```
+
+
+# The move to modelling
+
+## A line
+
+![](jk_sandbox/cor2line.gif)
+```{r}
+#| eval: false
+#| echo: false
+fit <- lm(wpm ~ hrs_awake, data = df3)
+b0 <- coef(fit)[1]
+b1 <- coef(fit)[2]
+## rise run trias
+df_triangles <- data.frame(hrs_awake = c(10, 15, 20)) |>
+  mutate(
+    run_length = 5,
+    x1 = hrs_awake,
+    y1 = b0 + b1 * x1,
+    x2 = hrs_awake + run_length,
+    y2 = y1,
+    x3 = x2,
+    y3 = b0 + b1 * x2
+  )
+df_points <- bind_rows(
+  df3 |> mutate(stage = 1, point_alpha = 1),
+  df3 |> mutate(stage = 2, point_alpha = 0.1)
+)
+df_line <- data.frame(
+  hrs_awake = range(df3$hrs_awake),
+  wpm = b0 + b1 * range(df3$hrs_awake)
+)
+df_line <- bind_rows(
+  df_line |> mutate(stage = 1, line_alpha = .1),
+  df_line |> mutate(stage = 2, line_alpha = 1),
+)
+df_tri_anim <- bind_rows(
+  df_triangles |> mutate(stage = 1, tri_alpha = 0),
+  df_triangles |> mutate(stage = 2, tri_alpha = 1)
+)
+
+p_anim <- ggplot() +
+  geom_point(data = df_points, aes(x = hrs_awake, 
+                                   y = wpm, 
+                                   alpha = point_alpha, 
+                                   group = paste(hrs_awake, wpm)),
+             size = 3) +
+  geom_line(data = df_line, 
+    aes(x = hrs_awake, y = wpm, alpha = line_alpha), 
+    col="#0F4C81",lwd=2) +
+  geom_segment(data = df_tri_anim,
+    aes(x = x1, y = y1, xend = x2, yend = y2, alpha = tri_alpha),
+    color = "blue", linewidth = 1, linetype = "dashed"
+  ) +
+  geom_segment(data = df_tri_anim,
+    aes(x = x2, y = y2, xend = x3, yend = y3, alpha = tri_alpha),
+    color = "blue", linewidth = 1, linetype = "dashed"
+  ) +
+  scale_alpha_identity() +
+  labs(
+    x = "X", 
+    y = "Y") +
+  scale_x_continuous(breaks=c(0,10,20,30),labels=0:3)+
+  theme_minimal() +
+  transition_states(stage, transition_length = 2, state_length = 1)
+
+animp <- animate(p_anim, nframes = 180,
+        fps = 15, end_pause = 45, res=150,
+        width = 800, height = 500, 
+        renderer = gifski_renderer())
+
+anim_save("jk_sandbox/cor2line.gif",animp)
+
+```
+
+
+
+## A line is a model of y
+
+- We are moving to a framework in which we model an **outcome** as a function of a **predictor**  
+
+![](jk_sandbox/lines.gif)
+
+```{r}
+#| eval: false
+#| echo: false
+df_animate2 <- tibble(
+  f = 1:100,
+  int = rnorm(100),
+  slp = rnorm(100)
+)
+
+pan <- ggplot(df_animate2) +
+  geom_abline(aes(intercept = int, slope = slp, group = f),
+    col = "#0F4C81", lwd = 2) +
+  scale_x_continuous(limits=c(-3,3),labels=NULL)+
+  scale_y_continuous(limits=c(-3,3),labels=NULL)+
+  labs(x = "Predictor / Explanatory / Independent Variable",
+       y = "Outcome / Response / Dependent Variable") +
+  theme_classic()+
+  transition_states(f, transition_length = 1, state_length = 3) +
+  enter_fade() +
+  exit_fade()
+
+animp <- animate(pan, nframes = 500, fps = 10, 
+                 res = 150, renderer = gifski_renderer(loop = TRUE), 
+                 detail = 1, width = 800, height = 500)
+anim_save("jk_sandbox/lines.gif",animp)
+```
+
+## The only equation you'll ever need
+
+
+$$
+\color{red}{\text{outcome}} = \color{blue}{\text{model}} + \color{black}{\text{error}}
+$$
+
+
+::::{.columns .fragment fragment-index=1}
+:::{.column width="65%"}
+:::
+:::{.column width="35%"}
+
+^   
+  The $\text{error}$ is the bit that makes it a *statistical* model
+
+:::
+::::
+
+::::{.columns .fragment fragment-index=2}
+:::{.column width="50%"}
+:::
+:::{.column width="50%"}
+
+ideally:  
+
+  - $\color{blue}{\text{model}}$ contains systematic patterns
+  - $\color{black}{\text{error}}$ is just random leftover variation, unrelated to our model
+:::
+::::
+
+
+
+
+
+
+## The linear regression model
+
+$$
+\begin{align}
+\color{red}{\text{outcome}} &= \color{blue}{\text{model}} &+& \quad \quad \color{black}{\text{error}} \\
+\quad \\
+\quad \\
+\quad \\
+\color{red}{y} &= \color{blue}{\underset{\underset{\text{intercept}}{\uparrow}}{b_0} + \underset{\underset{\text{slope}}{\uparrow}}{b_1} \cdot x} & + & \quad \quad \color{black}{\epsilon}
+\end{align}
+$$
+
 ## How do we find the line? 
 
+<style>
+.cell-output-ojs > span, .cell-output-ojs > pre {
+  display: none !important;
+}
+</style>
 
 ```{ojs}
 //| echo: false
@@ -729,235 +975,8 @@ html`<div id="regression-app" style="width: 800px; margin: 0 auto;"></div>`
 ```
 
 :::{.aside}
-I can't make interactive visuals this nicely. This is from   <https://observablehq.com/@yizhe-ang/interactive-visualization-of-linear-regression>
+I can't make interactive visuals this nicely. This one is from   <https://observablehq.com/@yizhe-ang/interactive-visualization-of-linear-regression>
 :::
-
-
-## A shift in focus
-
-![](jk_sandbox/cor2line.gif)
-```{r}
-#| eval: false
-#| echo: false
-fit <- lm(wpm ~ hrs_awake, data = df3)
-b0 <- coef(fit)[1]
-b1 <- coef(fit)[2]
-## rise run trias
-df_triangles <- data.frame(hrs_awake = c(10, 15, 20)) |>
-  mutate(
-    run_length = 5,
-    x1 = hrs_awake,
-    y1 = b0 + b1 * x1,
-    x2 = hrs_awake + run_length,
-    y2 = y1,
-    x3 = x2,
-    y3 = b0 + b1 * x2
-  )
-df_points <- bind_rows(
-  df3 |> mutate(stage = 1, point_alpha = 1),
-  df3 |> mutate(stage = 2, point_alpha = 0.1)
-)
-df_line <- data.frame(
-  hrs_awake = range(df3$hrs_awake),
-  wpm = b0 + b1 * range(df3$hrs_awake)
-)
-df_line <- bind_rows(
-  df_line |> mutate(stage = 1, line_alpha = .1),
-  df_line |> mutate(stage = 2, line_alpha = 1),
-)
-df_tri_anim <- bind_rows(
-  df_triangles |> mutate(stage = 1, tri_alpha = 0),
-  df_triangles |> mutate(stage = 2, tri_alpha = 1)
-)
-
-p_anim <- ggplot() +
-  geom_point(data = df_points, aes(x = hrs_awake, 
-                                   y = wpm, 
-                                   alpha = point_alpha, 
-                                   group = paste(hrs_awake, wpm)),
-             size = 3) +
-  geom_line(data = df_line, 
-    aes(x = hrs_awake, y = wpm, alpha = line_alpha), 
-    col="#0F4C81",lwd=2) +
-  geom_segment(data = df_tri_anim,
-    aes(x = x1, y = y1, xend = x2, yend = y2, alpha = tri_alpha),
-    color = "blue", linewidth = 1, linetype = "dashed"
-  ) +
-  geom_segment(data = df_tri_anim,
-    aes(x = x2, y = y2, xend = x3, yend = y3, alpha = tri_alpha),
-    color = "blue", linewidth = 1, linetype = "dashed"
-  ) +
-  scale_alpha_identity() +
-  labs(
-    x = "X", 
-    y = "Y",
-    title = "r = -0.4"
-  ) +
-  scale_x_continuous(breaks=c(0,10,20,30),labels=0:3)+
-  theme_minimal() +
-  transition_states(stage, transition_length = 2, state_length = 1)
-
-animp <- animate(p_anim, nframes = 180,
-        fps = 15, end_pause = 45, res=150,
-        width = 800, height = 500, 
-        renderer = gifski_renderer())
-
-anim_save("jk_sandbox/cor2line.gif",animp)
-
-```
-
-
-
-## cor(x,y) == cor(y,x)
- 
-```{r}
-#| echo: false
-p3a <- ggplot(df3, aes(y=hrs_awake,x=wpm))+
-  geom_point(size=3)+
-  labs(y="Time since waking (Hrs)",x="Typing Speed (10WPM)",
-       title = "r = -0.4")
-p3 + p3a
-```
-
-
-## ...lines
-
-```{r}
-#| echo: false
-
-p3a <- ggplot(df3, aes(y=hrs_awake,x=wpm))+
-  geom_point(size=3)+
-  labs(y="Time since waking (Hrs)",x="Typing Speed (10WPM)",
-       title = "r = -0.4")
-
-
-m3 <- lm(wpm~hrs_awake,df3)
-m3a <- lm(hrs_awake~wpm,df3)
-
-segs3 <- tibble(x1 = 0:5, x2 = x1+1) |> 
-  mutate(
-    y1 = map_dbl(x1,~(c(1,.)%*%coef(m3))[1]),
-    y2 = map_dbl(x2,~(c(1,.)%*%coef(m3))[1]),
-    xlp = (x1+x2)/2,
-    ylp = (y1+y2)/2
-  )
-segs3a <- tibble(x1 = 0:5, x2 = x1+1) |> 
-  mutate(
-    y1 = map_dbl(x1,~(c(1,.)%*%coef(m3a))[1]),
-    y2 = map_dbl(x2,~(c(1,.)%*%coef(m3a))[1]),
-    xlp = (x1+x2)/2,
-    ylp = (y1+y2)/2
-  )
-
-p3_1 <- p3 + 
-  labs(title=
-         paste0("intercept: ",round(coef(m3)[1],1),
-                ", slope: ",round(coef(m3)[2],1))) +
-  geom_abline(intercept=coef(m3)[1],slope=coef(m3)[2],
-              col="#0F4C81",lwd=1) +
-  geom_point(x=0,y=coef(m3)[1],size=4,col="#0000FF")+
-  geom_segment(data = segs3, aes(x=x1,xend=x2,y=y1,yend=y1),
-               lty="dashed",col="#0000FF")+
-  geom_segment(data = segs3, aes(x=x2,xend=x2,y=y1,yend=y2),
-               lty="dashed",col="#0000FF") 
- 
-p3a_1 <- p3a + 
-  labs(title=
-         paste0("intercept: ",round(coef(m3a)[1],1),
-                ", slope: ",round(coef(m3a)[2],1))) +
-  geom_abline(intercept=coef(m3a)[1],slope=coef(m3a)[2],
-              col="#0F4C81",lwd=1) +
-  geom_point(x=0,y=coef(m3a)[1],size=4,col="#0000FF")+
-  geom_segment(data = segs3a, aes(x=x1,xend=x2,y=y1,yend=y1),
-               lty="dashed",col="#0000FF")+
-  geom_segment(data = segs3a, aes(x=x2,xend=x2,y=y1,yend=y2),
-               lty="dashed",col="#0000FF")
-
-p3_1 + p3a_1
-```
-
-## a line is a model of y
-
-- A subtle shift has happened!  
-
-- We are moving to a framework in which we model an **outcome**  
-
-![](jk_sandbox/lines.gif)
-
-```{r}
-#| eval: false
-#| echo: false
-df_animate2 <- tibble(
-  f = 1:100,
-  int = rnorm(100),
-  slp = rnorm(100)
-)
-
-pan <- ggplot(df_animate2) +
-  geom_abline(aes(intercept = int, slope = slp, group = f),
-    col = "#0F4C81", lwd = 2) +
-  scale_x_continuous(limits=c(-3,3),labels=NULL)+
-  scale_y_continuous(limits=c(-3,3),labels=NULL)+
-  labs(x = "Predictor / Explanatory / Independent Variable",
-       y = "Outcome / Response / Dependent Variable") +
-  theme_classic()+
-  transition_states(f, transition_length = 1, state_length = 3) +
-  enter_fade() +
-  exit_fade()
-
-animp <- animate(pan, nframes = 500, fps = 10, 
-                 res = 150, renderer = gifski_renderer(loop = TRUE), 
-                 detail = 1, width = 800, height = 500)
-anim_save("jk_sandbox/lines.gif",animp)
-```
-
-## the only equation you'll ever need
-
-
-$$
-\color{red}{\text{outcome}} = \color{blue}{\text{model}} + \color{black}{\text{error}}
-$$
-
-
-::::{.columns .fragment fragment-index=1}
-:::{.column width="65%"}
-:::
-:::{.column width="35%"}
-
-^   
-  The $\text{error}$ is the bit that makes it a *statistical* model
-
-:::
-::::
-
-::::{.columns .fragment fragment-index=2}
-:::{.column width="50%"}
-:::
-:::{.column width="50%"}
-
-ideally:  
-
-  - $\color{blue}{\text{model}}$ contains systematic patterns
-  - $\color{black}{\text{error}}$ is just random leftover variation, unrelated to our model
-:::
-::::
-
-
-
-
-
-
-## the linear regression model
-
-$$
-\begin{align}
-\color{red}{\text{outcome}} &= \color{blue}{\text{model}} &+& \quad \quad \color{black}{\text{error}} \\
-\quad \\
-\quad \\
-\quad \\
-\color{red}{y} &= \color{blue}{\underset{\underset{\text{intercept}}{\uparrow}}{b_0} + \underset{\underset{\text{slope}}{\uparrow}}{b_1} \cdot x} & + & \quad \quad \color{black}{\epsilon}
-\end{align}
-$$
 
 
 # Activity break! 
@@ -970,10 +989,10 @@ TODO
 
 
 
-# using models to answer questions
+# Using models to answer questions
 
 
-## sometimes, models are useful
+## Sometimes, models are useful
 
 a correlation just describes a pattern.  
 
@@ -981,29 +1000,35 @@ a correlation just describes a pattern.
   - x varies in the opposite direction to y
 
 but a linear model can be **used**  
+
+:::{.fragment}
   
 how?
 
   - to make predictions and to estimate a quantity of interest! 
 
+:::
 	
 ## Example
 
-> **RQ:** How does an additional night of interrupted sleep affect cognitive skills?  <br><br>
-> We recruit 80 people and randomly allocate them to receiving between 0 to 7 days of sleep disruption. Upon waking up after their final night of allocated disrupted sleep, participants completed a short task based on Wordle, that gives a score somewhere between 0 and 100 (lower scores are better)
+> **RQ:** How does an additional night of interrupted sleep affect problem solving ability?  <br><br>
+> We recruit 80 people and randomly allocate them to receiving between 0 to 7 days of sleep disruption. Upon waking up after their final night of allocated disrupted sleep, participants were given a series of problems to solve. The number of problems and time taken were combined to create an overall score for each participant.
 
 ```{r}
 #| echo: false
 set.seed(65683728)
-sleepwordle <- tibble(
+sleepdf <- tibble(
   n_disrupted = rep(0:7,e=10),
-  time = rgamma(80,(n_disrupted+1)/2,1)*60,
-  guesses = rbinom(80, 5, plogis(.6+.5*scale(n_disrupted)))+1,
-  wordle = time + (60*guesses)
+  psolve = (58 - 1.5 * n_disrupted) + 
+    residuals(lm(rnorm(80,0,13) ~ rep(0:7,e=10)))
 ) |> slice_sample(prop=1)
+
 ```
 
 
+:::{.aside}
+very loosely inspired by [Monaghan et al., 2015: Sleep promotes analogical transfer in problem solving. Cognition, 143, 25-30.](https://pubmed.ncbi.nlm.nih.gov/26113445/){target="_blank"}
+:::
 	
 ## Example - as a correlation
 
@@ -1013,13 +1038,13 @@ sleepwordle <- tibble(
 ```{r}
 #| echo: true
 #| eval: false
-cor.test(sleepwordle$n_disrupted, 
-         sleepwordle$wordle)
+cor.test(sleepdf$n_disrupted, 
+         sleepdf$psolve)
 ```
 :::{style="font-size:.7em"}
 ```{r}
 #| echo: false
-cor.test(sleepwordle$n_disrupted, sleepwordle$wordle)
+cor.test(sleepdf$n_disrupted, sleepdf$psolve)
 ```
 :::
 
@@ -1027,10 +1052,12 @@ cor.test(sleepwordle$n_disrupted, sleepwordle$wordle)
 :::{.column width="50%"}
 
 ```{r}
-#| code-fold: true
-sleepwordle |> 
-  ggplot(aes(x = n_disrupted, y = wordle))+
-  geom_point(size = 3)
+#| echo: false
+#| fig-height: 8
+sleepdf |> 
+  ggplot(aes(x = n_disrupted, y = psolve))+
+  geom_point(size = 3) +
+  theme_quarto(title_font_size = 28)
 ```
 
 :::
@@ -1042,7 +1069,7 @@ sleepwordle |>
 ## Example - as a model
 
 ::::{.columns}
-:::{.column width="50%" style="font-size:.7em"}
+:::{.column width="50%" style="font-size:.5em"}
 
 **The idea:**  
 $$
@@ -1056,14 +1083,14 @@ $$
 **Our model:**  
 $$
 \begin{align}
-\color{red}{\text{Wordle_Score}} &= \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot \text{Nights_Disrupted}} + \color{black}{\varepsilon} \\
+\color{red}{\text{ProblemSolving_Score}} &= \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot \text{Nights_Disrupted}} + \color{black}{\varepsilon} \\
 \end{align}
 $$
 
 **Our estimated model:**  
 $$
 \begin{align}
-\color{red}{\text{Wordle_Score}} &= \,\,\,\color{blue}{245 \,\,\,+ 37 \cdot \text{Nights_Disrupted}} + \color{black}{\varepsilon}
+\color{red}{\text{ProblemSolving_Score}} &= \,\,\,\color{blue}{58 \,\,\,- 1.5 \cdot \text{Nights_Disrupted}} + \color{black}{\varepsilon}
 \end{align}
 $$
 
@@ -1072,7 +1099,8 @@ $$
 
 ```{r}
 #| echo: false
-fitw = lm(wordle~n_disrupted,sleepwordle)
+#| fig-height: 8
+fitw = lm(psolve~n_disrupted,sleepdf)
 
 segsw <- tibble(x1 = 0:6, x2 = x1+1) |> 
   mutate(
@@ -1081,27 +1109,56 @@ segsw <- tibble(x1 = 0:6, x2 = x1+1) |>
     xlp = (x1+x2)/2,
     ylp = (y1+y2)/2
   )
-sleepwordle |> 
-  ggplot(aes(x=n_disrupted,y=wordle))+
+sleepdf |> 
+  ggplot(aes(x=n_disrupted,y=psolve))+
   geom_point(size=3,col="tomato1",alpha=.5)+
   stat_smooth(method=lm,se=FALSE,color="#0000FF",lwd=1) +
   geom_point(x=0,y=coef(fitw)[1],col="#0000FF",size=5)+
   geom_segment(data = segsw, aes(x=x1,xend=x2,y=y1,yend=y1),
                lty="dashed",col="#0000FF")+
   geom_segment(data = segsw, aes(x=x2,xend=x2,y=y1,yend=y2),
-               lty="dashed",col="#0000FF") 
+               lty="dashed",col="#0000FF") +
+  theme_quarto(title_font_size = 28)
 ```
 
 :::
 ::::
 
+## Example - quantity of interest
+
+> **RQ:** How does an additional night of interrupted sleep affect problem solving ability?  
+
+
+What happens to someone's score when we disrupt their sleep for another night?
+
+e.g., person $i$:  
+
+$$
+\text{Score}_i^{\text{nights disrupted}=x+1} - \text{Score}_i^{\text{nights disrupted}=x}
+$$
+
+
+:::{.aside}
+:::{style="font-size:.7em"}
+
+*Side Note:*  In our study design, each person is only ever measured after *one* specific number of disrupted nights
+
+So we are going to _have_ to compare, e.g.,:  
+
+  persons A,B,C,D,E who have 4 nights sleep disruption &nbsp;&nbsp; vs &nbsp;&nbsp; persons F,G,H,I,J who have 5 nights sleep disruption  
+
+This only targets our quantity _if_ we are confident that persons A,B,C,D,E don't differ from F,G,H,I,J in other ways that lead to differences in problem solving ability.
+The random allocation of people to number of nights disrupted gives us this!  
+
+:::
+:::
 
 
 
 ## Example - Predictions
 
 ::::{.columns}
-:::{.column width="50%" style="font-size:.7em"}
+:::{.column width="50%" style="font-size:.5em"}
 
 **The idea:**  
 $$
@@ -1115,14 +1172,14 @@ $$
 **Our model, for specific person $i$:**  
 $$
 \begin{align}
-\color{red}{\text{Wordle_Score}_i} &= \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot \text{Nights_Disrupted}_i} + \color{black}{\epsilon_i} \\
+\color{red}{\text{ProblemSolving_Score}_i} &= \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot \text{Nights_Disrupted}_i} + \color{black}{\epsilon_i} \\
 \end{align}
 $$
 
 **Our estimated model, for specific person $i$:**  
 $$
 \begin{align}
-\color{red}{\text{Wordle_Score}_i} &= \,\,\,\color{blue}{245 \,\,\,+ 37 \cdot \text{Nights_Disrupted}_i} + \color{black}{\epsilon_i}
+\color{red}{\text{ProblemSolving_Score}_i} &= \,\,\,\color{blue}{58 \,\,\,- 1.5 \cdot \text{Nights_Disrupted}_i} + \color{black}{\epsilon_i}
 \end{align}
 $$
 
@@ -1130,7 +1187,7 @@ $$
 **Our predicted value, for specific person $i$:**  
 $$
 \begin{align}
-\color{purple}{\widehat{\text{Wordle_Score}}_i} &= \color{blue}{245 + 37 \cdot \text{Nights_Disrupted}_i}  
+\color{purple}{\widehat{\text{ProblemSolving_Score}}_i} &= \color{blue}{58 - 1.5 \cdot \text{Nights_Disrupted}_i}  
 \end{align}
 $$
 :::
@@ -1139,43 +1196,47 @@ $$
 :::{.column width="50%"}
 
 :::{.r-stack}
+
 ```{r}
 #| echo: false
-
-sleepwordle |> 
-  ggplot(aes(x=n_disrupted,y=wordle))+
+#| fig-height: 8
+sleepdf |> 
+  ggplot(aes(x=n_disrupted,y=psolve))+
   geom_point(size=3,alpha=.3,col="tomato1")+
-  stat_smooth(method=lm,se=FALSE,color="blue",lwd=2)
+  stat_smooth(method=lm,se=FALSE,color="blue",lwd=2) +
+  theme_quarto(title_font_size = 28)
 ```
 
 :::{.fragment fragment-index=2}
 ```{r}
 #| echo: false
-
-sleepwordle |> 
-  ggplot(aes(x=n_disrupted,y=wordle))+
+#| fig-height: 8
+sleepdf |> 
+  ggplot(aes(x=n_disrupted,y=psolve))+
   geom_point(size=3,alpha=.3,col="tomato1")+
   stat_smooth(method=lm,se=FALSE,color="blue",lwd=2)+
-  geom_segment(x=5,xend=5,y=sleepwordle$wordle[61],
+  geom_segment(x=4,xend=4,y=sleepdf$psolve[72],
                yend = (coef(fitw) %*% c(1,5))[1],
                lty = "dotted", col="black", lwd=1) +
-  geom_point(x = 5, y = sleepwordle$wordle[61],
+  geom_point(x = 4, y = sleepdf$psolve[72],
              size = 3,col="tomato1") +
-  geom_point(x = 5, y = (coef(fitw) %*% c(1,5))[1],
-             size = 3,col="purple")
+  geom_point(x = 4, y = (coef(fitw) %*% c(1,4))[1],
+             size = 3,col="purple") +
+  theme_quarto(title_font_size = 28)
 
 ```
 :::
+
 :::
 
-:::{.fragment fragment-index=2 style="font-size:.7em"}
-For this poor participant who had 5 nights of disrupted sleep, we predict their score to be:  
+:::{.fragment fragment-index=2 style="font-size:.6em"}
+For this poor participant who had 4 nights of disrupted sleep, we predict their score to be:  
 $$
 \begin{align}
-\color{purple}{\widehat{\text{Wordle_Score}}_i} &= \color{blue}{245 + 37 \cdot \text{Nights_Disrupted}_i} \\
-&= \color{blue}{245 + 37 \cdot 5} \\
-&= \color{blue}{245 + 185} \\
-&= \color{blue}{430} \\
+ &= \color{blue}{58 - 1.5 \cdot \text{Nights_Disrupted}_i} \\
+&= \color{blue}{58 - 1.5 \cdot 4} \\
+&= \color{blue}{58 - 6} \\
+&= \color{blue}{52} \\
 \end{align}
 $$
 :::
@@ -1185,32 +1246,32 @@ $$
 
 ## Example - Predictions (2)
 
-1. predictions x0,x5,x7
+:::{.r-stack}
 
-TODO line of predictions
-+37 +37 +37 +37 +37 +37 +37 +37
-it's linear!  
+![](jk_sandbox/sleepyface/s1a.png){width="1200px"}
 
-## Example - quantity of interest
-
-> **RQ:** How does an additional night of interrupted sleep affect cognitive skills?
-
-what happens to someone's wordle score when i disrupt their sleep for another night?
-
-predict(person_i, days = person_i days) vs 
-  predict(person_i, days = person_i days + 1) 
-
-oh look, it's that coefficient! 
-
-:::{.aside}
-we're basing these predictions on groups of _different_ people. i.e., to answer our question we're comparing: 
-  person_A with 4 nights sleep dep 
-  vs 
-  personB with 5 nights sleep dep
-
-this only targets our quantity _if_ we can think of persons A and B as exchangeable! 
-the random allocation of people to number of nights disrupted gives us this!  
+:::{.fragment fragment-index=1}
+![](jk_sandbox/sleepyface/s2a.png){width="1200px"}
 :::
+
+:::{.fragment fragment-index=2}
+![](jk_sandbox/sleepyface/s2.png){width="1200px"}
+:::
+
+:::{.fragment fragment-index=3}
+![](jk_sandbox/sleepyface/s3.png){width="1200px"}
+:::
+:::{.fragment fragment-index=4}
+![](jk_sandbox/sleepyface/s4.png){width="1200px"}
+:::
+:::{.fragment fragment-index=5}
+![](jk_sandbox/sleepyface/s5.png){width="1200px"}
+:::
+
+:::
+
+
+
 
 ## The How-to (in R)
 
@@ -1225,11 +1286,11 @@ the random allocation of people to number of nights disrupted gives us this!
 
 `outcome ~ 1 + predictor`
 
-Read as `outcome` "is predicted by" `1` intercept plus a slope across the `predictor`
+- Read it as `outcome` "is predicted by" `1` intercept plus a slope across the `predictor`
 
 :::{.fragment}
 
-You don't *have* to include the 1 in the code, R will assume you want the starting point! 
+- You don't *have* to include the 1 in the code, R will assume you want the starting point! 
 
 :::
 
@@ -1241,7 +1302,7 @@ You don't *have* to include the 1 in the code, R will assume you want the starti
 The data
 
 ```{r}
-head(sleepwordle)
+head(sleepdf)
 ```
 
 
@@ -1250,7 +1311,7 @@ head(sleepwordle)
 The model  
 
 ```{r}
-sleep_mdl <- lm(wordle ~ 1 + n_disrupted, data = sleepwordle)
+sleep_mdl <- lm(psolve ~ 1 + n_disrupted, data = sleepdf)
 
 sleep_mdl
 ```
@@ -1258,7 +1319,7 @@ sleep_mdl
 :::
 ::::
 
-## The How-to - predictions {.smaller}
+## The How-to - predictions
 
 1. make a new little dataframe for values of $x$:
 ```{r}
@@ -1283,9 +1344,10 @@ predict(sleep_mdl,
 
 ## Block 4 skills involved in this week's lecture and/or workshop
 
+
+- **V5** I can visually estimate the parameters of a line from a plot. 
 - **A7** I can use a fitted simple linear model to predict an outcome value for a given predictor value
 - **A8** I can appropriately interpret the parameters of a simple linear model.
-- **V5** I can visually estimate the parameters of a line from a plot. 
 
 
 <!-- - **A7** I can use a fitted simple linear model to predict an outcome value for a given predictor value -->
