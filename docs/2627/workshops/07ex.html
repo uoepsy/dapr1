@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>W7: Z Scores &amp; the Normal Distribution – DAPR1 Workshops</title>
+<title>W7: Z-scores &amp; the Normal Distribution – DAPR1 Workshops</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -217,7 +217,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">W7: Z Scores &amp; the Normal Distribution</h1>
+<h1 class="title">W7: Z-scores &amp; the Normal Distribution</h1>
 </div>
 
 
@@ -270,13 +270,17 @@ WHEN RENDERING:
 Question 1
 </div>
 <div class="question-body">
-<p>We’re continuing to use the same survey data for the remainder of the semester. The data are stored at <a href="https://uoepsy.github.io/data/dapr1_2526_survey.csv" target="_blank">https://uoepsy.github.io/data/dapr1_2526_survey.csv</a>. By now, as a group you will have read in the data numerous times. Just check back to your work from the previous weeks to remind yourself if needs be.</p>
-<p>This week we are working with the two questions about peoples outlook (pessimism/optimism) and their chronotype (evening/morning person).</p>
-<p><img src="images/optimism_ampm.png" class="img-fluid"></p>
-<p>These are on quite different scales (-100 to 100, and 0 to 10). Which means someone scoring 10 on <code>outlook</code> means a very different thing to them scoring 10 on <code>ampm</code>.</p>
-<p><strong>Task:</strong> Read in the data, and create two new variables, which are the <strong>standardised</strong> (or <strong>Z-</strong>) scores on these variables.</p>
+<p>Once again, <strong>read in</strong> the survey data from <a href="https://uoepsy.github.io/data/dapr1_2526_survey.csv" target="_blank">https://uoepsy.github.io/data/dapr1_2526_survey.csv</a>.</p>
+<p>This week, we’ll work with the data about people’s outlook (how pessimistic vs.&nbsp;optimistic they are) and their chronotype (how much of an evening person vs.&nbsp;a morning person they are). Here are the questions that generated that data:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/optimism_ampm.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<p>You’ll notice that each question uses a quite different scale: <code>outlook</code> ranges from –100 to 100, while <code>ampm</code> (the chronotype variable) ranges from 0 to 10. So someone with an <code>outlook</code> score of 10 is in a very different part of the scale, compared to someone with an <code>ampm</code> score of 10!</p>
+<p><strong>Create two new variables</strong> in your dataframe: one should be the standardised (that is, z-scored) version of <code>outlook</code>, and the other should be the standardised version of <code>ampm</code>.</p>
 <div class="flash">
-<p>🗂️ <a href="https://uoepsy.github.io/dapr1/2627/flashcards/" target="_blank">TODO calc z score flashcard</a> flash card.</p>
+<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block1/read-data.html" target="_blank">Read in and inspect data</a> and <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block2/zscore.html" target="_blank">Calculate z-scores</a> flash cards.</p>
 </div>
 </div>
 <p class="question-end">
@@ -290,13 +294,14 @@ Solution
 <p><span class="proof-title"><em>Solution 1</em>. </span></p>
 <div class="cell" data-layout-align="center">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>sdata <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"https://uoepsy.github.io/data/dapr1_2526_survey.csv"</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>sdata <span class="ot">&lt;-</span> sdata <span class="sc">|&gt;</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">outlookZ =</span> ( outlook <span class="sc">-</span> <span class="fu">mean</span>(outlook) ) <span class="sc">/</span> <span class="fu">sd</span>(outlook),</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">ampmZ =</span> ( ampm <span class="sc">-</span> <span class="fu">mean</span>(ampm) ) <span class="sc">/</span> <span class="fu">sd</span>(ampm)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>sdata <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"https://uoepsy.github.io/data/dapr1_2526_survey.csv"</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>sdata <span class="ot">&lt;-</span> sdata <span class="sc">|&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">outlookZ =</span> ( outlook <span class="sc">-</span> <span class="fu">mean</span>(outlook) ) <span class="sc">/</span> <span class="fu">sd</span>(outlook),</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">ampmZ =</span> ( ampm <span class="sc">-</span> <span class="fu">mean</span>(ampm) ) <span class="sc">/</span> <span class="fu">sd</span>(ampm)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 <p class="solution-end">
