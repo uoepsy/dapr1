@@ -7,29 +7,229 @@ source('../assets/setup.R')
 library(tidyverse)
 ```
 
+## Example RQ and data
 
-We'll use the `msleep` dataset that comes from `tidyverse`.
-`msleep` contains some data about how much different kinds of mammals sleep.
-Here's what the first few rows of `msleep` look like.
+**RQ: For remote workers, is their average score on the Work-Life Balance (WLB) Scale below the scale's midpoint of 45, indicating reasonable work–life balance?**
+
+```{r include=F}
+set.seed(1)
+wlb_data <- tibble(
+  wlb = rnorm(80, 35, 12) |> round()
+) |>
+  filter(wlb >= 15, wlb <= 75) |>
+  rownames_to_column(var = 'worker_id') |>
+  mutate(worker_id = paste0('worker', worker_id))
+```
+
+Here's what the first six rows of the data looks like:
 
 ```{r}
-msleep |> head()
+wlb_data |>
+  head()
 ```
+
+
+Work–Life Balance (`wlb`) scores can range between 15 and 75.
+Higher scores represent greater *conflict* between work commitments and life commitments, so good work–life balance is reflected in *lower* scores.
+
+Here's how we might plot this data (you'll see more plotting options in Block 3):
+
+```{r}
+wlb_data |>
+  ggplot(aes(x = wlb)) +
+  geom_boxplot() +
+  labs(
+    x = 'Work-life balance score'
+  )
+```
+
+
+::: {.callout-caution collapse="true"}
+#### How do I hide the meaningless numbers on the y axis?
+
+Add in a couple extra lines of code, where in the `theme()` of the plot, we say "set the axis text on the y axis equal to a blank element", and the same for the "axis ticks on the y axis" (the little horizontal lines).
+
+```{r}
+wlb_data |>
+  ggplot(aes(x = wlb)) +
+  geom_boxplot() +
+  labs(
+    x = 'Work-life balance score'
+  ) +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+```
+
+:::
+
+
 
 ## Define hypotheses
 
+We want to know whether remote workers' work–life balance score is below the scale's midpoint of 45, on average.
 
+Thus our null hypothesis $H_0$ is that the true average work–life balance score $\mu$ (Greek letter mu, pronounced "mew") is *equal* to 45, or formally
+
+$$
+H_0: \mu = 45
+$$
+
+And based on our RQ, we know that our alternative hypothesis $H_1$ is that the average work–life balance score $\mu$ is *lower* than 45, or formally
+
+$$
+H_0: \mu < 45
+$$
 
 
 ## Run the test
 
+Use the function `t.test()`, and give it four pieces of information:
 
+- what data we want to test (usually we name a column of the data frame using dollar sign notation; see the [Subset a dataframe](subset.html){target="_blank"} flash card)
+- `mu` = the mean value we want to test against
+- `alternative` = `two.sided`, `less`, or `greater`; the direction of the $H_1$
+- `conf.level` = 1 minus our $\alpha$ level; in Psychology, this will nearly always be .95.
 
-
-## Coming in Block 3: Check assumptions
-
+```{r}
+t.test(
+  wlb_data$wlb,
+  mu = 45,
+  alternative = 'less',
+  conf.level = .95
+)
+```
 
 
 ## Report the test
 
+> To find out whether remote workers experience work–life balance that's better (that is, lower) than the midpoint of the Work–Life Balance Scale, we ran a one-sided t-test against the null hypothesis that remote workers' Work–Life Balance score is, on average, equal to 45.
+We were able to reject this H0; remote workers have a significantly lower Work–Life Balance score of 37.2 on average ($t$(76) = –7, $p$ < .001, one-tailed).
 
+
+## For Block 3: Check assumptions and data requirements
+
+
+| Type of requirement / assumption | What to check for a one-sample t-test                                          |
+| ------------------------------ | ------------------------------------------------------------------------------- |
+| Data requirements              | The variable is numeric.                                                        |
+| Assumption of independence     | The obtained sample data are a random sample from the population of interest.   |
+| Assumption of normality        | EITHER the population follows a normal distribution<br>OR the sample size $\geq$ 30. |
+
+### Data requirements
+
+**The variable we're analysing should be interval, ratio, or integer data (that is, numeric).**
+
+The `wlb` variable is indeed numeric (specifically, it's integer data!):
+
+```{r}
+wlb_data$wlb
+```
+
+### Assumption of independence
+
+**The obtained sample data should be a random sample from the population of interest.**
+
+This is an issue of study design more than something we can check directly.
+
+But we can at least check that each person contributed only one data point:
+
+```{r}
+wlb_data |> head()
+```
+
+
+Yes, looks good!
+
+
+### Assumption of normality
+
+**EITHER the population follows a normal distribution OR the sample size is $\geq$ 30.**
+
+#### Check sample size
+
+If each row represents a different observation, then we can figure out the size of the sample by counting the number of rows in the dataframe.
+
+```{r}
+nrow(wlb_data)
+```
+
+We have 77 observations, which is greater than 30.
+This means that, by the Central Limit Theorem, the sampling distribution of sample means is sufficiently normal.
+So we can be satisfied that the assumption of normality is met.
+
+For illustration, here's how we'd check normality if we didn't have sufficient sample size:
+
+#### Check normality with a Q-Q plot
+
+The closer the points are to the diagonal line, the better the variable matches an ideal normal distribution.
+
+
+```{r}
+wlb_data |>
+  ggplot(aes(sample = wlb)) +  # notice it's "sample", not "x"!
+  geom_qq() +
+  geom_qq_line() +
+  labs(
+    x = "Theoretical quantiles",
+    y = 'Sample quantiles'
+  )
+```
+
+The match to the diagonal is overall not too bad here!
+
+
+#### Check normality through Shapiro-Wilk test
+
+The Shapiro-Wilk test is a hypothesis test where:
+
+- $H_0$: The population data follow a normal distribution
+- $H_1$: The population data do not follow a normal distribution
+
+We don't want to reject this H0, so we want a non-significant result!
+
+```{r}
+shapiro.test(wlb_data$wlb)
+```
+
+To report this test, you might say:
+
+> We performed a Shapiro-Wilk test against the null hypothesis of normality of the population data. 
+Based on the sample, we could not reject the null hypothesis of normality in the population ($W$ = 1, $p$ = .6).
+
+
+## For Block 3: Calculate effect size
+
+For t-tests, the appropriate measure of standardised effect size is Cohen's D.
+
+To compute this in R, first attach the `effectsize` package:
+
+```{r}
+library(effectsize)
+```
+
+This package gives us the function `cohens_d()`.
+Give it the exact same arguments you'd give `t.test()` (see summary above):
+
+```{r}
+cohens_d(
+  wlb_data$wlb,
+  mu = 45,
+  alternative = 'less',
+  conf.level = .95
+)
+```
+
+### Interpreting Cohen's D
+
+- Small or weak effect: around 0.2 (whether positive or negative)
+- Medium or moderate effect: around 0.5 (whether positive or negative)
+- Large or strong effect: around 0.8 or greater (whether positive or negative)
+
+
+### Reporting effect size
+
+In addition to the information reported above, you might write something like
+
+> With a Cohen's D of –0.80, this difference represents a large effect.

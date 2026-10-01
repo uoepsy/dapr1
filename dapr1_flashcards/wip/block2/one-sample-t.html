@@ -105,6 +105,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }</script>
 <link rel="stylesheet" href="https://uoepsy.github.io/assets/css/ccfooter.css">
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -246,10 +275,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#define-hypotheses" id="toc-define-hypotheses" class="nav-link active" data-scroll-target="#define-hypotheses">Define hypotheses</a></li>
+  <li><a href="#example-rq-and-data" id="toc-example-rq-and-data" class="nav-link active" data-scroll-target="#example-rq-and-data">Example RQ and data</a></li>
+  <li><a href="#define-hypotheses" id="toc-define-hypotheses" class="nav-link" data-scroll-target="#define-hypotheses">Define hypotheses</a></li>
   <li><a href="#run-the-test" id="toc-run-the-test" class="nav-link" data-scroll-target="#run-the-test">Run the test</a></li>
-  <li><a href="#coming-in-block-3-check-assumptions" id="toc-coming-in-block-3-check-assumptions" class="nav-link" data-scroll-target="#coming-in-block-3-check-assumptions">Coming in Block 3: Check assumptions</a></li>
   <li><a href="#report-the-test" id="toc-report-the-test" class="nav-link" data-scroll-target="#report-the-test">Report the test</a></li>
+  <li><a href="#for-block-3-check-assumptions-and-data-requirements" id="toc-for-block-3-check-assumptions-and-data-requirements" class="nav-link" data-scroll-target="#for-block-3-check-assumptions-and-data-requirements">For Block 3: Check assumptions and data requirements</a>
+  <ul class="collapse">
+  <li><a href="#data-requirements" id="toc-data-requirements" class="nav-link" data-scroll-target="#data-requirements">Data requirements</a></li>
+  <li><a href="#assumption-of-independence" id="toc-assumption-of-independence" class="nav-link" data-scroll-target="#assumption-of-independence">Assumption of independence</a></li>
+  <li><a href="#assumption-of-normality" id="toc-assumption-of-normality" class="nav-link" data-scroll-target="#assumption-of-normality">Assumption of normality</a></li>
+  </ul></li>
+  <li><a href="#for-block-3-calculate-effect-size" id="toc-for-block-3-calculate-effect-size" class="nav-link" data-scroll-target="#for-block-3-calculate-effect-size">For Block 3: Calculate effect size</a>
+  <ul class="collapse">
+  <li><a href="#interpreting-cohens-d" id="toc-interpreting-cohens-d" class="nav-link" data-scroll-target="#interpreting-cohens-d">Interpreting Cohen’s D</a></li>
+  <li><a href="#reporting-effect-size" id="toc-reporting-effect-size" class="nav-link" data-scroll-target="#reporting-effect-size">Reporting effect size</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -275,35 +315,293 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>We’ll use the <code>msleep</code> dataset that comes from <code>tidyverse</code>. <code>msleep</code> contains some data about how much different kinds of mammals sleep. Here’s what the first few rows of <code>msleep</code> look like.</p>
+<section id="example-rq-and-data" class="level2">
+<h2 class="anchored" data-anchor-id="example-rq-and-data">Example RQ and data</h2>
+<p><strong>RQ: For remote workers, is their average score on the Work-Life Balance (WLB) Scale below the scale’s midpoint of 45, indicating reasonable work–life balance?</strong></p>
+<p>Here’s what the first six rows of the data looks like:</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>msleep <span class="sc">|&gt;</span> <span class="fu">head</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>wlb_data <span class="sc">|&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 x 11
-  name    genus vore  order conservation sleep_total sleep_rem sleep_cycle awake
-  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;              &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt; &lt;dbl&gt;
-1 Cheetah Acin~ carni Carn~ lc                  12.1      NA        NA      11.9
-2 Owl mo~ Aotus omni  Prim~ &lt;NA&gt;                17         1.8      NA       7  
-3 Mounta~ Aplo~ herbi Rode~ nt                  14.4       2.4      NA       9.6
-4 Greate~ Blar~ omni  Sori~ lc                  14.9       2.3       0.133   9.1
-5 Cow     Bos   herbi Arti~ domesticated         4         0.7       0.667  20  
-6 Three-~ Brad~ herbi Pilo~ &lt;NA&gt;                14.4       2.2       0.767   9.6
-# i 2 more variables: brainwt &lt;dbl&gt;, bodywt &lt;dbl&gt;</code></pre>
+<pre><code># A tibble: 6 × 2
+  worker_id   wlb
+  &lt;chr&gt;     &lt;dbl&gt;
+1 worker1      27
+2 worker2      37
+3 worker3      25
+4 worker4      54
+5 worker5      39
+6 worker6      25</code></pre>
 </div>
 </div>
+<p>Work–Life Balance (<code>wlb</code>) scores can range between 15 and 75. Higher scores represent greater <em>conflict</em> between work commitments and life commitments, so good work–life balance is reflected in <em>lower</em> scores.</p>
+<p>Here’s how we might plot this data (you’ll see more plotting options in Block 3):</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>wlb_data <span class="sc">|&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> wlb)) <span class="sc">+</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">'Work-life balance score'</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="one-sample-t_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Caution</span>How do I hide the meaningless numbers on the y axis?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Add in a couple extra lines of code, where in the <code>theme()</code> of the plot, we say “set the axis text on the y axis equal to a blank element”, and the same for the “axis ticks on the y axis” (the little horizontal lines).</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>wlb_data <span class="sc">|&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> wlb)) <span class="sc">+</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">'Work-life balance score'</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="one-sample-t_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
 <section id="define-hypotheses" class="level2">
 <h2 class="anchored" data-anchor-id="define-hypotheses">Define hypotheses</h2>
+<p>We want to know whether remote workers’ work–life balance score is below the scale’s midpoint of 45, on average.</p>
+<p>Thus our null hypothesis <span class="math inline">\(H_0\)</span> is that the true average work–life balance score <span class="math inline">\(\mu\)</span> (Greek letter mu, pronounced “mew”) is <em>equal</em> to 45, or formally</p>
+<p><span class="math display">\[
+H_0: \mu = 45
+\]</span></p>
+<p>And based on our RQ, we know that our alternative hypothesis <span class="math inline">\(H_1\)</span> is that the average work–life balance score <span class="math inline">\(\mu\)</span> is <em>lower</em> than 45, or formally</p>
+<p><span class="math display">\[
+H_0: \mu &lt; 45
+\]</span></p>
 </section>
 <section id="run-the-test" class="level2">
 <h2 class="anchored" data-anchor-id="run-the-test">Run the test</h2>
-</section>
-<section id="coming-in-block-3-check-assumptions" class="level2">
-<h2 class="anchored" data-anchor-id="coming-in-block-3-check-assumptions">Coming in Block 3: Check assumptions</h2>
+<p>Use the function <code>t.test()</code>, and give it four pieces of information:</p>
+<ul>
+<li>what data we want to test (usually we name a column of the data frame using dollar sign notation; see the <a href="subset.html" target="_blank">Subset a dataframe</a> flash card)</li>
+<li><code>mu</code> = the mean value we want to test against</li>
+<li><code>alternative</code> = <code>two.sided</code>, <code>less</code>, or <code>greater</code>; the direction of the <span class="math inline">\(H_1\)</span></li>
+<li><code>conf.level</code> = 1 minus our <span class="math inline">\(\alpha\)</span> level; in Psychology, this will nearly always be .95.</li>
+</ul>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">t.test</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  wlb_data<span class="sc">$</span>wlb,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">mu =</span> <span class="dv">45</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative =</span> <span class="st">'less'</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">conf.level =</span> .<span class="dv">95</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    One Sample t-test
+
+data:  wlb_data$wlb
+t = -7, df = 76, p-value = 4e-10
+alternative hypothesis: true mean is less than 45
+95 percent confidence interval:
+ -Inf 39.1
+sample estimates:
+mean of x 
+     37.2 </code></pre>
+</div>
+</div>
 </section>
 <section id="report-the-test" class="level2">
 <h2 class="anchored" data-anchor-id="report-the-test">Report the test</h2>
+<blockquote class="blockquote">
+<p>To find out whether remote workers experience work–life balance that’s better (that is, lower) than the midpoint of the Work–Life Balance Scale, we ran a one-sided t-test against the null hypothesis that remote workers’ Work–Life Balance score is, on average, equal to 45. We were able to reject this H0; remote workers have a significantly lower Work–Life Balance score of 37.2 on average (<span class="math inline">\(t\)</span>(76) = –7, <span class="math inline">\(p\)</span> &lt; .001, one-tailed).</p>
+</blockquote>
+</section>
+<section id="for-block-3-check-assumptions-and-data-requirements" class="level2">
+<h2 class="anchored" data-anchor-id="for-block-3-check-assumptions-and-data-requirements">For Block 3: Check assumptions and data requirements</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 72%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Type of requirement / assumption</th>
+<th>What to check for a one-sample t-test</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Data requirements</td>
+<td>The variable is numeric.</td>
+</tr>
+<tr class="even">
+<td>Assumption of independence</td>
+<td>The obtained sample data are a random sample from the population of interest.</td>
+</tr>
+<tr class="odd">
+<td>Assumption of normality</td>
+<td>EITHER the population follows a normal distribution<br>OR the sample size <span class="math inline">\(\geq\)</span> 30.</td>
+</tr>
+</tbody>
+</table>
+<section id="data-requirements" class="level3">
+<h3 class="anchored" data-anchor-id="data-requirements">Data requirements</h3>
+<p><strong>The variable we’re analysing should be interval, ratio, or integer data (that is, numeric).</strong></p>
+<p>The <code>wlb</code> variable is indeed numeric (specifically, it’s integer data!):</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>wlb_data<span class="sc">$</span>wlb</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] 27 37 25 54 39 25 41 44 42 31 53 40 28 48 34 35 46 45 42 46 44 36 42 34 33
+[26] 17 29 40 51 34 40 34 18 30 30 34 48 44 33 32 43 42 27 27 39 44 34 46 40 28
+[51] 39 21 52 59 31 22 42 33 64 35 43 35 26 37 53 37 61 41 26 42 24 20 38 30 35
+[76] 36 28</code></pre>
+</div>
+</div>
+</section>
+<section id="assumption-of-independence" class="level3">
+<h3 class="anchored" data-anchor-id="assumption-of-independence">Assumption of independence</h3>
+<p><strong>The obtained sample data should be a random sample from the population of interest.</strong></p>
+<p>This is an issue of study design more than something we can check directly.</p>
+<p>But we can at least check that each person contributed only one data point:</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>wlb_data <span class="sc">|&gt;</span> <span class="fu">head</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 2
+  worker_id   wlb
+  &lt;chr&gt;     &lt;dbl&gt;
+1 worker1      27
+2 worker2      37
+3 worker3      25
+4 worker4      54
+5 worker5      39
+6 worker6      25</code></pre>
+</div>
+</div>
+<p>Yes, looks good!</p>
+</section>
+<section id="assumption-of-normality" class="level3">
+<h3 class="anchored" data-anchor-id="assumption-of-normality">Assumption of normality</h3>
+<p><strong>EITHER the population follows a normal distribution OR the sample size is <span class="math inline">\(\geq\)</span> 30.</strong></p>
+<section id="check-sample-size" class="level4">
+<h4 class="anchored" data-anchor-id="check-sample-size">Check sample size</h4>
+<p>If each row represents a different observation, then we can figure out the size of the sample by counting the number of rows in the dataframe.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(wlb_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 77</code></pre>
+</div>
+</div>
+<p>We have 77 observations, which is greater than 30. This means that, by the Central Limit Theorem, the sampling distribution of sample means is sufficiently normal. So we can be satisfied that the assumption of normality is met.</p>
+<p>For illustration, here’s how we’d check normality if we didn’t have sufficient sample size:</p>
+</section>
+<section id="check-normality-with-a-q-q-plot" class="level4">
+<h4 class="anchored" data-anchor-id="check-normality-with-a-q-q-plot">Check normality with a Q-Q plot</h4>
+<p>The closer the points are to the diagonal line, the better the variable matches an ideal normal distribution.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>wlb_data <span class="sc">|&gt;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">sample =</span> wlb)) <span class="sc">+</span>  <span class="co"># notice it's "sample", not "x"!</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_qq</span>() <span class="sc">+</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_qq_line</span>() <span class="sc">+</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Theoretical quantiles"</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">'Sample quantiles'</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="one-sample-t_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The match to the diagonal is overall not too bad here!</p>
+</section>
+<section id="check-normality-through-shapiro-wilk-test" class="level4">
+<h4 class="anchored" data-anchor-id="check-normality-through-shapiro-wilk-test">Check normality through Shapiro-Wilk test</h4>
+<p>The Shapiro-Wilk test is a hypothesis test where:</p>
+<ul>
+<li><span class="math inline">\(H_0\)</span>: The population data follow a normal distribution</li>
+<li><span class="math inline">\(H_1\)</span>: The population data do not follow a normal distribution</li>
+</ul>
+<p>We don’t want to reject this H0, so we want a non-significant result!</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">shapiro.test</span>(wlb_data<span class="sc">$</span>wlb)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Shapiro-Wilk normality test
+
+data:  wlb_data$wlb
+W = 1, p-value = 0.6</code></pre>
+</div>
+</div>
+<p>To report this test, you might say:</p>
+<blockquote class="blockquote">
+<p>We performed a Shapiro-Wilk test against the null hypothesis of normality of the population data. Based on the sample, we could not reject the null hypothesis of normality in the population (<span class="math inline">\(W\)</span> = 1, <span class="math inline">\(p\)</span> = .6).</p>
+</blockquote>
+</section>
+</section>
+</section>
+<section id="for-block-3-calculate-effect-size" class="level2">
+<h2 class="anchored" data-anchor-id="for-block-3-calculate-effect-size">For Block 3: Calculate effect size</h2>
+<p>For t-tests, the appropriate measure of standardised effect size is Cohen’s D.</p>
+<p>To compute this in R, first attach the <code>effectsize</code> package:</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(effectsize)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>This package gives us the function <code>cohens_d()</code>. Give it the exact same arguments you’d give <code>t.test()</code> (see summary above):</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cohens_d</span>(</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  wlb_data<span class="sc">$</span>wlb,</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">mu =</span> <span class="dv">45</span>,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative =</span> <span class="st">'less'</span>,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">conf.level =</span> .<span class="dv">95</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Cohen's d |        95% CI
+-------------------------
+-0.80     | [-Inf, -0.58]
+
+- Deviation from a difference of 45.
+- One-sided CIs: lower bound fixed at [-Inf].</code></pre>
+</div>
+</div>
+<section id="interpreting-cohens-d" class="level3">
+<h3 class="anchored" data-anchor-id="interpreting-cohens-d">Interpreting Cohen’s D</h3>
+<ul>
+<li>Small or weak effect: around 0.2 (whether positive or negative)</li>
+<li>Medium or moderate effect: around 0.5 (whether positive or negative)</li>
+<li>Large or strong effect: around 0.8 or greater (whether positive or negative)</li>
+</ul>
+</section>
+<section id="reporting-effect-size" class="level3">
+<h3 class="anchored" data-anchor-id="reporting-effect-size">Reporting effect size</h3>
+<p>In addition to the information reported above, you might write something like</p>
+<blockquote class="blockquote">
+<p>With a Cohen’s D of –0.80, this difference represents a large effect.</p>
+</blockquote>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
