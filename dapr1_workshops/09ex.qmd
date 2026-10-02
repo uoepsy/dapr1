@@ -1,23 +1,26 @@
 ---
-title: "W9: Confidence Intervals"
-params: 
-    SHOW_SOLS: TRUE
-    TOGGLE: TRUE
+title: "W10: Null Hypothesis Significance Testing (NHST)"
 format: html
+editor_options: 
+  chunk_output_type: console
 ---
 
 <!--
 WHEN RENDERING: 
 
 - tutor-facing: 
-  - SHOW_SOLS: TRUE
-  - render in RStudio, or in Terminal using `quarto render FILE.qmd`
+  - either use the build button, or render specific files. or in the terminal using `quarto render`
   - resulting file will land in `docs/YEAR/workshops/tutors/`
+  - solutions will always be visible
   
 - student-facing:
-  - SHOW_SOLS: FALSE
-  - render in Terminal using `quarto render FILE.qmd --profile production`
+  - set current_block: to the block we're in
+  - render in Terminal using either: 
+      - `quarto render --profile production`
+      - `quarto render FILE.qmd --profile production`
   - resulting file will land in `docs/YEAR/workshops/`
+  - solutions will be available for previous blocks.  
+  
 -->
 
 ```{r}
@@ -26,10 +29,14 @@ library(tidyverse)
 source('assets/dropdowns.R')
 source('assets/setup.R')
 
-sdata <- read_csv("https://uoepsy.github.io/data/dapr1_2526_survey.csv") |>
-  select(pseudonym, outlook)
+vars <- readRDS("block_sols.rds")
+# set params manually rather than yaml params
+params <- list(
+  SHOW_SOLS = tryCatch({ vars$sols[[tools::file_path_sans_ext(knitr::current_input(dir=FALSE))]]},
+                       error = function(e) { TRUE } ),
+  TOGGLE = TRUE
+)
 ```
-
 <!-- MAX 5 QUESTIONS -->
 <!-- make each question ~10 minute work -->
 <!-- MAX 5 QUESTIONS -->
@@ -53,265 +60,205 @@ Navigator instructions:
 
 :::
 
-
-## Where do the $\pm 1.96$ multipliers come from?
-
-
 `r qbegin(qcounter())`
 
-The code below gives us the means from lots and lots of samples. Last week we saw this used to get estimated means from 1000 samples, but this week we'll up it to 10000! 
-We will also use a sample size of $n = 47$, which is the number of responses to the DAPR1 class survey, so each of the 10000 means is the mean of a different sample of 47 students.
+This week, we're going to draw on the ideas we covered over the last few weeks and go step-by-step through the process of performing a 'null hypothesis significance test'.  
 
-```{r}
-means47 <- replicate(10000, mean(rnorm(n = 47, mean = 15, sd = 25)))
-```
+We start with a research question: 
 
-::: {.callout-tip collapse="true"}
-#### reminder/breakdown of how the code works
+> **Research Question:** Are first year undergraduate students more optimistic than adults in general?  
+>   *Operationalisation*: We surveyed students on a first year undergraduate statistics course (that's you!), and asked them to indicate their level of pessimism/optimism on a sliding scale from -100 (pessimist) to +100 (optimist). Previous research using this measure suggests that the overall adult population has an average score of 15 and standard deviation of 25.  
+> **Data:** [https://uoepsy.github.io/data/dapr1_2627_survey.csv](https://uoepsy.github.io/data/dapr1_2627_survey.csv){target="_blank"}  
 
-This bit of code takes a sample of size 47, from a distribution that has a mean of 15 and a standard deviation of 25.  
-It gives 47 numbers --- in our example, each one of them is the "outlook" score for a person.
+**Task:** Define the null and alternative hypotheses.  
 
-```{r}
-#| eval: false
-rnorm(n = 47, mean = 15, sd = 25)
-```
-
-Wrapping the whole bit inside `mean()` makes it so that instead of returning all 47 scores in the sample, it returns just the mean of the 47 scores
-```{r}
-#| eval: false
-mean( rnorm(n = 47, mean = 15, sd = 25) )
-```
-
-Finally, the function `replicate()` is used to "run code X times". In this case, we're running the `mean(rnorm(...))` bit of code 10000 times. Each time, it takes a sample of 47 people's scores and returns the estimated mean. So we get back 10000 means. 
-
-```{r}
-#| eval: false
-replicate(10000, mean( rnorm(n = 47, mean = 15, sd = 25) ) )
-```
-
-Finally, `means47 <-` stores those 10000 means into an object called `means47`.
-
-:::
-
-Because `means47` is a vector (it just has one dimension), if we want to find the 10th entry, we can use `<vector name>[<entry-number>]` to print it.  
-*(Note, if you do this, you will get a different number, because you have a different set of 10000 samples!)*  
-```{r}
-means47[10]
-```
-
-To check if something is a vector, you can run `dim(means47)`. If it returns `NULL`, then it is a vector with entries. If it returns numbers, then it is a tibble or dataframe with rows and columns.
-
-We also saw how we can create a dataframe object (with rows and columns), by using code such as the below. We've added a little extra bit here. Line 4 takes the dataframe created in lines 1-3, and arranges it (i.e. sorts it) in ascending order according to the value in the `estimate` column. Which means the first row is now the smallest estimate, and the last row (row 10000) is the largest. 
-```{r}
-#| code-line-numbers: true
-data47 <- tibble(
-    estimate = means47
-  ) |> 
-  arrange(estimate)
-```
-
-
-- **Task:** What is the estimate for the 5000th row of the dataframe?  
-- Bonus challenge: can we find this out another way?  
 
 :::flash
 🗂️
-See [TODO df\[r,c\] flashcard](https://uoepsy.github.io/dapr1/2627/flashcards/){target="_blank"} flash card.
+See [TODO defining h0 h1? flashcard](https://uoepsy.github.io/dapr1/2627/flashcards/){target="_blank"} flash card.
 :::
-
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-Here is the 5000th row for me. 
-Yours will be different, because each time we run the `means47 <- replicate(10000, mean(rnorm......` bit of code, it takes a new 10000 random samples.  
-```{r}
-data47[5000, ]
-```
 
-Because we have estimates from 10000 samples, ordered from smallest to largest, then the 5000th row is the one where 50% are above, and 50% are below - it's the median! 
-```{r}
-data47 |>
-  summarise(
-    med_est = median(estimate)
-  )
-```
+The symbol $\mu$ will denote the mean optimism score of all adults (i.e. the population mean).
+
+We are testing the two competing hypotheses:
+
+$$H_0: \mu = 15$$
+
+$$H_1: \mu > 15$$
 
 `r solend()`
 
 
 
 `r qbegin(qcounter())`
+In future, we're going to learn and use functions in R that do all the steps of NHST for us, but for this week we're going to break down the process, so we're going to need all the different parts.   
 
-Create a new column of standardised (or z-scored) estimates. 
+We're going to need:  
 
-::: {.callout-tip collapse="true"}
-#### Hint
+a. the size of our sample
+b. the mean that we observe in our sample
+c. the hypothesised value that we are testing if our sample mean is equal to
+d. how much we expect samples of our size to vary
 
-Remember that a standardised variable has a mean of 0 and standard deviation of 1.
-
-:::
-
-:::flash
-
-Look back to how we did this in week 7! See also...
-
-🗂️
-[TODO z score calc flashcard](https://uoepsy.github.io/dapr1/2627/flashcards/){target="_blank"} flash card.
-:::
-
-`r qend()`
-`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-```{r}
-data47 <- data47 |>
-  mutate(
-    est_Z = (estimate - mean(estimate)) / sd(estimate)
-  )
-```
-
-Check it has a mean of 0 and standard deviation of 1.
-
-```{r}
-data47 |> summarise(
-    mean_est_Z = mean(est_Z),
-    sd_est_Z = sd(est_Z)
-)
-```
-
-The number `r mean(data47$est_Z)` is a very small number, and the notation `e-15` means that there are 15 zeros after the decimal point before the first non-zero number. So this is very close to 0 as we would expect.
-
-`r solend()`
-
-
-
-`r qbegin(qcounter())`
-
-<!-- Last week we saw two ways to quantify how much variability in an estimated mean we would expect due to sampling:  
-
-1. We could generate lots of samples of size $n$, estimate their means, and calculate the standard deviation of all those estimated means
-2. We could use the formula $\frac{\sigma}{\sqrt{n}}$, where $\sigma$ is the standard deviation of scores in the population, and $n$ is the size of the sample.  
-
-Both of these give us the "standard error", or "how estimates from samples of size $n$ vary around the population mean". Another very useful way to express the precision in our estimate is to give the range of plausible value for the parameter. This is known as a "confidence interval" and, if using a 95% confidence level, this is a 95% confidence interval (written 95% CI). -->
-
-To build a 95% CI we need to find the multipliers that give us the middle 95% in a standard normal distribution. 
-
-This is done by finding:
-
-1. the z-score with an area of 0.025 in the lower tail 
-2. the z-score with an area of 0.025 in the upper tail (i.e. an area of 0.975 to the left = 1 - 0.025)
-
-<!-- Instead of quantifying the precision in our estimate using the standard error (report M and SE), we can quantify it by providing a confidence interval.
-
-1. Generate lots of samples of size $n$, estimate their means, and see where the middle 95% of the means fall
-2. Use the formula $\frac{\sigma}{\sqrt{n}}$, along with the fact that 95% of a normal distribution falls within 1.96 SD of the mean.  
-
-We already have our "lots and lots of samples", so let's do 1 now.   -->
-
-**Task:** Because the data are already ordered by size of the estimate, and we have 10000 of them, find the multipliers (z-scores) corresponding to the middle 9500 estimates. Extract _two_ rows of the data, one that is the first row of the middle 9500, and one that is the last row of the middle 9500.
-The value of `est_Z` for these rows will give us the multiplier for the confidence interval  
-
-Bonus-- what do you notice about the values of the `est_Z` column for these rows? They should be close to +/-1.96!
+Write down or calculate each of these now.  
 
 ::: {.callout-tip collapse="true"}
-#### Hint
+#### Hints
 
-If we have 10000 things, then the middle 9500 (= 0.95 * 10000) are between 250 and 9750!  
-
-:::flash
-🗂️
-See [TODO df\[r,c\] flashcard](https://uoepsy.github.io/dapr1/2627/flashcards/){target="_blank"} flash card.
+For d., this is the "standard error". We have seen the formula for this a few times, it's $\frac{\sigma}{\sqrt{n}}$ (or $\frac{s}{\sqrt{n}}$ if the population standard deviation is unknown). In this case, we are told that the population standard deviation is 25, so $\sigma = 25$.
 :::
-
-
-:::
-
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-
 ```{r}
-data47[c(250,9750), ]
-```
+library(tidyverse)
+sdata <- read_csv("https://uoepsy.github.io/data/dapr1_2627_survey.csv")
 
-The lower multiplier is `r round(data47[c(250), 2], 2)` and the upper one is `r round(data47[c(9750), 2], 2)`. As you see, these are close to -1.96 and +1.96, which is what theory expects for a 95% confidence interval. The more samples we take, i.e. if we increased 10000 to even more, the closer these values will get to -1.96 and +1.96.
-`r solend()`
-
-
-
-## How do we use the $\pm 1.96$ multipliers to create a 95% Confidence Interval? 
-
-`r qbegin(qcounter())`
-Let's use the multipliers from theory to compute a confidence interval for the mean population outlook score.
-
-Recall the formula for a confidence interval is:
-
-$$\bar{x} \pm 1.96 * SE$$
-
-where $SE$ is the standard error of the mean and is computed as:
-
-- $SE = \frac{\sigma}{\sqrt{n}}$ if you know the population standard deviation $\sigma$, or
-- $SE = \frac{s}{\sqrt{n}}$ if you only know the sample standard deviation $s$.
-
-Read the data from the DAPR1 class survey (<https://uoepsy.github.io/data/dapr1_2526_survey.cs>), and provide a 95% confidence interval for the mean outlook score using the fact that we know that in the population outlook scores have a standard deviation $\sigma = 25$.
-
-<!-- ::: {.callout-tip collapse="true"}
-#### Hint
-
-This is just plugging in numbers and using R like a basic calculator.  
-
-::: -->
-
-`r qend()`
-`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-
-```{r}
-# Read DAPR1 survey data into R and store into an object called `sdata`
-sdata <- read_csv("https://uoepsy.github.io/data/dapr1_2526_survey.csv")
-
-# Only keep the columns representing the participant pseudonym and outlook score
-sdata <- sdata|>
-  select(pseudonym, outlook)
-
-# Compute sample size (n) and sample mean (xbar)
 n <- nrow(sdata)
+n
 xbar <- mean(sdata$outlook)
-
-# Compute 95% CI
-xbar - (1.96 * 25/sqrt(n))
-xbar + (1.96 * 25/sqrt(n))
+xbar
+mu <- 15
+sigma <- 25
+SE <- sigma / sqrt(n)
+SE
 ```
 
 `r solend()`
 
 
-
 `r qbegin(qcounter())`
-Write an interpretation of the 95% confidence interval you just calculated.
 
-:::flash
-🗂️
-See [flashcard](https://uoepsy.github.io/dapr1/2627/flashcards/){target="_blank"} flash card.
-:::
-
-::: {.callout-tip collapse="true"}
-#### Hint
-
-Check the lecture slides for how to interpret a confidence interval.
-
-:::
-
-`r qend()`
-`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+Together, the information from the previous question allow us to build up a picture of "what would sample means be like **if** the null hypothesis ($H_0$) were true".  
+We can then calculate the probability of seeing a sample mean at least as extreme as the one we _have_ seen, if the null hypothesis were true:    
 
 ```{r}
 #| echo: false
+#| label: fig-nhst
+#| fig-cap: "Null hypothesis testing in a nutshell. SE stands for 'standard error'."
+set.seed(2394)
+samplemeans <- replicate(2000, mean(rnorm(n=100, mean=0, sd=5)))
+ss = sd(samplemeans)
+g <- ggplot(data=tibble(samplemeans),aes(x=samplemeans))+
+  #geom_histogram(alpha=.3)+
+  stat_function(geom="line",fun=~dnorm(.x, mean=0,sd=sd(samplemeans))*270,lwd=1)
 
-ci_lower <- round(xbar - (1.96 * 25/sqrt(n)), 2)
-ci_upper <- round(xbar + (1.96 * 25/sqrt(n)), 2)
+ld <- layer_data(g) |> filter(x <= sd(samplemeans)+.02 & x >= (-sd(samplemeans)-.02))
+ld2 <- layer_data(g) |> filter(x <= 2*sd(samplemeans)+.02 & x >= (-2*sd(samplemeans))-.02)
+ld3 <- layer_data(g) |> filter(x >= 1.2)
+ld4 <- layer_data(g) |> filter(x <= -1.2)
+
+g + geom_area(data=ld,aes(x=x,y=y),fill="grey30",alpha=.3) + 
+  geom_area(data=ld2,aes(x=x,y=y),fill="grey30",alpha=.1) +
+  geom_area(data=ld3,aes(x=x,y=y),fill="tomato1",alpha=.3) +
+  geom_area(data=ld4,aes(x=x,y=y),fill="tomato1",alpha=.3) +
+  geom_segment(aes(x=0,xend=0,y=0,yend=dnorm(0,0,sd=sd(samplemeans))*280), lty="dashed")+
+  geom_segment(aes(x=1.2,xend=1.2,y=0,yend=180), lty="dashed", col="#2b8ce0")+ 
+  # geom_vline(aes(xintercept=1.2),lty="dashed",col="tomato1")+
+  labs(x = "statistic")+
+  scale_y_continuous(NULL, breaks=NULL, limits=c(0,275))+
+  annotate("text",x=0, y=260, label="population mean\naccording to\nnull hypothesis", col="grey30")+
+  annotate("text",x=-1.5, y=210, label="means we would expect from\nsamples of size n if the\nnull hypothesis is true", col="grey30")+
+  annotate("text",x=1.2, y=220, label="mean we observe\nin our sample", col="#2b8ce0")+
+  annotate("text",x=1.5, y=40, label="probability of seeing\na mean at least\nas extreme\nif null is true", col="tomato1", hjust=0,size=4)+
+  
+  annotate("text",x=-1.5, y=40, label="probability of seeing\na mean at least\nas extreme (in other\ndirection) if null is true", col="tomato1", hjust=1,size=4)+
+  
+  
+  geom_curve(aes(x=0, xend=0, y=240, yend=225), col="grey30", size=0.5, curvature = 0, arrow = arrow(length = unit(0.03, "npc")))+
+  geom_curve(aes(x=-1, xend=-0.5, y=190, yend=150), col="grey30", size=0.5, curvature = 0.2, arrow = arrow(length = unit(0.03, "npc")))+
+  geom_curve(aes(x=1.2, xend=1.2, y=205, yend=185), col="#2b8ce0", size=0.5, curvature = 0, arrow = arrow(length = unit(0.03, "npc"))) +
+  geom_curve(aes(x=1.45, xend=1.3, y=35, yend=2.5), col="tomato1", size=0.5, curvature = 0, arrow = arrow(length = unit(0.02, "npc")))+
+  geom_curve(aes(x=-1.45, xend=-1.3, y=35, yend=2.5), col="tomato1", size=0.5, curvature = 0, arrow = arrow(length = unit(0.02, "npc")))+
+  scale_x_continuous(NULL, breaks=c(-2:2)*ss, 
+                     labels=c("-2*SE","-1*SE","","1*SE","2*SE"),
+                     limits=c(-2.5,2.5))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+  
 ```
 
 
-We are 95% confident that the true mean outlook score of all DAPR1 students is between `r ci_lower` and `r ci_upper`.
+To calculate the probability areas, we're going to need to get convert our mean into a "test statistic", which measures the departure between our sample mean and the hypothesised population mean in terms of how much we expect sample means to vary.
+
+In this case, the test statistic is the z-score or z-statistic. In this case, however, we are doing the process on the weird abstract theoretical distribution of "the means from all the possible samples we _could have taken_".  
+
+$$
+Z = \frac{M - \mu}{SE}
+$$
+
+**Task:** Calculate Z 
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+```{r}
+zstat <- (xbar - mu) / SE
+zstat
+```
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+Now that we have our test statistic, we can calculate the "p-value".  
+This is "probability of seeing a sample mean at least as extreme as the one we _have_ seen, if the null hypothesis were true", and corresponds to one, or both, of the shaded red areas in @fig-nhst, depending on how we phrased $H_1$.  
+
+Z statistics are normally distributed with a mean of 0 and standard deviation of 1, so we just need to use `pnorm()` to find the area of the normal distribution curve that is beyond *our* Z statistic.  
+
+::: {.callout-tip collapse="true"}
+#### Hint
+
+The direction is always the same as the direction of $H_1$:
+
+- If $H_1$ includes the > symbol, then you need to find the area to the right of your Z statistic.
+- If $H_1$ includes the < symbol, then you need to find the area to the left of your Z statistic.
+- If $H_1$ is two-sided, then you need both areas.
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+As $H_1 : \mu > 15$, we need to find the area to the right of our Z statistic.
+
+Area to the right = 1 - area to the left: 
+
+```{r}
+1 - pnorm(zstat)
+```
+
+
+`r solend()`
+
+
+
+`r qbegin(qcounter())`
+
+Fill in the blanks:
+
+Let $\mu$ denote the (1)____. At the (2)____ significance level, we performed a one sample z-
+test of (3)____ against (4)____.
+The sample mean (5)____ (_M_ = (6)____, _SD_ = (7)____) was (8)____ (_z_ = (9)____, _p_ = (10)____, (11)____).
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+- (1): mean optimism score of all adults
+- (2): 5%
+- (3): $H_0: \mu = 15$
+- (4): $H_1: \mu > 15$
+- (5): optimism score of first year undergraduate students
+- (6): 42.70
+- (7): 26.38
+- (8): significantly higher than the mean optimism score of all adults
+- (9): 7.09
+- (10): < .001
+- (11): one-sided
+
+Let $\mu$ denote the **mean optimism score of all adults**. At the **5%** significance level, we performed a one sample z-test of $H_0: \mu = 15$ against $H_1: \mu > 15$.
+The sample mean **optimism score of first year undergraduate students** (_M_ = **42.7**, _SD_ = **26.38**) was **significantly higher than the mean optimism score of all adults** (_z_ = **7.09**, _p_ < **.001**, **one-sided**).
 
 `r solend()`
 
@@ -328,6 +275,8 @@ Once you've finished, don't forget to:
 
 
 :::
+
+
 
 
 

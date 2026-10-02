@@ -1,23 +1,26 @@
 ---
-title: "W7: Z-scores & the Normal Distribution"
-params: 
-    SHOW_SOLS: TRUE
-    TOGGLE: TRUE
+title: "W8: Sampling Distributions & Standard Error"
 format: html
+editor_options: 
+  chunk_output_type: console
 ---
 
 <!--
 WHEN RENDERING: 
 
 - tutor-facing: 
-  - SHOW_SOLS: TRUE
-  - render in RStudio, or in Terminal using `quarto render FILE.qmd`
+  - either use the build button, or render specific files. or in the terminal using `quarto render`
   - resulting file will land in `docs/YEAR/workshops/tutors/`
+  - solutions will always be visible
   
 - student-facing:
-  - SHOW_SOLS: FALSE
-  - render in Terminal using `quarto render FILE.qmd --profile production`
+  - set current_block: to the block we're in
+  - render in Terminal using either: 
+      - `quarto render --profile production`
+      - `quarto render FILE.qmd --profile production`
   - resulting file will land in `docs/YEAR/workshops/`
+  - solutions will be available for previous blocks.  
+  
 -->
 
 ```{r}
@@ -25,6 +28,16 @@ WHEN RENDERING:
 library(tidyverse)
 source('assets/dropdowns.R')
 source('assets/setup.R')
+
+vars <- readRDS("block_sols.rds")
+# set params manually rather than yaml params
+params <- list(
+  SHOW_SOLS = tryCatch({ vars$sols[[tools::file_path_sans_ext(knitr::current_input(dir=FALSE))]]},
+                       error = function(e) { TRUE } ),
+  TOGGLE = TRUE
+)
+
+set.seed(789)
 ```
 
 <!-- MAX 5 QUESTIONS -->
@@ -50,278 +63,374 @@ Navigator instructions:
 
 :::
 
-<!-- # q1 -->
+# q1
+
 
 `r qbegin(qcounter())`
+For the exercises this week, we are going to **pretend** that we know that the distribution of `outlook` scores^[(pessimism/optimism measured on the -100 to 100 scale)] for the full population has a mean of 15 and a standard deviation of 25.  
 
-Once again, **read in** the survey data from [https://uoepsy.github.io/data/dapr1_2627_survey.csv](https://uoepsy.github.io/data/dapr1_2627_survey.csv){target="_blank"}.
-Store it under the variable name `sdata`.
+So **if** we could ask every person in the world to fill out our questionnaire, we would see something like this:^[(the "8e+08" on the y-axis is a way of writing an eight followed by eight zeros, or 800,000,000 - there are 8 Billion people in the world, so the numbers in each of these histogram bins are going to be huge!)]
+```{r}
+#| echo: false
+#| out-width: "600px"
+#| out-height: "400px"
+tibble(
+  outlook = round(rnorm(1e6,15,25))
+) |>
+  ggplot(aes(x=outlook))+geom_histogram() +
+  scale_y_continuous(labels = scales::label_scientific(scale = 8000))
+  
+```
+
+We can generate a pretend sample of outlook scores by using the `rnorm()` function.  
+Try playing around with this code. Run each line a couple of times to see how the output changes.  
+
+```{r}
+#| echo: true
+fake_sample <- rnorm(n = 20, mean = 15, sd = 25)
+fake_sample
+mean(fake_sample)
+```
+
+
+**Important Note:** None of this is real data. When we do real research, we won't know what the distribution looks like in the wider population, and we won't be able to make pretend samples. We're doing this here because it is a useful exercise to help demonstrate how sampling variability works.  
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+Your numbers will look different to the ones below because of randomness in sampling.
+
+**One sample:**
+
+```{r}
+fake_sample <- rnorm(n = 20, mean = 15, sd = 25)
+fake_sample
+mean(fake_sample)
+```
+
+**Another sample:**
+
+```{r}
+fake_sample <- rnorm(n = 20, mean = 15, sd = 25)
+fake_sample
+mean(fake_sample)
+```
+
+`r solend()`
+
+# q2
+
+
+`r qbegin(qcounter())`
+From the previous question, you have hopefully noticed 3 things: 
+
+1. We can make a pretend sample using `rnorm()`.  
+2. Each time we do 1, we get a new, different, sample.  
+3. Each time we do 1, the new sample we get has a slightly different mean.  
+
+What we now want to start thinking about is "all the samples we *could* have taken", and how their means will vary. Of course we cannot really take ALL the samples, but we can take many (say 1000).
+
+The function `replicate()` can let us do something in R lots of times. 
+
+Can you figure out what these two lines of code do?  
+Raise your hand if you want a tutor to come and help explain.  
+```{r}
+means20 <- replicate(1000, mean(rnorm(n = 20, mean = 15, sd = 25)))
+
+means100 <- replicate(1000, mean(rnorm(n = 100, mean = 15, sd = 25)))
+```
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+- `rnorm(n = 20, mean = 15, sd = 25)` generates a random sample of n = 20 scores from a normal distribution with mean 15 and standard deviation 25.
+- `mean(rnorm(n = 20, mean = 15, sd = 25))` computes the mean of the above 20 numbers.
+- `replicate(1000, mean(rnorm(n = 20, mean = 15, sd = 25)))` repeats the above process 1000 times, giving us 1000 means (each mean summarising a sample of 20 numbers).
+
+```{r}
+means20 <- replicate(1000, mean(rnorm(n = 20, mean = 15, sd = 25)))
+head(means20) # show the first 6 values
+```
+
+
+The below computes the means from 1000 samples of size n = 100 each, rather than n = 20 each. You should recall from the lecture that bigger samples should lead to less variability in the means.
+
+```{r}
+means100 <- replicate(1000, mean(rnorm(n = 100, mean = 15, sd = 25)))
+head(means100) # show the first 6 values
+```
+
+`r solend()`
+
+
+# q3
+
+
+<!-- - In Q3, it would be good to specify that we only want one column in each tibble. (given the example, students will try to do two columns in one tibble) -->
+
+
+
+`r qbegin(qcounter())`
+The objects we made in the previous question are "vectors". Unlike the dataframes we normally work with, these don't have rows and columns, they just have one dimension.  
+
+In order to plot them, we need to put them into the "rows and column" format. We can make a dataframe in R using the `tibble()` function.  
+
+Inside `tibble()`, we give names of variables and the values we want those variables to take:  
+```{r}
+#| eval: false
+mydata <- 
+  tibble(
+    variable_name = values,
+    variable2_name = values,
+    ...
+  )
+```
+
+**Task** Make two dataframes, call them something like `data20` and `data100` respectively. Each one should have just one column named `estimate`, which contains the values in `means20` and `means100` respectively.
 
 :::flash
 🗂️
-See [Read in and inspect data](https://uoepsy.github.io/dapr1/2627/flashcards/block1/read-data.html){target="_blank"} flash card.
+See [TODO making a tibble/df flashcard](https://uoepsy.github.io/dapr1/2627/flashcards/){target="_blank"} flash card.
 :::
 
-This week, we'll work with the data about people's outlook (how pessimistic vs. optimistic they are) and their chronotype (how much of an evening person vs. a morning person they are).
-Here are the questions that generated that data:
+::: {.callout-tip collapse="true"}
+#### Hint
 
-![](images/optimism_ampm.png){fig-align="center"}
+Because the `means20` and `means100` are vectors, that means they are just a bunch of values. 
+Which means we can follow this logic: 
 
-You'll notice that each question uses a quite different scale: `outlook` ranges from –100 to 100, while `ampm` (the chronotype variable) ranges from 0 to 10.
-So someone with an `outlook` score of 10 is in a very different part of the scale, compared to someone with an `ampm` score of 10!
+```{r}
+myvector <- c(1,2,5,7,3,5)
 
-**Create two new variables** in your dataframe.
-One should be the z-scored version of `outlook` (call it `outlookZ`), and the other should be the z-scored version of `ampm` (call it `ampmZ`).
-
-:::flash
-🗂️
-See [Mutate columns](https://uoepsy.github.io/dapr1/2627/flashcards/block1/mutate.html){target="_blank"} and [Calculate z-scores](https://uoepsy.github.io/dapr1/2627/flashcards/block2/zscore.html){target="_blank"} flash card.
+mydataframe <- 
+  tibble(
+    name_of_column = myvector
+  )
+```
 :::
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
 ```{r}
-library(tidyverse)
+data20 <- 
+  tibble(
+    estimate = means20
+  )
 
-sdata <- read_csv("https://uoepsy.github.io/data/dapr1_2627_survey.csv")
-
-sdata <- sdata |>
-  mutate(
-    outlookZ = ( outlook - mean(outlook) ) / sd(outlook),
-    ampmZ = ( ampm - mean(ampm) ) / sd(ampm)
+data100 <- 
+  tibble(
+    estimate = means100
   )
 ```
 
 `r solend()`
 
 
-<!-- # q2 -->
+# q4
 
 `r qbegin(qcounter())`
+We should now have two dataframes. 
+One contains the means from 1000 random samples of size 20 (taken from our supposed population of optimism scores that are assumed to be normally distributed with mean of 15 and standard deviation of 25).  
+The second contains the means from 1000 random samples of size 100.  
 
-In this question, you'll find the pseudonyms, scores, and z-scores of the three most optimistic people and the three "morning people"-est people.
+Make a plot of each of these sets of 1000 estimated means.  
+(What sort of plot? That's up to you!).  
 
-First, **sort** your dataframe by your `outlookZ` column, in **descending** order.
+When you have made them, let's display them side by side. To do this, we can use the **patchwork** package (you might need to install it first!). 
+Then we can arrange multiple plots by:
 
-:::flash
-🗂️
-See [Sort a dataframe with `arrange()`](https://uoepsy.github.io/dapr1/2627/flashcards/block2/arrange.html){target="_blank"} flash card.
-:::
+1. assigning each plot a name, e.g. `plot1 <- ...` and `plot2 <- ...`, and then 
+2. using `+` to place them side by side (`plot1 + plot2`) or `/` to place them underneath each other (`plot1 / plot2`)
 
-Next, **extract** the top three rows of your sorted dataframe.
+Each of the plots shows "means from 1000 samples we might see". Because each sample is a random selection people's optimism scores, the means of the samples differed (some samples were full of more optimistic people, some with less optimistic people).  
 
-:::flash
-🗂️
-See [Subset a dataframe > Extract row(s)](https://uoepsy.github.io/dapr1/2627/flashcards/block2/subset.html#extract-rows){target="_blank"} flash card.
-:::
+- Where can you see differences between the two plots?
+- Bonus challenge: why?  
 
-Finally, **extract** only the columns that we care about for this question: `pseudonym`, `outlook`, and `outlookZ`.
 
-:::flash
-🗂️
-See [Subset a dataframe > Extract columns(s) > `select()`](https://uoepsy.github.io/dapr1/2627/flashcards/block2/subset.html#select){target="_blank"} flash card.
-:::
-
-**Repeat** this process for the `ampm` variable to find the three people who identify most strongly as morning people.
-
-Is any of these people you?
-
-`r qend()`
-`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-
-Here's how we'd do all of these steps, piped together into a single statement for `outlook` and another one for `ampm`.
-
-```{r}
-sdata |> 
-  arrange(desc(outlook)) |>
-  slice(1:3) |>
-  select(pseudonym, outlook, outlookZ)
-
-sdata |> 
-  arrange(desc(ampm)) |>
-  slice(1:3) |>
-  select(pseudonym, ampm, ampmZ)
-```
-
-`r solend()`
-
-<!-- # q3 -->
-
-`r qbegin(qcounter())`
-
-From now on, we'll just focus on `outlook` and its z-scores.
-
-**Plot** your standardised outlook scores (that is, `outlookZ`) as a density curve.
 
 :::flash
 🗂️
-See [Make a density plot](https://uoepsy.github.io/dapr1/2627/flashcards/block2/density-plot.html){target="_blank"} flash card.
-:::
+See [Use R packages](https://uoepsy.github.io/dapr1/2627/flashcards/block1/packages.html){target="_blank"} flash card.
 
-
-Once you have made your plot, **add** this bit of code to the end of it.
-This additional code will overlay a red standard normal distribution (with mean 0, standard deviation 1) over your density curve.
-(The `...`s in the code chunk represents the code you used to make the density plot.)
-
-```{r}
-#| eval: false
-... 
-  ... +
-  stat_function(fun = dnorm, args = list(mean = 0, sd = 1), colour = "red")
-```
-
-
-::: {.callout-caution collapse="true"}
-#### Rabbit hole: What do the parts of `stat_function()` mean?
-
-You don't have to know or remember any of this!
-But if you're curious:
-
-- `stat_function()` adds a statistical function to the plot. This is different from adding a "geom" because geoms are based on data—statistical functions are calculated based on the information we give next.
-- `fun = dnorm` specifies that the function (`fun`) to add is the normal (`norm`) distribution (`d`).
-- `args = list(mean = 0, sd = 1)` specifies that the function should use a mean of 0 and a standard deviation of 1, which are the parameters of the standard normal distribution.
-- `colour = "red"` tells R that we want the distribution to be coloured red.
-
+🗂️
+See [TODO patchwork](https://uoepsy.github.io/dapr1/2627/flashcards/){target="_blank"} flash card.
 :::
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-
 ```{r}
-ggplot(sdata , aes(x = outlookZ)) +
-  geom_density() +
-  stat_function(fun = dnorm, args = list(mean = 0, sd = 1), colour = "red")
+library(patchwork)
+
+p20 <- ggplot(data20, aes(x = estimate)) +
+  geom_histogram()
+
+p100 <- ggplot(data100, aes(x = estimate)) +
+  geom_histogram()
+
+p20 + p100
 ```
 
+
+Means from samples of size n = 20 range between 0 and 30 roughly. Means from samples of size n = 100 range between 8 and 22 roughly, showing that means from bigger samples vary less than means from smaller samples. This is because bigger samples should include a bigger part of the population, so their means should be more similar to that of the full population.
 `r solend()`
 
-<!-- # q4 -->
+# q5
+
+<!-- - Then Q5 focuses on SE = SD of sampling distribution of means. -->
+<!-- and re W8Q5: can we drive it home that it's really cool actually that mathematicians figured out that we don't have to go through all this sampling rigamarole, and that we can use this really simple mathematical expression to give us the same quantity?  -->
 
 `r qbegin(qcounter())`
-
-This is a challenging question, get ready!
-
-To start: Did anyone in your group give a pseudonym in the survey? 
-If yes, use your groupmate's pseudonym for this question; if no, use "noodle_horse" (that's what Josiah calls his greyhound Dougal).
-
-Next, **extract** the row containing that pseudonym from the dataset using the tidyverse function `filter()`.
-
-:::flash
-🗂️
-See [Subset a dataframe > `filter()`](https://uoepsy.github.io/dapr1/2627/flashcards/block2/subset.html#rows-that-meet-a-condition-filter){target="_blank"} flash card.
-:::
-
-Now: using the function `pnorm()`, **compute** the probability of seeing somebody *less* optimistic than this person.
-In other words, you want to find the probability that somebody has a lower `outlookZ` score than your chosen person (or greyhound).
-
-Next: still using `pnorm()`, **compute** the probability of seeing somebody *more* optimistic than your chosen person (or greyhound).
-
-:::flash
-🗂️
-See [Explore a normally-distributed variable](https://uoepsy.github.io/dapr1/2627/flashcards/block2/pnorm-qnorm.html){target="_blank"} flash card.
-:::
-
-Finally: **Check** that these two probabilities sum up to 1.
-
-`r qend()`
-`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-
-Dougal the noodle horse is a little bit of a pessimist:
-
-```{r}
-sdata |> 
-  filter(pseudonym == "noodle_horse") |>
-  select(pseudonym, outlook, outlookZ)
-```
-
-For convenience, let's extract his `outlookZ` value and save it under its own name.
-
-```{r}
-dougalZ <- sdata |>
-  filter(pseudonym == "noodle_horse") |>
-  pull(outlookZ)
-```
-
-
-To compute the probability of observing a z-score that's lower than Dougal's z-score of `r round(dougalZ, 2)`, we give this z-score as an argument to `pnorm()` (see the [flash card](https://uoepsy.github.io/dapr1/2627/flashcards/block2/pnorm-qnorm.html){target="_blank"} for helpful illustrations!).
-
-```{r}
-pnorm(dougalZ)
-```
-
-There's a `r pnorm(dougalZ)*100`% probability of seeing someone less optimistic than Dougal.
-
-And on the flip side, to compute the probability of observing a z-score that's *higher* than Dougal's z-score, we subtract the output of `pnorm()` from 1:
-
-```{r}
-1 - pnorm(dougalZ)
-```
-
-There's a `r (1-pnorm(dougalZ))*100`% probability of seeing someone more optimistic than Dougal.
-
-These values do indeed sum to 1, and this should make a little bit of sense: for anyone else that you sample, they will either be more optimistic than Dougal or less optimistic than Dougal.
-So the probability of seeing someone either more or less optimistic than Dougal is 100%.
-
-`r solend()`
-
-
-
-
-<!-- # q5 -->
-
-`r qbegin(qcounter())`
-
-Finally, z-scoring is not just a one-way process.
-Sometimes you might start with variables in z-scored form, and you might want to transform them back onto their original scale (in other words, you might want to "back-transform" them).
-
-Here's the process that will "undo" a z-score by back-transforming it onto the original scale:
+We saw in the lecture that we can characterise "how much a sample estimate will vary due to random sampling" by using the "standard error". And we saw a formula for this for the sample mean: 
 
 $$
-\text{original mean} + (\text{z-score} \times \text{original SD}) = \text{value on original scale}
+SE_{\text{mean}} = \frac{\sigma}{\sqrt{n}}
 $$
 
-<br>
+In the two scenarios we have been creating, we have seen how the means from samples of $n=20$ vary, as well as means from samples of $n=100$.  
 
-First, to get the parts of this formula that we need, **run** the following code to find the original mean and SD of `outlook` and store them under their own variable names:
+Because we started this by assuming that optimism scores in the population have mean of 15 and standard deviation of 25, we can calculate:  
+
+::::{.columns}
+:::{.column width="50%"}
+$$
+\begin{align}
+SE_{\text{mean, n=20}} &= \frac{25}{\sqrt{20}} \\
+\quad \\
+&= 5.59 \\
+\end{align}
+$$
+:::
+:::{.column width="50%"}
+
+$$
+\begin{align}
+SE_{\text{mean, n=100}} &= \frac{25}{\sqrt{100}} \\
+\quad \\
+&= 2.5 \\
+\end{align}
+$$
+
+:::
+::::
+
+What **we** have done today is actually _generate_ lots of samples and their means, and stored them in R.  
+
+It's really cool that statisticians figured out how to estimate the sampling variability, because it save us from having to do all this rigmarole. 
+The standard error calculations above give us estimates of how much the sample estimates will vary because of random sampling. 
+So we can simply use the calculations to get at a *theoretical* probability distribution (the red curves below), rather than having to actually simulate stuff.  
 
 ```{r}
-outlook_mean <- mean(sdata$outlook)
-outlook_sd   <- sd(sdata$outlook)
+#| echo: false
+#| fig-height: 4
+#| fig-width: 12
+mean_20 <- mean(data20$estimate, na.rm = TRUE)
+sd_20   <- sd(data20$estimate, na.rm = TRUE)
+bw=1
+
+p1 <- ggplot(data20, aes(x = estimate)) +
+  geom_histogram(binwidth = bw,alpha=.5) +
+  stat_function(
+    fun = function(x) dnorm(x, mean = mean_20, sd = sd_20) * 1000 * bw,
+    color = "tomato", linewidth = 1
+  ) + 
+  geom_vline(xintercept = mean_20, color = "blue", linetype = "solid", linewidth = 0.8) +
+  geom_vline(xintercept = c(mean_20 - sd_20, mean_20 + sd_20),
+             color = "blue", linetype = "dashed", linewidth = 0.8)+
+  geom_vline(xintercept = c(mean_20 - 2*sd_20, mean_20 + 2*sd_20), 
+             color = "blue", linetype = "dotted", linewidth = 0.8) +
+  annotate("text", x = mean_20 - 2*sd_20, y = 100, label = "Mean - 2 * 5.59",
+           angle=90,
+           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
+  annotate("text", x = mean_20 - sd_20, y = 100, label = "Mean - 1 * 5.59",
+           angle=90,
+           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
+  annotate("text", x = mean_20, y = 100, label = "Mean",
+           angle=90,
+           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
+  annotate("text", x = mean_20 + sd_20, y = 100, label = "Mean + 1 * 5.59",
+           angle=90,
+           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
+  annotate("text", x = mean_20 + 2*sd_20, y = 100, label = "Mean + 2 * 5.59",
+           angle=90,
+           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold")+
+  scale_y_continuous("count",limits=c(0,115))+
+  labs(x="estimates\n(sample n = 20)")
+
+
+
+mean_100 <- mean(data100$estimate, na.rm = TRUE)
+sd_100   <- sd(data100$estimate, na.rm = TRUE)
+bw2=.45
+
+p2 <- ggplot(data100, aes(x = estimate)) +
+  geom_histogram(binwidth = bw2,alpha=.5) +
+  stat_function(
+    fun = function(x) dnorm(x, mean = mean_100, sd = sd_100) * 1000 * bw2,
+    color = "tomato", linewidth = 1
+  ) + 
+  geom_vline(xintercept = mean_100, color = "blue", linetype = "solid", linewidth = 0.8) +
+  geom_vline(xintercept = c(mean_100 - sd_100, mean_100 + sd_100),
+             color = "blue", linetype = "dashed", linewidth = 0.8)+
+  geom_vline(xintercept = c(mean_100 - 2*sd_100, mean_100 + 2*sd_100), 
+             color = "blue", linetype = "dotted", linewidth = 0.8) +
+  annotate("text", x = mean_100 - 2*sd_100, y = 100, label = "Mean - 2 * 2.5",
+           angle=90,
+           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
+  annotate("text", x = mean_100 - sd_100, y = 100, label = "Mean - 1 * 2.5",
+           angle=90,
+           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
+  annotate("text", x = mean_100, y = 100, label = "Mean",
+           angle=90,
+           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
+  annotate("text", x = mean_100 + sd_100, y = 100, label = "Mean + 1 * 2.5",
+           angle=90,
+           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
+  annotate("text", x = mean_100 + 2*sd_100, y = 100, label = "Mean + 2 * 2.5",
+           angle=90,
+           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold")+
+  scale_y_continuous("count",limits=c(0,115))+
+  labs(x="estimates\n(sample n = 100)")
+
+
+p1 + p2
 ```
 
 
-Using the formula above, **calculate** the value on the original `outlook` scale that corresponds to a z-score of 1.
-(In other words, what value of `outlook` is one standard deviation above the mean?)
+Just to give ourselves confirmation, we can compare the calculations above with our simulation, by getting the standard deviation of all the means from samples of size 20, and of all the means from samples of size 100.  
+They won't *exactly* match the formula calculations above, but they should be close.^[That's why the $SE = \sigma / \sqrt{n}$ formula is so useful! It gives us how much sample means vary from sample to sample without having to take all possible samples.]
 
-Finally, **calculate** the value on the `outlook` scale that corresponds to a z-score of –2.
-(In other words, what value of `outlook` is two standard deviations below the mean?)
+Check them now.  
+
+
+::: {.callout-tip collapse="true"}
+#### Hint
+
+This is just like calculating the standard deviation for any other variable! 
 
 :::flash
 🗂️
-See [Calculate z-scores > Back-transform](https://uoepsy.github.io/dapr1/2627/flashcards/block2/zscore.html#how-to-back-transform-z-scores-onto-the-original-scale){target="_blank"} flash card.
+[Measuring Variability (standard deviation)](https://uoepsy.github.io/dapr1/2627/flashcards/block1/variability.html#standard-deviation-sd){target="_blank"} flash card.
+:::
+
 :::
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
 
-Back-transforming from a z-score of 2, the `outlook` score that's one SD above the mean is:
-
 ```{r}
-outlook_mean + (1 * outlook_sd)
+data20 |>
+  summarise(
+    sd = sd(estimate)
+  )
+
+data100 |>
+  summarise(
+    sd = sd(estimate)
+  )
 ```
-
-
-<br>
-
-Back-transforming from a z-score of –1, the `outlook` score that's two SDs below the mean is:
-
-```{r}
-outlook_mean + (-2 * outlook_sd)
-```
-
 
 `r solend()`
-
 
 
 
