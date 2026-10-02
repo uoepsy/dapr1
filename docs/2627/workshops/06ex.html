@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>W14: Correlations – DAPR1 Workshops</title>
+<title>W7: Z-scores &amp; the Normal Distribution – DAPR1 Workshops</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -119,6 +119,35 @@ if(f.classList.contains('jk-circle-right')) {
 </script>
 <link rel="stylesheet" href="https://uoepsy.github.io/assets/css/ccfooter.css">
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -188,7 +217,7 @@ if(f.classList.contains('jk-circle-right')) {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">W14: Correlations</h1>
+<h1 class="title">W7: Z-scores &amp; the Normal Distribution</h1>
 </div>
 
 
@@ -222,33 +251,18 @@ WHEN RENDERING:
   - solutions will be available for previous blocks.  
   
 -->
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>rmp_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">'https://uoepsy.github.io/data/ratemyprof_stars.csv'</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># **RQ: When students rate instructors as higher difficulty, do they also tend to give those instructors lower star ratings?**</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># a task promised in the lecture: recreate this plot yourself.</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># the main trick: will need to convert student_star into a factor for the fill to work right</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>rmp_data <span class="sc">|&gt;</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">student_star =</span> <span class="fu">factor</span>(student_star)) <span class="sc">|&gt;</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> student_difficult, <span class="at">fill =</span> student_star)) <span class="sc">+</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="14ex_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>This example uses real data from <a href="https://data.mendeley.com/datasets/fvtfjyvw7d/2" target="_blank">He (2020)</a>.</p>
-<hr>
+<!-- MAX 5 QUESTIONS -->
+<!-- make each question ~10 minute work -->
+<!-- MAX 5 QUESTIONS -->
+<!-- MAX 5 QUESTIONS -->
 <div class="frame">
-<p>Pick someone new to be the driver this week. They will type the code. The rest of you are navigators, you need to tell the driver where to go (i.e., what to type!).</p>
+<p>Pick someone new to be the driver this week. If everyone in the group has already had a week as the driver, start going round again!</p>
+<p>The driver will type the code. The rest of you are navigators, you need to tell the driver where to go (i.e., what to type!).</p>
 <p>Driver instructions:</p>
 <ol type="1">
 <li>Log in to the bigger screen at your table</li>
 <li>Open <a href="https://rstudio.ppls.ed.ac.uk" target="_blank">RStudio Server</a></li>
+<li>Open a new .R script, and load the <strong>tidyverse</strong> package.</li>
 <li>Listen to your navigators</li>
 </ol>
 <p>Navigator instructions:</p>
@@ -261,20 +275,253 @@ WHEN RENDERING:
 Question 1
 </div>
 <div class="question-body">
-<p>TODO</p>
+<p>Once again, <strong>read in</strong> the survey data from <a href="https://uoepsy.github.io/data/dapr1_2627_survey.csv" target="_blank">https://uoepsy.github.io/data/dapr1_2627_survey.csv</a>. Store it under the variable name <code>sdata</code>.</p>
 <div class="flash">
-<p>🗂️ See <a href="TODO" target="_blank">TODO</a> flash card.</p>
+<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block1/read-data.html" target="_blank">Read in and inspect data</a> flash card.</p>
+</div>
+<p>This week, we’ll work with the data about people’s outlook (how pessimistic vs.&nbsp;optimistic they are) and their chronotype (how much of an evening person vs.&nbsp;a morning person they are). Here are the questions that generated that data:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/optimism_ampm.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<p>You’ll notice that each question uses a quite different scale: <code>outlook</code> ranges from –100 to 100, while <code>ampm</code> (the chronotype variable) ranges from 0 to 10. So someone with an <code>outlook</code> score of 10 is in a very different part of the scale, compared to someone with an <code>ampm</code> score of 10!</p>
+<p><strong>Create two new variables</strong> in your dataframe. One should be the z-scored version of <code>outlook</code> (call it <code>outlookZ</code>), and the other should be the z-scored version of <code>ampm</code> (call it <code>ampmZ</code>).</p>
+<div class="flash">
+<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block1/mutate.html" target="_blank">Mutate columns</a> and <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block2/zscore.html" target="_blank">Calculate z-scores</a> flash card.</p>
 </div>
 </div>
 <p class="question-end">
 </p>
-<div class="solution-begin">
-<button id="sol-start-1" class="jk-circle-right solution-icon clickable" onclick="toggle_visibility('sol-body-1', 'sol-start-1')">
-Solution
-</button>
+<div style="display:none;">
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>sdata <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"https://uoepsy.github.io/data/dapr1_2627_survey.csv"</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>sdata <span class="ot">&lt;-</span> sdata <span class="sc">|&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">outlookZ =</span> ( outlook <span class="sc">-</span> <span class="fu">mean</span>(outlook) ) <span class="sc">/</span> <span class="fu">sd</span>(outlook),</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">ampmZ =</span> ( ampm <span class="sc">-</span> <span class="fu">mean</span>(ampm) ) <span class="sc">/</span> <span class="fu">sd</span>(ampm)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="sol-body-1" class="solution-body proof solution" style="display: none;">
-<p><span class="proof-title"><em>Solution 1</em>. </span>TODO</p>
+</div>
+<p class="solution-end">
+</p>
+<!-- # q2 -->
+<div class="question-begin">
+Question 2
+</div>
+<div class="question-body">
+<p>In this question, you’ll find the pseudonyms, scores, and z-scores of the three most optimistic people and the three “morning people”-est people.</p>
+<p>First, <strong>sort</strong> your dataframe by your <code>outlookZ</code> column, in <strong>descending</strong> order.</p>
+<div class="flash">
+<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block2/arrange.html" target="_blank">Sort a dataframe with <code>arrange()</code></a> flash card.</p>
+</div>
+<p>Next, <strong>extract</strong> the top three rows of your sorted dataframe.</p>
+<div class="flash">
+<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block2/subset.html#extract-rows" target="_blank">Subset a dataframe &gt; Extract row(s)</a> flash card.</p>
+</div>
+<p>Finally, <strong>extract</strong> only the columns that we care about for this question: <code>pseudonym</code>, <code>outlook</code>, and <code>outlookZ</code>.</p>
+<div class="flash">
+<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block2/subset.html#select" target="_blank">Subset a dataframe &gt; Extract columns(s) &gt; <code>select()</code></a> flash card.</p>
+</div>
+<p><strong>Repeat</strong> this process for the <code>ampm</code> variable to find the three people who identify most strongly as morning people.</p>
+<p>Is any of these people you?</p>
+</div>
+<p class="question-end">
+</p>
+<div style="display:none;">
+<p>Here’s how we’d do all of these steps, piped together into a single statement for <code>outlook</code> and another one for <code>ampm</code>.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>sdata <span class="sc">|&gt;</span> </span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(outlook)) <span class="sc">|&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(pseudonym, outlook, outlookZ)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 x 3
+  pseudonym outlook outlookZ
+  &lt;chr&gt;       &lt;dbl&gt;    &lt;dbl&gt;
+1 &lt;NA&gt;          100     1.70
+2 mj            100     1.70
+3 alex          100     1.70</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>sdata <span class="sc">|&gt;</span> </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(ampm)) <span class="sc">|&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>) <span class="sc">|&gt;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(pseudonym, ampm, ampmZ)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 x 3
+  pseudonym  ampm ampmZ
+  &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt;
+1 &lt;NA&gt;         10  2.32
+2 bartlett     10  2.32
+3 &lt;NA&gt;         10  2.32</code></pre>
+</div>
+</div>
+</div>
+<p class="solution-end">
+</p>
+<!-- # q3 -->
+<div class="question-begin">
+Question 3
+</div>
+<div class="question-body">
+<p>From now on, we’ll just focus on <code>outlook</code> and its z-scores.</p>
+<p><strong>Plot</strong> your standardised outlook scores (that is, <code>outlookZ</code>) as a density curve.</p>
+<div class="flash">
+<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block2/density-plot.html" target="_blank">Make a density plot</a> flash card.</p>
+</div>
+<p>Once you have made your plot, <strong>add</strong> this bit of code to the end of it. This additional code will overlay a red standard normal distribution (with mean 0, standard deviation 1) over your density curve. (The <code>...</code>s in the code chunk represents the code you used to make the density plot.)</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>... </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  ... <span class="sc">+</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_function</span>(<span class="at">fun =</span> dnorm, <span class="at">args =</span> <span class="fu">list</span>(<span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="dv">1</span>), <span class="at">colour =</span> <span class="st">"red"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Caution</span>Rabbit hole: What do the parts of <code>stat_function()</code> mean?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>You don’t have to know or remember any of this! But if you’re curious:</p>
+<ul>
+<li><code>stat_function()</code> adds a statistical function to the plot. This is different from adding a “geom” because geoms are based on data—statistical functions are calculated based on the information we give next.</li>
+<li><code>fun = dnorm</code> specifies that the function (<code>fun</code>) to add is the normal (<code>norm</code>) distribution (<code>d</code>).</li>
+<li><code>args = list(mean = 0, sd = 1)</code> specifies that the function should use a mean of 0 and a standard deviation of 1, which are the parameters of the standard normal distribution.</li>
+<li><code>colour = "red"</code> tells R that we want the distribution to be coloured red.</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<p class="question-end">
+</p>
+<div style="display:none;">
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(sdata , <span class="fu">aes</span>(<span class="at">x =</span> outlookZ)) <span class="sc">+</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>() <span class="sc">+</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_function</span>(<span class="at">fun =</span> dnorm, <span class="at">args =</span> <span class="fu">list</span>(<span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="dv">1</span>), <span class="at">colour =</span> <span class="st">"red"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="06ex_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<p class="solution-end">
+</p>
+<!-- # q4 -->
+<div class="question-begin">
+Question 4
+</div>
+<div class="question-body">
+<p>This is a challenging question, get ready!</p>
+<p>To start: Did anyone in your group give a pseudonym in the survey? If yes, use your groupmate’s pseudonym for this question; if no, use “noodle_horse” (that’s what Josiah calls his greyhound Dougal).</p>
+<p>Next, <strong>extract</strong> the row containing that pseudonym from the dataset using the tidyverse function <code>filter()</code>.</p>
+<div class="flash">
+<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block2/subset.html#rows-that-meet-a-condition-filter" target="_blank">Subset a dataframe &gt; <code>filter()</code></a> flash card.</p>
+</div>
+<p>Now: using the function <code>pnorm()</code>, <strong>compute</strong> the probability of seeing somebody <em>less</em> optimistic than this person. In other words, you want to find the probability that somebody has a lower <code>outlookZ</code> score than your chosen person (or greyhound).</p>
+<p>Next: still using <code>pnorm()</code>, <strong>compute</strong> the probability of seeing somebody <em>more</em> optimistic than your chosen person (or greyhound).</p>
+<div class="flash">
+<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block2/pnorm-qnorm.html" target="_blank">Explore a normally-distributed variable</a> flash card.</p>
+</div>
+<p>Finally: <strong>Check</strong> that these two probabilities sum up to 1.</p>
+</div>
+<p class="question-end">
+</p>
+<div style="display:none;">
+<p>Dougal the noodle horse is a little bit of a pessimist:</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>sdata <span class="sc">|&gt;</span> </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(pseudonym <span class="sc">==</span> <span class="st">"noodle_horse"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(pseudonym, outlook, outlookZ)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 x 3
+  pseudonym    outlook outlookZ
+  &lt;chr&gt;          &lt;dbl&gt;    &lt;dbl&gt;
+1 noodle_horse      -7   -0.629</code></pre>
+</div>
+</div>
+<p>For convenience, let’s extract his <code>outlookZ</code> value and save it under its own name.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>dougalZ <span class="ot">&lt;-</span> sdata <span class="sc">|&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(pseudonym <span class="sc">==</span> <span class="st">"noodle_horse"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(outlookZ)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>To compute the probability of observing a z-score that’s lower than Dougal’s z-score of -0.63, we give this z-score as an argument to <code>pnorm()</code> (see the <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block2/pnorm-qnorm.html" target="_blank">flash card</a> for helpful illustrations!).</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pnorm</span>(dougalZ)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.265</code></pre>
+</div>
+</div>
+<p>There’s a 26.48% probability of seeing someone less optimistic than Dougal.</p>
+<p>And on the flip side, to compute the probability of observing a z-score that’s <em>higher</em> than Dougal’s z-score, we subtract the output of <code>pnorm()</code> from 1:</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="sc">-</span> <span class="fu">pnorm</span>(dougalZ)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.735</code></pre>
+</div>
+</div>
+<p>There’s a 73.52% probability of seeing someone more optimistic than Dougal.</p>
+<p>These values do indeed sum to 1, and this should make a little bit of sense: for anyone else that you sample, they will either be more optimistic than Dougal or less optimistic than Dougal. So the probability of seeing someone either more or less optimistic than Dougal is 100%.</p>
+</div>
+<p class="solution-end">
+</p>
+<!-- # q5 -->
+<div class="question-begin">
+Question 5
+</div>
+<div class="question-body">
+<p>Finally, z-scoring is not just a one-way process. Sometimes you might start with variables in z-scored form, and you might want to transform them back onto their original scale (in other words, you might want to “back-transform” them).</p>
+<p>Here’s the process that will “undo” a z-score by back-transforming it onto the original scale:</p>
+<p><span class="math display">\[
+\text{value on original scale} = \text{original mean} + (\text{z-score} \times \text{original SD})
+\]</span> Here’s the more mathematical version of this formula from the lecture slides:</p>
+<p><span class="math display">\[
+X = M + (Z \times SD)
+\]</span></p>
+<p>where <span class="math inline">\(X\)</span> is the raw score / the score on the original scale, <span class="math inline">\(M\)</span> is the population mean (or our best guess about it based on our sample), <span class="math inline">\(Z\)</span> is the z-score, and <span class="math inline">\(SD\)</span> is the population standard deviation (or our best guess about it based on our sample).</p>
+<p><br></p>
+<p>First, to get the parts of this formula that we need, <strong>run</strong> the following code to find the original mean and SD of <code>outlook</code> and store them under their own variable names:</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>outlook_mean <span class="ot">&lt;-</span> <span class="fu">mean</span>(sdata<span class="sc">$</span>outlook)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>outlook_sd   <span class="ot">&lt;-</span> <span class="fu">sd</span>(sdata<span class="sc">$</span>outlook)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Using the formula above, <strong>calculate</strong> the value on the original <code>outlook</code> scale that corresponds to a z-score of 1. (In other words, what value of <code>outlook</code> is one standard deviation above the mean?)</p>
+<p>Finally, <strong>calculate</strong> the value on the <code>outlook</code> scale that corresponds to a z-score of –2. (In other words, what value of <code>outlook</code> is two standard deviations below the mean?)</p>
+<div class="flash">
+<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block2/zscore.html#how-to-back-transform-z-scores-onto-the-original-scale" target="_blank">Calculate z-scores &gt; Back-transform</a> flash card.</p>
+</div>
+</div>
+<p class="question-end">
+</p>
+<div style="display:none;">
+<p>Back-transforming from a z-score of 2, the <code>outlook</code> score that’s one SD above the mean is:</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>outlook_mean <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">*</span> outlook_sd)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 67.7</code></pre>
+</div>
+</div>
+<p><br></p>
+<p>Back-transforming from a z-score of –1, the <code>outlook</code> score that’s two SDs below the mean is:</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>outlook_mean <span class="sc">+</span> (<span class="sc">-</span><span class="dv">2</span> <span class="sc">*</span> outlook_sd)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -69.9</code></pre>
+</div>
+</div>
 </div>
 <p class="solution-end">
 </p>

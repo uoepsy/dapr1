@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>W8: Sampling Distributions &amp; Standard Error – DAPR1 Workshops</title>
+<title>W9: Confidence Intervals – DAPR1 Workshops</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -217,7 +217,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">W8: Sampling Distributions &amp; Standard Error</h1>
+<h1 class="title">W9: Confidence Intervals</h1>
 </div>
 
 
@@ -234,22 +234,22 @@ window.Quarto = {
 </header>
 
 
-<!-- - In Q3, it would be good to specify that we only want one column in each tibble. (given the example, students will try to do two columns in one tibble) -->
-<!-- - In Q4, let's include the bit from the start of Q5, up to and including "How did the size of the samples change the plots?" (maybe rephrased to something like "Where can you see differences between the two plots? Bonus challenge: why?") -->
-<!-- - Then Q5 focuses on SE = SD of sampling distribution of means. -->
-<!-- and re W8Q5: can we drive it home that it's really cool actually that mathematicians figured out that we don't have to go through all this sampling rigamarole, and that we can use this really simple mathematical expression to give us the same quantity?  -->
 <!--
 WHEN RENDERING: 
 
 - tutor-facing: 
-  - SHOW_SOLS: TRUE
-  - render in RStudio, or in Terminal using `quarto render FILE.qmd`
+  - either use the build button, or render specific files. or in the terminal using `quarto render`
   - resulting file will land in `docs/YEAR/workshops/tutors/`
+  - solutions will always be visible
   
 - student-facing:
-  - SHOW_SOLS: FALSE
-  - render in Terminal using `quarto render FILE.qmd --profile production`
+  - set current_block: to the block we're in
+  - render in Terminal using either: 
+      - `quarto render --profile production`
+      - `quarto render FILE.qmd --profile production`
   - resulting file will land in `docs/YEAR/workshops/`
+  - solutions will be available for previous blocks.  
+  
 -->
 <!-- MAX 5 QUESTIONS -->
 <!-- make each question ~10 minute work -->
@@ -270,36 +270,69 @@ WHEN RENDERING:
 <li>Tell your driver where to go (i.e., what to type)!</li>
 </ol>
 </div>
+<section id="where-do-the-pm-1.96-multipliers-come-from" class="level2">
+<h2 class="anchored" data-anchor-id="where-do-the-pm-1.96-multipliers-come-from">Where do the <span class="math inline">\(\pm 1.96\)</span> multipliers come from?</h2>
 <div class="question-begin">
 Question 1
 </div>
 <div class="question-body">
-<p>For the exercises this week, we are going to <strong>pretend</strong> that we know that the distribution of <code>outlook</code> scores<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> for the full population has a mean of 15 and a standard deviation of 25.</p>
-<p>So <strong>if</strong> we could ask every person in the world to fill out our questionnaire, we would see something like this:<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<p>The code below gives us the means from lots and lots of samples. Last week we saw this used to get estimated means from 1000 samples, but this week we’ll up it to 10000! We will also use a sample size of <span class="math inline">\(n = 47\)</span>, which is the number of responses to the DAPR1 class survey, so each of the 10000 means is the mean of a different sample of 47 students.</p>
 <div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="08ex_files/figure-html/unnamed-chunk-2-1.png" class="quarto-figure quarto-figure-center figure-img" width="600" height="400"></p>
-</figure>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>means47 <span class="ot">&lt;-</span> <span class="fu">replicate</span>(<span class="dv">10000</span>, <span class="fu">mean</span>(<span class="fu">rnorm</span>(<span class="at">n =</span> <span class="dv">47</span>, <span class="at">mean =</span> <span class="dv">15</span>, <span class="at">sd =</span> <span class="dv">25</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
 </div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>reminder/breakdown of how the code works
 </div>
-<p>We can generate a pretend sample of outlook scores by using the <code>rnorm()</code> function.<br>
-Try playing around with this code. Run each line a couple of times to see how the output changes.</p>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>This bit of code takes a sample of size 47, from a distribution that has a mean of 15 and a standard deviation of 25.<br>
+It gives 47 numbers — in our example, each one of them is the “outlook” score for a person.</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>fake_sample <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="dv">20</span>, <span class="at">mean =</span> <span class="dv">15</span>, <span class="at">sd =</span> <span class="dv">25</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>fake_sample</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rnorm</span>(<span class="at">n =</span> <span class="dv">47</span>, <span class="at">mean =</span> <span class="dv">15</span>, <span class="at">sd =</span> <span class="dv">25</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Wrapping the whole bit inside <code>mean()</code> makes it so that instead of returning all 47 scores in the sample, it returns just the mean of the 47 scores</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>( <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="dv">47</span>, <span class="at">mean =</span> <span class="dv">15</span>, <span class="at">sd =</span> <span class="dv">25</span>) )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Finally, the function <code>replicate()</code> is used to “run code X times”. In this case, we’re running the <code>mean(rnorm(...))</code> bit of code 10000 times. Each time, it takes a sample of 47 people’s scores and returns the estimated mean. So we get back 10000 means.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">replicate</span>(<span class="dv">10000</span>, <span class="fu">mean</span>( <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="dv">47</span>, <span class="at">mean =</span> <span class="dv">15</span>, <span class="at">sd =</span> <span class="dv">25</span>) ) )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Finally, <code>means47 &lt;-</code> stores those 10000 means into an object called <code>means47</code>.</p>
+</div>
+</div>
+</div>
+<p>Because <code>means47</code> is a vector (it just has one dimension), if we want to find the 10th entry, we can use <code>&lt;vector name&gt;[&lt;entry-number&gt;]</code> to print it.<br>
+<em>(Note, if you do this, you will get a different number, because you have a different set of 10000 samples!)</em></p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>means47[<span class="dv">10</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code> [1] -25.69  73.08  13.09  -5.96   2.75  14.94  42.36  23.41  31.32 -11.80
-[11]  21.63  21.60   2.13  39.38  -9.09  59.34  24.63  35.97  59.29  -6.62</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(fake_sample)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 20.3</code></pre>
+<pre><code>[1] 20.5</code></pre>
 </div>
 </div>
-<p><strong>Important Note:</strong> None of this is real data. When we do real research, we won’t know what the distribution looks like in the wider population, and we won’t be able to make pretend samples. We’re doing this here because it is a useful exercise to help demonstrate how sampling variability works.</p>
+<p>To check if something is a vector, you can run <code>dim(means47)</code>. If it returns <code>NULL</code>, then it is a vector with entries. If it returns numbers, then it is a tibble or dataframe with rows and columns.</p>
+<p>We also saw how we can create a dataframe object (with rows and columns), by using code such as the below. We’ve added a little extra bit here. Line 4 takes the dataframe created in lines 1-3, and arranges it (i.e.&nbsp;sorts it) in ascending order according to the value in the <code>estimate</code> column. Which means the first row is now the smallest estimate, and the last row (row 10000) is the largest.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>data47 <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb7-2"><a href="#cb7-2"></a>    <span class="at">estimate =</span> means47</span>
+<span id="cb7-3"><a href="#cb7-3"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb7-4"><a href="#cb7-4"></a>  <span class="fu">arrange</span>(estimate)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<ul>
+<li><strong>Task:</strong> What is the estimate for the 5000th row of the dataframe?<br>
+</li>
+<li>Bonus challenge: can we find this out another way?</li>
+</ul>
+<div class="flash">
+<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/" target="_blank">TODO df[r,c] flashcard</a> flash card.</p>
+</div>
 </div>
 <p class="question-end">
 </p>
@@ -309,31 +342,27 @@ Solution
 </button>
 </div>
 <div id="sol-body-1" class="solution-body proof solution" style="display: none;">
-<p><span class="proof-title"><em>Solution 1</em>. </span>Your numbers will look different to the ones below because of randomness in sampling.</p>
-<p><strong>One sample:</strong></p>
+<p><span class="proof-title"><em>Solution 1</em>. </span>Here is the 5000th row for me. Yours will be different, because each time we run the <code>means47 &lt;- replicate(10000, mean(rnorm......</code> bit of code, it takes a new 10000 random samples.</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fake_sample <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="dv">20</span>, <span class="at">mean =</span> <span class="dv">15</span>, <span class="at">sd =</span> <span class="dv">25</span>)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>fake_sample</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>data47[<span class="dv">5000</span>, ]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code> [1]  38.95  18.62   7.31  -6.25   3.01  16.82  -5.42 -30.46   9.37  -8.39
-[11]  55.23 -23.09  30.71  -1.27   7.98  24.67  -8.52  56.35  40.46 -16.64</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(fake_sample)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 10.5</code></pre>
+<pre><code># A tibble: 1 × 1
+  estimate
+     &lt;dbl&gt;
+1     15.0</code></pre>
 </div>
 </div>
-<p><strong>Another sample:</strong></p>
+<p>Because we have estimates from 10000 samples, ordered from smallest to largest, then the 5000th row is the one where 50% are above, and 50% are below - it’s the median!</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>fake_sample <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="dv">20</span>, <span class="at">mean =</span> <span class="dv">15</span>, <span class="at">sd =</span> <span class="dv">25</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>fake_sample</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>data47 <span class="sc">|&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">med_est =</span> <span class="fu">median</span>(estimate)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code> [1]   9.52  25.14 -15.23 -27.78  37.43   5.88  51.41   0.91 -23.71  35.26
-[11]  21.23  42.19  38.93  19.92  -8.69  25.26  33.49   8.58  -9.15   6.49</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(fake_sample)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 13.9</code></pre>
+<pre><code># A tibble: 1 × 1
+  med_est
+    &lt;dbl&gt;
+1    15.0</code></pre>
 </div>
 </div>
 </div>
@@ -343,22 +372,26 @@ Solution
 Question 2
 </div>
 <div class="question-body">
-<p>From the previous question, you have hopefully noticed 3 things:</p>
-<ol type="1">
-<li>We can make a pretend sample using <code>rnorm()</code>.<br>
-</li>
-<li>Each time we do 1, we get a new, different, sample.<br>
-</li>
-<li>Each time we do 1, the new sample we get has a slightly different mean.</li>
-</ol>
-<p>What we now want to start thinking about is “all the samples we <em>could</em> have taken”, and how their means will vary. Of course we cannot really take ALL the samples, but we can take many (say 1000).</p>
-<p>The function <code>replicate()</code> can let us do something in R lots of times.</p>
-<p>Can you figure out what these two lines of code do?<br>
-Raise your hand if you want a tutor to come and help explain.</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>means20 <span class="ot">&lt;-</span> <span class="fu">replicate</span>(<span class="dv">1000</span>, <span class="fu">mean</span>(<span class="fu">rnorm</span>(<span class="at">n =</span> <span class="dv">20</span>, <span class="at">mean =</span> <span class="dv">15</span>, <span class="at">sd =</span> <span class="dv">25</span>)))</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>means100 <span class="ot">&lt;-</span> <span class="fu">replicate</span>(<span class="dv">1000</span>, <span class="fu">mean</span>(<span class="fu">rnorm</span>(<span class="at">n =</span> <span class="dv">100</span>, <span class="at">mean =</span> <span class="dv">15</span>, <span class="at">sd =</span> <span class="dv">25</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Create a new column of standardised (or z-scored) estimates.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Hint
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Remember that a standardised variable has a mean of 0 and standard deviation of 1.</p>
+</div>
+</div>
+</div>
+<div class="flash">
+<p>Look back to how we did this in week 7! See also…</p>
+<p>🗂️ <a href="https://uoepsy.github.io/dapr1/2627/flashcards/" target="_blank">TODO z score calc flashcard</a> flash card.</p>
 </div>
 </div>
 <p class="question-end">
@@ -370,26 +403,26 @@ Solution
 </div>
 <div id="sol-body-2" class="solution-body proof solution" style="display: none;">
 <p><span class="proof-title"><em>Solution 2</em>. </span></p>
-<ul>
-<li><code>rnorm(n = 20, mean = 15, sd = 25)</code> generates a random sample of n = 20 scores from a normal distribution with mean 15 and standard deviation 25.</li>
-<li><code>mean(rnorm(n = 20, mean = 15, sd = 25))</code> computes the mean of the above 20 numbers.</li>
-<li><code>replicate(1000, mean(rnorm(n = 20, mean = 15, sd = 25)))</code> repeats the above process 1000 times, giving us 1000 means (each mean summarising a sample of 20 numbers).</li>
-</ul>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>means20 <span class="ot">&lt;-</span> <span class="fu">replicate</span>(<span class="dv">1000</span>, <span class="fu">mean</span>(<span class="fu">rnorm</span>(<span class="at">n =</span> <span class="dv">20</span>, <span class="at">mean =</span> <span class="dv">15</span>, <span class="at">sd =</span> <span class="dv">25</span>)))</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(means20) <span class="co"># show the first 6 values</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 20.07 10.83 14.32  6.82 11.83 20.63</code></pre>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>data47 <span class="ot">&lt;-</span> data47 <span class="sc">|&gt;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">est_Z =</span> (estimate <span class="sc">-</span> <span class="fu">mean</span>(estimate)) <span class="sc">/</span> <span class="fu">sd</span>(estimate)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-</div>
-<p>The below computes the means from 1000 samples of size n = 100 each, rather than n = 20 each. You should recall from the lecture that bigger samples should lead to less variability in the means.</p>
+<p>Check it has a mean of 0 and standard deviation of 1.</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>means100 <span class="ot">&lt;-</span> <span class="fu">replicate</span>(<span class="dv">1000</span>, <span class="fu">mean</span>(<span class="fu">rnorm</span>(<span class="at">n =</span> <span class="dv">100</span>, <span class="at">mean =</span> <span class="dv">15</span>, <span class="at">sd =</span> <span class="dv">25</span>)))</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(means100) <span class="co"># show the first 6 values</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>data47 <span class="sc">|&gt;</span> <span class="fu">summarise</span>(</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_est_Z =</span> <span class="fu">mean</span>(est_Z),</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd_est_Z =</span> <span class="fu">sd</span>(est_Z)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 17.0 10.5 14.2 16.8 20.3 15.4</code></pre>
+<pre><code># A tibble: 1 × 2
+  mean_est_Z sd_est_Z
+       &lt;dbl&gt;    &lt;dbl&gt;
+1  -8.89e-16    1.000</code></pre>
 </div>
 </div>
+<p>The number -8.889^{-16} is a very small number, and the notation <code>e-15</code> means that there are 15 zeros after the decimal point before the first non-zero number. So this is very close to 0 as we would expect.</p>
 </div>
 <p class="solution-end">
 </p>
@@ -397,23 +430,28 @@ Solution
 Question 3
 </div>
 <div class="question-body">
-<p>The objects we made in the previous question are “vectors”. Unlike the dataframes we normally work with, these don’t have rows and columns, they just have one dimension.</p>
-<p>In order to plot them, we need to put them into the “rows and column” format. We can make a dataframe in R using the <code>tibble()</code> function.</p>
-<p>Inside <code>tibble()</code>, we give names of variables and the values we want those variables to take:</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>mydata <span class="ot">&lt;-</span> </span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">variable_name =</span> values,</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">variable2_name =</span> values,</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    ...</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p><strong>Task</strong> Make two dataframes, call them something like <code>data20</code> and <code>data100</code> respectively. Each one should have just one column named <code>estimate</code>, which contains the values in <code>means20</code> and <code>means100</code> respectively.</p>
-<div class="flash">
-<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/" target="_blank">TODO making a tibble/df flashcard</a> flash card.</p>
-</div>
+<!-- Last week we saw two ways to quantify how much variability in an estimated mean we would expect due to sampling:  
+
+1. We could generate lots of samples of size $n$, estimate their means, and calculate the standard deviation of all those estimated means
+2. We could use the formula $\frac{\sigma}{\sqrt{n}}$, where $\sigma$ is the standard deviation of scores in the population, and $n$ is the size of the sample.  
+
+Both of these give us the "standard error", or "how estimates from samples of size $n$ vary around the population mean". Another very useful way to express the precision in our estimate is to give the range of plausible value for the parameter. This is known as a "confidence interval" and, if using a 95% confidence level, this is a 95% confidence interval (written 95% CI). -->
+<p>To build a 95% CI we need to find the multipliers that give us the middle 95% in a standard normal distribution.</p>
+<p>This is done by finding:</p>
+<ol type="1">
+<li>the z-score with an area of 0.025 in the lower tail</li>
+<li>the z-score with an area of 0.025 in the upper tail (i.e.&nbsp;an area of 0.975 to the left = 1 - 0.025)</li>
+</ol>
+<!-- Instead of quantifying the precision in our estimate using the standard error (report M and SE), we can quantify it by providing a confidence interval.
+
+1. Generate lots of samples of size $n$, estimate their means, and see where the middle 95% of the means fall
+2. Use the formula $\frac{\sigma}{\sqrt{n}}$, along with the fact that 95% of a normal distribution falls within 1.96 SD of the mean.  
+
+We already have our "lots and lots of samples", so let's do 1 now.   -->
+<p><strong>Task:</strong> Because the data are already ordered by size of the estimate, and we have 10000 of them, find the multipliers (z-scores) corresponding to the middle 9500 estimates. Extract <em>two</em> rows of the data, one that is the first row of the middle 9500, and one that is the last row of the middle 9500. The value of <code>est_Z</code> for these rows will give us the multiplier for the confidence interval</p>
+<p>Bonus– what do you notice about the values of the <code>est_Z</code> column for these rows? They should be close to +/-1.96!</p>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -422,16 +460,11 @@ Question 3
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>Because the <code>means20</code> and <code>means100</code> are vectors, that means they are just a bunch of values. Which means we can follow this logic:</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>myvector <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">7</span>,<span class="dv">3</span>,<span class="dv">5</span>)</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>mydataframe <span class="ot">&lt;-</span> </span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">name_of_column =</span> myvector</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>If we have 10000 things, then the middle 9500 (= 0.95 * 10000) are between 250 and 9750!</p>
+<div class="flash">
+<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/" target="_blank">TODO df[r,c] flashcard</a> flash card.</p>
 </div>
 </div>
 </div>
@@ -447,41 +480,41 @@ Solution
 <div id="sol-body-3" class="solution-body proof solution" style="display: none;">
 <p><span class="proof-title"><em>Solution 3</em>. </span></p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>data20 <span class="ot">&lt;-</span> </span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">estimate =</span> means20</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>data100 <span class="ot">&lt;-</span> </span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">estimate =</span> means100</span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>data47[<span class="fu">c</span>(<span class="dv">250</span>,<span class="dv">9750</span>), ]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 2
+  estimate est_Z
+     &lt;dbl&gt; &lt;dbl&gt;
+1     7.75 -1.99
+2    22.1   1.95</code></pre>
 </div>
+</div>
+<p>The lower multiplier is -1.99 and the upper one is 1.95. As you see, these are close to -1.96 and +1.96, which is what theory expects for a 95% confidence interval. The more samples we take, i.e.&nbsp;if we increased 10000 to even more, the closer these values will get to -1.96 and +1.96.</p>
 </div>
 <p class="solution-end">
 </p>
+</section>
+<section id="how-do-we-use-the-pm-1.96-multipliers-to-create-a-95-confidence-interval" class="level2">
+<h2 class="anchored" data-anchor-id="how-do-we-use-the-pm-1.96-multipliers-to-create-a-95-confidence-interval">How do we use the <span class="math inline">\(\pm 1.96\)</span> multipliers to create a 95% Confidence Interval?</h2>
 <div class="question-begin">
 Question 4
 </div>
 <div class="question-body">
-<p>We should now have two dataframes. One contains the means from 1000 random samples of size 20 (taken from our supposed population of optimism scores that are assumed to be normally distributed with mean of 15 and standard deviation of 25).<br>
-The second contains the means from 1000 random samples of size 100.</p>
-<p>Make a plot of each of these sets of 1000 estimated means.<br>
-(What sort of plot? That’s up to you!).</p>
-<p>When you have made them, let’s display them side by side. To do this, we can use the <strong>patchwork</strong> package (you might need to install it first!). Then we can arrange multiple plots by:</p>
-<ol type="1">
-<li>assigning each plot a name, e.g.&nbsp;<code>plot1 &lt;- ...</code> and <code>plot2 &lt;- ...</code>, and then</li>
-<li>using <code>+</code> to place them side by side (<code>plot1 + plot2</code>) or <code>/</code> to place them underneath each other (<code>plot1 / plot2</code>)</li>
-</ol>
-<p>Each of the plots shows “means from 1000 samples we might see”. Because each sample is a random selection people’s optimism scores, the means of the samples differed (some samples were full of more optimistic people, some with less optimistic people).</p>
+<p>Let’s use the multipliers from theory to compute a confidence interval for the mean population outlook score.</p>
+<p>Recall the formula for a confidence interval is:</p>
+<p><span class="math display">\[\bar{x} \pm 1.96 * SE\]</span></p>
+<p>where <span class="math inline">\(SE\)</span> is the standard error of the mean and is computed as:</p>
 <ul>
-<li>Where can you see differences between the two plots?</li>
-<li>Bonus challenge: why?</li>
+<li><span class="math inline">\(SE = \frac{\sigma}{\sqrt{n}}\)</span> if you know the population standard deviation <span class="math inline">\(\sigma\)</span>, or</li>
+<li><span class="math inline">\(SE = \frac{s}{\sqrt{n}}\)</span> if you only know the sample standard deviation <span class="math inline">\(s\)</span>.</li>
 </ul>
-<div class="flash">
-<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block1/packages.html" target="_blank">Use R packages</a> flash card.</p>
-<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/" target="_blank">TODO patchwork</a> flash card.</p>
-</div>
+<p>Read the data from the DAPR1 class survey (<a href="https://uoepsy.github.io/data/dapr1_2627_survey.cs" class="uri">https://uoepsy.github.io/data/dapr1_2627_survey.cs</a>), and provide a 95% confidence interval for the mean outlook score using the fact that we know that in the population outlook scores have a standard deviation <span class="math inline">\(\sigma = 25\)</span>.</p>
+<!-- ::: {.callout-tip collapse="true"}
+#### Hint
+
+This is just plugging in numbers and using R like a basic calculator.  
+
+::: -->
 </div>
 <p class="question-end">
 </p>
@@ -493,24 +526,27 @@ Solution
 <div id="sol-body-4" class="solution-body proof solution" style="display: none;">
 <p><span class="proof-title"><em>Solution 4</em>. </span></p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>p20 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(data20, <span class="fu">aes</span>(<span class="at">x =</span> estimate)) <span class="sc">+</span></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()</span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>p100 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(data100, <span class="fu">aes</span>(<span class="at">x =</span> estimate)) <span class="sc">+</span></span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()</span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>p20 <span class="sc">+</span> p100</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="08ex_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
-</figure>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read DAPR1 survey data into R and store into an object called `sdata`</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>sdata <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"https://uoepsy.github.io/data/dapr1_2627_survey.csv"</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Only keep the columns representing the participant pseudonym and outlook score</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>sdata <span class="ot">&lt;-</span> sdata<span class="sc">|&gt;</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(pseudonym, outlook)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute sample size (n) and sample mean (xbar)</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">nrow</span>(sdata)</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>xbar <span class="ot">&lt;-</span> <span class="fu">mean</span>(sdata<span class="sc">$</span>outlook)</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute 95% CI</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>xbar <span class="sc">-</span> (<span class="fl">1.96</span> <span class="sc">*</span> <span class="dv">25</span><span class="sc">/</span><span class="fu">sqrt</span>(n))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 17.6</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>xbar <span class="sc">+</span> (<span class="fl">1.96</span> <span class="sc">*</span> <span class="dv">25</span><span class="sc">/</span><span class="fu">sqrt</span>(n))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 26.1</code></pre>
 </div>
 </div>
-</div>
-<p>Means from samples of size n = 20 range between 0 and 30 roughly. Means from samples of size n = 100 range between 8 and 22 roughly, showing that means from bigger samples vary less than means from smaller samples. This is because bigger samples should include a bigger part of the population, so their means should be more similar to that of the full population.</p>
 </div>
 <p class="solution-end">
 </p>
@@ -518,47 +554,12 @@ Solution
 Question 5
 </div>
 <div class="question-body">
-<p>We saw in the lecture that we can characterise “how much a sample estimate will vary due to random sampling” by using the “standard error”. And we saw a formula for this for the sample mean:</p>
-<p><span class="math display">\[
-SE_{\text{mean}} = \frac{\sigma}{\sqrt{n}}
-\]</span></p>
-<p>In the two scenarios we have been creating, we have seen how the means from samples of <span class="math inline">\(n=20\)</span> vary, as well as means from samples of <span class="math inline">\(n=100\)</span>.</p>
-<p>Because we started this by assuming that optimism scores in the population have mean of 15 and standard deviation of 25, we can calculate:</p>
-<div class="columns">
-<div class="column" style="width:50%;">
-<p><span class="math display">\[
-\begin{align}
-SE_{\text{mean, n=20}} &amp;= \frac{25}{\sqrt{20}} \\
-\quad \\
-&amp;= 5.59 \\
-\end{align}
-\]</span></p>
-</div><div class="column" style="width:50%;">
-<p><span class="math display">\[
-\begin{align}
-SE_{\text{mean, n=100}} &amp;= \frac{25}{\sqrt{100}} \\
-\quad \\
-&amp;= 2.5 \\
-\end{align}
-\]</span></p>
+<p>Write an interpretation of the 95% confidence interval you just calculated.</p>
+<div class="flash">
+<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/" target="_blank">flashcard</a> flash card.</p>
 </div>
-</div>
-<p>What <strong>we</strong> have done today is actually <em>generate</em> lots of samples and their means, and stored them in R.</p>
-<p>It’s really cool that statisticians figured out how to estimate the sampling variability, because it save us from having to do all this rigmarole. The standard error calculations above give us estimates of how much the sample estimates will vary because of random sampling. So we can simply use the calculations to get at a <em>theoretical</em> probability distribution (the red curves below), rather than having to actually simulate stuff.</p>
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="08ex_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>Just to give ourselves confirmation, we can compare the calculations above with our simulation, by getting the standard deviation of all the means from samples of size 20, and of all the means from samples of size 100.<br>
-They won’t <em>exactly</em> match the formula calculations above, but they should be close.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
-<p>Check them now.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -567,12 +568,9 @@ They won’t <em>exactly</em> match the formula calculations above, but they sho
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>This is just like calculating the standard deviation for any other variable!</p>
-<div class="flash">
-<p>🗂️ <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block1/variability.html#standard-deviation-sd" target="_blank">Measuring Variability (standard deviation)</a> flash card.</p>
-</div>
+<p>Check the lecture slides for how to interpret a confidence interval.</p>
 </div>
 </div>
 </div>
@@ -585,29 +583,7 @@ Solution
 </button>
 </div>
 <div id="sol-body-5" class="solution-body proof solution" style="display: none;">
-<p><span class="proof-title"><em>Solution 5</em>. </span></p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>data20 <span class="sc">|&gt;</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd =</span> <span class="fu">sd</span>(estimate)</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1 × 1
-     sd
-  &lt;dbl&gt;
-1  5.88</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>data100 <span class="sc">|&gt;</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd =</span> <span class="fu">sd</span>(estimate)</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1 × 1
-     sd
-  &lt;dbl&gt;
-1  2.49</code></pre>
-</div>
-</div>
+<p><span class="proof-title"><em>Solution 5</em>. </span>We are 95% confident that the true mean outlook score of all DAPR1 students is between 17.6 and 26.06.</p>
 </div>
 <p class="solution-end">
 </p>
@@ -621,16 +597,9 @@ Solution
 </div>
 
 
+</section>
 
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
-
-<ol>
-<li id="fn1"><p>(pessimism/optimism measured on the -100 to 100 scale)<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p>(the “8e+08” on the y-axis is a way of writing an eight followed by eight zeros, or 800,000,000 - there are 8 Billion people in the world, so the numbers in each of these histogram bins are going to be huge!)<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn3"><p>That’s why the <span class="math inline">\(SE = \sigma / \sqrt{n}\)</span> formula is so useful! It gives us how much sample means vary from sample to sample without having to take all possible samples.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol>
-</section></div></main> <!-- /main -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
