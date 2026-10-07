@@ -2,7 +2,7 @@
 title: "W10: Null Hypothesis Significance Testing (NHST)"
 format: html
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 <!--
@@ -62,21 +62,19 @@ Navigator instructions:
 
 `r qbegin(qcounter())`
 
-This week, we're going to draw on the ideas we covered over the last few weeks and go step-by-step through the process of performing a 'null hypothesis significance test'.  
+:::frame
+This week, we're going to bring together many of the ideas we covered over the last few weeks and go step-by-step through the process of performing a null hypothesis significance test (NHST).  
+:::
 
 We start with a research question: 
 
 > **Research Question:** Are first year undergraduate students more optimistic than adults in general?  
->   *Operationalisation*: We surveyed students on a first year undergraduate statistics course (that's you!), and asked them to indicate their level of pessimism/optimism on a sliding scale from -100 (pessimist) to +100 (optimist). Previous research using this measure suggests that the overall adult population has an average score of 15 and standard deviation of 25.  
+> **Operationalisation:** We surveyed students on a first year undergraduate statistics course (that's you!), and asked them to indicate their level of pessimism/optimism on a sliding scale from -100 (pessimist) to +100 (optimist). Previous research using this measure suggests that the overall adult population has an average score of 15 and standard deviation of 25.  
 > **Data:** [https://uoepsy.github.io/data/dapr1_2627_survey.csv](https://uoepsy.github.io/data/dapr1_2627_survey.csv){target="_blank"}  
 
-**Task:** Define the null and alternative hypotheses.  
+**Define** the null and alternative hypotheses. 
+(Check the lecture slides for guidance!)
 
-
-:::flash
-🗂️
-See [TODO defining h0 h1? flashcard](https://uoepsy.github.io/dapr1/2627/flashcards/){target="_blank"} flash card.
-:::
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
@@ -94,21 +92,26 @@ $$H_1: \mu > 15$$
 
 
 `r qbegin(qcounter())`
-In future, we're going to learn and use functions in R that do all the steps of NHST for us, but for this week we're going to break down the process, so we're going to need all the different parts.   
+In future, we're going to learn and use functions in R that do all the steps of NHST for us.
+But for this week we're going to break down the process, so you can see every step.
+That means we're going to need a few pieces of information.
 
 We're going to need:  
 
-a. the size of our sample
-b. the mean that we observe in our sample
-c. the hypothesised value that we are testing if our sample mean is equal to
-d. how much we expect samples of our size to vary
+a. the size of our sample (that is, how many observations we have in our dataset), $n$
+b. the mean `outlook` score that we observe in our sample, $M$
+c. the hypothesised value that we are comparing our sample mean to, $\mu$
+d. how much we expect samples of the same size as ours to vary
 
-Write down or calculate each of these now.  
+**Figure out** each of these values.
 
 ::: {.callout-tip collapse="true"}
 #### Hints
+You'll need to read in the data using `read_csv()` first.
 
-For d., this is the "standard error". We have seen the formula for this a few times, it's $\frac{\sigma}{\sqrt{n}}$ (or $\frac{s}{\sqrt{n}}$ if the population standard deviation is unknown). In this case, we are told that the population standard deviation is 25, so $\sigma = 25$.
+"How much we expect samples of the same size as ours to vary" is the standard error, as you saw last week.
+The formula is $\frac{\sigma}{\sqrt{n}}$ (or $\frac{s}{\sqrt{n}}$ if the population standard deviation is unknown). In this case, we are told that the population standard deviation is 25, so $\sigma = 25$.
+And $n$ is the quantity you work out in (a).
 :::
 
 `r qend()`
@@ -117,11 +120,18 @@ For d., this is the "standard error". We have seen the formula for this a few ti
 library(tidyverse)
 sdata <- read_csv("https://uoepsy.github.io/data/dapr1_2627_survey.csv")
 
+# the size of our sample (that is, how many observations we have in our dataset)
 n <- nrow(sdata)
 n
+
+# the mean outlook score that we observe in our sample
 xbar <- mean(sdata$outlook)
 xbar
+
+# the hypothesised value that we are comparing our sample mean to
 mu <- 15
+
+# how much we expect samples of the same size as ours to vary (i.e., the standard error)
 sigma <- 25
 SE <- sigma / sqrt(n)
 SE
@@ -132,13 +142,16 @@ SE
 
 `r qbegin(qcounter())`
 
-Together, the information from the previous question allow us to build up a picture of "what would sample means be like **if** the null hypothesis ($H_0$) were true".  
-We can then calculate the probability of seeing a sample mean at least as extreme as the one we _have_ seen, if the null hypothesis were true:    
+We use all the information from the previous question allow us to build up a picture of "what *would* sample means be like *if* the null hypothesis $H_0$ were true".
 
-```{r}
+Based on that picture, we can calculate the probability of seeing a sample mean at least as extreme as the one we _have_ seen, if the null hypothesis were true.
+
+Here's a visual way of thinking about the key parts of NHST:
+
+```{r fig.width = 8, fig.height = 6, warning = F}
 #| echo: false
 #| label: fig-nhst
-#| fig-cap: "Null hypothesis testing in a nutshell. SE stands for 'standard error'."
+#| fig-cap: "Null hypothesis significance testing in a nutshell. SE stands for 'standard error'."
 set.seed(2394)
 samplemeans <- replicate(2000, mean(rnorm(n=100, mean=0, sd=5)))
 ss = sd(samplemeans)
@@ -159,20 +172,20 @@ g + geom_area(data=ld,aes(x=x,y=y),fill="grey30",alpha=.3) +
   geom_segment(aes(x=1.2,xend=1.2,y=0,yend=180), lty="dashed", col="#2b8ce0")+ 
   # geom_vline(aes(xintercept=1.2),lty="dashed",col="tomato1")+
   labs(x = "statistic")+
-  scale_y_continuous(NULL, breaks=NULL, limits=c(0,275))+
-  annotate("text",x=0, y=260, label="population mean\naccording to\nnull hypothesis", col="grey30")+
-  annotate("text",x=-1.5, y=210, label="means we would expect from\nsamples of size n if the\nnull hypothesis is true", col="grey30")+
+  scale_y_continuous(NULL, breaks=NULL, limits=c(0,300))+
+  annotate("text",x=0, y=280, label="population mean\naccording to\nnull hypothesis", col="grey30")+
+  annotate("text",x=-1.5, y=220, label="means we would expect from\nsamples of size n if the\nnull hypothesis is true", col="grey30")+
   annotate("text",x=1.2, y=220, label="mean we observe\nin our sample", col="#2b8ce0")+
-  annotate("text",x=1.5, y=40, label="probability of seeing\na mean at least\nas extreme\nif null is true", col="tomato1", hjust=0,size=4)+
+  annotate("text",x=1.35, y=100, label="probability\nof seeing a mean\nat least as extreme\nif null is true", col="tomato1", hjust=0)+
   
-  annotate("text",x=-1.5, y=40, label="probability of seeing\na mean at least\nas extreme (in other\ndirection) if null is true", col="tomato1", hjust=1,size=4)+
+  annotate("text",x=-1.3, y=70, label="probability\nof seeing a mean\nat least as extreme\n(in other direction)\nif null is true", col="tomato1", hjust=1)+
   
   
-  geom_curve(aes(x=0, xend=0, y=240, yend=225), col="grey30", size=0.5, curvature = 0, arrow = arrow(length = unit(0.03, "npc")))+
+  geom_curve(aes(x=0, xend=0, y=250, yend=230), col="grey30", size=0.5, curvature = 0, arrow = arrow(length = unit(0.03, "npc")))+
   geom_curve(aes(x=-1, xend=-0.5, y=190, yend=150), col="grey30", size=0.5, curvature = 0.2, arrow = arrow(length = unit(0.03, "npc")))+
-  geom_curve(aes(x=1.2, xend=1.2, y=205, yend=185), col="#2b8ce0", size=0.5, curvature = 0, arrow = arrow(length = unit(0.03, "npc"))) +
-  geom_curve(aes(x=1.45, xend=1.3, y=35, yend=2.5), col="tomato1", size=0.5, curvature = 0, arrow = arrow(length = unit(0.02, "npc")))+
-  geom_curve(aes(x=-1.45, xend=-1.3, y=35, yend=2.5), col="tomato1", size=0.5, curvature = 0, arrow = arrow(length = unit(0.02, "npc")))+
+  geom_curve(aes(x=1.2, xend=1.2, y=200, yend=185), col="#2b8ce0", size=0.5, curvature = 0, arrow = arrow(length = unit(0.03, "npc"))) +
+  geom_curve(aes(x=1.45, xend=1.3, y=55, yend=2.5), col="tomato1", size=0.5, curvature = -0.1, arrow = arrow(length = unit(0.02, "npc")))+
+  geom_curve(aes(x=-1.45, xend=-1.3, y=25, yend=2.5), col="tomato1", size=0.5, curvature = 0.1, arrow = arrow(length = unit(0.02, "npc")))+
   scale_x_continuous(NULL, breaks=c(-2:2)*ss, 
                      labels=c("-2*SE","-1*SE","","1*SE","2*SE"),
                      limits=c(-2.5,2.5))+
@@ -181,15 +194,17 @@ g + geom_area(data=ld,aes(x=x,y=y),fill="grey30",alpha=.3) +
 ```
 
 
-To calculate the probability areas, we're going to need to get convert our mean into a "test statistic", which measures the departure between our sample mean and the hypothesised population mean in terms of how much we expect sample means to vary.
+Our goal for the next two questions is to figure out exactly how much area is in those shaded red regions in the tails of our distribution.
 
-In this case, the test statistic is the z-score or z-statistic. In this case, however, we are doing the process on the weird abstract theoretical distribution of "the means from all the possible samples we _could have taken_".  
+To do this, first we'll need to convert our mean into a "test statistic", which measures the distance between our sample mean and the hypothesised population mean in terms of how much we expect sample means to vary.
+
+In this case, the test statistic is the z-score or z-statistic, because we're comparing our observed mean to the distribution of means from all the possible samples we could have taken.
+
+Using the formula below and the values you figured out above, **calculate** Z.
 
 $$
 Z = \frac{M - \mu}{SE}
 $$
-
-**Task:** Calculate Z 
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
@@ -203,32 +218,51 @@ zstat
 
 
 `r qbegin(qcounter())`
-Now that we have our test statistic, we can calculate the "p-value".  
-This is "probability of seeing a sample mean at least as extreme as the one we _have_ seen, if the null hypothesis were true", and corresponds to one, or both, of the shaded red areas in @fig-nhst, depending on how we phrased $H_1$.  
 
-Z statistics are normally distributed with a mean of 0 and standard deviation of 1, so we just need to use `pnorm()` to find the area of the normal distribution curve that is beyond *our* Z statistic.  
+Now that we have our test statistic, we can calculate the corresponding "p-value".  
+
+A p-value is the probability of seeing a sample mean at least as extreme as the one we _have_ seen, if the null hypothesis were true.
+It corresponds to one, or both, of the shaded red areas in @fig-nhst, depending on how we phrased $H_1$. 
+(See the Hint below for more detail on this!)
+
+Z-statistics are follow a normal distribution with a mean of 0 and standard deviation of 1, which is called the "standard normal distribution".
+To work out the area of the standard normal distribution that's on the appropriate side of *our* z-statistic, we can use our old friend `pnorm()`.
+
+Using `pnorm()`, **figure out** how much of the area under the standard normal distribution is beyond your z-statistic, in the direction corresponding to your $H_1$.
 
 ::: {.callout-tip collapse="true"}
 #### Hint
 
-The direction is always the same as the direction of $H_1$:
+The direction of the area you'll need to find is always the same as the direction of $H_1$:
 
-- If $H_1$ includes the > symbol, then you need to find the area to the right of your Z statistic.
-- If $H_1$ includes the < symbol, then you need to find the area to the left of your Z statistic.
-- If $H_1$ is two-sided, then you need both areas.
+- If $H_1$ includes the > ("greater than") symbol, then you need to find the area to the right of your z-statistic.
+- If $H_1$ includes the < ("less than") symbol, then you need to find the area to the left of your z-statistic.
+- If $H_1$ is two-sided, then you need to find the area on the side that the z-statistic is closest to (e.g., if your z-statistic is positive, find the area to the right), and then double that value to account for both tails of the distribution.
+:::
+
+:::flash
+🗂️
+See [Explore a normally-distributed variable](https://uoepsy.github.io/dapr1/2627/flashcards/block2/pnorm-qnorm.html){target="_blank"} flash card.
 :::
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
 
-As $H_1 : \mu > 15$, we need to find the area to the right of our Z statistic.
+As our $H_1$ states that $\mu > 15$, we need to find the area to the *right* of our z-statistic.
 
-Area to the right = 1 - area to the left: 
+By default, `pnorm()` will give us the area to the *left*.
+So to get the opposite of that, we subtract the outcome of `pnorm()` from 1.
 
 ```{r}
 1 - pnorm(zstat)
 ```
 
+The probability of observing a z-statistic like ours or even more positive, assuming the true population mean were 15, is .000784, or `r (1 - pnorm(zstat)) * 100`%.
+Very unlikely!
+
+<!-- Imagine we set our $\alpha$ level (our significance level) to .05 or 5%. -->
+<!-- This is normally what we do in Psychology. -->
+<!-- Because our p-value is below 5%, we can reject our H0 at $\alpha$ = .05. -->
 
 `r solend()`
 
@@ -236,29 +270,31 @@ Area to the right = 1 - area to the left:
 
 `r qbegin(qcounter())`
 
-Fill in the blanks:
+Do your best to **fill in the blanks** in the APA-style report below:
 
-Let $\mu$ denote the (1)____. At the (2)____ significance level, we performed a one sample z-
-test of (3)____ against (4)____.
-The sample mean (5)____ (_M_ = (6)____, _SD_ = (7)____) was (8)____ (_z_ = (9)____, _p_ = (10)____, (11)____).
+Let $\mu$ denote the (1)__________. 
+At the 5% significance level, we performed a one sample z-test of (2)____ against (3)____.
+The sample mean (4)__________ (_M_ = (5)____, _SD_ = (6)____) was (7)__________ (_z_ = (8)____, _p_ (9)____, (10)____).
 
+Check the lecture slides for guidance, and ask a tutor if you're unsure!
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
 
-- (1): mean optimism score of all adults
-- (2): 5%
-- (3): $H_0: \mu = 15$
-- (4): $H_1: \mu > 15$
-- (5): optimism score of first year undergraduate students
-- (6): 42.70
-- (7): 26.38
-- (8): significantly higher than the mean optimism score of all adults
-- (9): 7.09
-- (10): < .001
-- (11): one-sided
+1. mean optimism score of all adults
+1. $H_0: \mu = 15$
+1. $H_1: \mu > 15$
+1. optimism score of first year undergraduate students
+1. `r mean(sdata$outlook) |> round(2)`
+1. `r sd(sdata$outlook) |> round(2)`
+1. significantly higher than the mean optimism score of all adults
+1. `r round(zstat, 2)`
+1. < .001
+1. one-sided
 
-Let $\mu$ denote the **mean optimism score of all adults**. At the **5%** significance level, we performed a one sample z-test of $H_0: \mu = 15$ against $H_1: \mu > 15$.
-The sample mean **optimism score of first year undergraduate students** (_M_ = **42.7**, _SD_ = **26.38**) was **significantly higher than the mean optimism score of all adults** (_z_ = **7.09**, _p_ < **.001**, **one-sided**).
+Here's the whole thing:
+
+Let $\mu$ denote the **mean optimism score of all adults**. At the 5% significance level, we performed a one sample z-test of $H_0: \mu = 15$ against $H_1: \mu > 15$.
+The sample mean **optimism score of first year undergraduate students** (_M_ = **21.83**, _SD_ = **45.86**) was **significantly higher than the mean optimism score of all adults** (_z_ = **3.16**, _p_ < **.001**, **one-sided**).
 
 `r solend()`
 
