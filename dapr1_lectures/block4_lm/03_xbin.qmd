@@ -12,6 +12,7 @@ library(tidyverse)
 library(gganimate)
 library(patchwork)
 source("_theme/helpers.R")
+source('_theme/theme_quarto.R')
 ```
 
 
@@ -76,55 +77,597 @@ course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=7)
 
 ## This week
 
-1. What if my predictor is binary?
+1. What if my predictor contains categories?
 2. Moving between means
+3. Common tests as linear models   
 
-## lines again
+# categorical predictors
 
-model equation
-plot
-r summary
-
-## doing maths with words
-
-head data
+## lines again..  
 
 
-y ~ b0 + b1 * "disrupted"
+::::{.columns}
+:::{.column width="50%"}
+**The general idea:**  
+$$
+\begin{align}
+\color{red}{\text{outcome}} &= \color{blue}{\text{model}} +  \color{black}{\text{error}} \\
+\end{align}
+$$
+**The linear model:**  
+$$
+\begin{align}
+\color{red}{y} &= \color{blue}{\underset{\underset{\text{intercept}}{\uparrow}}{b_0} + \underset{\underset{\text{slope}}{\uparrow}}{b_1} \cdot x} + \color{black}{\epsilon}
+\end{align}
+$$
 
-computer says no... 
+:::
+:::{.column width="50%"}
+```{r}
+#| echo: false
+#| fig-height: 8
+set.seed(65683728)
+df <- tibble(
+  x = runif(100,0,10),
+  y = rnorm(100,33+2*x,3)
+)
 
-## expressing groups as numbers
+fitw = lm(y~x,df)
+segsw <- tibble(x1 = 0:6, x2 = x1+1) |> 
+  mutate(
+    y1 = map_dbl(x1,~(c(1,.)%*%coef(fitw))[1]),
+    y2 = map_dbl(x2,~(c(1,.)%*%coef(fitw))[1]),
+    xlp = (x1+x2)/2,
+    ylp = (y1+y2)/2
+  )
+df |> 
+  ggplot(aes(x,y))+
+  geom_point(size=3,alpha=.4)+
+  stat_smooth(method=lm,se=FALSE,color="#0000FF",lwd=1) +
+  geom_point(x=0,y=coef(fitw)[1],col="#0000FF",size=5)+
+  geom_segment(data = segsw, aes(x=x1,xend=x2,y=y1,yend=y1),
+               lty="dashed",col="#0000FF")+
+  geom_segment(data = segsw, aes(x=x2,xend=x2,y=y1,yend=y2),
+               lty="dashed",col="#0000FF") +
+  theme_quarto(title_font_size = 28)+
+  scale_x_continuous(breaks=0:10)
+```
+:::
+::::
 
-cols: 
-original, isA 1/0
+## that example again..  
 
-## ??
 
-example with 3 levels to show that this isn't just 
-A=0,B=1,C=2,D=3... 
+::::{.columns}
+:::{.column width="50%" style="font-size:.5em"}
 
-showing this to help understand the logic, but for dapr1 we're just dealing with binary
+**The idea:**  
+$$
+\begin{align}
+\color{red}{\text{outcome}} &= \color{blue}{\text{model}} + \color{black}{\text{error}} \\
+\quad \\
+\color{red}{y} &= \color{blue}{\underset{\underset{\text{intercept}}{\uparrow}}{b_0} + \underset{\underset{\text{slope}}{\uparrow}}{b_1} \cdot x} + \color{black}{\varepsilon}
+\end{align}
+$$
 
-## R does it for us
+**Our model:**  
+$$
+\begin{align}
+\color{red}{\text{ProblemSolving_Score}} &= \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot \text{Nights_Disrupted}} + \color{black}{\varepsilon} \\
+\end{align}
+$$
 
-remember, types of data in R:
-numeric, factor, character
+:::{.fragment fragment-index=1}
+**Our estimated model:**  
+$$
+\begin{align}
+\color{red}{\text{ProblemSolving_Score}} &= \,\,\,\color{blue}{58 \,\,\,- 1.5 \cdot \text{Nights_Disrupted}} + \color{black}{\varepsilon}
+\end{align}
+$$
+:::
 
-when x is characters or factors, `lm()` will do this all for you:  
+:::
+:::{.column width="50%"}
 
-## what are b0 and b1?  
+:::{.r-stack}
 
-show plot, x axis has labels, and underneath 0 and 1
+```{r}
+#| echo: false
+#| fig-height: 8
+set.seed(65683728)
+sleepdf <- tibble(
+  n_disrupted = rep(0:7,e=10),
+  psolve = (58 - 1.5 * n_disrupted) + 
+    residuals(lm(rnorm(80,0,7) ~ rep(0:7,e=10)))
+) |> slice_sample(prop=1)
 
-## the underlying maths is still a line!  
 
-show last plot with line
+fitw = lm(psolve~n_disrupted,sleepdf)
 
-**but** we can't have values other than 0 and 1. 
-some people don't like to think of this as a line because a line aross X implies a continuum
+segsw <- tibble(x1 = 0:6, x2 = x1+1) |> 
+  mutate(
+    y1 = map_dbl(x1,~(c(1,.)%*%coef(fitw))[1]),
+    y2 = map_dbl(x2,~(c(1,.)%*%coef(fitw))[1]),
+    xlp = (x1+x2)/2,
+    ylp = (y1+y2)/2
+  )
+sleepdf |> 
+  ggplot(aes(x=n_disrupted,y=psolve))+
+  geom_point(size=3,col="tomato1",alpha=.5)+
+  stat_smooth(method=lm,se=FALSE,color="#0000FF",lwd=1) +
+  geom_point(x=0,y=coef(fitw)[1],col="#0000FF",size=5)+
+  geom_segment(data = segsw, aes(x=x1,xend=x2,y=y1,yend=y1),
+               lty="dashed",col="#0000FF")+
+  geom_segment(data = segsw, aes(x=x2,xend=x2,y=y1,yend=y2),
+               lty="dashed",col="#0000FF") +
+  theme_quarto(title_font_size = 28)+
+  scale_x_continuous(breaks=0:7)
+```
 
-## moving between categories
+:::{.fragment fragment-index=1}
+```{r}
+#| echo: false
+#| fig-height: 8
+sleepdf |> 
+  ggplot(aes(x=n_disrupted,y=psolve))+
+  geom_point(size=3,col="tomato1",alpha=.5)+
+  stat_smooth(method=lm,se=FALSE,color="#0000FF",lwd=1) +
+  geom_point(x=0,y=coef(fitw)[1],col="#0000FF",size=5)+
+  geom_segment(data = segsw, aes(x=x1,xend=x2,y=y1,yend=y1),
+               lty="dashed",col="#0000FF")+
+  geom_segment(data = segsw, aes(x=x2,xend=x2,y=y1,yend=y2),
+               lty="dashed",col="#0000FF") +
+  theme_quarto(title_font_size = 28)+
+  scale_x_continuous(breaks=0:7)+
+  annotate(geom="label",label="58",x=.5,y=65,hjust=0,col="blue",size=5) +
+  geom_curve(aes(x=0.5, xend=0, y=65, yend=58.5), 
+             col="blue", size=0.5, curvature = 0.2, 
+             arrow = arrow(length = unit(0.03, "npc"))) +
+  annotate(geom="label",label="-1.5",x=1.5,y=60,hjust=0,col="blue",size=5) +
+  geom_curve(aes(x=1.5, xend=1, y=60, yend=57), 
+             col="blue", size=0.5, curvature = 0, 
+             arrow = arrow(length = unit(0.02, "npc")))+
+  annotate(geom="label",label="-1.5",x=2.5,y=58,hjust=0,col="blue",size=5) +
+  geom_curve(aes(x=2.5, xend=2, y=58, yend=55.5), 
+             col="blue", size=0.2, curvature = 0, 
+             arrow = arrow(length = unit(0.02, "npc")))+
+  annotate(geom="label",label="-1.5",x=3.5,y=56,hjust=0,col="blue",size=5) +
+  geom_curve(aes(x=3.5, xend=3, y=56, yend=54), alpha=.2,
+             col="blue", size=0.1, curvature = 0, 
+             arrow = arrow(length = unit(0.02, "npc")))
+```
+:::
+
+:::
+:::
+::::
+
+## that example again.. (2) {.smaller}
+
+**Design:**  
+People have 0, 1, 2, .... nights of sleep disruption.  
+
+**Data:**  
+```{r}
+head(sleepdf)
+```
+
+**Model:**  
+$\color{red}{\text{ProblemSolvingScore}} = \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot \text{NightsDisrupted}} + \color{black}{\varepsilon}$
+
+:::{.fragment fragment-index=1}
+
+**Predictions:**  
+
+$\color{red}{\text{ProblemSolvingScore}} = \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot 0} + \color{black}{\varepsilon}$  
+$\color{red}{\text{ProblemSolvingScore}} = \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot 1} + \color{black}{\varepsilon}$  
+$\color{red}{\text{ProblemSolvingScore}} = \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot 2} + \color{black}{\varepsilon}$  
+$\color{red}{\text{ProblemSolvingScore}} = \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot 3} + \color{black}{\varepsilon}$  
+...
+
+:::
+
+## example 2 {.smaller}
+
+```{r}
+#| echo: false
+set.seed(65683728)
+xbin = sample(c("Good","Bad"),60,T,prob=c(.6,.4))
+sleepdf2 <- tibble(
+  sleep_quality = xbin,
+  psolve = (50 + 7.5 * (sleep_quality=="Good")) + 
+    residuals(lm(rnorm(60,0,7) ~ xbin))
+) |> slice_sample(prop=1)
+
+```
+
+
+**Design:**  
+People have "good" or "bad" sleep
+
+**Data:**  
+```{r}
+head(sleepdf2)
+```
+
+**Model:**  
+$\color{red}{\text{ProblemSolvingScore}} = \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot \text{SleepQuality}} + \color{black}{\varepsilon}$
+
+:::{.fragment fragment-index=1}
+
+**Predictions:**  
+
+$\color{red}{\text{ProblemSolvingScore}} = \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot \text{'Bad'}} + \color{black}{\varepsilon}$  
+$\color{red}{\text{ProblemSolvingScore}} = \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot \text{'Good'}} + \color{black}{\varepsilon}$  
+
+:::
+
+## doing maths with words  
+
+::::{.columns}
+:::{.column width="50%"}
+```{r}
+#| echo: false
+head(sleepdf2)
+```
+
+- We can't multiply a number by a word.  
+    - $\color{blue}{b_0 + b_1 \cdot \text{'Bad'}}$ and $\color{blue}{b_0 + b_1 \cdot \text{'Good'}}$ don't make sense 
+    
+:::
+:::{.column width="50%" .fragment}
+```{r}
+#| echo: false
+sleepdf2 |> 
+  mutate(
+    isGood = (sleep_quality=="Good")*1, .after=sleep_quality
+  ) |> head()
+```
+
+- But we can represent categories as binary 0/1 variables:  
+- And using the binary variable makes the maths work:  
+    - $\color{blue}{b_0 + b_1 \cdot 0}$ and $\color{blue}{b_0 + b_1 \cdot 1}$ are both arithmetically valid
+
+:::
+:::: 
+
+
+## expressing categories as numbers
+
+With just two levels, we just map 0s and 1s to the two categories:  
+
+```{r}
+sleepdf2 |> 
+  mutate(
+    isGood = ifelse(sleep_quality=="Good", 1, 0)
+  )
+```
+
+## with 3+, we need more
+#### (this doesn't come up again until DAPR2) 
+
+```{r}
+#| echo: false
+set.seed(3588)
+xbin = sample(c("Good","Average","Bad"),60,T,prob=c(.2,.6,.2))
+sleepdf3 <- tibble(
+  sleep_quality = xbin,
+  psolve = (50 + 7.5 * (sleep_quality=="Good")) + 
+    residuals(lm(rnorm(60,0,7) ~ xbin))
+) |> slice_sample(prop=1)
+
+```
+
+```{r}
+sleepdf3 |> 
+  mutate(
+    isGood = ifelse(sleep_quality=="Good", 1, 0),
+    isBad = ifelse(sleep_quality=="Bad",1,0)
+  )
+```
+
+
+## lm() does it for us!  
+
+- variables in R can be:  
+    - numeric
+    - factor
+    - character
+    
+- when a predictor is either character or factor, `lm()` will do this all for us.  
+
+
+## lm() does it for us! - example 2
+
+```{r}
+head(sleepdf2)
+
+sleepqual_mod <- lm(psolve ~ sleep_quality, data = sleepdf2)
+
+sleepqual_mod
+```
+
+the category named in the coefficients is the one that is coded as 1.  
+the category not mentioned is coded as 0.  
+
+## what are $b_0$ and $b_1$?  
+
+**The Model:**  
+$$
+\color{red}{\text{ProblemSolvingScore}} = \color{blue}{b_0 + b_1 \cdot \text{(SleepQuality="Good")}} + \color{black}{\varepsilon}
+$$
+
+- for people with "Bad" sleep quality:  
+
+$$
+\begin{align}
+\color{red}{\text{ProblemSolvingScore}} &= \color{blue}{b_0 + b_1 \cdot 0} \\
+ &= \color{blue}{b_0} \\
+\end{align}
+$$  
+
+- for people with "Good" sleep quality:  
+
+$$
+\begin{align}
+\color{red}{\text{ProblemSolvingScore}} &= \color{blue}{b_0 + b_1 \cdot 1} \\
+ &= \color{blue}{b_0 + b_1 }
+\end{align}
+$$  
+
+
+## what are $b_0$ and $b_1$?  
+
+**The Model:**  
+$$
+\color{red}{\text{ProblemSolvingScore}} = \color{blue}{b_0 + b_1 \cdot \text{(SleepQuality="Good")}} + \color{black}{\varepsilon}
+$$
+
+```{r}
+#| eval: false
+#| code-fold: true
+sleepdf2 |> 
+  ggplot(aes(x=sleep_quality, y=psolve))+
+  # jitter adds a little noise to the data, so that points don't overlap
+  # height and width control how much noise 
+  geom_jitter(size = 3, alpha = .5, height = 0, width = .1) +
+  theme_quarto(title_font_size = 28)
+```
+
+:::{.r-stack}
+
+```{r}
+#| echo: false
+set.seed(3455)
+sleepdf2 |> 
+  ggplot(aes(x=sleep_quality, y=psolve))+
+  geom_jitter(size = 3, alpha = .5, height = 0, width = .1) +
+  theme_quarto(title_font_size = 28)+
+  scale_x_discrete(labels = c(" \nBad"," \nGood"))
+```
+
+:::{.fragment fragment-index=1}
+```{r}
+#| echo: false
+set.seed(3455)
+sleepdf2 |> 
+  ggplot(aes(x=sleep_quality, y=psolve))+
+  geom_jitter(size = 3, alpha = .5, height = 0, width = .1) +
+  scale_x_discrete(labels = c("0\nBad","1\nGood"))+
+  theme_quarto(title_font_size = 28)
+```
+
+:::
+
+:::{.fragment fragment-index=2}
+```{r}
+#| echo: false
+fitw = sleepqual_mod
+set.seed(3455)
+sleepdf2 |> 
+  ggplot(aes(x=sleep_quality, y=psolve))+
+  geom_jitter(size = 3, alpha = .5, height = 0, width = .1) +
+  scale_x_discrete(labels = c("0\nBad","1\nGood"))+
+  geom_point(x=1,y=coef(fitw)[1],col="#0000FF",size=5)+
+  geom_segment(x=1,xend=2,y=coef(fitw)[1],yend=coef(fitw)[1],
+               lty="dashed",col="#0000FF")+
+  geom_segment(x=2,xend=2,y=coef(fitw)[1],yend=sum(coef(fitw)),
+               lty="dashed",col="#0000FF")+
+  geom_abline(intercept=coef(fitw)[1]-coef(fitw)[2],slope=coef(fitw)[2],
+              col="blue",alpha=.3)+
+  theme_quarto(title_font_size = 28)
+```
+
+:::
+
+:::{.fragment fragment-index=3}
+```{r}
+#| echo: false
+fitw = sleepqual_mod
+set.seed(3455)
+sleepdf2 |> 
+  ggplot(aes(x=sleep_quality, y=psolve))+
+  geom_jitter(size = 3, alpha = .5, height = 0, width = .1) +
+  scale_x_discrete(labels = c("0\nBad","1\nGood"))+
+  geom_point(x=1,y=coef(fitw)[1],col="#0000FF",size=5)+
+  geom_segment(x=1,xend=2,y=coef(fitw)[1],yend=coef(fitw)[1],
+               lty="dashed",col="#0000FF")+
+  geom_segment(x=2,xend=2,y=coef(fitw)[1],yend=sum(coef(fitw)),
+               lty="dashed",col="#0000FF")+
+  geom_abline(intercept=coef(fitw)[1]-coef(fitw)[2],slope=coef(fitw)[2],
+              col="blue",alpha=.3)+
+  annotate(geom="label",x=0.95,y=51.5,label="b[0]", parse = TRUE,
+           size = 5, col="blue")+
+  annotate(geom="label",x=2.05,y=53.75,label="b[1]", parse = TRUE,
+           size = 5, col="blue")+
+  theme_quarto(title_font_size = 28)
+```
+:::
+
+:::
+
+
+## coefficients
+
+::::{.columns}
+:::{.column width="65%"}
+
+```{r}
+#| eval: false
+summary(sleepqual_mod)
+```
+```{r}
+#| echo: false
+.pp(summary(sleepqual_mod),l = list(c(1:14),0,0,0,0))
+```
+
+:::
+:::{.column style="width:35%;font-size:.7em;color:#cc3363"}
+
+<br><br><br><br><br><br><br><br>
+
+<< predicted Y when X=0  
+<< change in predicted Y when X goes from x to x+1
+
+
+:::
+::::
+
+## coefficients {visibility="uncounted"}
+
+::::{.columns}
+:::{.column width="65%"}
+
+```{r}
+#| eval: false
+summary(sleepqual_mod)
+```
+```{r}
+#| echo: false
+.pp(summary(sleepqual_mod),l = list(c(1:14),0,0,0,0))
+```
+
+:::
+:::{.column style="width:35%;font-size:.7em;color:#cc3363"}
+
+<br><br><br><br><br><br><br><br>
+
+<< predicted Y for reference category  
+<< change in predicted Y when moving from reference category to named category  
+
+:::
+::::
+<!-- - the estimated intercept and slope of the line -->
+<!-- - the $b_0$ and $b_1$ in $y = b_0 + b_1 \cdot x$ -->
+
+
+## changing reference category?  
+
+Do we want:  
+<br>
+$\color{red}{\text{ProblemSolvingScore}} = \color{blue}{b_0 + b_1 \cdot \text{(SleepQuality="Good")}} + \color{black}{\varepsilon}$  
+  
+  <br>
+or  
+  <br>
+$\color{red}{\text{ProblemSolvingScore}} = \color{blue}{b_0 + b_1 \cdot \text{(SleepQuality="Bad")}} + \color{black}{\varepsilon}$
+
+## R defaults to alphabetical
+
+::::{.columns}
+:::{.column width="65%"}
+
+```{r}
+#| eval: false
+summary(sleepqual_mod)
+```
+```{r}
+#| echo: false
+.pp(summary(sleepqual_mod),l = list(c(1:14),0,0,0,0))
+```
+
+:::
+:::{.column style="width:35%;font-size:.7em;color:#cc3363"}
+
+<br><br><br><br><br><br><br><br>
+
+- "Good" is mentioned here to indicate moving from the reference category to "Good"  
+- the intercept (the reference category) must therefore be "Bad" because it's not mentioned in the slope  
+
+
+:::
+::::
+
+## factors give us control
+
+```{r}
+#| eval: false
+sleepdf2 <- sleepdf2 |>
+  mutate(
+                                                # note the ordering
+    sleep_quality = factor(sleep_quality, levels = c("Good", "Bad"))
+    
+  )
+
+sleepqual_mod <- lm(psolve ~ sleep_quality, data = sleepdf2)
+sleepqual_mod
+```
+
+:::{.fragment}
+```{r}
+#| echo: false
+sleepdf2 <- sleepdf2 |>
+  mutate(
+    sleep_quality = factor(sleep_quality, 
+                           levels = c("Good", "Bad"))
+  )
+
+sleepqual_mod <- lm(psolve ~ sleep_quality, data = sleepdf2)
+sleepqual_mod
+```
+:::
+
+
+
+
+# common tests as linear model
+
+
+## t.test 
+
+y~group
+
+## cor.test
+
+we started whole discussion of lines with a scatterplot and correlations.  
+
+correlation is a standardised metric  
+
+we can phrase this as 
+
+"how many SDs does Y increase by, when X increases by 1 SD?"  
+
+# refresher standardising/z scoring?
+
+distribution doesn't change. just the numbers
+
+# scatterplot
+
+plots of 
+
+anim 1 - y~x and scale(y)~scale(x)
+anim 2 - with lines
+anim 3 - with rise run
+
+note signif doesn't change.  
+
+
+
+
+
+
+
+
 
 
 
