@@ -1,0 +1,289 @@
+---
+title: "W1: One-sample t-tests"
+format: html
+---
+
+<!--
+WHEN RENDERING: 
+
+- tutor-facing: 
+  - either use the build button, or render specific files. or in the terminal using `quarto render`
+  - resulting file will land in `docs/YEAR/workshops/tutors/`
+  - solutions will always be visible
+  
+- student-facing:
+  - set current_block: to the block we're in
+  - render in Terminal using either: 
+      - `quarto render --profile production`
+      - `quarto render FILE.qmd --profile production`
+  - resulting file will land in `docs/YEAR/workshops/`
+  - solutions will be available for previous blocks.  
+  
+-->
+
+```{r}
+#| include: false
+library(tidyverse)
+source('assets/dropdowns.R')
+source('assets/setup.R')
+
+vars <- readRDS("block_sols.rds")
+# set params manually rather than yaml params
+params <- list(
+  SHOW_SOLS = tryCatch({ vars$sols[[tools::file_path_sans_ext(knitr::current_input(dir=FALSE))]]},
+                       error = function(e) { TRUE } ),
+  TOGGLE = TRUE
+)
+```
+
+<!-- MAX 5 QUESTIONS -->
+<!-- make each question ~10 minute work -->
+<!-- MAX 5 QUESTIONS -->
+<!-- MAX 5 QUESTIONS -->
+
+:::frame
+Pick someone to be the driver this week.
+
+The driver will type the code. The rest of you are navigators, you need to tell the driver where to go (i.e., what to type!).
+
+Driver instructions:
+
+1. Log in to the bigger screen at your table
+2. Open RStudio Server. See the first drop-down in the [FAQs page](https://uoepsy.github.io/dapr1/2627/misc/faqs-dapr1.html){target="_blank"} for instructions
+3. Open a new .R script, and load the **tidyverse** package.
+4. Listen to your navigators
+
+Navigator instructions:
+
+1. Tell your driver where to go (i.e., what to type)!
+
+:::
+
+
+You will be working with the DAPR1 class survey data again, available at <https://uoepsy.github.io/data/dapr1_2627_survey.csv>. Load the data into R before answering any questions.
+
+This week, you will focus on the `procrast` variable, which measures how often students tend to procrastinate on tasks or responsibilities on a scale from 0 (never) to 100 (always). The neutral midpoint of this scale is 50, which represents "about half the time".
+
+Our research question for this workshop (using a 5% significance level) is: 
+
+> Do university students report procrastinating significantly more than the neutral midpoint of 50?
+
+
+`r qbegin(qcounter())`
+<!-- Q1 plot data + write summary of pattern in plot -->
+
+Visualise the distribution of the `procrast` variable. Add a vertical or horizontal dashed line at the neutral midpoint (50) to help visualise the hypothesised mean value.
+
+Once you have created the plot, write a few sentences that summarise what you observe. Does the bulk of the distribution appear to sit above or below 50?
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+You can add dashed lines to a `ggplot` using:
+
+- `geom_vline(xintercept = [null hypothesis value], linetype = "dashed", colour = [colour])` for vertical lines
+- `geom_hline(yintercept = [null hypothesis value], linetype = "dashed", colour = [colour])` for horizontal lines
+:::
+
+:::flash
+
+TODO - Link to plotting the distribution of a single variable (histogram, density, etc.)
+
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+```{r}
+library(tidyverse)
+sdata <- read_csv("https://uoepsy.github.io/data/dapr1_2627_survey.csv")
+
+ggplot(sdata, aes(x = procrast)) +
+  geom_density() +
+  geom_vline(xintercept = 50, linetype = "dashed", colour = "red") +
+  labs(x = "Procrastination Scores (0-100)")
+```
+
+The distribution of procrastination scores appears to be centred above the neutral midpoint of 50, with a peak at around 75 indicating unimodality. This suggests that students may, on average, report procrastinating more than "about half the time".
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q2 specify hypotheses -->
+
+Based on our research question, specify the null ($H_0$) and alternative ($H_1$) hypotheses.
+
+Provide your answer in both plain English and mathematical symbols (using $\mu$ for the population mean). In your dissertation or research you only need one of the two, but we want you to practice both this week.
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+Remember that the null hypothesis always states "no difference", "no effect", or "nothing interesting going on". The alternative hypothesis should reflect the direction of our research question.
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+- Null hypothesis ($H_0$): The mean procrastination score of university students does not differ from the neutral midpoint of 50.  
+In symbols: $H_0: \mu = 50$
+
+- Alternative hypothesis ($H_1$): The mean procrastination score of university students is greater than the neutral midpoint of 50.  
+In symbols: $H_1: \mu > 50$
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q3 run one-sample t-test -->
+
+Use the `t.test()` function in R to test your hypotheses.
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+- The R code is `t.test([data]$[variable], mu = [value], alternative = "[direction]", conf.level = [value])`.
+- The value specified in $H_0$ goes in `mu` = `[value]`.
+- Alternative can either be `"two.sided"`, `"less"`, `"greater"` and it corresponds to the direction of $H_1$.
+- A 95% confidence level corresponds to an alpha of .05.
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+```{r}
+t.test(sdata$procrast, mu = 50, alternative = "greater", conf.level = 0.95)
+```
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q4 check assumptions -->
+
+<!-- Also added: data requirements -->
+
+A one-sample t-test is valid if three things are satisfied:
+
+1. Data requirement. The variable is numeric.
+2. Assumption of independence. Observations are sampled independently.
+2. Assumption of normality. Either the population is normally distributed or the sample size is $\geq$ 30.
+
+Are the requirements/assumptions met for our data?
+
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+- Think about the study design.
+- Check the sample size using `nrow()`.
+- Create a QQ-plot to visually assess the normality of the `procrast` variable using `geom_qq()` and `geom_qq_line()`. Run a Shapiro-Wilk test using the `shapiro.test()` function.
+:::
+
+:::flash
+
+TODO - Link to assumption checking flashcards (e.g. QQ-plot/Shapiro test)
+
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+1. The variable is numeric, as you can see from the output of `glimpse()` or `str()`.
+
+```{r}
+glimpse(sdata)
+```
+
+2. Independence is assumed based on study design (one response per unique pseudonym/person).
+
+3. Assumption of normality
+
+```{r}
+nrow(sdata)
+```
+
+The sample size is $n$ = `r nrow(sdata)`, which is well over 30, satisfying the assumption due to the Central Limit Theorem.
+
+```{r}
+ggplot(sdata, aes(sample = procrast)) +
+  geom_qq() +
+  geom_qq_line() +
+  labs(x = "Theoretical quantiles", y = "Sample quantiles")
+
+shapiro.test(sdata$procrast)
+```
+
+The QQ-plot shows some deviation from normality, and the Shapiro-Wilk test is significant ($W = 0.96, p < .001$), leading to rejection of the null hypothesis of normality. However, the assumption of normality is met due to the large sample size.
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q5 write up / report -->
+
+Let's now practice how to report the results of a one-sample t-test using APA style.
+
+First, calculate the sample mean and standard deviation of the `procrast` variable using the `summarise()` function.
+
+Then, write up your one-sample t-test results. Your write-up should include:
+
+- A explanation of what was tested.
+- The sample mean ($M$) and standard deviation ($SD$).
+- The test results in APA format: $t$([degrees of freedom]) = [t-statistic], $p$ = [p-value], [one-tailed/two-tailed].
+- A final sentence to explain whether the null hypothesis was rejected and what this means in context.
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+This is the write-up from the lecture slides as an example:
+
+> We wanted to find out whether college students score above the threshold for "low loneliness" on the UCLA Loneliness scale, which is 34.
+At the 5% significance level, we performed a one-sided test of significance against the null hypothesis that college students' loneliness is equal to 34.
+The results indicate that the mean loneliness for college students, 40.3, is significantly higher than the "low loneliness" threshold of 34 ($t$(486) = 15, $p$ < .001, one-tailed).
+
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+```{r}
+sdata |> 
+  summarise(
+    M = mean(procrast, na.rm = TRUE),
+    SD = sd(procrast, na.rm = TRUE)
+  )
+```
+
+```{r}
+#| echo: false
+tbl <- sdata |> 
+  summarise(
+    M = mean(procrast, na.rm = TRUE),
+    SD = sd(procrast, na.rm = TRUE)
+  )
+M <- tbl$M |>
+  round(2)
+SD <- tbl$SD |>
+  round(2)
+
+library(broom)
+test <- t.test(sdata$procrast, mu = 50, alternative = "greater", conf.level = 0.95) |>
+  broom::tidy()
+```
+
+> A one-sample t-test was conducted to determine whether university students report procrastinating at significantly higher levels than the 50 midpoint. The results indicated that the mean procrastination score ($M$ = `r M`, $SD$ = `r SD`) was significantly greater than 50, $t$(`r test$parameter`) = `r round(test$statistic, 2)`, $p$ < .001, one-tailed. Therefore, we reject the null hypothesis and conclude that students, on average, report procrastinating more than "about half the time".
+
+`r solend()`
+
+
+
+:::frame
+__Finishing up__  
+
+Once you've finished, don't forget to: 
+
+1. Save your R script
+2. Post the R script to the group discussion space on Learn, to ensure that everyone has access to it! (For step-by-step instructions on how to do this, click [here](00serverfiles.html){target="_blank"})  
+
+
+:::
