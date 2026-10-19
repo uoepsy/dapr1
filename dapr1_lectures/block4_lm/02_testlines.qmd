@@ -148,7 +148,7 @@ Coefficients:
 ```{r}
 #| echo: false
 set.seed(65683728)
-sleepdf <- tibble(
+eg1sleep <- tibble(
   n_disrupted = rep(0:7,e=10),
   psolve = (58 - 1.5 * n_disrupted) + 
     residuals(lm(rnorm(80,0,7) ~ rep(0:7,e=10)))
@@ -166,9 +166,9 @@ What quantity will answer my question?
 ::::{.columns}
 :::{.column width="50%"}
 ```{r}
-head(sleepdf)
+head(eg1sleep)
 
-sleep_mdl <- lm(psolve ~ 1 + n_disrupted, data = sleepdf)
+sleep_mdl <- lm(psolve ~ 1 + n_disrupted, data = eg1sleep)
 
 sleep_mdl
 ```
@@ -177,7 +177,7 @@ sleep_mdl
 
 ```{r}
 #| echo: false
-fitw = lm(psolve~n_disrupted,sleepdf)
+fitw = lm(psolve~n_disrupted,eg1sleep)
 
 segsw <- tibble(x1 = 0:6, x2 = x1+1) |> 
   mutate(
@@ -186,7 +186,7 @@ segsw <- tibble(x1 = 0:6, x2 = x1+1) |>
     xlp = (x1+x2)/2,
     ylp = (y1+y2)/2
   )
-sleepdf |> 
+eg1sleep |> 
   ggplot(aes(x=n_disrupted,y=psolve))+
   geom_point(size=3,col="tomato1",alpha=.5)+
   stat_smooth(method=lm,se=FALSE,color="#0000FF",lwd=1) +
@@ -336,7 +336,7 @@ sims = MASS::mvrnorm(n=1000,mu=c(coef(sleep_mdl)[1],0),
   rename(int = `(Intercept)`,slp = V2) |>
   mutate(sim_id = row_number())
 
-p <- ggplot(sleepdf, aes(x = n_disrupted,y=psolve))+
+p <- ggplot(eg1sleep, aes(x = n_disrupted,y=psolve))+
   geom_point(alpha=0)+
   geom_abline(data = sims, aes(intercept = int, slope = slp), alpha=.05)+
   transition_states(sim_id, transition_length = 0, state_length = 1) +
@@ -355,7 +355,7 @@ sims = MASS::mvrnorm(n=1000,mu=c(coef(sleep_mdl)[1],0),
   as.data.frame() |>
   rename(int = `(Intercept)`,slp = V2)
 
-ggplot(sleepdf, aes(x = n_disrupted,y=psolve))+
+ggplot(eg1sleep, aes(x = n_disrupted,y=psolve))+
   geom_point(alpha=0)+
   geom_abline(data = sims, aes(intercept = int, slope = slp), alpha=.05)+
   geom_abline(intercept=coef(sleep_mdl)[1],slope=coef(sleep_mdl)[2],
@@ -406,7 +406,7 @@ sims = MASS::mvrnorm(n=1000,mu=coef(sleep_mdl),
   rename(int = `(Intercept)`,slp = n_disrupted) |>
   mutate(sim_id = row_number())
 
-p <- ggplot(sleepdf, aes(x = n_disrupted,y=psolve))+
+p <- ggplot(eg1sleep, aes(x = n_disrupted,y=psolve))+
   geom_point(alpha=0)+
   geom_abline(data = sims, aes(intercept = int, slope = slp), alpha=.05)+
   geom_abline(intercept=coef(sleep_mdl)[1],slope=coef(sleep_mdl)[2],
@@ -422,7 +422,7 @@ animp <- animate(p, nframes = 500,
 
 anim_save("jk_sandbox/ci_lines.gif", animp)
 
-ggplot(sleepdf, aes(x = n_disrupted,y=psolve))+
+ggplot(eg1sleep, aes(x = n_disrupted,y=psolve))+
   geom_smooth(method = lm)+
   geom_abline(intercept=coef(sleep_mdl)[1],
               slope=coef(sleep_mdl)[2],
@@ -441,7 +441,7 @@ Using that same estimated uncertainty:
 :::{.fragment fragment-index=1}
 ```{r}
 #| eval: false
-ggplot(sleepdf, aes(x = n_disrupted,y=psolve))+
+ggplot(eg1sleep, aes(x = n_disrupted,y=psolve))+
   geom_smooth(method = lm)+
   ylim(35,75)
 ```
@@ -474,7 +474,7 @@ confint(sleep_mdl)
 ::::{.columns}
 :::{.column width="50%"}
 ```{r}
-head(sleepdf)
+head(eg1sleep)
 ```
 
 
@@ -483,7 +483,7 @@ head(sleepdf)
 
 ```{r}
 #| echo: false
-ggplot(sleepdf, aes(x = n_disrupted,y=psolve))+
+ggplot(eg1sleep, aes(x = n_disrupted,y=psolve))+
   geom_point(alpha=.5,size=3)+
   geom_smooth(method = lm)+
   scale_x_continuous(breaks=0:7)+
@@ -496,7 +496,7 @@ ggplot(sleepdf, aes(x = n_disrupted,y=psolve))+
 
 ```{r}
 #| eval: false
-sleep_mdl <- lm(psolve ~ 1 + n_disrupted, data = sleepdf)
+sleep_mdl <- lm(psolve ~ 1 + n_disrupted, data = eg1sleep)
 
 summary(sleep_mdl)
 ```
@@ -510,10 +510,10 @@ summary(sleep_mdl)
 ::::{.columns}
 :::{.column width="50%"}
 ```{r}
-sleepdf <- sleepdf |>
+eg1sleep <- eg1sleep |>
   mutate( wks_disrupted = n_disrupted/7 )
 
-head(sleepdf)
+head(eg1sleep)
 ```
 
 :::
@@ -521,7 +521,7 @@ head(sleepdf)
 
 ```{r}
 #| echo: false
-ggplot(sleepdf, aes(x = wks_disrupted,y=psolve))+
+ggplot(eg1sleep, aes(x = wks_disrupted,y=psolve))+
   geom_point(alpha=.5,size=3)+
   geom_smooth(method = lm)+
   scale_x_continuous(breaks=seq(0,1,.25))+
@@ -535,7 +535,7 @@ ggplot(sleepdf, aes(x = wks_disrupted,y=psolve))+
 
 ```{r}
 #| eval: false
-sleep_mdl2 <- lm(psolve ~ 1 + wks_disrupted, data = sleepdf)
+sleep_mdl2 <- lm(psolve ~ 1 + wks_disrupted, data = eg1sleep)
 
 summary(sleep_mdl2)
 ```
@@ -543,7 +543,7 @@ summary(sleep_mdl2)
 :::{.fragment}
 ```{r}
 #| echo: false
-sleep_mdl2 <- lm(psolve ~ 1 + wks_disrupted, data = sleepdf)
+sleep_mdl2 <- lm(psolve ~ 1 + wks_disrupted, data = eg1sleep)
 .pp(summary(sleep_mdl2),l = list(0,c(8:12),0))
 ```
 :::
@@ -614,7 +614,7 @@ We'll cover this stuff again next year, but we're going through it here because
 #| echo: false
 #| eval: false
 set.seed(346)
-p1 <- sleepdf |>
+p1 <- eg1sleep |>
   mutate(
          my = mean(psolve),
          f1 = mean(psolve),
@@ -623,7 +623,7 @@ p1 <- sleepdf |>
   pivot_longer(f1:f2,names_to="frame",values_to="pred") |>
   filter(frame=="f1") |>
   ggplot(aes(x=xjit,y=psolve))+
-  geom_hline(yintercept = mean(sleepdf$psolve),
+  geom_hline(yintercept = mean(eg1sleep$psolve),
              col="blue",lwd=1,alpha=1,lty="dashed")+
   # geom_abline(intercept=coef(sleep_mdl)[1],
   #             slope=coef(sleep_mdl)[2],
@@ -635,7 +635,7 @@ p1 <- sleepdf |>
                    y=pred,yend=psolve),
                col="tomato1",lty="longdash",lwd=.5)+
   geom_point(size=3, alpha=.5)+
-  annotate("label",x=-1, y=mean(sleepdf$psolve),label="Mean Y",
+  annotate("label",x=-1, y=mean(eg1sleep$psolve),label="Mean Y",
            size=3,col="blue",hjust=.3) + 
   labs(x="n_disrupted")
 
@@ -658,14 +658,14 @@ The simplest possible model.
 
   
 ```{r}
-sleep_mdl0 <- lm(psolve ~ 1, data = sleepdf)
+sleep_mdl0 <- lm(psolve ~ 1, data = eg1sleep)
 
 sleep_mdl0
 ```
 :::
 :::{.column width="50%" .fragment}
 ```{r}
-sleepdf |>
+eg1sleep |>
   summarise(
     meanpsolve = mean(psolve)
   )
@@ -683,7 +683,7 @@ sleepdf |>
 
 set.seed(346)
 p_anim <-
-  sleepdf |>
+  eg1sleep |>
   mutate(
          my = mean(psolve),
          f1 = mean(psolve),
@@ -694,7 +694,7 @@ p_anim <-
          slp = ifelse(frame=="f1",0,coef(sleep_mdl)[2])) |>
   #filter(frame=="f2") |>
   ggplot(aes(x=xjit,y=psolve))+
-  geom_hline(yintercept = mean(sleepdf$psolve),
+  geom_hline(yintercept = mean(eg1sleep$psolve),
              col="blue",lwd=1,alpha=1,lty="dashed")+
   geom_abline(aes(intercept=int,slope=slp),
               col="blue",lwd=1)+
@@ -704,7 +704,7 @@ p_anim <-
   geom_segment(aes(x=xjit,xend=xjit,
                    y=pred,yend=my),
                col="black",lty="solid",lwd=.5)+
-  annotate("label",x=-1, y=mean(sleepdf$psolve),label="Mean Y",
+  annotate("label",x=-1, y=mean(eg1sleep$psolve),label="Mean Y",
            size=3,col="blue",hjust=0) + 
   geom_point(size=3, alpha=.5)+
   labs(x="n_disrupted") + 
