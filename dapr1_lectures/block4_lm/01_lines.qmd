@@ -1,5 +1,5 @@
 ---
-title: "example_lec"
+title: "Lines as Models"
 editor_options: 
   chunk_output_type: console
 ---
@@ -11,6 +11,9 @@ editor_options:
 library(tidyverse)
 library(gganimate)
 library(patchwork)
+source("_theme/helpers.R")
+source('_theme/theme_quarto.R')
+options(digits=3)
 ```
 
 
@@ -24,6 +27,7 @@ library(patchwork)
 #| warning: false
 #| results: asis
 
+# TODO REPLACE
 block1_name = "block  1 name"
 block1_lecs = c("week 1 topic",
                 "week 2 topic",
@@ -37,9 +41,8 @@ block2_lecs = c("week 7 topic",
                 "week 10 topic",
                 "week 11 topic")
 
-source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
 
-course_table(block1_name,block2_name,block1_lecs,block2_lecs,week=11)
+junk::course_table(block1_name,block2_name,block1_lecs,block2_lecs,week=11)
 ```
 
 :::
@@ -51,6 +54,7 @@ course_table(block1_name,block2_name,block1_lecs,block2_lecs,week=11)
 #| warning: false
 #| results: asis
 
+# TODO REPLACE
 block3_name = "block 3 name"
 block3_lecs = c("week 1 topic",
                 "week 2 topic",
@@ -64,49 +68,63 @@ block4_lecs = c("week 7 topic",
                 "week 10 topic",
                 "week 11 topic")
 
-source("https://raw.githubusercontent.com/uoepsy/junk/main/R/course_table.R")
-
-course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=6)
+junk::course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=6)
 ```
 
 :::
 
 ::::
 
+
+
 ## This week
 
-1. quick recap
-2. straight lines
+1. A quick recap
+2. Lines lines lines! 
 3. outcome = model + error
-4. using models to answer questions
+4. Using models to answer questions
 
-# the story so far... 
+# The story so far... 
 
 ## Block 1 - Exploratory Data Analysis {.smaller}
 
 - We were "Exploratory" because we weren't yet talking about research questions or hypotheses.  
-- More generally, think "how to summarise/visualise distributions" 
-    - mean/median/mode
-    - variance/standard deviation
-    - counts/frequencies/proportions
+- More generally, think "how to summarise/visualise distributions"  
 
-All things we can use to specify questions! 
+::::{.columns}
+:::{.column width="50%"}
+
+  - mean/median/mode
+  - variance/standard deviation
+  - counts/frequencies/proportions
+    
+:::
+:::{.column width="50%" .fragment fragment-index=1}
+
+<br>
+<<< All things we can use to specify questions! 
+
+:::
+::::
+
 
 <br> 
 
+:::{.fragment fragment-index=1}
+
 |    |    |
 | -- | -- |
-| Has the average body temperature of healthy humans changed from the long-thought 37 °C? | mean $\neq$ 37?   |
-| Are first year undergraduate students more optimistic than adults in general? | mean > 35? |
-| TODO from EP lec 2 sample t test q | mean - mean $\neq$ 0? |
-| TODO from EP lec chi-squ test q | observed proportions - expected proportions $\neq$ 0? |
-| TODO from EP lec corr q | variance of XX coincide with variance of YY? | 
+| **Has the average body temperature of healthy humans changed from the long-thought 37 °C?** | mean $\neq$ 37?   |
+| **Are first year undergraduate students more optimistic than adults in general?** | mean > 35? |
+| **Do people with happy relationships have lower cortisol than people in unhappy ones?** | $\text{mean}_\text{Happy} < \text{mean}_\text{Unhappy}$ |
+| **Do ASD and ADHD co-occur in children more often than we would expect?** | observed counts vs expected counts |
+| **Do students from higher-income families achieve higher scores on the reading comprehension section of the SAT ("SAT Verbal")?** | Does variance in incomes coincide with variance in SAT? | 
+
+:::
 
 
 
-
-
-## block 2
+## Block 2 - Introduction to Inference
 
 ```{r}
 #| echo: false
@@ -149,26 +167,106 @@ g + geom_area(data=ld,aes(x=x,y=y),fill="grey30",alpha=.3) +
   scale_x_continuous(NULL, breaks=c(-2:2)*ss, 
                      labels=c("-2*SE","-1*SE","","1*SE","2*SE"),
                      limits=c(-2.5,2.5))+
+  theme_minimal()+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
   
 ```
 
 TODO ask UN for key 2/3 bullet summary
 
-## block 3
+## Block 3 - Common Statistical Tests
 
-testing relationships two variables - associations
+![](jk_sandbox/block3-4.svg)
 
-TODO flowchart
+# Lines
+
+## Correlation {.smaller}
+
+If two variables are **correlated,** then as the value of one variable changes, the value of the other variable changes too.
+
+Put differently: you can make a reasonable guess about the value of one variable based on the value of the other one.
 
 
-# straight lines
+<br>
 
-## correlation
+::::{.columns}
+:::{.column width="30%"}
+**Not correlated:**
 
-- take explanation from EP slides
+```{r echo=F, fig.height = 4, fig.width = 4}
+set.seed(3)
+df1 <- MASS::mvrnorm(
+  n = 100,
+  mu = c(0, 0),
+  Sigma = matrix(c(100, 0, 0, 100), nrow = 2)
+)
+colnames(df1) <- c('x', 'y')
 
-## correlation
+df1 |>
+  ggplot(aes(x = x, y = y)) +
+  geom_point(size = 3)
+```
+
+
+For any given value of `x`, you can't really predict what kind of value `y` is likely to have.
+
+:::
+:::{.column width="5%"}
+:::
+:::{.column width="30%"}
+**Positively correlated:**
+
+```{r echo=F, fig.height = 4, fig.width = 4}
+set.seed(2)
+cov <- 80
+df <- MASS::mvrnorm(
+  n = 100,
+  mu = c(0, 0),
+  Sigma = Matrix::nearPD(matrix(c(100, cov, cov, 100), nrow = 2))$mat
+)
+colnames(df) <- c('x', 'y')
+
+df |>
+  ggplot(aes(x = x, y = y)) +
+  geom_point(size = 3)
+```
+
+If `x` increases, then `y` increases.
+
+If `x` decreases, then `y` decreases.
+
+:::
+:::{.column width="5%"}
+:::
+:::{.column width="30%"}
+
+**Negatively correlated:**
+
+```{r echo=F, fig.height = 4, fig.width = 4}
+set.seed(1)
+cov <- -80
+df <- MASS::mvrnorm(
+  n = 100,
+  mu = c(0, 0),
+  Sigma = Matrix::nearPD(matrix(c(100, cov, cov, 100), nrow = 2))$mat
+)
+colnames(df) <- c('x', 'y')
+
+df |>
+  ggplot(aes(x = x, y = y)) +
+  geom_point(size = 3)
+```
+
+
+If `x` increases, then `y` decreases.
+
+If `x` decreases, then `y` increases.
+
+:::
+::::
+
+
+## Correlation
 
 ```{r}
 #| echo: false
@@ -225,7 +323,7 @@ p4 <- ggplot(df4, aes(x=notifications,y=unlocks))+
 
 ```
 
-## correlation ++ 
+## Correlation ++ 
 
 ```{r}
 #| echo: false
@@ -237,7 +335,8 @@ p4 <- ggplot(df4, aes(x=notifications,y=unlocks))+
 
 ```
 
-## what defines a line?
+
+## What defines a line?
 
 ```{ojs}
 //| echo: false
@@ -276,26 +375,26 @@ viewof linearModel = {
   const line = svg.append("line")
     .attr("x1", xScale(-2))
     .attr("x2", xScale(10))
-    .attr("stroke", "#0F4C81")
+    .attr("stroke", "#000000")
     .attr("stroke-width", 3)
     .attr("pointer-events", "none");
   // add rise run triangle
   const slopeHorizontal = svg.append("line")
-    .attr("stroke", "#000000")
+    .attr("stroke", "#0000FF")
     .attr("stroke-width", 2)
     .attr("stroke-dasharray", "4,4");
   const slopeVertical = svg.append("line")
-    .attr("stroke", "#000000")
+    .attr("stroke", "#0000FF")
     .attr("stroke-width", 2)
     .attr("stroke-dasharray", "4,4");
   // intercept
   const interceptMarker = svg.append("circle")
     .attr("r", 5)
-    .attr("fill", "#27ae60");
+    .attr("fill", "#0000FF");
   // intercept circle
   const handleLeft = svg.append("circle")
     .attr("r", 6)
-    .attr("fill", "#c0392b")
+    .attr("fill", "#0000FF")
     .attr("cursor", "ns-resize");
   // right hand drag point. invisible
   const handleRight = svg.append("circle")
@@ -304,16 +403,16 @@ viewof linearModel = {
     .attr("cursor", "ns-resize");
   // LABELS!
   const labelRun = svg.append("text")
-    .attr("fill", "#000000")
+    .attr("fill", "#0000FF")
     .attr("font-size", "13px")
     .attr("font-weight", "bold")
     .attr("text-anchor", "middle");
   const labelRise = svg.append("text")
-    .attr("fill", "#000000")
+    .attr("fill", "#0000FF")
     .attr("font-size", "13px")
     .attr("font-weight", "bold");
   const interceptText = svg.append("text")
-    .attr("fill", "#c0392b")
+    .attr("fill", "#0000FF")
     .attr("font-size", "13px")
     .attr("font-weight", "bold");
 
@@ -431,11 +530,11 @@ viewof linearModel = {
 }
 ```
 
-# a shift in focus
 
-## correlations...
+
+
+## cor(x,y) == cor(y,x)
  
-
 ```{r}
 #| echo: false
 p3a <- ggplot(df3, aes(y=hrs_awake,x=wpm))+
@@ -446,7 +545,7 @@ p3 + p3a
 ```
 
 
-## ...lines
+## line for x and y != line for y and x 
 
 ```{r}
 #| echo: false
@@ -481,11 +580,11 @@ p3_1 <- p3 +
                 ", slope: ",round(coef(m3)[2],1))) +
   geom_abline(intercept=coef(m3)[1],slope=coef(m3)[2],
               col="#0F4C81",lwd=1) +
-  geom_point(x=0,y=coef(m3)[1],size=4,col="#c0392b")+
+  geom_point(x=0,y=coef(m3)[1],size=4,col="#0000FF")+
   geom_segment(data = segs3, aes(x=x1,xend=x2,y=y1,yend=y1),
-               lty="dashed",col="#228B22")+
+               lty="dashed",col="#0000FF")+
   geom_segment(data = segs3, aes(x=x2,xend=x2,y=y1,yend=y2),
-               lty="dashed",col="#228B22") 
+               lty="dashed",col="#0000FF") 
  
 p3a_1 <- p3a + 
   labs(title=
@@ -493,20 +592,94 @@ p3a_1 <- p3a +
                 ", slope: ",round(coef(m3a)[2],1))) +
   geom_abline(intercept=coef(m3a)[1],slope=coef(m3a)[2],
               col="#0F4C81",lwd=1) +
-  geom_point(x=0,y=coef(m3a)[1],size=4,col="#c0392b")+
+  geom_point(x=0,y=coef(m3a)[1],size=4,col="#0000FF")+
   geom_segment(data = segs3a, aes(x=x1,xend=x2,y=y1,yend=y1),
-               lty="dashed",col="#228B22")+
+               lty="dashed",col="#0000FF")+
   geom_segment(data = segs3a, aes(x=x2,xend=x2,y=y1,yend=y2),
-               lty="dashed",col="#228B22")
+               lty="dashed",col="#0000FF")
 
 p3_1 + p3a_1
 ```
 
-## a line is a model of y
 
-- A subtle shift has happened!  
+# The move to modelling
 
-- We are moving to a framework in which we model an **outcome**  
+## A line
+
+![](jk_sandbox/cor2line.gif)
+```{r}
+#| eval: false
+#| echo: false
+fit <- lm(wpm ~ hrs_awake, data = df3)
+b0 <- coef(fit)[1]
+b1 <- coef(fit)[2]
+## rise run trias
+df_triangles <- data.frame(hrs_awake = c(10, 15, 20)) |>
+  mutate(
+    run_length = 5,
+    x1 = hrs_awake,
+    y1 = b0 + b1 * x1,
+    x2 = hrs_awake + run_length,
+    y2 = y1,
+    x3 = x2,
+    y3 = b0 + b1 * x2
+  )
+df_points <- bind_rows(
+  df3 |> mutate(stage = 1, point_alpha = 1),
+  df3 |> mutate(stage = 2, point_alpha = 0.1)
+)
+df_line <- data.frame(
+  hrs_awake = range(df3$hrs_awake),
+  wpm = b0 + b1 * range(df3$hrs_awake)
+)
+df_line <- bind_rows(
+  df_line |> mutate(stage = 1, line_alpha = .1),
+  df_line |> mutate(stage = 2, line_alpha = 1),
+)
+df_tri_anim <- bind_rows(
+  df_triangles |> mutate(stage = 1, tri_alpha = 0),
+  df_triangles |> mutate(stage = 2, tri_alpha = 1)
+)
+
+p_anim <- ggplot() +
+  geom_point(data = df_points, aes(x = hrs_awake, 
+                                   y = wpm, 
+                                   alpha = point_alpha, 
+                                   group = paste(hrs_awake, wpm)),
+             size = 3) +
+  geom_line(data = df_line, 
+    aes(x = hrs_awake, y = wpm, alpha = line_alpha), 
+    col="#0F4C81",lwd=2) +
+  geom_segment(data = df_tri_anim,
+    aes(x = x1, y = y1, xend = x2, yend = y2, alpha = tri_alpha),
+    color = "blue", linewidth = 1, linetype = "dashed"
+  ) +
+  geom_segment(data = df_tri_anim,
+    aes(x = x2, y = y2, xend = x3, yend = y3, alpha = tri_alpha),
+    color = "blue", linewidth = 1, linetype = "dashed"
+  ) +
+  scale_alpha_identity() +
+  labs(
+    x = "X", 
+    y = "Y") +
+  scale_x_continuous(breaks=c(0,10,20,30),labels=0:3)+
+  theme_minimal() +
+  transition_states(stage, transition_length = 2, state_length = 1)
+
+animp <- animate(p_anim, nframes = 180,
+        fps = 15, end_pause = 45, res=150,
+        width = 800, height = 500, 
+        renderer = gifski_renderer())
+
+anim_save("jk_sandbox/cor2line.gif",animp)
+
+```
+
+
+
+## A line is a model of y
+
+- We are moving to a framework in which we model an **outcome** as a function of a **predictor**  
 
 ![](jk_sandbox/lines.gif)
 
@@ -537,94 +710,658 @@ animp <- animate(pan, nframes = 500, fps = 10,
 anim_save("jk_sandbox/lines.gif",animp)
 ```
 
-## the only equation you'll ever need
+## The only equation you'll ever need
 
-::::{.columns}
-:::{.column width="50%"}
 
 $$
 \color{red}{\text{outcome}} = \color{blue}{\text{model}} + \color{black}{\text{error}}
 $$
 
+
+::::{.columns .fragment fragment-index=1}
+:::{.column width="65%"}
 :::
-:::{.column width="50%" .fragment}
-<br>
+:::{.column width="35%"}
 
-<<< The $\text{error}$ is the bit that makes it a *statistical* model
-
-- ideally:
-  - $\color{blue}{\text{model}}$ contains systematic patterns
-  - $\color{black}{\text{error}}$ is just random leftover variation, unrelated to our model
+^   
+  The $\text{error}$ is the bit that makes it a *statistical* model
 
 :::
 ::::
 
-## the linear regression model
+::::{.columns .fragment fragment-index=2}
+:::{.column width="50%"}
+:::
+:::{.column width="50%"}
+
+ideally:  
+
+  - $\color{blue}{\text{model}}$ contains systematic patterns
+  - $\color{black}{\text{error}}$ is just random leftover variation, unrelated to our model
+:::
+::::
+
+
+
+
+
+
+## The linear regression model
+
+$$
+\begin{align}
+\color{red}{\text{outcome}} &= \color{blue}{\text{model}} &+& \quad \quad \color{black}{\text{error}} \\
+\quad \\
+\quad \\
+\quad \\
+\color{red}{y} &= \color{blue}{\underset{\underset{\text{intercept}}{\uparrow}}{b_0} + \underset{\underset{\text{slope}}{\uparrow}}{b_1} \cdot x} & + & \quad \quad \color{black}{\epsilon}
+\end{align}
+$$
+
+## How do we find the line? 
+
+<style>
+.cell-output-ojs > span, .cell-output-ojs > pre {
+  display: none !important;
+}
+</style>
+
+```{ojs}
+//| echo: false
+d3 = require("d3@7", "d3-regression@1")
+
+html`<div id="regression-app" style="width: 800px; margin: 0 auto;"></div>`
+
+{
+  const container = d3.select("#regression-app");
+  container.html(""); // Clear container
+
+  // 1. Initial Data Generation (15 points)
+  const numPoints = 4, xScaleVal = 10, xShift = 5, yScaleVal = 10, yShift = 0;
+  const data = d3.range(numPoints).map(() => {
+    const xCoord = xShift + xScaleVal * d3.randomUniform()();
+    const yCoord = yShift + xCoord + yScaleVal * d3.randomUniform()();
+    return [xCoord, yCoord];
+  });
+
+  // 2. Controls Setup
+  const controls = container.append("div")
+    .style("display", "flex")
+    .style("gap", "20px")
+    .style("align-items", "center")
+    .style("margin-bottom", "10px")
+    .style("font-family", "sans-serif")
+    .style("font-size", "14px");
+
+  controls.append("span").style("font-weight", "bold").text("View:");
+  
+  const radioGroup = controls.append("div").style("display", "flex").style("gap", "10px");
+  ["None", "Absolute Error", "Squared Error"].forEach((mode, i) => {
+    const label = radioGroup.append("label").style("cursor", "pointer");
+    label.append("input")
+      .attr("type", "radio")
+      .attr("name", "errorMode")
+      .attr("value", mode)
+      .property("checked", i === 1);
+    label.append("span").text(" " + mode);
+  });
+
+  // Option A: Standard Reset (restores initial 15 points)
+  const resetBtn = controls.append("button")
+    .style("margin-left", "auto")
+    .style("padding", "4px 12px")
+    .style("cursor", "pointer")
+    .text("Reset");
+
+  // Option B: Clear All Button (uncomment if you want a complete clear)
+  // const clearBtn = controls.append("button")
+  //   .style("padding", "4px 12px")
+  //   .style("cursor", "pointer")
+  //   .text("Clear All");
+
+  // 3. Main Plot Engine
+  function createRegressionPlot() {
+    const r = 6, marginTop = 20, marginRight = 30, marginBottom = 30, marginLeft = 40, inset = r * 2;
+    const width = 800, height = 450, showGrid = true;
+    const errorColor = d3.schemeSet3[3];
+    let errorLinesOpacity = 1, errorSquaresOpacity = 0, idCounter = 0;
+
+    let localData = data.map(d => ({ xCoord: d[0], yCoord: d[1], id: idCounter++ }));
+    const initData = localData.map(d => ({ ...d }));
+
+    const xDomain = [0, d3.max(localData, d => d.xCoord) + 5];
+    const yDomain = [0, d3.max(localData, d => d.yCoord) + 5];
+
+    const linearRegression = d3.regressionLinear().x(d => d.xCoord).y(d => d.yCoord).domain(xDomain);
+    const xScale = d3.scaleLinear().domain(xDomain).range([marginLeft + inset, width - marginRight - inset]);
+    const yScale = d3.scaleLinear().domain(yDomain).range([height - marginBottom - inset, marginTop + inset]);
+
+    const svg = container.append("svg")
+      .attr("width", width).attr("height", height)
+      .attr("viewBox", [0, 0, width, height]);
+
+    // Axes & Grid
+    const xGroup = svg.append("g").attr("transform", `translate(0,${height - marginBottom})`).call(d3.axisBottom(xScale).ticks(width / 80));
+    xGroup.select(".domain").remove();
+    xGroup.selectAll(".tick line").clone().attr("y2", marginTop + marginBottom - height)
+      .attr("stroke-opacity", d => (d === 0 ? 1 : showGrid ? 0.1 : 0));
+
+    const yGroup = svg.append("g").attr("transform", `translate(${marginLeft},0)`).call(d3.axisLeft(yScale).ticks(height / 80));
+    yGroup.select(".domain").remove();
+    yGroup.selectAll(".tick line").clone().attr("x2", width - marginLeft - marginRight)
+      .attr("stroke-opacity", d => (d === 0 ? 1 : showGrid ? 0.1 : 0));
+
+    let errorSquares = svg.append("g").selectAll("rect");
+    let errorLines = svg.append("g").selectAll("line");
+    let regressionLine = svg.append("g").attr("stroke", "black").attr("stroke-width", 2).selectAll("line");
+
+    // Click to add points
+    svg.append("rect").attr("width", width).attr("height", height).attr("opacity", 0)
+       .on("click", (event) => {
+         const [xm, ym] = d3.pointer(event);
+         localData.push({ xCoord: xScale.invert(xm), yCoord: yScale.invert(ym), id: idCounter++ });
+         update(localData);
+       });
+
+    let circles = svg.append("g").attr("fill", "black").selectAll("circle");
+
+    // Drag behavior
+    const drag = d3.drag().on("drag", function (event, d) {
+      d.xCoord = xScale.invert(event.x);
+      d.yCoord = yScale.invert(event.y);
+      d3.select(this).attr("cx", event.x).attr("cy", event.y);
+      update(localData, false);
+    });
+
+    function update(dataVal, transition = true) {
+      if (dataVal.length < 2) {
+        // Hide regression line and errors if fewer than 2 points exist
+        regressionLine.attr("opacity", 0);
+        errorLines.attr("opacity", 0);
+        errorSquares.attr("opacity", 0);
+      } else {
+        const regData = linearRegression(dataVal);
+
+        // Update Line
+        regressionLine = regressionLine.data([regData]).join("line").call(l => {
+          if (transition) l = l.transition();
+          l.attr("opacity", 1)
+           .attr("x1", d => xScale(d[0][0])).attr("x2", d => xScale(d[1][0]))
+           .attr("y1", d => yScale(d[0][1])).attr("y2", d => yScale(d[1][1]));
+        });
+
+        // Update Error Lines
+        errorLines = errorLines.data(dataVal, d => d.id).join(
+          enter => enter.append("line").attr("stroke", errorColor).attr("stroke-width", 2)
+            .attr("opacity", errorLinesOpacity)
+            .attr("x1", d => xScale(d.xCoord)).attr("y1", d => yScale(d.yCoord))
+            .attr("x2", d => xScale(d.xCoord)).attr("y2", d => yScale(d.yCoord))
+            .call(e => e.transition().attr("y2", d => yScale(regData.predict(d.xCoord)))),
+          update => update.call(u => {
+            if (transition) u = u.transition();
+            u.attr("opacity", errorLinesOpacity)
+             .attr("x1", d => xScale(d.xCoord)).attr("y1", d => yScale(d.yCoord))
+             .attr("x2", d => xScale(d.xCoord)).attr("y2", d => yScale(regData.predict(d.xCoord)));
+          }),
+          exit => exit.transition().attr("y2", d => yScale(d.yCoord)).remove()
+        );
+
+        // Update Error Squares
+        const computeHeight = d => Math.abs(yScale(regData.predict(d.xCoord)) - yScale(d.yCoord));
+        const computeTransform = d => `rotate(${yScale(regData.predict(d.xCoord)) - yScale(d.yCoord) < 0 ? -90 : 90}, ${xScale(d.xCoord)}, ${yScale(d.yCoord)})`;
+
+        errorSquares = errorSquares.data(dataVal, d => d.id).join(
+          enter => enter.append("rect").attr("fill", errorColor).attr("opacity", errorSquaresOpacity)
+            .attr("transform", computeTransform)
+            .attr("x", d => xScale(d.xCoord)).attr("y", d => yScale(d.yCoord))
+            .attr("width", 0).attr("height", 0)
+            .call(e => e.transition().attr("width", computeHeight).attr("height", computeHeight)),
+          update => update.call(u => {
+            u.attr("transform", computeTransform);
+            if (transition) u = u.transition();
+            u.attr("opacity", errorSquaresOpacity)
+             .attr("x", d => xScale(d.xCoord)).attr("y", d => yScale(d.yCoord))
+             .attr("width", computeHeight).attr("height", computeHeight);
+          }),
+          exit => exit.transition().attr("width", 0).attr("height", 0).remove()
+        );
+      }
+
+      // Update Points
+      circles = circles.data(dataVal, d => d.id).join(
+        enter => enter.append("circle")
+          .attr("cx", d => xScale(d.xCoord)).attr("cy", d => yScale(d.yCoord))
+          .attr("r", 0).call(drag)
+          .on("click", (event, dCurr) => {
+            if (event.defaultPrevented) return;
+            localData = localData.filter(d => d.id !== dCurr.id);
+            update(localData);
+          })
+          .call(e => e.transition().ease(d3.easeBackOut.overshoot(1.7)).attr("r", r)),
+        update => (transition ? update.transition() : update).attr("cx", d => xScale(d.xCoord)).attr("cy", d => yScale(d.yCoord)),
+        exit => exit.transition().ease(d3.easeBackIn.overshoot(1.7)).attr("r", 0).remove()
+      );
+    }
+
+    // Radio button listeners
+    controls.selectAll("input[name='errorMode']").on("change", function() {
+      if (this.value === "None") { errorLinesOpacity = 0; errorSquaresOpacity = 0; }
+      else if (this.value === "Absolute Error") { errorLinesOpacity = 1; errorSquaresOpacity = 0; }
+      else if (this.value === "Squared Error") { errorLinesOpacity = 0; errorSquaresOpacity = 0.5; }
+      update(localData, true);
+    });
+
+    // Reset button listener (Restores baseline 15 points)
+    resetBtn.on("click", () => {
+      localData = initData.map(d => ({ ...d }));
+      update(localData, true);
+    });
+
+    // Initial setup and entrance animation
+    update(localData.slice(0, 1));
+
+    const totalTime = 6000;
+    const ease = d3.easeQuadOut;
+    d3.range(1, data.length).forEach((i) => {
+      setTimeout(() => {
+        const [xCoord, yCoord] = data[i];
+        localData.push({ xCoord, yCoord, id: idCounter++ });
+        update(localData, true);
+      }, totalTime * ease(i / data.length));
+    });
+  }
+
+  createRegressionPlot();
+}
+```
+
+:::{.aside}
+I can't make interactive visuals this nicely. This one is from   <https://observablehq.com/@yizhe-ang/interactive-visualization-of-linear-regression>
+:::
+
+
+# Activity break! 
+
+<!-- quiz - b0 b1 neg/pos, values etc.  -->
+
+:::woo
+TODO
+:::
+
+
+
+# Using models to answer questions
+
+
+## Sometimes, models are useful
+
+a correlation just describes a pattern.  
+
+  - x varies along with y
+  - x varies in the opposite direction to y
+
+but a linear model can be **used**  
+
+:::{.fragment}
+  
+how?
+
+  - to make predictions and to estimate a quantity of interest! 
+
+:::
+	
+## Example
+
+> **RQ:** How does an additional night of interrupted sleep affect problem solving ability?  <br><br>
+> We recruit 80 people and randomly allocate them to receiving between 0 to 7 days of sleep disruption. Upon waking up after their final night of allocated disrupted sleep, participants were given a series of problems to solve. The number of problems and time taken were combined to create an overall score for each participant.
+
+```{r}
+#| echo: false
+set.seed(65683728)
+eg1sleep <- tibble(
+  n_disrupted = rep(0:7,e=10),
+  psolve = (58 - 1.5 * n_disrupted) + 
+    residuals(lm(rnorm(80,0,7) ~ rep(0:7,e=10)))
+) |> slice_sample(prop=1)
+
+```
+
+
+:::{.aside}
+very loosely inspired by [Monaghan et al., 2015: Sleep promotes analogical transfer in problem solving. Cognition, 143, 25-30.](https://pubmed.ncbi.nlm.nih.gov/26113445/){target="_blank"}
+:::
+	
+## Example - as a correlation
 
 ::::{.columns}
 :::{.column width="50%"}
 
-\begin{align}
-\color{red}{\text{outcome}} &= \color{blue}{\text{model}} &+& \color{black}{\text{error}} \\
-\quad \\
-\quad \\
-\quad \\
-\color{red}{y} &= \color{blue}{\underset{\underset{\text{intercept}}{\uparrow}}{b_0} + \underset{\underset{\text{slope}}{\uparrow}}{b_1} \cdot x} & +& \color{black}{\epsilon}
-\end{align}
-
+```{r}
+#| echo: true
+#| eval: false
+cor.test(eg1sleep$n_disrupted, 
+         eg1sleep$psolve)
+```
+:::{style="font-size:.7em"}
+```{r}
+#| echo: false
+cor.test(eg1sleep$n_disrupted, eg1sleep$psolve)
+```
+:::
 
 :::
 :::{.column width="50%"}
+
+```{r}
+#| echo: false
+#| fig-height: 8
+eg1sleep |> 
+  ggplot(aes(x = n_disrupted, y = psolve))+
+  geom_point(size = 3) +
+  theme_quarto(title_font_size = 28)
+```
+
 :::
 ::::
 
 
-## lines
-
-slide correlation++ with values of b0, b1 on them
-
-## aside - how it gets fitted
 
 
-how does the model get fitted? 
-	1. minimise resid SS (just an animation to show the idea of RSS differing depending on line)
+## Example - as a model
 
-https://setosa.io/ev/ordinary-least-squares-regression/
+::::{.columns}
+:::{.column width="50%" style="font-size:.5em"}
 
-# Activity break! 
-quiz - b0 b1 neg/pos, values etc. 
+**The idea:**  
+$$
+\begin{align}
+\color{red}{\text{outcome}} &= \color{blue}{\text{model}} + \color{black}{\text{error}} \\
+\quad \\
+\color{red}{y} &= \color{blue}{\underset{\underset{\text{intercept}}{\uparrow}}{b_0} + \underset{\underset{\text{slope}}{\uparrow}}{b_1} \cdot x} + \color{black}{\varepsilon}
+\end{align}
+$$
 
-# using models to answer questions
+**Our model:**  
+$$
+\begin{align}
+\color{red}{\text{ProblemSolvingScore}} &= \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot \text{NightsDisrupted}} + \color{black}{\varepsilon} \\
+\end{align}
+$$
 
-## some models are useful
+**Our estimated model:**  
+$$
+\begin{align}
+\color{red}{\text{ProblemSolvingScore}} &= \,\,\,\color{blue}{58 \,\,\,- 1.5 \cdot \text{NightsDisrupted}} + \color{black}{\varepsilon}
+\end{align}
+$$
 
-	1. correlation describes a pattern but lm is a model you can *use*
-	2. use how? to estimate a quantity of interest! 
-	
-## example: continuous RCT. 
+:::
+:::{.column width="50%"}
 
-	1. wordle_score ~ sleep deprivation. randomised 1 to 7 days sleep disturbance
-	2. correlation = when X is higher, Y is higher
+```{r}
+#| echo: false
+#| fig-height: 8
+fitw = lm(psolve~n_disrupted,eg1sleep)
 
-## example: continuous RCT:
+segsw <- tibble(x1 = 0:6, x2 = x1+1) |> 
+  mutate(
+    y1 = map_dbl(x1,~(c(1,.)%*%coef(fitw))[1]),
+    y2 = map_dbl(x2,~(c(1,.)%*%coef(fitw))[1]),
+    xlp = (x1+x2)/2,
+    ylp = (y1+y2)/2
+  )
+eg1sleep |> 
+  ggplot(aes(x=n_disrupted,y=psolve))+
+  geom_point(size=3,col="tomato1",alpha=.5)+
+  stat_smooth(method=lm,se=FALSE,color="#0000FF",lwd=1) +
+  geom_point(x=0,y=coef(fitw)[1],col="#0000FF",size=5)+
+  geom_segment(data = segsw, aes(x=x1,xend=x2,y=y1,yend=y1),
+               lty="dashed",col="#0000FF")+
+  geom_segment(data = segsw, aes(x=x2,xend=x2,y=y1,yend=y2),
+               lty="dashed",col="#0000FF") +
+  theme_quarto(title_font_size = 28)
+```
 
-	1. model predictions (use faces as units of interest - see old dapr3 refresh)
-		1. wordle score with 1 day of disrupted sleep: hat y = b0 + b1 (x=1)
-		2. wordle score with 1 week (7 days) of disrupted sleep: hat y = b0 + b1 (x=7)
-		3. difference that an extra day makes: hat y(1) - hat y(0) 
-			1. oh look, it's the coefficient b1! 
+:::
+::::
 
-## the how to (fitting models in R)
-	1. formula notation  outcome ~ model
-	2. lm(wordle ~ sleep_dep)
+## Example - quantity of interest
 
-## the how to (model predictions in R)
-
-	1. predict.lm
+> **RQ:** How does an additional night of interrupted sleep affect problem solving ability?  
 
 
+What happens to someone's score when we disrupt their sleep for another night?
+
+e.g., person $i$:  
+
+$$
+\text{Score}_i^{\text{nights disrupted}=x+1} - \text{Score}_i^{\text{nights disrupted}=x}
+$$
+
+
+:::{.aside}
+:::{style="font-size:.7em"}
+
+*Side Note:*  In our study design, each person is only ever measured after *one* specific number of disrupted nights
+
+So we are going to _have_ to compare, e.g.,:  
+
+  persons A,B,C,D,E who have 4 nights sleep disruption &nbsp;&nbsp; vs &nbsp;&nbsp; persons F,G,H,I,J who have 5 nights sleep disruption  
+
+This only targets our quantity _if_ we are confident that persons A,B,C,D,E don't differ from F,G,H,I,J in other ways that lead to differences in problem solving ability.
+The random allocation of people to number of nights disrupted gives us this!  
+
+:::
+:::
+
+
+
+## Example - Predictions
+
+::::{.columns}
+:::{.column width="50%" style="font-size:.5em"}
+
+**The idea:**  
+$$
+\begin{align}
+\color{red}{\text{outcome}} &= \color{blue}{\text{model}} + \color{black}{\text{error}} \\
+\quad \\
+\color{red}{y} &= \color{blue}{\underset{\underset{\text{intercept}}{\uparrow}}{b_0} + \underset{\underset{\text{slope}}{\uparrow}}{b_1} \cdot x} + \color{black}{\varepsilon}
+\end{align}
+$$
+
+**Our model, for specific person $i$:**  
+$$
+\begin{align}
+\color{red}{\text{ProblemSolvingScore}_i} &= \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \cdot \text{NightsDisrupted}_i} + \color{black}{\epsilon_i} \\
+\end{align}
+$$
+
+**Our estimated model, for specific person $i$:**  
+$$
+\begin{align}
+\color{red}{\text{ProblemSolvingScore}_i} &= \,\,\,\color{blue}{58 \,\,\,- 1.5 \cdot \text{NightsDisrupted}_i} + \color{black}{\epsilon_i}
+\end{align}
+$$
+
+:::{.fragment fragment-index=1}
+**Our predicted value, for specific person $i$:**  
+$$
+\begin{align}
+\color{purple}{\widehat{\text{ProblemSolvingScore}}_i} &= \color{blue}{58 - 1.5 \cdot \text{NightsDisrupted}_i}  
+\end{align}
+$$
+:::
+
+:::
+:::{.column width="50%"}
+
+:::{.r-stack}
+
+```{r}
+#| echo: false
+#| fig-height: 8
+eg1sleep |> 
+  ggplot(aes(x=n_disrupted,y=psolve))+
+  geom_point(size=3,alpha=.3,col="tomato1")+
+  stat_smooth(method=lm,se=FALSE,color="blue",lwd=2) +
+  theme_quarto(title_font_size = 28)
+```
+
+:::{.fragment fragment-index=2}
+```{r}
+#| echo: false
+#| fig-height: 8
+eg1sleep |> 
+  ggplot(aes(x=n_disrupted,y=psolve))+
+  geom_point(size=3,alpha=.3,col="tomato1")+
+  stat_smooth(method=lm,se=FALSE,color="blue",lwd=2)+
+  geom_segment(x=4,xend=4,y=eg1sleep$psolve[72],
+               yend = (coef(fitw) %*% c(1,5))[1],
+               lty = "dotted", col="black", lwd=1) +
+  geom_point(x = 4, y = eg1sleep$psolve[72],
+             size = 3,col="tomato1") +
+  geom_point(x = 4, y = (coef(fitw) %*% c(1,4))[1],
+             size = 3,col="purple") +
+  theme_quarto(title_font_size = 28)
+
+```
+:::
+
+:::
+
+:::{.fragment fragment-index=2 style="font-size:.6em"}
+For this poor participant who had 4 nights of disrupted sleep, we predict their score to be:  
+$$
+\begin{align}
+ &= \color{blue}{58 - 1.5 \cdot \text{NightsDisrupted}_i} \\
+&= \color{blue}{58 - 1.5 \cdot 4} \\
+&= \color{blue}{58 - 6} \\
+&= \color{blue}{52} \\
+\end{align}
+$$
+:::
+
+:::
+::::
+
+## Example - Predictions (2)
+
+:::{.r-stack}
+
+![](jk_sandbox/sleepyface/s1a.png){width="1200px"}
+
+:::{.fragment fragment-index=1}
+![](jk_sandbox/sleepyface/s2a.png){width="1200px"}
+:::
+
+:::{.fragment fragment-index=2}
+![](jk_sandbox/sleepyface/s2.png){width="1200px"}
+:::
+
+:::{.fragment fragment-index=3}
+![](jk_sandbox/sleepyface/s3.png){width="1200px"}
+:::
+:::{.fragment fragment-index=4}
+![](jk_sandbox/sleepyface/s4.png){width="1200px"}
+:::
+:::{.fragment fragment-index=5}
+![](jk_sandbox/sleepyface/s5.png){width="1200px"}
+:::
+
+:::
+
+
+
+
+## The How-to (in R)
+
+##### a new function:  
+
+`lm(......, data = datasetname)`
+
+:::{style="font-size:.7em;text-align:right"}
+L is for linear, M is for model
+:::
+
+<br><br>
+
+:::{.fragment}
+##### a new notation: 
+
+`outcome ~ 1 + predictor`
+<br>
+
+:::{style="font-size:.7em;text-align:right"}
+Read it as `outcome` "is predicted by" `1` intercept plus a slope across the `predictor`
+
+You don't *have* to include the 1 in the code, R will assume you want the starting point! 
+:::
+
+:::
+
+
+## Example - in R
+
+::::{.columns}
+:::{.column width="50%"}
+The data
+
+```{r}
+head(eg1sleep)
+```
+
+
+:::
+:::{.column width="50%"}
+The model  
+
+```{r}
+sleep_mdl <- lm(psolve ~ 1 + n_disrupted, 
+                data = eg1sleep)
+
+sleep_mdl
+```
+
+:::
+::::
+
+## The How-to - predictions
+
+1. make a new little dataframe for values of $x$:
+```{r}
+data.frame(n_disrupted = 0:7)
+```
+
+2. get predictions of $y$ for each value of $x$:
+```{r}
+predict(sleep_mdl, 
+        newdata = data.frame(n_disrupted = 0:7))
+```
+
+
+<!-- 3. get predictions for observed data: -->
+<!-- ```{r} -->
+<!-- predict(sleep_mdl) -->
+<!-- ``` -->
 
 
 # End
 
+
+## Block 4 skills involved in this week's lecture and/or workshop
+
+
+- **V5** I can visually estimate the parameters of a line from a plot. 
+- **A7** I can use a fitted simple linear model to predict an outcome value for a given predictor value
+- **A8** I can appropriately interpret the parameters of a simple linear model.
+
+
+<!-- - **A7** I can use a fitted simple linear model to predict an outcome value for a given predictor value -->
+<!-- - **A8** I can appropriately interpret the parameters of a simple linear model. -->
+<!-- - **A9** I can explain how both a t-test and a correlation can be expressed as a linear model. -->
+<!-- - **A10** I can represent binary predictors using treatment coding. -->
+<!-- - **C3** I can describe in writing the results of a given simple linear model. -->
+<!-- - **I8** I can identify the null hypothesis being tested for the parameters of a linear model. -->
+<!-- - **V5** I can visually estimate the parameters of a line from a plot.  -->
 
