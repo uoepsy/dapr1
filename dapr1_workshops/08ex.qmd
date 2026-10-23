@@ -1,18 +1,45 @@
 ---
-title: "W8: Sampling Distributions & Standard Error"
-params: 
-    SHOW_SOLS: TRUE
-    TOGGLE: TRUE
+title: "W9: Confidence Intervals"
 format: html
-editor_options: 
-  chunk_output_type: console
 ---
+
+<!--
+WHEN RENDERING: 
+
+- tutor-facing: 
+  - either use the build button, or render specific files. or in the terminal using `quarto render`
+  - resulting file will land in `docs/YEAR/workshops/tutors/`
+  - solutions will always be visible
+  
+- student-facing:
+  - set current_block: to the block we're in
+  - render in Terminal using either: 
+      - `quarto render --profile production`
+      - `quarto render FILE.qmd --profile production`
+  - resulting file will land in `docs/YEAR/workshops/`
+  - solutions will be available for previous blocks.  
+  
+-->
 
 ```{r}
 #| include: false
 library(tidyverse)
 source('assets/dropdowns.R')
 source('assets/setup.R')
+
+vars <- readRDS("block_sols.rds")
+
+# set params manually rather than yaml params
+params <- list(
+  SHOW_SOLS = tryCatch({ vars$sols[[tools::file_path_sans_ext(knitr::current_input(dir=FALSE))]]},
+                       error = function(e) { TRUE }),
+  TOGGLE = TRUE
+)
+
+sdata <- read_csv("https://uoepsy.github.io/data/dapr1_2627_survey.csv") |>
+  select(pseudonym, outlook)
+
+set.seed(789)
 ```
 
 <!-- MAX 5 QUESTIONS -->
@@ -28,7 +55,7 @@ The driver will type the code. The rest of you are navigators, you need to tell 
 Driver instructions:
 
 1. Log in to the bigger screen at your table
-2. Open [RStudio Server](https://rstudio.ppls.ed.ac.uk){target="_blank"}
+2. Open RStudio Server. See the first drop-down in the [FAQs page](https://uoepsy.github.io/dapr1/2627/misc/faqs-dapr1.html){target="_blank"} for instructions
 3. Open a new .R script, and load the **tidyverse** package.
 4. Listen to your navigators
 
@@ -39,300 +66,347 @@ Navigator instructions:
 :::
 
 
+<!-- ## Where do the $\pm$ 1.96 multipliers come from? -->
 
 `r qbegin(qcounter())`
-For the exercises this week, we are going to pretend that we know that the distribution of `outlook` scores (pessimism/optimism measured on the -100 to 100 scale) for the wider population has a mean of 35 and a standard deviation of 20.  
 
-So **if** we could ask every person in the world to fill out our questionnaire, we would see something like this:^[(the "8e+08" on the y-axis is a way of writing an eight followed by eight zeros, or 800,000,000 - there are 8 Billion people in the world, so the numbers in each of these histogram bins are going to be huge!)]
-```{r}
-#| echo: false
-#| out-width: "600px"
-#| out-height: "400px"
-tibble(
-  outlook = round(rnorm(1e6,35,20))
-) |>
-  ggplot(aes(x=outlook))+geom_histogram() +
-  scale_y_continuous(labels = scales::label_scientific(scale = 8000))
-  
-```
+:::frame
 
-We can generate a pretend sample of outlook scores by using the `rnorm()` function.  
-Try playing around with this code. Run each line a couple of times to see how the output changes.  
+This workshop starts off conceptual again.
+The goal of the first part of this workshop is to show you where we get the $\pm$ 1.96 multipliers that appear in the formula for a 95% Confidence Interval.
+Later in the workshop, things get more practical: you'll use these multipliers to calculate a 95% Confidence Interval for your observed `outlook` scores.
 
-```{r}
-#| echo: true
-fake_sample <- rnorm(n = 20, mean = 35, sd = 20)
-fake_sample
-mean(fake_sample)
-```
-
-
-**Important Note:** None of this is real data. When we do real research, we won't know what the distribution looks like in the wider population, and we won't be able to make pretend samples. We're doing this here because it is a useful exercise to help demonstrate how sampling variability works.  
-
-`r qend()`
-`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-
-
-`r solend()`
-
-
-
-`r qbegin(qcounter())`
-From the previous question, you have hopefully noticed 3 things: 
-
-1. We can make a pretend sample using `rnorm()`.  
-2. Each time we do 1, we get a new, different, sample.  
-3. Each time we do 1, the new sample we get has a slightly different mean.  
-
-What we now want to start thinking about is "all the samples we *could* have taken", and how their means will vary.  
-
-The function `replicate()` can let us do something in R lots of times. 
-
-Can you figure out what these two lines of code do?  
-Raise your hand if you want a tutor to come and help explain.  
-```{r}
-means20 <- replicate(1000, mean(rnorm(n = 20, mean = 35, sd = 20)))
-
-means100 <- replicate(1000, mean(rnorm(n = 100, mean = 35, sd = 20)))
-```
-
-`r qend()`
-`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-
-
-`r solend()`
-
-
-
-`r qbegin(qcounter())`
-The objects we made in the previous question are "vectors". Unlike the dataframes we normally work with, these don't have rows and columns, they just have one dimension.  
-
-In order to plot them, we need to put them into the "rows and column" format. We can make a dataframe in R using the `tibble()` function.  
-
-Inside `tibble()`, we give names of variables and the values we want those variables to take:  
-```{r}
-#| eval: false
-mydata <- 
-  tibble(
-    variable_name = values,
-    variable2_name = values,
-    ...
-  )
-```
-
-**Task** Make two dataframes, call them something like `data20` and `data100`. Each one should have just one column, which contains the values in `means20` and `means100`. 
-
-:::flash
-🗂️
-See [TODO making a tibble/df flashcard](https://uoepsy.github.io/dapr1/2627/flashcards/){target="_blank"} flash card.
 :::
+
+Last week, you used `replicate()`, `mean()` and `rnorm()` to get estimated means from 1000 random samples from the population of `outlook` scores that we defined.
+This week, our exploration will start in a similar way, with a couple modifications.
+
+First, our estimates will be more precise if we have more than 1000 samples, so we're going to up this to 10,000.
+Second, we will set a sample size of $n = 47$, the number of responses to the DAPR1 class survey.
+Each of the 10,000 means in `means47` below is the mean of a different hypothetical sample of 47 students.
+
+**Copy and run** this code.
+
+```{r}
+means47 <- replicate(10000, mean(rnorm(n = 47, mean = 15, sd = 25)))
+```
 
 ::: {.callout-tip collapse="true"}
-#### Hint
+#### Reminder/breakdown of how this code works
 
-Because the `means20` and `means100` are vectors, that means they are just a bunch of values. 
-Which means we can follow this logic: 
+Let's start with the innermost term:
 
 ```{r}
-myvector <- c(1,2,5,7,3,5)
-
-mydataframe <- 
-  tibble(
-    thing = myvector
-  )
+#| eval: false
+rnorm(n = 47, mean = 15, sd = 25)
 ```
+
+This bit of code takes a sample of size 47 from a normal distribution that has a mean of 15 and a standard deviation of 25.  
+(These are the parameters that we defined our population to have last week.)
+The result of `rnorm()` is a vector of 47 numbers.
+In our example, each number represents one person's `outlook` score.
+
+Next, by wrapping that whole bit inside `mean()`, we ask R to take the mean of those 47 numbers:
+
+```{r}
+#| eval: false
+mean( rnorm(n = 47, mean = 15, sd = 25) )
+```
+
+Finally, by wrapping *that* whole bit inside `replicate()`, we repeat all of that however many times we want.
+In this case, we'll repeat it 10,000 times.
+Each time, it takes a sample of 47 people's scores (the `rnorm()` bit) and then finds their mean (the `mean()` bit).
+The result is a vector of 10,000 means.
+
+```{r}
+#| eval: false
+replicate(10000, mean( rnorm(n = 47, mean = 15, sd = 25) ) )
+```
+
+Finally, `means47 <-` stores those 10,000 means into an object called `means47`.
+
 :::
 
-`r qend()`
-`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-```{r}
-data20 <- 
-  tibble(
-    estimate = means20
-  )
+Again, like last week, we want to use this list of numbers as a column of a dataframe.
+The code below accomplishes this, and does an extra step too: it sorts the values in the `estimate` column.
 
-data100 <- 
-  tibble(
-    estimate = means100
-  )
+Specifically, the `arrange()` function in Line 4 takes the dataframe created in Lines 1–3 and sorts it in ascending order by the `estimate` column.
+After sorting, the first row contains the smallest estimate (i.e., the smallest sample mean), and the final row contains the largest estimate (i.e., the largest sample mean).
+
+**Copy and run** this code.
+
+```{r}
+#| code-line-numbers: true
+data47 <- tibble(
+  estimate = means47
+) |> 
+  arrange(estimate)
 ```
 
-`r solend()`
 
+Now, **answer** the following questions:
 
-
-`r qbegin(qcounter())`
-We should now have two dataframes. 
-One contains the means from 1000 random samples of size 20 (taken from our supposed population of optimism scores that are assumed to be normally distributed with mean of 35 and standard deviation of 20).  
-The second contains the means from 1000 random samples of size 100.  
-
-Make a plot of each of these sets of 1000 estimated means.  
-(What sort of plot? That's up to you!).  
-
-When you have made them, let's display them side by side. To do this, we can use the **patchwork** package (you might need to install it first!). 
-Then we can arrange multiple plots by 1. assigning each plot a name, and 2. using things like `+` and `/` to but them next to/above one another.  
-
-Each of the plots shows "means from 1000 samples we might see". Because each sample is a random selection people's optimism scores, the means of the samples differed (some samples were full of more optimistic people, some with less optimistic people).  
-
-Where can you see differences between the two plots?   Bonus challenge: why?  
-
-
+- What is the estimate in the 5000th row of `data47`?
+- Bonus conceptual challenge: Which measure of central tendency is given by the estimate in the 5000th row?
 
 :::flash
 🗂️
-See [Use R packages](https://uoepsy.github.io/dapr1/2627/flashcards/block1/packages.html){target="_blank"} flash card.
-
-🗂️
-See [TODO patchwork](https://uoepsy.github.io/dapr1/2627/flashcards/){target="_blank"} flash card.
+See [Subset a dataframe > Extract row(s)](https://uoepsy.github.io/dapr1/2627/flashcards/block2/subset.html#extract-rows){target="_blank"} flash card.
 :::
+
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-```{r}
-library(patchwork)
 
-p20 <- ggplot(data20, aes(x = estimate)) +
-  geom_histogram()
-
-p100 <- ggplot(data100, aes(x = estimate)) +
-  geom_histogram()
-
-p20 + p100
-```
-`r solend()`
-
-
-
-`r qbegin(qcounter())`
-We saw in the lecture that we can characterise "how much a sample estimate will vary due to random sampling" by using the "standard error". And we saw a formula for this for the sample mean: 
-
-$$
-SE_{\text{mean}} = \frac{\sigma}{\sqrt{n}}
-$$
-
-In the two scenarios we have been creating, we have seen how the means from samples of $n=20$ vary, as well as means from samples of $n=100$.  
-
-Because we started this by assuming that optimism scores in the population have mean of 35 and standard deviation of 20, we can calculate:  
+There are a couple equally good ways to return the 5000th row of `data47`.
 
 ::::{.columns}
-:::{.column width="50%"}
-$$
-\begin{align}
-SE_{\text{mean, n=20}} &= \frac{20}{\sqrt{20}} \\
-\quad \\
-&= 4.47 \\
-\end{align}
-$$
-:::
-:::{.column width="50%"}
+:::{.column width="45%"}
+```{r}
+data47 |> slice(5000)
+```
 
-$$
-\begin{align}
-SE_{\text{mean, n=100}} &= \frac{20}{\sqrt{100}} \\
-\quad \\
-&= 2 \\
-\end{align}
-$$
+:::
+:::{.column width="10%"}
+:::
+:::{.column width="45%"}
+```{r}
+data47[5000, ]
+```
 
 :::
 ::::
 
-What **we** have done today is actually _generate_ lots of samples and their means, and stored them in R.  
+The value that you see in your 5000th row might be different than mine.
+This is because when we're drawing random samples, they'll be a little bit different every time.
 
-It's really cool that statisticians figured out how to estimate the sampling variability, because it save us from having to do all this rigmarole. 
-The standard error calculations above give us estimates of how much the sample estimates will vary because of random sampling. 
-So we can simply use the calculations to get at a *theoretical* probability distribution (the red curves below), rather than having to actually simulate stuff.  
+Now, as for what measure of central tendency this represents: Because we sorted this dataframe in ascending order and we're looking at the middle value, 50% of the values will be smaller than the quantity in the 5000th row and 50% of the values will be larger.
+That means we're looking at the median of all these sample means!
 
 ```{r}
-#| echo: false
-#| fig-height: 4
-#| fig-width: 12
-mean_20 <- mean(data20$estimate, na.rm = TRUE)
-sd_20   <- sd(data20$estimate, na.rm = TRUE)
-bw=1
+data47 |>
+  summarise(
+    median = median(estimate)
+  )
+```
 
-p1 <- ggplot(data20, aes(x = estimate)) +
-  geom_histogram(binwidth = bw,alpha=.5) +
-  stat_function(
-    fun = function(x) dnorm(x, mean = mean_20, sd = sd_20) * 1000 * bw,
-    color = "tomato", linewidth = 1
-  ) + 
-  geom_vline(xintercept = mean_20, color = "blue", linetype = "solid", linewidth = 0.8) +
-  geom_vline(xintercept = c(mean_20 - sd_20, mean_20 + sd_20),
-             color = "blue", linetype = "dashed", linewidth = 0.8)+
-  geom_vline(xintercept = c(mean_20 - 2*sd_20, mean_20 + 2*sd_20), 
-             color = "blue", linetype = "dotted", linewidth = 0.8) +
-  annotate("text", x = mean_20 - 2*sd_20, y = 100, label = "Mean - 4.47*2",
-           angle=90,
-           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
-  annotate("text", x = mean_20 - sd_20, y = 100, label = "Mean - 4.47",
-           angle=90,
-           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
-  annotate("text", x = mean_20, y = 100, label = "Mean",
-           angle=90,
-           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
-  annotate("text", x = mean_20 + sd_20, y = 100, label = "Mean + 4.47",
-           angle=90,
-           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
-  annotate("text", x = mean_20 + 2*sd_20, y = 100, label = "Mean + 4.47*2",
-           angle=90,
-           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold")+
-  scale_y_continuous("count",limits=c(0,115))+
-  labs(x="estimates\n(sample n = 20)")
+`r solend()`
 
 
 
-mean_100 <- mean(data100$estimate, na.rm = TRUE)
-sd_100   <- sd(data100$estimate, na.rm = TRUE)
-bw2=.45
+`r qbegin(qcounter())`
 
-p2 <- ggplot(data100, aes(x = estimate)) +
-  geom_histogram(binwidth = bw2,alpha=.5) +
-  stat_function(
-    fun = function(x) dnorm(x, mean = mean_100, sd = sd_100) * 1000 * bw2,
-    color = "tomato", linewidth = 1
-  ) + 
-  geom_vline(xintercept = mean_100, color = "blue", linetype = "solid", linewidth = 0.8) +
-  geom_vline(xintercept = c(mean_100 - sd_100, mean_100 + sd_100),
-             color = "blue", linetype = "dashed", linewidth = 0.8)+
-  geom_vline(xintercept = c(mean_100 - 2*sd_100, mean_100 + 2*sd_100), 
-             color = "blue", linetype = "dotted", linewidth = 0.8) +
-  annotate("text", x = mean_100 - 2*sd_100, y = 100, label = "Mean - 2*2",
-           angle=90,
-           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
-  annotate("text", x = mean_100 - sd_100, y = 100, label = "Mean - 2",
-           angle=90,
-           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
-  annotate("text", x = mean_100, y = 100, label = "Mean",
-           angle=90,
-           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
-  annotate("text", x = mean_100 + sd_100, y = 100, label = "Mean + 2",
-           angle=90,
-           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold") +
-  annotate("text", x = mean_100 + 2*sd_100, y = 100, label = "Mean + 2*2",
-           angle=90,
-           vjust = -0.5, color = "blue", size = 3.5, fontface = "bold")+
-  scale_y_continuous("count",limits=c(0,115))+
-  labs(x="estimates\n(sample n = 100)")
+**Add** a new column to `data47` that contains the z-scored version of `estimate`. Name that column `est_z`.
 
+**Check** that the mean of the new column is zero (or at least a very very small number close to zero) and that the SD is 1.
 
-p1 + p2
+**Copy and run** the following code to create a density plot of your distribution of z-scores.
+
+```{r eval=F}
+data47 |>
+  ggplot(aes(x = est_z)) +
+  geom_density()
 ```
 
 
-Just to give ourselves confirmation, we can compare the calculations above with our simulation, by getting the standard deviation of all the means from samples of size 20, and of all the means from samples of size 100.  
-They won't *exactly* match the formula calculations above, but they should be close.  
-Check them now.  
+:::flash
+🗂️
+See [Calculate z-scores](https://uoepsy.github.io/dapr1/2627/flashcards/block2/zscore.html){target="_blank"} flash card.
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+To create a new column called `est_z` containing the z-scored version of `estimate`:
+
+```{r}
+data47 <- data47 |>
+  mutate(
+    est_z = (estimate - mean(estimate)) / sd(estimate)
+  )
+```
+
+To check that it has a mean of 0 and standard deviation of 1:
+
+```{r}
+data47 |> summarise(
+    mean_est_z = mean(est_z),
+    sd_est_z = sd(est_z)
+)
+```
+
+This number `–3.34e-15` for the mean is written using scientific notation, which is a way to abbreviate very small or very large numbers.
+In this case, the number `–3.34e-15` is very small: the `e-15` bit means that the number contains a 0, a decimal, and then 14 more zeroes before we see the 334: 0.00000000000000334
+
+This is very close to zero, so we are satisfied!
+(Sometimes R can't handle actual zeroes, so it approximates zero using tiny tiny numbers like this.)
+
+Finally, here's the density plot of z-scores.
+Again, yours might look a little different because of the random sampling.
+
+```{r fig.width=4, fig.height=3}
+#| out-width: 500px
+data47 |>
+  ggplot(aes(x = est_z)) +
+  geom_density()
+```
+
+
+`r solend()`
+
+
+
+`r qbegin(qcounter())`
+
+A 95% confidence interval (CI) contains the **middle 95%** of a standard normal distribution.
+In other words, in a standard normal distribution: 
+
+- 2.5% of the probability distribution is below the 95% CI's lower bound, and
+- 2.5% of the probability distribution is above the 95 CI's upper bound.
+
+We have approximated a standard normal distribution using these 10,000 z-scores.
+And we can approximate its 95% CI by taking the **middle 9500 z-scores.**
+
+**Extract** two rows from `data47`:
+
+- the first row of the middle 9500 estimates, and
+- the last row of the middle 9500 estimates.
+
+**Answer:** What are the z-scores in those two rows?
 
 ::: {.callout-tip collapse="true"}
 #### Hint
 
-This is just like calculating the standard deviation for any other variable! 
+If we have a list of 10,000 things, then the middle 9500 are between 250 and 9750.
+
+:::
 
 :::flash
 🗂️
-[Measuring Variability (standard deviation)](https://uoepsy.github.io/dapr1/2627/flashcards/block1/variability.html#standard-deviation-sd){target="_blank"} flash card.
+See [Subset a dataframe > Extract row(s)](https://uoepsy.github.io/dapr1/2627/flashcards/block2/subset.html#extract-rows){target="_blank"} flash card.
 :::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+If we have a list of 10,000 things, then the middle 9500 are between 250 and 9750.
+So we want to look at rows number 250 and 9750.
+
+::::{.columns}
+:::{.column width="45%"}
+**Using `slice()`:**
+
+```{r}
+data47 |> slice(250)
+data47 |> slice(9750)
+```
+
+:::
+:::{.column width="10%"}
+:::
+:::{.column width="45%"}
+**Using square-bracket indexing:**
+
+```{r}
+data47[250, ]
+data47[9750, ]
+```
+
+:::
+::::
+
+<br>
+
+If you want to get fancy, here's a way to use `slice()` and square-bracket indexing to get both of those two rows in one command:
+
+::::{.columns}
+:::{.column width="45%"}
+
+```{r}
+data47 |> slice(c(250, 9750))
+```
+
+:::
+:::{.column width="10%"}
+:::
+:::{.column width="45%"}
+
+```{r}
+data47[c(250,9750), ]
+```
+
+:::
+::::
+
+<br>
+
+The lower multiplier is `r round(data47[c(250), 2], 2)` and the upper one is +`r round(data47[c(9750), 2], 2)`. 
+
+As you see, these are close to -1.96 and +1.96, which is what theory expects for a 95% confidence interval. 
+That's cool!!
+
+What this shows us: **the multipliers for the 95% CI come from the z-scores that are at the lower and upper bounds of the middle 95% interval of the standard normal distribution.**
+
+The more samples we take (that is, if we increased our 10,000 to even more), the closer our z-scores here would get to -1.96 and +1.96.
+
+`r solend()`
+
+
+
+<!-- ## How do we use the $\pm$ 1.96 multipliers to create a 95% Confidence Interval?  -->
+
+`r qbegin(qcounter())`
+
+Now things are getting practical again!
+
+Let's use the $\pm$ 1.96 multipliers to compute a confidence interval for the mean population `outlook` score, representing people's pessimism vs. optimism on a scale from –100 to 100.
+
+The formula for calculating the upper and lower bounds of the 95% confidence interval is
+
+$$\bar{x} \pm 1.96 * SE$$
+
+where $\bar{x}$ is the sample mean and $SE$ is the standard error of the mean.
+$SE$ is computed as:
+
+- $SE = \frac{\sigma}{\sqrt{n}}$ if you know the population standard deviation $\sigma$, or
+- $SE = \frac{s}{\sqrt{n}}$ if you only know the sample standard deviation $s$.
+
+First, **read** the data from the DAPR1 class survey (<https://uoepsy.github.io/data/dapr1_2627_survey.csv>).
+
+:::flash
+🗂️
+See [Read in and inspect data](https://uoepsy.github.io/dapr1/2627/flashcards/block1/read-data.html){target="_blank"} flash card.
+:::
+
+Next, using the formula above and our knowledge that the population standard deviation of `outlook` scores is $\sigma = 25$: **calculate** the upper and lower bounds of the 95% confidence interval for the mean `outlook` score.
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+```{r}
+# Read DAPR1 survey data into R and store into an object called `sdata`
+sdata <- read_csv("https://uoepsy.github.io/data/dapr1_2627_survey.csv")
+
+# Compute sample size (n) and sample mean (xbar)
+n <- nrow(sdata)
+xbar <- mean(sdata$outlook)
+
+# Compute 95% CI
+xbar - (1.96 * 25/sqrt(n))  # lower bound
+xbar + (1.96 * 25/sqrt(n))  # upper bound
+```
+
+`r solend()`
+
+
+
+`r qbegin(qcounter())`
+**Write** a sentence interpreting the 95% confidence interval you just calculated.
+
+::: {.callout-tip collapse="true"}
+#### Hint
+
+Check the lecture slides for how to interpret a confidence interval.
 
 :::
 
@@ -340,21 +414,16 @@ This is just like calculating the standard deviation for any other variable!
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
 
 ```{r}
-getwd()
+#| echo: false
 
-data20 |>
-  summarise(
-    sd = sd(estimate)
-  )
-
-data100 |>
-  summarise(
-    sd = sd(estimate)
-  )
+ci_lower <- round(xbar - (1.96 * 25/sqrt(n)), 2)
+ci_upper <- round(xbar + (1.96 * 25/sqrt(n)), 2)
 ```
 
-`r solend()`
 
+We are 95% confident that the true mean outlook score of all DAPR1 students is between `r ci_lower` and `r ci_upper`.
+
+`r solend()`
 
 
 :::frame
@@ -367,8 +436,6 @@ Once you've finished, don't forget to:
 
 
 :::
-
-
 
 
 

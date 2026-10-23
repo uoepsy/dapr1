@@ -1,0 +1,157 @@
+---
+title: "Calculate z-scores"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+library(tidyverse)
+```
+
+
+We'll calculate z-scores using the `msleep` dataset that comes from `tidyverse`.
+`msleep` contains some data about how much different kinds of mammals sleep.
+Here's what the first few rows of `msleep` look like.
+
+```{r}
+msleep |> head()
+```
+
+**Let's convert each mammal's total hours of sleep (in column `sleep_total`) into z-scores.**
+
+# What is a z-score?
+
+A z-score is a standardised version of a variable.
+
+What does it mean for a variable to be "standardised"?
+
+- The mean of a z-scored variable is always zero, no matter what the variable's original mean was.
+- The SD of a z-scored variable is always one, no matter what the variable's original SD was.
+
+These properties are "standard" for all z-scores.
+
+# How to transform a variable into z-scores
+
+The formula for converting one observation from a given variable into a z-score:
+
+$$
+\text{z-score} = \frac{\text{observation – variable's mean}}{\text{variable's SD}}
+$$
+
+or purely in mathematical form:
+
+$$
+Z = \frac{X - M}{SD}
+$$
+
+
+## Method 1: Use `mutate()` from tidyverse
+
+```{r}
+msleep <- msleep |>
+  mutate(
+    Z_sleep_total = (sleep_total - mean(sleep_total)) / sd(sleep_total)
+  )
+```
+
+<br>
+
+Now let's check the result.
+
+Let's have a look at just the columns `name`, `sleep_total`, and `Z_sleep_total` (for more detail on subsetting using `select()`, see the [Subset a dataframe](subset.qmd){target="_blank"} flash card).
+
+```{r}
+msleep |>
+  select(name, sleep_total, Z_sleep_total)
+```
+
+- Animals with positive z-scores, like cheetahs and three-toed sloths, sleep more than this sample's average.
+- Animals with negative z-scores, like cows and vesper mice, sleep less than this sample's average.
+
+Sense check that the mean is 0 and the SD is 1:
+
+```{r}
+msleep |>
+  summarise(
+    mean_Z_sleep = mean(Z_sleep_total),
+    sd_Z_sleep   = sd(Z_sleep_total),
+  )
+```
+
+This mean value `-2.98e-17` is an abbreviated way (using scientific notation) of writing the VERY small number 0.0000000000000000298.
+
+
+For technical computational reasons, R sometimes will give us very small numbers when really it means zero.
+
+So our mission is accomplished!
+
+## Method 2: Calculate manually using the formula
+
+We extract the column `sleep_total` from `msleep` using the dollar sign notation.
+And we create a new column, `Z_sleep_total`, in `msleep`, using the dollar sign notation too.
+(for more detail on the dollar sign notation, see the [Subset a dataframe](subset.qmd){target="_blank"} flash card)
+
+```{r}
+msleep$Z_sleep_total <- (msleep$sleep_total - mean(msleep$sleep_total)) / sd(msleep$sleep_total)
+```
+
+
+Sense check that the mean is 0 and the SD is 1 (this time, rounding the output to the nearest whole number, so that the very small number above will be rounded to 0):
+
+```{r}
+msleep |>
+  summarise(
+    mean_Z_sleep = round(mean(Z_sleep_total)),
+    sd_Z_sleep   = round(sd(Z_sleep_total)),
+  )
+```
+
+
+# How to back-transform z-scores onto the original scale
+
+Here's the formula, which effectively "undoes" the z-score transformation:
+
+$$
+\text{observation on original scale} = \text{original mean} + (\text{z-score} \times \text{original SD})
+$$
+
+or purely in mathematical form:
+
+$$
+X = M + (Z \times SD)
+$$
+
+
+To use this formula, you'll need to know the original sample's mean and SD.
+Let's find out what those numbers are for `sleep_total` in `msleep`:
+
+```{r}
+total_sleep_mean <- mean(msleep$sleep_total)
+total_sleep_mean
+```
+
+```{r}
+total_sleep_sd   <- sd(msleep$sleep_total)
+total_sleep_sd
+```
+
+
+<br>
+
+Now: Imagine we've got an animal whose z-score for total hours of sleep is 3 (that is, the amount they sleep is three SDs above the average).
+How many hours do they sleep?
+
+```{r}
+total_sleep_mean + (3 * total_sleep_sd)
+```
+
+23.8 hours—nearly the whole day! (jealous)
+
+<br>
+
+What about an animal whose z-score is –1 (that is, the amount they sleep is one SD below the average)?
+
+```{r}
+total_sleep_mean + (-1 * total_sleep_sd)
+```
+
+This animal sleeps for a total of 5.98 hours per day.

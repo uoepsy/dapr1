@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>W11: One Sample T test – DAPR1 Workshops</title>
+<title>W1: One-sample t-tests – DAPR1 Workshops</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -179,6 +179,22 @@ window.Quarto = {
     <a class="dropdown-item" href="./01ex.html">
  <span class="dropdown-text">W1: Introductions</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="./02ex.html">
+ <span class="dropdown-text">W2: Data &amp; Variables</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./03ex.html">
+ <span class="dropdown-text">W3: Visualising Distributions</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./04ex.html">
+ <span class="dropdown-text">W4: Summarising Distributions I – Central Tendency</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./05ex.html">
+ <span class="dropdown-text">W5: Summarising Distributions II – Variability</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item">
@@ -213,7 +229,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">W11: One Sample T test</h1>
+<h1 class="title">W1: One-sample t-tests</h1>
 </div>
 
 
@@ -230,17 +246,34 @@ window.Quarto = {
 </header>
 
 
+<!--
+WHEN RENDERING: 
+
+- tutor-facing: 
+  - either use the build button, or render specific files. or in the terminal using `quarto render`
+  - resulting file will land in `docs/YEAR/workshops/tutors/`
+  - solutions will always be visible
+  
+- student-facing:
+  - set current_block: to the block we're in
+  - render in Terminal using either: 
+      - `quarto render --profile production`
+      - `quarto render FILE.qmd --profile production`
+  - resulting file will land in `docs/YEAR/workshops/`
+  - solutions will be available for previous blocks.  
+  
+-->
 <!-- MAX 5 QUESTIONS -->
 <!-- make each question ~10 minute work -->
 <!-- MAX 5 QUESTIONS -->
 <!-- MAX 5 QUESTIONS -->
 <div class="frame">
-<p>Pick someone new to be the driver this week. If everyone in the group has already had a week as the driver, start going round again!</p>
+<p>Pick someone to be the driver this week.</p>
 <p>The driver will type the code. The rest of you are navigators, you need to tell the driver where to go (i.e., what to type!).</p>
 <p>Driver instructions:</p>
 <ol type="1">
 <li>Log in to the bigger screen at your table</li>
-<li>Open <a href="https://rstudio.ppls.ed.ac.uk" target="_blank">RStudio Server</a></li>
+<li>Open RStudio Server. See the first drop-down in the <a href="https://uoepsy.github.io/dapr1/2627/misc/faqs-dapr1.html" target="_blank">FAQs page</a> for instructions</li>
 <li>Open a new .R script, and load the <strong>tidyverse</strong> package.</li>
 <li>Listen to your navigators</li>
 </ol>
@@ -249,82 +282,63 @@ window.Quarto = {
 <li>Tell your driver where to go (i.e., what to type)!</li>
 </ol>
 </div>
-<p>q1 t.test(sdata$outlook, mu=35, alternative=“greater”) q2 RQ “are DAPR1 students identify more as evening people or as morning people?” set up hypothesis q3 plot q4 t test q5 write up</p>
+<p>You will be working with the DAPR1 class survey data again, available at <a href="https://uoepsy.github.io/data/dapr1_2627_survey.csv" class="uri">https://uoepsy.github.io/data/dapr1_2627_survey.csv</a>. Load the data into R before answering any questions.</p>
+<p>This week, you will focus on the <code>procrast</code> variable, which measures how often students tend to procrastinate on tasks or responsibilities on a scale from 0 (never) to 100 (always). The neutral midpoint of this scale is 50, which represents “about half the time”.</p>
+<p>Our research question for this workshop (using a 5% significance level) is:</p>
+<blockquote class="blockquote">
+<p>Do university students report procrastinating significantly more than the neutral midpoint of 50?</p>
+</blockquote>
 <div class="question-begin">
 Question 1
 </div>
 <div class="question-body">
-<p>Our work last week culminated in performing our first null hypothesis test. We were testing whether the average optimism score in DAPR1 students is greater than the general population average (35).</p>
-<p>To do this, we calculated a test statistic (Lines 6-9 below) and then computed the p-value (Line 11), to quantify the probability of observing a test-statistic at least as extreme as the one we have got.</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># packages:</span></span>
-<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-3"><a href="#cb1-3"></a><span class="co"># data:</span></span>
-<span id="cb1-4"><a href="#cb1-4"></a>sdata <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"https://uoepsy.github.io/data/dapr1_2526_survey.csv"</span>)</span>
-<span id="cb1-5"><a href="#cb1-5"></a></span>
-<span id="cb1-6"><a href="#cb1-6"></a><span class="co"># standard error of mean:</span></span>
-<span id="cb1-7"><a href="#cb1-7"></a>se <span class="ot">&lt;-</span> <span class="fu">sd</span>(sdata<span class="sc">$</span>outlook) <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">nrow</span>(sdata))</span>
-<span id="cb1-8"><a href="#cb1-8"></a><span class="co"># test statistic:  </span></span>
-<span id="cb1-9"><a href="#cb1-9"></a>zstat <span class="ot">&lt;-</span> (<span class="fu">mean</span>(sdata<span class="sc">$</span>outlook) <span class="sc">-</span> <span class="dv">35</span>) <span class="sc">/</span> se</span>
-<span id="cb1-10"><a href="#cb1-10"></a><span class="co"># p-value</span></span>
-<span id="cb1-11"><a href="#cb1-11"></a><span class="dv">1</span><span class="sc">-</span><span class="fu">pnorm</span>(zstat)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.0311</code></pre>
-</div>
-</div>
-<p>Good news everyone! There’s a function in R that does this test for us! It’s the <code>t.test()</code> function.</p>
-<p>Note… it’s <span class="math inline">\(t\)</span>, and not <span class="math inline">\(Z\)</span>. That’s because when we have been calculating the standard error, we have been using our <em>sample</em> standard deviation, <code>sd(sdata$outlook)</code>, rather than the population standard deviation <span class="math inline">\(\sigma\)</span>. That’s because we <strong>don’t know</strong> what <span class="math inline">\(\sigma\)</span> is.</p>
-<p>When we use the sample standard deviation, we’re using an <em>estimate</em> of <span class="math inline">\(\sigma\)</span>, which means we are introducing more uncertainty. This uncertainty depends on how big our sample is.</p>
-<p>Our test statistic <span class="math inline">\(\frac{M-35}{s/\sqrt{n}}\)</span>, when we use <span class="math inline">\(s\)</span> not <span class="math inline">\(\sigma\)</span>, is <em>actually</em> a <span class="math inline">\(t\)</span>-statistic. It doesn’t follow a normal distribution, it follows a <span class="math inline">\(t\)</span>-distribution.</p>
-<p><span class="math inline">\(t\)</span>-distributions look very like the normal distribution, but the tails get thicker as the “degrees of freedom” decrease. The “degrees of freedom” here are <span class="math inline">\(n-1\)</span>, because we have <span class="math inline">\(n\)</span> observations and need to use 1 estimate (the mean) to calculate <span class="math inline">\(s\)</span>.</p>
-<p><strong>Task:</strong> Use <code>t.test()</code> to perform the same hypothesis test but as a <span class="math inline">\(t\)</span>-test, not <span class="math inline">\(z\)</span>.<br>
-<strong>Challenge yourselves:</strong> compared to the output from the code above, you might be able to predict which bits will be different and which bits will be the same!</p>
-<div class="flash">
-<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/" target="_blank">t test flashcard</a> flash card.</p>
-</div>
+<!-- Q1 plot data + write summary of pattern in plot -->
+<p>Visualise the distribution of the <code>procrast</code> variable. Add a vertical or horizontal dashed line at the neutral midpoint (50) to help visualise the hypothesised mean value.</p>
+<p>Once you have created the plot, write a few sentences that summarise what you observe. Does the bulk of the distribution appear to sit above or below 50?</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Hint
+<span class="screen-reader-only">Tip</span>Hints
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
 <div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>it’s just one line of code!</p>
+<p>You can add dashed lines to a <code>ggplot</code> using:</p>
+<ul>
+<li><code>geom_vline(xintercept = [null hypothesis value], linetype = "dashed", colour = [colour])</code> for vertical lines</li>
+<li><code>geom_hline(yintercept = [null hypothesis value], linetype = "dashed", colour = [colour])</code> for horizontal lines</li>
+</ul>
 </div>
 </div>
+</div>
+<div class="flash">
+<p>TODO - Link to plotting the distribution of a single variable (histogram, density, etc.)</p>
 </div>
 </div>
 <p class="question-end">
 </p>
-<div class="solution-begin">
-<button id="sol-start-1" class="jk-circle-right solution-icon clickable" onclick="toggle_visibility('sol-body-1', 'sol-start-1')">
-Solution
-</button>
-</div>
-<div id="sol-body-1" class="solution-body proof solution" style="display: none;">
-<p><span class="proof-title"><em>Solution 1</em>. </span>We have the same test statistic (we’re just calling it <span class="math inline">\(t\)</span> now)<br>
-we have the same mean, but we should have a different (slightly) p-value.</p>
+<div style="display:none;">
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">t.test</span>(sdata<span class="sc">$</span>outlook, <span class="at">mu =</span> <span class="dv">35</span>, <span class="at">alternative =</span> <span class="st">"greater"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-    One Sample t-test
-
-data:  sdata$outlook
-t = 2, df = 40, p-value = 0.03
-alternative hypothesis: true mean is greater than 35
-95 percent confidence interval:
- 35.7  Inf
-sample estimates:
-mean of x 
-     42.7 </code></pre>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>sdata <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"https://uoepsy.github.io/data/dapr1_2627_survey.csv"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(sdata, <span class="fu">aes</span>(<span class="at">x =</span> procrast)) <span class="sc">+</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>() <span class="sc">+</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">50</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">colour =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Procrastination Scores (0-100)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="11ex_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
+</figure>
 </div>
 </div>
+</div>
+<p>The distribution of procrastination scores appears to be centred above the neutral midpoint of 50, with a peak at around 75 indicating unimodality. This suggests that students may, on average, report procrastinating more than “about half the time”.</p>
 </div>
 <p class="solution-end">
 </p>
@@ -332,23 +346,35 @@ mean of x
 Question 2
 </div>
 <div class="question-body">
-<blockquote class="blockquote">
-<p><strong>New Research Question:</strong> Do first year undergraduate students identify more as morning people or as evening people?</p>
-</blockquote>
-<p>Here’s what the question in the survey looked like. In our data it is the <code>ampm</code> variable.<br>
-<img src="images/ampm.png" class="img-fluid"></p>
-<p>Specify the null and alternative hypotheses to address the research question.</p>
+<!-- Q2 specify hypotheses -->
+<p>Based on our research question, specify the null (<span class="math inline">\(H_0\)</span>) and alternative (<span class="math inline">\(H_1\)</span>) hypotheses.</p>
+<p>Provide your answer in both plain English and mathematical symbols (using <span class="math inline">\(\mu\)</span> for the population mean). In your dissertation or research you only need one of the two, but we want you to practice both this week.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Hints
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Remember that the null hypothesis always states “no difference”, “no effect”, or “nothing interesting going on”. The alternative hypothesis should reflect the direction of our research question.</p>
+</div>
+</div>
+</div>
 </div>
 <p class="question-end">
 </p>
-<div class="solution-begin">
-<button id="sol-start-2" class="jk-circle-right solution-icon clickable" onclick="toggle_visibility('sol-body-2', 'sol-start-2')">
-Solution
-</button>
-</div>
-<div id="sol-body-2" class="solution-body proof solution" style="display: none;">
-<p><span class="proof-title"><em>Solution 2</em>. </span><span class="math inline">\(H_0: \mu = 5\)</span><br>
-<span class="math inline">\(H_1: \mu \neq 5\)</span></p>
+<div style="display:none;">
+<ul>
+<li><p>Null hypothesis (<span class="math inline">\(H_0\)</span>): The mean procrastination score of university students does not differ from the neutral midpoint of 50.<br>
+In symbols: <span class="math inline">\(H_0: \mu = 50\)</span></p></li>
+<li><p>Alternative hypothesis (<span class="math inline">\(H_1\)</span>): The mean procrastination score of university students is greater than the neutral midpoint of 50.<br>
+In symbols: <span class="math inline">\(H_1: \mu &gt; 50\)</span></p></li>
+</ul>
 </div>
 <p class="solution-end">
 </p>
@@ -356,35 +382,47 @@ Solution
 Question 3
 </div>
 <div class="question-body">
-<p>Create a visualisation that presents the data in a way that is relevant to the research question.<br>
-There are lot’s of different ways you could do this - the choice is yours!<br>
-Have some fun with it. Change colours, tidy up axis labels etc.</p>
-<div class="flash">
-<p>🗂️ See the <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block1/intro-ggplot.html" target="_blank">plot a variable</a> flash card.</p>
+<!-- Q3 run one-sample t-test -->
+<p>Use the <code>t.test()</code> function in R to test your hypotheses.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Hints
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li>The R code is <code>t.test([data]$[variable], mu = [value], alternative = "[direction]", conf.level = [value])</code>.</li>
+<li>The value specified in <span class="math inline">\(H_0\)</span> goes in <code>mu</code> = <code>[value]</code>.</li>
+<li>Alternative can either be <code>"two.sided"</code>, <code>"less"</code>, <code>"greater"</code> and it corresponds to the direction of <span class="math inline">\(H_1\)</span>.</li>
+<li>A 95% confidence level corresponds to an alpha of .05.</li>
+</ul>
+</div>
+</div>
 </div>
 </div>
 <p class="question-end">
 </p>
-<div class="solution-begin">
-<button id="sol-start-3" class="jk-circle-right solution-icon clickable" onclick="toggle_visibility('sol-body-3', 'sol-start-3')">
-Solution
-</button>
-</div>
-<div id="sol-body-3" class="solution-body proof solution" style="display: none;">
-<p><span class="proof-title"><em>Solution 3</em>. </span></p>
+<div style="display:none;">
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(sdata, <span class="fu">aes</span>(<span class="at">x =</span> ampm)) <span class="sc">+</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">alpha =</span> .<span class="dv">5</span>, <span class="at">fill =</span> <span class="st">"#0F4C81"</span>) <span class="sc">+</span> </span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">5</span>, <span class="at">lty =</span> <span class="st">"dotted"</span>) <span class="sc">+</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">mean</span>(sdata<span class="sc">$</span>ampm), <span class="at">lty =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="st">"Chronotype</span><span class="sc">\n</span><span class="st">(evening person &lt;--&gt; morning person)"</span>,</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                     <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">10</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="11ex_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
-</figure>
-</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">t.test</span>(sdata<span class="sc">$</span>procrast, <span class="at">mu =</span> <span class="dv">50</span>, <span class="at">alternative =</span> <span class="st">"greater"</span>, <span class="at">conf.level =</span> <span class="fl">0.95</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    One Sample t-test
+
+data:  sdata$procrast
+t = 5, df = 132, p-value = 2e-06
+alternative hypothesis: true mean is greater than 50
+95 percent confidence interval:
+ 56.9  Inf
+sample estimates:
+mean of x 
+     60.6 </code></pre>
 </div>
 </div>
 </div>
@@ -394,36 +432,100 @@ Solution
 Question 4
 </div>
 <div class="question-body">
-<p>Perform a <code>t.test()</code> to test the hypotheses you specified above.</p>
+<!-- Q4 check assumptions -->
+<!-- Also added: data requirements -->
+<p>A one-sample t-test is valid if three things are satisfied:</p>
+<ol type="1">
+<li>Data requirement. The variable is numeric.</li>
+<li>Assumption of independence. Observations are sampled independently.</li>
+<li>Assumption of normality. Either the population is normally distributed or the sample size is <span class="math inline">\(\geq\)</span> 30.</li>
+</ol>
+<p>Are the requirements/assumptions met for our data?</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Hints
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li>Think about the study design.</li>
+<li>Check the sample size using <code>nrow()</code>.</li>
+<li>Create a QQ-plot to visually assess the normality of the <code>procrast</code> variable using <code>geom_qq()</code> and <code>geom_qq_line()</code>. Run a Shapiro-Wilk test using the <code>shapiro.test()</code> function.</li>
+</ul>
+</div>
+</div>
+</div>
 <div class="flash">
-<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/" target="_blank">TODO t test flashcard</a> flash card.</p>
+<p>TODO - Link to assumption checking flashcards (e.g.&nbsp;QQ-plot/Shapiro test)</p>
 </div>
 </div>
 <p class="question-end">
 </p>
-<div class="solution-begin">
-<button id="sol-start-4" class="jk-circle-right solution-icon clickable" onclick="toggle_visibility('sol-body-4', 'sol-start-4')">
-Solution
-</button>
-</div>
-<div id="sol-body-4" class="solution-body proof solution" style="display: none;">
-<p><span class="proof-title"><em>Solution 4</em>. </span></p>
+<div style="display:none;">
+<ol type="1">
+<li>The variable is numeric, as you can see from the output of <code>glimpse()</code> or <code>str()</code>.</li>
+</ol>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">t.test</span>(sdata<span class="sc">$</span>ampm, <span class="at">mu =</span> <span class="dv">5</span>, <span class="at">alternative =</span> <span class="st">"two.sided"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(sdata)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 134
+Columns: 15
+$ pseudonym     &lt;chr&gt; "noodle_horse", "zmjjkk", NA, "boogereater", "gabby", NA…
+$ birthmonth    &lt;chr&gt; "january", "october", "april", "may", "january", "may", …
+$ n_sibling     &lt;dbl&gt; 2, 0, 11, 0, 1, 0, 1, 0, 1, 1, 1, 3, 2, 1, 1, 0, 0, 1, 4…
+$ spicy         &lt;chr&gt; "medium", "mild", "extreme", "hot", "mild", "medium", "m…
+$ spicy_num     &lt;dbl&gt; 3, 2, 6, 4, 2, 3, 3, 4, 3, 3, 2, 3, 2, 3, 6, 2, 2, 5, 3,…
+$ eye_colour    &lt;chr&gt; "blue", "brown", "brown", "grey", "hazel", "blue", "brow…
+$ distance_born &lt;dbl&gt; 191.00, 8300.00, 6700.00, 7000.00, 626.00, 39.00, NA, 10…
+$ outlook       &lt;dbl&gt; -7, 80, 100, -29, 9, 74, 19, 0, 47, 35, 41, 0, 4, 96, 10…
+$ ampm          &lt;dbl&gt; 9.5, 0.0, 10.0, 1.8, 5.0, 1.1, 2.8, 2.4, 3.2, 2.5, 0.8, …
+$ sleepqual     &lt;dbl&gt; 38, 50, NA, 52, 50, 16, 52, 74, 57, 50, 55, 49, 53, 52, …
+$ procrast      &lt;dbl&gt; 22, 80, 100, 45, 77, 34, 40, 54, 24, 80, 54, 51, 76, 70,…
+$ multitask     &lt;dbl&gt; 57, 80, NA, 53, 77, 51, 49, 47, 72, 71, 76, 54, NA, 50, …
+$ fav_color     &lt;chr&gt; "green", "blue", "red", "pink", "pink", "blue", "blue", …
+$ catdog        &lt;chr&gt; "both", "both", "cat", "cat", "dog", "both", "dog", "bot…
+$ threewords    &lt;chr&gt; "woof, woof, woof", "good,nice,well done", "i am sleepy"…</code></pre>
+</div>
+</div>
+<ol start="2" type="1">
+<li><p>Independence is assumed based on study design (one response per unique pseudonym/person).</p></li>
+<li><p>Assumption of normality</p></li>
+</ol>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(sdata)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 134</code></pre>
+</div>
+</div>
+<p>The sample size is <span class="math inline">\(n\)</span> = 134, which is well over 30, satisfying the assumption due to the Central Limit Theorem.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(sdata, <span class="fu">aes</span>(<span class="at">sample =</span> procrast)) <span class="sc">+</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_qq</span>() <span class="sc">+</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_qq_line</span>() <span class="sc">+</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Theoretical quantiles"</span>, <span class="at">y =</span> <span class="st">"Sample quantiles"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="11ex_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">shapiro.test</span>(sdata<span class="sc">$</span>procrast)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
-    One Sample t-test
+    Shapiro-Wilk normality test
 
-data:  sdata$ampm
-t = 35, df = 40, p-value &lt;2e-16
-alternative hypothesis: true mean is not equal to 5
-95 percent confidence interval:
- 8.68 9.13
-sample estimates:
-mean of x 
-      8.9 </code></pre>
+data:  sdata$procrast
+W = 1, p-value = 3e-04</code></pre>
 </div>
 </div>
+<p>The QQ-plot shows some deviation from normality, and the Shapiro-Wilk test is significant (<span class="math inline">\(W = 0.96, p &lt; .001\)</span>), leading to rejection of the null hypothesis of normality. However, the assumption of normality is met due to the large sample size.</p>
 </div>
 <p class="solution-end">
 </p>
@@ -431,22 +533,55 @@ mean of x
 Question 5
 </div>
 <div class="question-body">
-<p>Write it up!</p>
-<p>To help, here’s the example write-up from the lecture:</p>
+<!-- Q5 write up / report -->
+<p>Let’s now practice how to report the results of a one-sample t-test using APA style.</p>
+<p>First, calculate the sample mean and standard deviation of the <code>procrast</code> variable using the <code>summarise()</code> function.</p>
+<p>Then, write up your one-sample t-test results. Your write-up should include:</p>
+<ul>
+<li>A explanation of what was tested.</li>
+<li>The sample mean (<span class="math inline">\(M\)</span>) and standard deviation (<span class="math inline">\(SD\)</span>).</li>
+<li>The test results in APA format: <span class="math inline">\(t\)</span>([degrees of freedom]) = [t-statistic], <span class="math inline">\(p\)</span> = [p-value], [one-tailed/two-tailed].</li>
+<li>A final sentence to explain whether the null hypothesis was rejected and what this means in context.</li>
+</ul>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Hints
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>This is the write-up from the lecture slides as an example:</p>
 <blockquote class="blockquote">
-<p>To investigate whether the mean body temperature of all healthy humans differs from the commonly thought value of <span class="math inline">\(37^\circ\text{C}\)</span>, we performed (at the 5% significance level) a one-sample t-test of <span class="math inline">\(H_0: \mu = 37^\circ\text{C}\)</span> against <span class="math inline">\(H_0: \mu \neq 37^\circ\text{C}\)</span>.<br>
-The sample results provided very strong evidence against the null hypothesis (<span class="math inline">\(t(49)=-3.14, p = .003\)</span>, two-sided). We therefore concluded that the mean body temperature of healthy humans differs from 37 and, with 95% confidence, is likely to be between <span class="math inline">\(36.69^\circ\text{C}\)</span> and <span class="math inline">\(36.93^\circ\text{C}\)</span>.</p>
+<p>We wanted to find out whether college students score above the threshold for “low loneliness” on the UCLA Loneliness scale, which is 34. At the 5% significance level, we performed a one-sided test of significance against the null hypothesis that college students’ loneliness is equal to 34. The results indicate that the mean loneliness for college students, 40.3, is significantly higher than the “low loneliness” threshold of 34 (<span class="math inline">\(t\)</span>(486) = 15, <span class="math inline">\(p\)</span> &lt; .001, one-tailed).</p>
 </blockquote>
+</div>
+</div>
+</div>
 </div>
 <p class="question-end">
 </p>
-<div class="solution-begin">
-<button id="sol-start-5" class="jk-circle-right solution-icon clickable" onclick="toggle_visibility('sol-body-5', 'sol-start-5')">
-Solution
-</button>
+<div style="display:none;">
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>sdata <span class="sc">|&gt;</span> </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">M =</span> <span class="fu">mean</span>(procrast, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">SD =</span> <span class="fu">sd</span>(procrast, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 2
+      M    SD
+  &lt;dbl&gt; &lt;dbl&gt;
+1  60.6  25.5</code></pre>
 </div>
-<div id="sol-body-5" class="solution-body proof solution" style="display: none;">
-<p><span class="proof-title"><em>Solution 5</em>. </span></p>
+</div>
+<blockquote class="blockquote">
+<p>A one-sample t-test was conducted to determine whether university students report procrastinating at significantly higher levels than the 50 midpoint. The results indicated that the mean procrastination score (<span class="math inline">\(M\)</span> = 60.61, <span class="math inline">\(SD\)</span> = 25.49) was significantly greater than 50, <span class="math inline">\(t\)</span>(132) = 4.8, <span class="math inline">\(p\)</span> &lt; .001, one-tailed. Therefore, we reject the null hypothesis and conclude that students, on average, report procrastinating more than “about half the time”.</p>
+</blockquote>
 </div>
 <p class="solution-end">
 </p>

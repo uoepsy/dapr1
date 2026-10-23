@@ -1,7 +1,33 @@
 library(qualtRics)
 library(tidyverse)
 
-df <- fetch_survey("SV_7VxqkFo12wBita6") |> 
+make_norm <- function(x){
+  if(shapiro.test(x)$p.value >= .05){
+    return(x)
+  }
+  sx = sd(x)
+  optx = x
+  optp = shapiro.test(x)$p.value
+  
+  nscale = 0.01
+  while(TRUE){
+    addnoise <- rnorm(length(x), 0, sd = sx*nscale)
+    testx = x + addnoise
+    testp = shapiro.test(testx)$p.value
+    if(testp > optp) {
+      optp = testp
+      optx = testx
+    }
+    if(optp >= .05){
+      cat(paste0("noise",nscale))
+      return(optx)
+    }
+    # increase noise if not
+    nscale = nscale + .001
+  }
+}
+
+df <- fetch_survey("SV_7VxqkFo12wBita6")[-c(1:10),] |> 
   janitor::clean_names() |>
   filter(status != "Survey Preview") |>
   filter(progress > 90)
@@ -34,47 +60,77 @@ outdf <- tibble(
 
 testdf = outdf
 while(TRUE){
-  if(shapiro.test(testdf$outlook)$p.value > .05){
-    if(nrow(testdf)>40){
-      if(mean(testdf$outlook)>30) { break }
-    }
+  if(shapiro.test(testdf$outlook)$p.value >= .05){
+    break
   }
-  toadd = slice_sample(outdf,n=1) |>
-    mutate(
-      pseudonym=NA,
-      birthmonth = sample(tolower(month.name),1),
-      n_sibling = rpois(1,1),
-      eye_colour = 
-        sample(c("brown","blue","green","hazel","amber"),1,
-               prob = c(.5,.2,.1,.09,.01)),
-      distance_born = rgamma(1,shape=3,scale=5e2),
-      outlook = round(rnorm(1,
-                            40,
-                            25)),
-      ampm = round(rnorm(1,mean(testdf$ampm,ampm=T),
-                         sd(testdf$ampm,na.rm=T)),1),
-      sleepqual = round(rnorm(1,mean(testdf$sleepqual,na.rm=T),
-                              sd(testdf$sleepqual,na.rm=T))),
-      procrast = round(rnorm(1,mean(testdf$procrast,na.rm=T),
-                             sd(testdf$procrast,na.rm=T))),
-      multitask = round(rnorm(1,mean(testdf$multitask,na.rm=T),
-                              sd(testdf$multitask,na.rm=T))),
-      threewords = NA
-      ) |>
-    mutate(
-      outlook = pmin(100,pmax(-100,outlook)),
-      ampm = pmin(10,pmax(0,ampm)),
-      sleepqual = pmin(100, pmax(0, sleepqual)),
-      procrast = pmin(100, pmax(0, procrast)),
-      multitask = pmin(100, pmax(0, multitask))
-    )
-  testdf = bind_rows(testdf,toadd) |> slice_sample(prop=1)
+  cat(paste0("not yet\n"))
+  # bound at -100,100
+  testdf$outlook <- 
+    pmin(100,pmax(-100,round(make_norm(testdf$outlook))))
+  # preserve some whole things: 
+  tokeep = c(0,50,80,35,-10,10,30,100,-100,-50)
+  testdf$outlook[outdf$outlook %in% tokeep] <-
+    outdf$outlook[outdf$outlook %in% tokeep]  
 }
 
-dim(testdf)
-hist(testdf$outlook,breaks=20)
+hist(testdf$outlook)
+qqnorm(testdf$outlook);qqline(testdf$outlook)
+shapiro.test(testdf$outlook)
+
+head(testdf)
+
+# summary(testdf |> mutate_if(is.character,as.factor) |> select_if(is.factor))
+# testdf |> select_if(is.numeric) |> psych::pairs.panels()
+# readr::write_csv(testdf,file="../../data/dapr1_2627_survey.csv")
+
+
+# 
+# 
+# 
+# 
+# testdf = outdf
+# while(TRUE){
+#   if(shapiro.test(testdf$outlook)$p.value > .05){
+#     if(nrow(testdf)>40){
+#       if(mean(testdf$outlook)>30) { break }
+#     }
+#   }
+#   toadd = slice_sample(outdf,n=1) |>
+#     mutate(
+#       pseudonym=NA,
+#       birthmonth = sample(tolower(month.name),1),
+#       n_sibling = rpois(1,1),
+#       eye_colour = 
+#         sample(c("brown","blue","green","hazel","amber"),1,
+#                prob = c(.5,.2,.1,.09,.01)),
+#       distance_born = rgamma(1,shape=3,scale=5e2),
+#       outlook = round(rnorm(1,
+#                             mean(testdf$outlook),
+#                             sd(testdf$outlook)/2)),
+#       ampm = round(rnorm(1,mean(testdf$ampm,ampm=T),
+#                          sd(testdf$ampm,na.rm=T)),1),
+#       sleepqual = round(rnorm(1,mean(testdf$sleepqual,na.rm=T),
+#                               sd(testdf$sleepqual,na.rm=T))),
+#       procrast = round(rnorm(1,mean(testdf$procrast,na.rm=T),
+#                              sd(testdf$procrast,na.rm=T))),
+#       multitask = round(rnorm(1,mean(testdf$multitask,na.rm=T),
+#                               sd(testdf$multitask,na.rm=T))),
+#       threewords = NA
+#       ) |>
+#     mutate(
+#       outlook = pmin(100,pmax(-100,outlook)),
+#       ampm = pmin(10,pmax(0,ampm)),
+#       sleepqual = pmin(100, pmax(0, sleepqual)),
+#       procrast = pmin(100, pmax(0, procrast)),
+#       multitask = pmin(100, pmax(0, multitask))
+#     )
+#   testdf = bind_rows(testdf,toadd) |> slice_sample(prop=1)
+# }
+
+
 # summary(testdf |> mutate_if(is.character,as.factor))
 # 
 # testdf |> select_if(is.numeric) |> psych::pairs.panels()
 
 # readr::write_csv(testdf,file="../../data/dapr1_2526_survey.csv")
+

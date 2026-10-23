@@ -1,0 +1,141 @@
+---
+title: "Run a one-sample t-test"
+---
+
+```{r setup, include=FALSE}
+source('../assets/setup.R')
+```
+
+
+```{r include=FALSE}
+knitr::opts_chunk$set(fig.align = 'center', 
+                      fig.height = 5, fig.width = 6.2, 
+                      out.width = '80%')
+
+set.seed(1)
+
+library(tidyverse)
+library(patchwork)
+library(kableExtra)
+
+theme_set(theme_light(base_size = 15))
+```
+
+
+A one-sample t-test is a statistical procedure to test whether or not the mean of a population ($\mu$) is equal to some hypothesised value ($\mu_0$). Examples when you would use a one-sample t-test include:
+
+- Is the average weight of a dog greater than 20kg?  
+- Is the mean body temperature not equal to 37 °C?  
+- On the Beck Depression Inventory (BDI), a score of >25 is considered clinical diagnosis of depression. Is the average score of our population of interest (for instance, people with a specific disease) significantly above this cutoff? 
+
+## Null hypothesis
+
+A one-sample t-test always has the null hypothesis:
+
+$$ H_0: \mu = \mu_0 $$ 
+
+I.e. the population mean is equal to some hypothesised value, $\mu_0$. 
+
+## Alternative hypothesis
+
+The alternative hypotheses can be two-sided, or one-sided (left-tailed or right-tailed). 
+
+- __Two-sided/Two-tailed:__ $H_1 : \mu \neq \mu_0$  
+    (population mean is not equal to some hypothesised value $\mu_0$)  
+- __Left-sided/Left-tailed:__ $H_1 : \mu < \mu_0$  
+    (population mean is less than some hypothesised value $\mu_0$)  
+- __Right-sided/Right-tailed:__ $H_1 : \mu > \mu_0$  
+    (population mean is greater than some hypothesised value $\mu_0$)  
+
+## t-statistic 
+
+The test statistic is the t-statistic:
+
+$$t = \frac{\bar{x} - \mu_0}{s/\sqrt{n}} $$ 
+
+where
+
+- $\bar{x}$ = sample mean
+- $\mu_0$ = hypothesised value
+- $s$ = standard deviation of the sample
+- $n$ = sample size 
+
+As we have produced a sample, we are using the sample statistics to estimate the population parameters. When the population standard deviation ($\sigma$) is *unknown*, we estimate it using the sample standard deviation ($s$).
+
+## The t-distribution
+
+The t-distribution is a family of distributions that look almost identical to the standard normal distribution. The t-distribution is very important when working with small sample sizes, e.g. $n < 30$. As the sample size increases, the more the t-distribution will look like the standard normal distribution. 
+
+The particular shape of the t-distribution is determined by the **degrees of freedom**, or df in short. You can see the $t$-distribution for different degrees of freedom below (abbreviated as $v$, just pretend it's $df$).  
+
+```{r, echo=FALSE, fig.cap = "The t-distribution. (Source: https://en.wikipedia.org/wiki/Student%27s_t-distribution)", out.width = '80%'}
+knitr::include_graphics("https://upload.wikimedia.org/wikipedia/commons/4/41/Student_t_pdf.svg")
+```
+
+Notice that as the degrees of freedom ($\nu$ in the plot below) gets bigger (so as $n$ gets bigger), the more the $t$-distribution fits a normal distribution. 
+
+::: {.callout-note collapse="true"}
+#### Optional: If you want to know more about degrees of freedom
+
+Degrees of freedom are the number of independent observations in a set of data. When we are estimating a mean from a single sample, the degrees of freedom is equal to the sample size minus one ($n-1$).  
+
+This means that the sampling distribution of $t$-statistics from samples of size 10, would follow a $t$-distribution with $10-1$ degrees of freedom.
+
+**Why do we subtract 1 from the number of observations?**^[https://www.statisticshowto.com/probability-and-statistics/hypothesis-testing/degrees-of-freedom/]
+
+Degrees of freedom can alternatively be seen as the number of values that are free to vary in a data set. For example, if we have 3 sets of numbers which have a mean of 10:
+
+- $a$: {9,10,11}
+- $b$: {8,10,12}
+- $c$: {5,10,15}
+
+Once you have chosen the first two numbers in the set, the third number is fixed. I.e. you cannot choose the third item in the set. If you choose set $a$, once you've chosen numbers 9 and 10, the next number **must** be 11 in order to get a mean of 10. The only numbers that are free to vary are the first two, thus the degrees of freedom for a set of three numbers, is two. 
+:::
+
+
+## Significance
+
+In order to test the significance of a given $t$-statistic, we need to assess the probability of obtaining our $t$-statistic (or one at least as extreme) against a $t$-distribution with degrees of freedom $n-1$.   
+
+We can do this in `R` using the `pt()` function with `pt(x, df)`.  
+Remember that we have used the function `pnorm(x, mean, sd)` to compute the area to the left of `x` in a normal curve centred at `mean` and having standard deviation `sd`.  
+Similarly, `pt(x, df)` computes the area to the left of `x` in a $t$-distribution curve with degrees of freedom `df`.  
+
+::: {.callout-note}
+__Question__.  Looking at the plot above, for a $t$-distribution with degrees of freedom of 5 (the blue line), what proportion of the curve is to the left of -2?  
+:::
+
+```{r}
+pt(-2, df = 5)
+```
+
+From this, we can say that assuming the null hypothesis to be true, the probability of obtaining a $t$-statistic with 5 degrees of freedom of $\leq -2$ is `r round(pt(-2,5),3)`.
+
+
+## Assumptions 
+
+One last important thing to note is that when we perform a one sample mean tests, we assume a few basic things:
+
+1. The data are continuous;
+2. The data are independent; 
+3. The data are normally distributed __OR__ the sample size is large enough (rule-of-thumb $n \geq 30 30$) and the data are not strongly skewed;
+
+If any of these assumptions are not met, the results of the test are unreliable.  
+
+To check the assumptions:
+1) The dependent variable should be measured at the interval or ratio level
+2) Data is independent (i.e., not correlated/related), which means that there is no relationship between the observations. This is more of a study design issue than something you can test for, but it is an important assumption of the one-sample t-test.
+3) Can be checked visually with histograms of the data/Q-Q plots, or statistically with the Shapiro-Wilk test.
+
+
+
+## Glossary
+
+- *Population.* The entire collection of units of interest.
+- *Sample.* A subset of the entire population.
+- *Degrees of freedom.*  number of independent observations in a set of data, ($n-1$)
+- *Simple random sample (SRS).* Every member of a population has an equal chance of being selected to be in the sample.
+- *Assumptions* Requirements of the data in order to ensure that our test is appropriate. Violation of assumptions changes the conclusion of the research and interpretation of the results. 
+- *Shapiro-Wilks* Tests whether sample is drawn from a population which is normally distributed.   
+- *QQplot/Quantile-Quantile plot* Displays the theoretical quantiles of a normal distribution against the sample quantiles. If the data points fall on the diagonal line, the sample is normally distributed.
+

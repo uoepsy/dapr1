@@ -1,16 +1,39 @@
 ---
-title: "W4: Summarising Distributions I - Central Tendency"
-params: 
-    SHOW_SOLS: FALSE
-    TOGGLE: TRUE
+title: "W4: Summarising Distributions I – Central Tendency"
 format: html
 ---
+
+<!--
+WHEN RENDERING: 
+
+- tutor-facing: 
+  - either use the build button, or render specific files. or in the terminal using `quarto render`
+  - resulting file will land in `docs/YEAR/workshops/tutors/`
+  - solutions will always be visible
+  
+- student-facing:
+  - set current_block: to the block we're in
+  - render in Terminal using either: 
+      - `quarto render --profile production`
+      - `quarto render FILE.qmd --profile production`
+  - resulting file will land in `docs/YEAR/workshops/`
+  - solutions will be available for previous blocks.  
+  
+-->
 
 ```{r}
 #| include: false
 library(tidyverse)
 source('assets/dropdowns.R')
 source('assets/setup.R')
+
+vars <- readRDS("block_sols.rds")
+# set params manually rather than yaml params
+params <- list(
+  SHOW_SOLS = tryCatch({ vars$sols[[tools::file_path_sans_ext(knitr::current_input(dir=FALSE))]]},
+                       error = function(e) { TRUE } ),
+  TOGGLE = TRUE
+)
 ```
 
 <!-- MAX 5 QUESTIONS -->
@@ -25,7 +48,7 @@ The rest of you are navigators, you need to tell the driver where to go (i.e., w
 Driver instructions:
 
 1. Log in to the bigger screen at your table
-2. Open [RStudio Server](https://rstudio.ppls.ed.ac.uk){target="_blank"}
+2. Open RStudio Server. See the first drop-down in the [FAQs page](https://uoepsy.github.io/dapr1/2627/misc/faqs-dapr1.html){target="_blank"} for instructions
 3. Open a new .R script, and load the **tidyverse** package.
 4. Listen to your navigators
 
@@ -36,7 +59,7 @@ Navigator instructions:
 :::
 
 `r qbegin(qcounter())`
-We're continuing to use the same dataset for the next couple of weeks (the survey that many of you completed in the first week). The data are stored at [https://uoepsy.github.io/data/dapr1_2526_survey.csv](https://uoepsy.github.io/data/dapr1_2526_survey.csv){target="_blank"} (Check back to your work from the previous two weeks to remind yourself how to get the data into R).  
+We're continuing to use the same dataset for the next couple of weeks (the survey that many of you completed in the first week). The data are stored at [https://uoepsy.github.io/data/dapr1_2627_survey.csv](https://uoepsy.github.io/data/dapr1_2627_survey.csv){target="_blank"} (Check back to your work from the previous two weeks to remind yourself how to get the data into R).  
 
 What was the most common month in which survey respondents were born? 
 
@@ -58,7 +81,7 @@ The variable that holds this information is the one called `birthmonth`. You can
 
 ```{r}
 library(tidyverse)
-sdata <- read_csv("https://uoepsy.github.io/data/dapr1_2526_survey.csv")
+sdata <- read_csv("https://uoepsy.github.io/data/dapr1_2627_survey.csv")
 
 sdata |> 
   count(birthmonth)
@@ -105,7 +128,7 @@ See [Measure central tendency > Median](https://uoepsy.github.io/dapr1/2627/flas
 ```{r}
 sdata |> 
   summarise(
-    spicy_Med = median(spicy_num, na.rm = TRUE)
+    spicy_Med = median(spicy_num)
   )
 ```
 
@@ -114,8 +137,7 @@ sdata |>
 
 `r qbegin(qcounter())`
 Another question asked respondents to rate the quality of their sleep (from 0 to 100). 
-On average, how well did respondents sleep?  
-What was the average sleep quality rating 
+On average, how well did respondents sleep? (What was the average sleep quality rating?)
 
 :::flash
 🗂️
@@ -157,8 +179,8 @@ Calculate both the mean and median for this variable to see if you were right.
 ```{r}
 sdata |>
   summarise(
-    dist_M = mean(distance_born),
-    dist_Med = median(distance_born)
+    dist_M = mean(distance_born, na.rm = TRUE),
+    dist_Med = median(distance_born, na.rm = TRUE)
   )
 ```
 
@@ -169,9 +191,9 @@ sdata |>
 `r qbegin(qcounter())`
 Choose any of the variables in the data that we haven't used so far (excluding the `pseudonym` and `threewords` variables!).  
 
-For your chosen variable, calculate an appropriate summary statistic for the central tendency.  
+Calculate an appropriate summary statistic of central tendency for your chosen variable.
 
-Can you do this separately for the people who responded "cat", "dog", "both" or "neither" to the question "Dog or Cat?" (this is the `catdog` variable in the dataset).  
+Next, do the above separately for the people who responded "cat", "dog", "both" or "neither" to the question "Dog or Cat?" (this is the `catdog` variable in the dataset).  
 
 :::flash
 🗂️
@@ -185,7 +207,7 @@ See [Measure central tendency](https://uoepsy.github.io/dapr1/2627/flashcards/bl
 sdata |>
   group_by(catdog) |>
   summarise(
-    sleepqual = mean(sleepqual)
+    sleepqual = mean(sleepqual, na.rm = TRUE)
   )
 ```
 

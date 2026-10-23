@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>W9: Confidence Intervals – DAPR1 Workshops</title>
+<title>W10: Null Hypothesis Significance Testing (NHST) – DAPR1 Workshops</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -189,11 +189,11 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="./04ex.html">
- <span class="dropdown-text">W4: Summarising Distributions I - Central Tendency</span></a>
+ <span class="dropdown-text">W4: Summarising Distributions I – Central Tendency</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./05ex.html">
- <span class="dropdown-text">W5: Summarising Distributions II - Variability</span></a>
+ <span class="dropdown-text">W5: Summarising Distributions II – Variability</span></a>
   </li>  
     </ul>
   </li>
@@ -229,7 +229,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">W9: Confidence Intervals</h1>
+<h1 class="title">W10: Null Hypothesis Significance Testing (NHST)</h1>
 </div>
 
 
@@ -246,6 +246,23 @@ window.Quarto = {
 </header>
 
 
+<!--
+WHEN RENDERING: 
+
+- tutor-facing: 
+  - either use the build button, or render specific files. or in the terminal using `quarto render`
+  - resulting file will land in `docs/YEAR/workshops/tutors/`
+  - solutions will always be visible
+  
+- student-facing:
+  - set current_block: to the block we're in
+  - render in Terminal using either: 
+      - `quarto render --profile production`
+      - `quarto render FILE.qmd --profile production`
+  - resulting file will land in `docs/YEAR/workshops/`
+  - solutions will be available for previous blocks.  
+  
+-->
 <!-- MAX 5 QUESTIONS -->
 <!-- make each question ~10 minute work -->
 <!-- MAX 5 QUESTIONS -->
@@ -256,7 +273,7 @@ window.Quarto = {
 <p>Driver instructions:</p>
 <ol type="1">
 <li>Log in to the bigger screen at your table</li>
-<li>Open <a href="https://rstudio.ppls.ed.ac.uk" target="_blank">RStudio Server</a></li>
+<li>Open RStudio Server. See the first drop-down in the <a href="https://uoepsy.github.io/dapr1/2627/misc/faqs-dapr1.html" target="_blank">FAQs page</a> for instructions</li>
 <li>Open a new .R script, and load the <strong>tidyverse</strong> package.</li>
 <li>Listen to your navigators</li>
 </ol>
@@ -269,60 +286,16 @@ window.Quarto = {
 Question 1
 </div>
 <div class="question-body">
-<p>The code below gives us the means from lots and lots of samples. Last week we saw this used to get estimated means from 1000 samples, but this week we’ll up it to 10,000!</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>means100 <span class="ot">&lt;-</span> <span class="fu">replicate</span>(<span class="dv">10000</span>, <span class="fu">mean</span>(<span class="fu">rnorm</span>(<span class="at">n =</span> <span class="dv">100</span>, <span class="at">mean =</span> <span class="dv">35</span>, <span class="at">sd =</span> <span class="dv">20</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="frame">
+<p>This week, we’re going to bring together many of the ideas we covered over the last few weeks and go step-by-step through the process of performing a null hypothesis significance test (NHST).</p>
 </div>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>reminder/breakdown of how the code works
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>This bit of code takes a sample of size 100, from a distribution that has a mean of 35 and a standard deviation of 20.<br>
-It gives 100 numbers — in our example, each one of them is a persons’ “outlook” score.</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rnorm</span>(<span class="at">n =</span> <span class="dv">100</span>, <span class="at">mean =</span> <span class="dv">35</span>, <span class="at">sd =</span> <span class="dv">20</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Wrapping the whole bit inside <code>mean()</code> makes it so that instead of returning all 100 scores in the sample, it returns just the mean of the 100 scores</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>( <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="dv">100</span>, <span class="at">mean =</span> <span class="dv">35</span>, <span class="at">sd =</span> <span class="dv">20</span>) )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Finally, the function <code>replicate()</code> is used to “run code n times”. In this case, we’re running the <code>mean(rnorm(...))</code> bit of code 10000 times. Each time, it takes a sample of 100 people’s scores and returns the estimated mean. So we get back 10000 means.</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">replicate</span>(<span class="dv">10000</span>, <span class="fu">mean</span>( <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="dv">100</span>, <span class="at">mean =</span> <span class="dv">35</span>, <span class="at">sd =</span> <span class="dv">20</span>) ) )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Finally, it stores those 10000 means in R using the name <code>means100</code></p>
-</div>
-</div>
-</div>
-<p>Because <code>means100</code> is a vector (it just has one dimension), if we want to find the 10th entry, we can use <code>&lt;vector name&gt;[&lt;entry-number&gt;]</code> to print it.<br>
-<em>(Note, if you do this, you will get a different number, because you have a different set of 10000 samples!)</em></p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>means100[<span class="dv">10</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 38.3</code></pre>
-</div>
-</div>
-<p>We also saw how we can create a dataframe object (with rows and columns), by using code such as the below. We’ve added a little extra bit here. Line 5 takes the dataframe created in lines 2-4, and arranges it (i.e.&nbsp;sorts it) according to the value in the <code>estimate</code> column. Which means the first row is now the smallest estimate, and the last row (row 10000) is the largest.</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>data100 <span class="ot">&lt;-</span> </span>
-<span id="cb7-2"><a href="#cb7-2"></a>  <span class="fu">tibble</span>(</span>
-<span id="cb7-3"><a href="#cb7-3"></a>    <span class="at">estimate =</span> means100</span>
-<span id="cb7-4"><a href="#cb7-4"></a>  ) <span class="sc">|&gt;</span> </span>
-<span id="cb7-5"><a href="#cb7-5"></a>  <span class="fu">arrange</span>(estimate)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p><strong>Task:</strong> What is the estimate for the 5000th row of the dataframe?<br>
-Bonus challenge: can we find this out another way?</p>
-<div class="flash">
-<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/" target="_blank">TODO df[r,c] flashcard</a> flash card.</p>
-</div>
+<p>We start with a research question:</p>
+<blockquote class="blockquote">
+<p><strong>Research Question:</strong> Are first year undergraduate students more optimistic than adults in general?<br>
+<strong>Operationalisation:</strong> We surveyed students on a first year undergraduate statistics course (that’s you!), and asked them to indicate their level of pessimism/optimism on a sliding scale from -100 (pessimist) to +100 (optimist). Previous research using this measure suggests that the overall adult population has an average score of 15 and standard deviation of 25.<br>
+<strong>Data:</strong> <a href="https://uoepsy.github.io/data/dapr1_2627_survey.csv" target="_blank">https://uoepsy.github.io/data/dapr1_2627_survey.csv</a></p>
+</blockquote>
+<p><strong>Define</strong> the null and alternative hypotheses. (Check the lecture slides for guidance!)</p>
 </div>
 <p class="question-end">
 </p>
@@ -332,29 +305,10 @@ Solution
 </button>
 </div>
 <div id="sol-body-1" class="solution-body proof solution" style="display: none;">
-<p><span class="proof-title"><em>Solution 1</em>. </span>Here is the 5000th row for me. Yours will be different, because each time we run the <code>means100 &lt;- replicate(10000, mean(rnorm......</code> bit of code, it takes a new 10000 random samples.</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>data100[<span class="dv">5000</span>, ]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1 × 1
-  estimate
-     &lt;dbl&gt;
-1     35.0</code></pre>
-</div>
-</div>
-<p>Because we have estimates from 10000 samples, ordered from smallest to largest, then the 5000th row is the one where 50% are above, and 50% are below - it’s the median!</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>data100 <span class="sc">|&gt;</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">med_est =</span> <span class="fu">median</span>(estimate)</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1 × 1
-  med_est
-    &lt;dbl&gt;
-1    35.0</code></pre>
-</div>
-</div>
+<p><span class="proof-title"><em>Solution 1</em>. </span>The symbol <span class="math inline">\(\mu\)</span> will denote the mean optimism score of all adults (i.e.&nbsp;the population mean).</p>
+<p>We are testing the two competing hypotheses:</p>
+<p><span class="math display">\[H_0: \mu = 15\]</span></p>
+<p><span class="math display">\[H_1: \mu &gt; 15\]</span></p>
 </div>
 <p class="solution-end">
 </p>
@@ -362,10 +316,31 @@ Solution
 Question 2
 </div>
 <div class="question-body">
-<p>Create a new column of standardised (z-scored) estimates.</p>
-<div class="flash">
-<p>Look back to how we did this in week 7! See also…</p>
-<p>🗂️ <a href="https://uoepsy.github.io/dapr1/2627/flashcards/" target="_blank">TODO z score calc flashcard</a> flash card.</p>
+<p>In future, we’re going to learn and use functions in R that do all the steps of NHST for us. But for this week we’re going to break down the process, so you can see every step. That means we’re going to need a few pieces of information.</p>
+<p>We’re going to need:</p>
+<ol type="a">
+<li>the size of our sample (that is, how many observations we have in our dataset), <span class="math inline">\(n\)</span></li>
+<li>the mean <code>outlook</code> score that we observe in our sample, <span class="math inline">\(M\)</span></li>
+<li>the hypothesised value that we are comparing our sample mean to, <span class="math inline">\(\mu\)</span></li>
+<li>how much we expect samples of the same size as ours to vary</li>
+</ol>
+<p><strong>Figure out</strong> each of these values.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Hints
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>You’ll need to read in the data using <code>read_csv()</code> first.</p>
+<p>“How much we expect samples of the same size as ours to vary” is the standard error, as you saw last week. The formula is <span class="math inline">\(\frac{\sigma}{\sqrt{n}}\)</span> (or <span class="math inline">\(\frac{s}{\sqrt{n}}\)</span> if the population standard deviation is unknown). In this case, we are told that the population standard deviation is 25, so <span class="math inline">\(\sigma = 25\)</span>. And <span class="math inline">\(n\)</span> is the quantity you work out in (a).</p>
+</div>
+</div>
 </div>
 </div>
 <p class="question-end">
@@ -378,11 +353,31 @@ Solution
 <div id="sol-body-2" class="solution-body proof solution" style="display: none;">
 <p><span class="proof-title"><em>Solution 2</em>. </span></p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>data100 <span class="ot">&lt;-</span> </span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  data100 <span class="sc">|&gt;</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">est_Z =</span> (estimate <span class="sc">-</span> <span class="fu">mean</span>(estimate)) <span class="sc">/</span> <span class="fu">sd</span>(estimate)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>sdata <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"https://uoepsy.github.io/data/dapr1_2627_survey.csv"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># the size of our sample (that is, how many observations we have in our dataset)</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">nrow</span>(sdata)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>n</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 134</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># the mean outlook score that we observe in our sample</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>xbar <span class="ot">&lt;-</span> <span class="fu">mean</span>(sdata<span class="sc">$</span>outlook)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>xbar</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 21.8</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># the hypothesised value that we are comparing our sample mean to</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="dv">15</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># how much we expect samples of the same size as ours to vary (i.e., the standard error)</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>sigma <span class="ot">&lt;-</span> <span class="dv">25</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>SE <span class="ot">&lt;-</span> sigma <span class="sc">/</span> <span class="fu">sqrt</span>(n)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>SE</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 2.16</code></pre>
+</div>
 </div>
 </div>
 <p class="solution-end">
@@ -391,20 +386,58 @@ Solution
 Question 3
 </div>
 <div class="question-body">
-<p>last week we saw two ways to quantify how much variability in an estimated mean we would expect due to sampling:</p>
-<ol type="1">
-<li>We could generate lots of samples of size <span class="math inline">\(n\)</span>, estimate their means, and calculate the standard deviation of all those estimated means</li>
-<li>We could use the formula <span class="math inline">\(\frac{\sigma}{\sqrt{n}}\)</span>, where <span class="math inline">\(\sigma\)</span> is the standard deviation of scores in the population, and <span class="math inline">\(n\)</span> is the size of the sample.</li>
-</ol>
-<p>Both of these give us the “standard error”, or ‘how estimates from samples of size n vary around the population mean’. Another very useful way to express the precision in our estimate is to give the range between which 95% of the sample estimates will fall. This is known as a “confidence interval”.</p>
-<p>We can, again, do this by either:</p>
-<ol type="1">
-<li>Generate lots of samples of size <span class="math inline">\(n\)</span>, estimate their means, and see where the middle 95% of the means fall</li>
-<li>Use the formula <span class="math inline">\(\frac{\sigma}{\sqrt{n}}\)</span>, along with the fact that 95% of a normal distribution falls within 1.96 SD of the mean.</li>
-</ol>
-<p>We already have our “lots and lots of samples”, so let’s do 1 now.</p>
-<p><strong>Task:</strong> Because the data are already ordered by size of the estimate, and we have 10000 of them, we simply need to get the middle 9500 estimates. Extract <em>two</em> rows of the data, one that is the first row of the middle 9500, and one that is the last row of the middle 9500.. The value of <code>estimate</code> for these rows will give us the interval!</p>
-<p>Bonus– what do you notice about the values of the z-scored/standardised column for these rows? They should be close to +/-1.96!</p>
+<p>We use all the information from the previous question allow us to build up a picture of “what <em>would</em> sample means be like <em>if</em> the null hypothesis <span class="math inline">\(H_0\)</span> were true”.</p>
+<p>Based on that picture, we can calculate the probability of seeing a sample mean at least as extreme as the one we <em>have</em> seen, if the null hypothesis were true.</p>
+<p>Here’s a visual way of thinking about the key parts of NHST:</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div id="fig-nhst" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-nhst-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="09ex_files/figure-html/fig-nhst-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nhst-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Null hypothesis significance testing in a nutshell. SE stands for ‘standard error’.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Our goal for the next two questions is to figure out exactly how much area is in those shaded red regions in the tails of our distribution.</p>
+<p>To do this, first we’ll need to convert our mean into a “test statistic”, which measures the distance between our sample mean and the hypothesised population mean in terms of how much we expect sample means to vary.</p>
+<p>In this case, the test statistic is the z-score or z-statistic, because we’re comparing our observed mean to the distribution of means from all the possible samples we could have taken.</p>
+<p>Using the formula below and the values you figured out above, <strong>calculate</strong> Z.</p>
+<p><span class="math display">\[
+Z = \frac{M - \mu}{SE}
+\]</span></p>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<button id="sol-start-3" class="jk-circle-right solution-icon clickable" onclick="toggle_visibility('sol-body-3', 'sol-start-3')">
+Solution
+</button>
+</div>
+<div id="sol-body-3" class="solution-body proof solution" style="display: none;">
+<p><span class="proof-title"><em>Solution 3</em>. </span></p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>zstat <span class="ot">&lt;-</span> (xbar <span class="sc">-</span> mu) <span class="sc">/</span> SE</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>zstat</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 3.16</code></pre>
+</div>
+</div>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 4
+</div>
+<div class="question-body">
+<p>Now that we have our test statistic, we can calculate the corresponding “p-value”.</p>
+<p>A p-value is the probability of seeing a sample mean at least as extreme as the one we <em>have</em> seen, if the null hypothesis were true. It corresponds to one, or both, of the shaded red areas in <a href="#fig-nhst" class="quarto-xref">Figure&nbsp;1</a>, depending on how we phrased <span class="math inline">\(H_1\)</span>. (See the Hint below for more detail on this!)</p>
+<p>Z-statistics are follow a normal distribution with a mean of 0 and standard deviation of 1, which is called the “standard normal distribution”. To work out the area of the standard normal distribution that’s on the appropriate side of <em>our</em> z-statistic, we can use our old friend <code>pnorm()</code>.</p>
+<p>Using <code>pnorm()</code>, <strong>figure out</strong> how much of the area under the standard normal distribution is beyond your z-statistic, in the direction corresponding to your <span class="math inline">\(H_1\)</span>.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -417,68 +450,17 @@ Question 3
 </div>
 <div id="callout-2" class="callout-2-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>if we have 10000 things, then the middle 9500 are between 250 and 9750!</p>
+<p>The direction of the area you’ll need to find is always the same as the direction of <span class="math inline">\(H_1\)</span>:</p>
+<ul>
+<li>If <span class="math inline">\(H_1\)</span> includes the &gt; (“greater than”) symbol, then you need to find the area to the right of your z-statistic.</li>
+<li>If <span class="math inline">\(H_1\)</span> includes the &lt; (“less than”) symbol, then you need to find the area to the left of your z-statistic.</li>
+<li>If <span class="math inline">\(H_1\)</span> is two-sided, then you need to find the area on the side that the z-statistic is closest to (e.g., if your z-statistic is positive, find the area to the right), and then double that value to account for both tails of the distribution.</li>
+</ul>
+</div>
+</div>
+</div>
 <div class="flash">
-<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/" target="_blank">TODO df[r,c] flashcard</a> flash card.</p>
-</div>
-</div>
-</div>
-</div>
-</div>
-<p class="question-end">
-</p>
-<div class="solution-begin">
-<button id="sol-start-3" class="jk-circle-right solution-icon clickable" onclick="toggle_visibility('sol-body-3', 'sol-start-3')">
-Solution
-</button>
-</div>
-<div id="sol-body-3" class="solution-body proof solution" style="display: none;">
-<p><span class="proof-title"><em>Solution 3</em>. </span></p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>data100[<span class="fu">c</span>(<span class="dv">250</span>,<span class="dv">9750</span>), ]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 2 × 2
-  estimate est_Z
-     &lt;dbl&gt; &lt;dbl&gt;
-1     31.0 -2.01
-2     38.8  1.95</code></pre>
-</div>
-</div>
-</div>
-<p class="solution-end">
-</p>
-<div class="question-begin">
-Question 4
-</div>
-<div class="question-body">
-<p>Let’s compare the interval we got in the previous question, to the one we get when we:</p>
-<ol start="2" type="1">
-<li>Use the formula <span class="math inline">\(\frac{\sigma}{\sqrt{n}}\)</span>, along with the fact that 95% of a normal distribution falls within 1.96 SD of the mean.</li>
-</ol>
-<p>We know that the mean is 35, and the standard deviation (<span class="math inline">\(\sigma\)</span>) is 20. And we are taking samples of size <span class="math inline">\(n = 100\)</span>. All this means that we can calculate a confidence interval using:</p>
-<p><span class="math display">\[
-\begin{align}
-\mu \pm 1.96 \cdot \frac{\sigma}{\sqrt{n}} \\
-\quad \\
-35 \pm 1.96 \cdot \frac{20}{\sqrt{2}} \\
-\end{align}
-\]</span></p>
-<p>Check that it matches the interval from the previous question (it might not be <em>exact</em>, but it should be very close!)</p>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Hint
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-3" class="callout-3-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>This is just plugging in numbers and using R like a basic calculator.</p>
-</div>
-</div>
+<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/block2/pnorm-qnorm.html" target="_blank">Explore a normally-distributed variable</a> flash card.</p>
 </div>
 </div>
 <p class="question-end">
@@ -489,17 +471,18 @@ Solution
 </button>
 </div>
 <div id="sol-body-4" class="solution-body proof solution" style="display: none;">
-<p><span class="proof-title"><em>Solution 4</em>. </span></p>
+<p><span class="proof-title"><em>Solution 4</em>. </span>As our <span class="math inline">\(H_1\)</span> states that <span class="math inline">\(\mu &gt; 15\)</span>, we need to find the area to the <em>right</em> of our z-statistic.</p>
+<p>By default, <code>pnorm()</code> will give us the area to the <em>left</em>. So to get the opposite of that, we subtract the outcome of <code>pnorm()</code> from 1.</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="dv">35</span> <span class="sc">-</span> (<span class="fl">1.96</span> <span class="sc">*</span> <span class="dv">20</span><span class="sc">/</span><span class="fu">sqrt</span>(<span class="dv">100</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="sc">-</span> <span class="fu">pnorm</span>(zstat)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 31.1</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="dv">35</span> <span class="sc">+</span> (<span class="fl">1.96</span> <span class="sc">*</span> <span class="dv">20</span><span class="sc">/</span><span class="fu">sqrt</span>(<span class="dv">100</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 38.9</code></pre>
+<pre><code>[1] 0.000784</code></pre>
 </div>
 </div>
+<p>The probability of observing a z-statistic like ours or even more positive, assuming the true population mean were 15, is .000784, or 0.078%. Very unlikely!</p>
+<!-- Imagine we set our $\alpha$ level (our significance level) to .05 or 5%. -->
+<!-- This is normally what we do in Psychology. -->
+<!-- Because our p-value is below 5%, we can reject our H0 at $\alpha$ = .05. -->
 </div>
 <p class="solution-end">
 </p>
@@ -507,42 +490,9 @@ Solution
 Question 5
 </div>
 <div class="question-body">
-<p>In all of what we have done this week and last week, we’ve been assuming that <strong>we already know the population mean and population standard deviation</strong>!!</p>
-<p>When we have been generating samples, we knew to put 35 and 20 into the code <code>rnorm(100, mean = .., sd = ..)</code>.</p>
-<p>And when we have been using the formula, we have used those values in place of <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span>.</p>
-<p>But in reality, <strong>we don’t know anything about the population</strong>. That’s what we’re actually trying to learn about!</p>
-<p>In real research, all we have is a single sample, and we have to go from there…</p>
-<p>Our <em>real</em> sample is all of you!</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>sdata <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"https://uoepsy.github.io/data/dapr1_2526_survey.csv"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(pseudonym, outlook)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>what do we do? well, we use our best guesses for <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span> - we use the mean (<span class="math inline">\(\bar x\)</span>) and standard deviation (<span class="math inline">\(s\)</span>) from our sample!</p>
-<p><span class="math display">\[
-\begin{align}
-\bar x \pm 1.96 \cdot \frac{s}{\sqrt{n}} \\
-\end{align}
-\]</span></p>
-<p><strong>Task:</strong> calculate a confidence interval for the mean outlook score using the sample of 41 DAPR1 students.</p>
-<div class="flash">
-<p>🗂️ See <a href="https://uoepsy.github.io/dapr1/2627/flashcards/" target="_blank">flashcard</a> flash card.</p>
-</div>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Hint
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-4" class="callout-4-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>We’ll need to replace parts of the calculation we used in the previous question. Instead of <span class="math inline">\(n=100\)</span> we now have <span class="math inline">\(n = 41\)</span>, and we will also need to replace the numbers 35 and 20 with code to calculate sample estimate: <code>mean(sdata$outlook)</code> and <code>sd(sdata$outlook)</code></p>
-</div>
-</div>
-</div>
+<p>Do your best to <strong>fill in the blanks</strong> in the APA-style report below:</p>
+<p>Let <span class="math inline">\(\mu\)</span> denote the (1)__________. At the 5% significance level, we performed a one sample z-test of (2)____ against (3)____. The sample mean (4)__________ (<em>M</em> = (5)____, <em>SD</em> = (6)____) was (7)__________ (<em>z</em> = (8)____, <em>p</em> (9)____, (10)____).</p>
+<p>Check the lecture slides for guidance, and ask a tutor if you’re unsure!</p>
 </div>
 <p class="question-end">
 </p>
@@ -553,16 +503,20 @@ Solution
 </div>
 <div id="sol-body-5" class="solution-body proof solution" style="display: none;">
 <p><span class="proof-title"><em>Solution 5</em>. </span></p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(sdata<span class="sc">$</span>outlook) <span class="sc">-</span> (<span class="fl">1.96</span> <span class="sc">*</span> <span class="fu">sd</span>(sdata<span class="sc">$</span>outlook)<span class="sc">/</span><span class="fu">sqrt</span>(<span class="dv">41</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 34.6</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(sdata<span class="sc">$</span>outlook) <span class="sc">+</span> (<span class="fl">1.96</span> <span class="sc">*</span> <span class="fu">sd</span>(sdata<span class="sc">$</span>outlook)<span class="sc">/</span><span class="fu">sqrt</span>(<span class="dv">41</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 50.8</code></pre>
-</div>
-</div>
+<ol type="1">
+<li>mean optimism score of all adults</li>
+<li><span class="math inline">\(H_0: \mu = 15\)</span> (in your R script, you can write <code>H0: mu = 15</code>)</li>
+<li><span class="math inline">\(H_1: \mu &gt; 15\)</span> (in your R script, you can write <code>H1: mu &gt; 15</code>)</li>
+<li>optimism score of first year undergraduate students</li>
+<li>21.83</li>
+<li>45.86</li>
+<li>significantly higher than the mean optimism score of all adults</li>
+<li>3.16</li>
+<li>&lt; .001</li>
+<li>one-sided</li>
+</ol>
+<p>Here’s the whole thing:</p>
+<p>Let <span class="math inline">\(\mu\)</span> denote the <strong>mean optimism score of all adults</strong>. At the 5% significance level, we performed a one sample z-test of <span class="math inline">\(H_0: \mu = 15\)</span> against <span class="math inline">\(H_1: \mu &gt; 15\)</span>. The sample mean <strong>optimism score of first year undergraduate students</strong> (<em>M</em> = <strong>21.83</strong>, <em>SD</em> = <strong>45.86</strong>) was <strong>significantly higher than the mean optimism score of all adults</strong> (<em>z</em> = <strong>3.16</strong>, <em>p</em> &lt; <strong>.001</strong>, <strong>one-sided</strong>).</p>
 </div>
 <p class="solution-end">
 </p>

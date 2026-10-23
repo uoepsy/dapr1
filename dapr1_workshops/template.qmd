@@ -1,16 +1,38 @@
 ---
-title: "WX: Title"
-params: 
-    SHOW_SOLS: TRUE
-    TOGGLE: TRUE
+title: "Wx: Title"
 format: html
 ---
+
+<!--
+WHEN RENDERING: 
+
+- tutor-facing: 
+  - either use the build button, or render specific files. or in the terminal using `quarto render`
+  - resulting file will land in `docs/YEAR/workshops/tutors/`
+  - solutions will always be visible
+  
+- student-facing:
+  - set current_block: to the block we're in
+  - render in Terminal using either: 
+      - `quarto render --profile production`
+      - `quarto render FILE.qmd --profile production`
+  - resulting file will land in `docs/YEAR/workshops/`
+  - solutions will be available for previous blocks.  
+  
+-->
 
 ```{r}
 #| include: false
 library(tidyverse)
 source('assets/dropdowns.R')
 source('assets/setup.R')
+
+vars <- readRDS("block_sols.rds")
+# set params manually rather than yaml params
+params <- list(
+  SHOW_SOLS = vars$sols[[tools::file_path_sans_ext(knitr::current_input(dir=FALSE))]],
+  TOGGLE = TRUE
+)
 ```
 
 <!-- MAX 5 QUESTIONS -->
