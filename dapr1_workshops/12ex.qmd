@@ -1,0 +1,314 @@
+---
+title: "W2: Independent samples t-test"
+format: html
+---
+
+<!--
+WHEN RENDERING: 
+
+- tutor-facing: 
+  - either use the build button, or render specific files. or in the terminal using `quarto render`
+  - resulting file will land in `docs/YEAR/workshops/tutors/`
+  - solutions will always be visible
+  
+- student-facing:
+  - set current_block: to the block we're in
+  - render in Terminal using either: 
+      - `quarto render --profile production`
+      - `quarto render FILE.qmd --profile production`
+  - resulting file will land in `docs/YEAR/workshops/`
+  - solutions will be available for previous blocks.  
+  
+-->
+
+```{r}
+#| include: false
+library(tidyverse)
+source('assets/dropdowns.R')
+source('assets/setup.R')
+
+vars <- readRDS("block_sols.rds")
+# set params manually rather than yaml params
+params <- list(
+  SHOW_SOLS = tryCatch({ vars$sols[[tools::file_path_sans_ext(knitr::current_input(dir=FALSE))]]},
+                       error = function(e) { TRUE } ),
+  TOGGLE = TRUE
+)
+```
+
+<!-- MAX 5 QUESTIONS -->
+<!-- make each question ~10 minute work -->
+<!-- MAX 5 QUESTIONS -->
+<!-- MAX 5 QUESTIONS -->
+
+:::frame
+Pick someone new to be the driver this week. If everyone in the group has already had a week as the driver, start going round again!  
+
+The driver will type the code. The rest of you are navigators, you need to tell the driver where to go (i.e., what to type!). 
+
+Driver instructions:
+
+1. Log in to the bigger screen at your table
+2. Open RStudio Server. See the first drop-down in the [FAQs page](https://uoepsy.github.io/dapr1/2627/misc/faqs-dapr1.html){target="_blank"} for instructions
+3. Open a new .R script, and load the **tidyverse** package
+4. Listen to your navigators
+
+Navigator instructions:
+
+1. Tell your driver where to go (i.e., what to type)!
+
+:::
+
+
+You will be working with the DAPR1 class survey data again, available at <https://uoepsy.github.io/data/dapr1_2627_survey.csv>. Load the data into R before answering any questions.
+
+This week, you will investigate whether there is a difference in sleep quality between people who prefer cats and people who prefer dogs, so the variable of interest is `sleepqual` (scored 0-100).
+
+Using a 5% significance level, our research question (RQ) is:
+
+> Is there a difference in mean sleep quality between people who prefer cats and people who prefer dogs?
+
+
+`r qbegin(qcounter())`
+<!-- Q1 plot data + write summary of pattern in plot -->
+
+Create a filtered version of the dataset that only includes rows where the variable `catdog` is either `"cat"` or `"dog"`.
+
+Remove rows where `sleepqual` is missing (NA) using the `drop_na()` function.
+
+Next, create a plot to visualise the distribution of `sleepqual` for people who prefer cats vs dogs.
+
+Finally, write a few sentences in your R script (as comments) summarising what you observe in the plot.
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+- To filter the dataset, you can use `<data> |> filter(<variable> == "<value>")`. You can combine multiple statements inside of `filter()` with the OR operator `|` or the AND operator `&`.
+- To remove rows with missing values, you can use `<data> |> drop_na(<variable>)`.
+- For the plot, you can use `ggplot()` with `geom_violin()`, `geom_jitter()`, and `stat_summary(fun = mean, geom = "point")`.
+
+:::
+
+::: flash
+
+TODO - Perhaps links to flash cards for the following?
+
+- Link to flash card for filtering data with `filter()`
+- Link to `drop_na()` flash card
+- Link to flash card for plotting a variable by group (boxplots, violin, etc.) and adding mean on top of violin plot.
+
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+library(tidyverse)
+sdata <- read_csv("https://uoepsy.github.io/data/dapr1_2627_survey.csv")
+
+catdog_data <- sdata |>
+  filter(catdog == "cat" | catdog == "dog") |>
+  drop_na(sleepqual)
+
+ggplot(catdog_data, aes(x = catdog, y = sleepqual)) +
+  geom_violin() +
+  geom_jitter(width = 0.2, alpha = 0.5) +
+  stat_summary(fun = mean, geom = "point", size = 5, colour = "red") +
+  labs(x = "Cat vs Dog person", y = "Sleep Quality (0-100)")
+```
+
+From the plot it's hard to see whether people who prefer dogs tend to have slightly higher average sleep quality than cat people. There is considerable overlapt between the two groups, but the variability of sleep quality is smaller in the dog group than in the cat group.
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q2 specify hypotheses -->
+
+Write down the null hypothesis ($H_0$) and the alternative hypothesis ($H_1$) for your research question in both plain English and mathematical symbols.
+
+Use $\mu_\text{cat}$ and $\mu_\text{dog}$ for the mean sleep quality for cat people and dog people, respectively.
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+Because the RQ does not specify a direction (e.g., it doesn't ask if cat people sleep better than dog people, just if there is a difference), this should be a two-tailed test.
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+- Null hypothesis ($H_0$): There is no difference in mean sleep quality between cat people and dog people.  
+In symbols: $H_0: \mu_\text{cat} = \mu_\text{dog}$
+
+- Alternative hypothesis ($H_1$): There is a difference in mean sleep quality between cat people and dog people.  
+In symbols: $H_1: \mu_\text{cat} \neq \mu_\text{dog}$
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q3 run indep-samples t-test -->
+
+At the 5% significance level, use the `t.test()` function to run an independent-samples t-test on the filtered data. 
+
+::: flash
+
+TODO - Link to independent samples t-test flashcard (i.e., `t.test()` R code)
+
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+```{r}
+sleep_t_res <- t.test(sleepqual ~ catdog, data = catdog_data, 
+                      alternative = "two.sided", var.equal = TRUE, 
+                      conf.level = 0.95)
+sleep_t_res
+```
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q4 check assumptions -->
+
+The independent-samples t-test relies on a few data requirements / assumptions. Do the data suggest that these are met?
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+1. Data requirements. The dependent variable is numeric.
+2. Assumption of independence. Discuss with your group whether the observations are likely independent. Did each participant only provide one `sleepqual` score? Are they in one group only?
+3. Assumption of normality. Create a QQ-plot for each group. Use the `shapiro.test()` to check if the `sleepqual` scores are normally distributed within each group (you can do this by filtering the data for one group, and using `pull()` to select the `sleepqual` variable, and piping it into `shapiro.test()`)
+4. Assumption of equal variance. Use the `var.test()` function to test if the two population variances are equal.
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+1. Data requirements. `sleepqual` is a numeric variable as you can see from `glimpse(catdog_data)` or`head(catdog_data)`.
+
+```{r}
+glimpse(catdog_data$sleepqual)
+```
+
+2. Assumption of independence. Satisfied as each participant (row) has only one `sleepqual` score and belongs to only one category (either "cat" or "dog").
+
+3. Assumption of normality.
+
+```{r}
+ggplot(catdog_data, aes(sample = sleepqual)) +
+  geom_qq() +
+  geom_qq_line() +
+  facet_wrap(~catdog) +
+  labs(x = "Theoretical quantiles", y = "Sample quantiles")
+```
+
+
+::: {.callout-note collapse="true"}
+Alternatively, you can create a single figure with the two groups differing by colour only.
+
+```{r}
+ggplot(catdog_data, aes(sample = sleepqual, colour = catdog)) +
+  geom_qq() +
+  geom_qq_line() +
+  labs(x = "Theoretical quantiles", y = "Sample quantiles")
+```
+
+:::
+
+
+```{r}
+catdog_data |>
+  filter(catdog == "cat") |>
+  pull(sleepqual) |>
+  shapiro.test()
+
+catdog_data |>
+  filter(catdog == "dog") |>
+  pull(sleepqual) |>
+  shapiro.test()
+```
+
+As p > .05 for both groups, we fail to reject the null hypothesis of the Shapiro-Wilk test (the data come from a normally distributed population). The QQ-plot shows slight departures from the line in the "dog" group, but this is not enough to reject the null hypothesis according to the Shapiro-Wilk test. The assumption is met.
+
+
+::: {.callout-note collapse="true"}
+
+If the Shapiro-Wilk test had been significant, we would have looked at the sample size. As the sample size of each group is $\geq$ 30, the Central Limit Theorem would apply.
+
+```{r}
+catdog_data |>
+  count(catdog)
+```
+:::
+
+4. Assumption of equal variance.
+
+```{r}
+var.test(sleepqual ~ catdog, data = catdog_data)
+```
+
+As p > .05, we fail to reject the null hypothesis of equal variances. The assumption is met, so it's OK that we used `var.equal = TRUE` in the `t.test()` function.
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q5 write up / report -->
+
+Let's now practice how to report the results of an independent samples t-test using APA style.
+
+First, calculate descriptive statistics for each group (sample size, mean, and standard deviation).
+
+Next, report your results using APA style.
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+- To calculate the sample size, mean, and standard deviation of `sleepqual` for each `catdog` group you acn use `group_by()` and `summarise()`.
+
+- This is the write-up from the lecture slides as an example:
+
+> To find out whether people in happy relationships have lower cortisol than people in unhappy relationships, we ran an independent-samples t-test with $\alpha$ = .05.  
+> We found a significant difference between the cortisol in the happy relationship group ($N$ = 19, $M$ = 0.15, $SD$ = 0.08) and the unhappy relationship group ($N$ = 20, $M$ = 0.20, $SD$ = 0.10): cortisol was significantly lower for people in happy relationships ($t$(37) = –2, $p$ = 0.04, one-tailed).
+
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+descr_tbl <- catdog_data |>
+  group_by(catdog) |>
+  summarise(
+    n = n(),
+    M = mean(sleepqual),
+    SD = sd(sleepqual)
+  )
+descr_tbl
+```
+
+```{r}
+#| echo: false
+# For papaja
+f_test <- var.test(sleepqual ~ catdog, data = catdog_data)
+t_test <- t.test(sleepqual ~ catdog, data = catdog_data, var.equal = TRUE)
+```
+
+> To investigate whether there is a difference in sleep quality between people who prefer cats vs dogs, an independent-samples t-test was conducted. The assumption of equal variances was met (`r papaja::apa_print(f_test)$full_result`). There was no significant difference in sleep quality between cat people ($N$ = `r descr_tbl$n[1]`, $M$ = `r round(descr_tbl$M[1], 2)`, $SD$ = `r round(descr_tbl$SD[1], 2)`) and dog people ($N$ = `r descr_tbl$n[2]`, $M$ = `r round(descr_tbl$M[2], 2)`, $SD$ = `r round(descr_tbl$SD[2], 2)`), `r papaja::apa_print(t_test)$statistic`, two-tailed.
+
+`r solend()`
+
+
+:::frame
+__Finishing up__  
+
+Once you've finished, don't forget to: 
+
+1. Save your R script
+2. Post the R script to the group discussion space on Learn, to ensure that everyone has access to it! (For step-by-step instructions on how to do this, click [here](00serverfiles.html){target="_blank"})  
+
+
+:::
+
