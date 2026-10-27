@@ -1,5 +1,5 @@
 ---
-title: "W13: Chi-squared test of independence"
+title: "W3: Chi-squared test of independence"
 format: html
 ---
 
@@ -39,6 +39,7 @@ params <- list(
 
 
 ```{r}
+#| include: false
 attach_data <- read_csv('https://uoepsy.github.io/data/attachmentstyle_sexuality.csv')
 
 # **RQ: Do homosexual and heterosexual people show different patterns of attachment styles?**
@@ -52,20 +53,21 @@ attach_data |>
   )
 ```
 
-This example uses real data from [Ridge & Feeney (1998)](https://onlinelibrary.wiley.com/doi/pdf/10.3109/00048679809073875){target="_blank"}.
+<!-- This example uses real data from [Ridge & Feeney (1998)](https://onlinelibrary.wiley.com/doi/pdf/10.3109/00048679809073875){target="_blank"}. -->
 
----
 
 
 :::frame
-Pick someone new to be the driver this week. They will type the code. 
-The rest of you are navigators, you need to tell the driver where to go (i.e., what to type!).  
+Pick someone new to be the driver this week. If everyone in the group has already had a week as the driver, start going round again!  
+
+The driver will type the code. The rest of you are navigators, you need to tell the driver where to go (i.e., what to type!). 
 
 Driver instructions:
 
 1. Log in to the bigger screen at your table
-2. Open [RStudio Server](https://rstudio.ppls.ed.ac.uk){target="_blank"}
-3. Listen to your navigators
+2. Open RStudio Server. See the first drop-down in the [FAQs page](https://uoepsy.github.io/dapr1/2627/misc/faqs-dapr1.html){target="_blank"} for instructions
+3. Open a new .R script, and load the **tidyverse** package.
+4. Listen to your navigators
 
 Navigator instructions:
 
@@ -73,22 +75,161 @@ Navigator instructions:
 
 :::
 
-<!-- # q1 -->
+
+In this week's workshop you will work with a real dataset from [Ridge & Feeney (1998)](https://onlinelibrary.wiley.com/doi/pdf/10.3109/00048679809073875){target="_blank"}.
+
+You can access the dataset at <https://uoepsy.github.io/data/attachmentstyle_sexuality.csv>. Before you start answering any questions, read the data into R.
+
+Using a 5% significance level, you will answer the following research question: 
+
+> Is there a significant association between sexual orientation and attachment style?
+
 
 `r qbegin(qcounter())`
+<!-- Q1 plot data + write summary of pattern in plot -->
 
-TODO
+Create a plot that visualises the association between the sexual orientation (`sexuality`) and attachment styles (`style`) variables in the data.
+
+Write a brief summary of what you observe.
 
 :::flash
-🗂️
-See [TODO](TODO){target="_blank"} flash card.
+
+TODO - Link to flashcard on plotting association between two categorical variables.
+
 :::
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-TODO
+
+We can create a barplot of attachment styles, faceted by sexuality:
+
+```{r}
+library(tidyverse)
+attach_data <- read_csv('https://uoepsy.github.io/data/attachmentstyle_sexuality.csv')
+
+ggplot(attach_data, aes(x = sexuality)) +
+  geom_bar() +
+  facet_wrap(~ style, nrow = 1) +
+  labs(x = "Sexual orientation")
+```
+
+There is roughly an equal number of homosexual and heterosexual participants who are "Secure". There are more homosexual than heterosexual poeple that are "Dismissing", "Fearful", and "Preoccupied".
+
 `r solend()`
 
+
+`r qbegin(qcounter())`
+<!-- Q2 specify hypotheses (verbally) -->
+
+Write down the null hypothesis ($H_0$) and the alternative hypothesis ($H_1$) for your research question using plain English.
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+- Null hypothesis ($H_0$): Sexual orientation and attachment style are independent.
+- Alternative hypothesis ($H_1$): Sexual orientation and attachment style are not independent.
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q3 run chisq -->
+
+Run a chi-squared ($\chi^2$) test of independence in R.
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+- Use the `chisq.test()` R function to test the association between `sexuality` and `style`.
+- Use the argument `correct = FALSE` to run the non-bias-adjusted version of the test.
+
+:::
+
+:::flash
+
+TODO - Link to `chisq.test()` flashcard
+
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+```{r}
+chisq_result <- chisq.test(attach_data$sexuality, attach_data$style, correct = FALSE)
+chisq_result
+```
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q4 check assumptions -->
+
+Check the data requirements and assumptions of the chi-squared test of independence. 
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+- Data requirement 1. Both variables are categorical. 
+
+  - Use `glimpse()` or `head()` to check this.
+
+- Data requirement 2. All expected counts $\ge$ 5.
+
+  - You can extract the expected counts from your chi-squared test results using `<chisquare results>$expected`.
+
+- Assumption of independence. The obtained sample data are a random sample from the population of interest.
+
+  - Think about the study design.
+
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+
+Data requirement 1. Both `sexuality` and `style` are categorical variables as shown below:
+
+```{r}
+glimpse(attach_data)
+```
+
+Data requirement 2. The lowest expected count is 22.48, which is above the minimum threshold of 5.
+
+```{r}
+chisq_result$expected
+```
+
+Assumption of independence. Each participant only contributed one response to the survey and they contribute to one cell of the contingency table each.
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q5 write up / report -->
+
+Let's now practice how to report the results of a chi-squared test of independence using APA style.
+
+The general format is:  
+$\chi^2$([degrees of freedom], $N$ = [sample size]) = [chi-squared statistic], $p$ = [p-value]
+
+Write a brief summary of your findings using APA style. Ensure you communicate if you have rejected or not the null hypothesis and the significance level used.
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+This is the write-up from the lecture slides as an example:
+
+> To find out whether occurrence frequencies of ADHD and ASD are independent in children, we performed a $\chi^2$ test of independence. We found a significant association between ADHD and ASD ($\chi^2$(1, $N$ = 70,913) = 3270, $p$ < .001). Therefore, at $\alpha$ = .05, we reject the H0 that ADHD and ASD are independent in children. Specifically, the test’s residuals indicate that ADHD and ASD co-occur in children more frequently than we’d expect.
+
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+> A chi-squared test of independence was conducted to examine whether attachment style differs by sexual orientation. The results indicated no significant association between sexual orientation and attachment style, $\chi^2$(3, $N$ = 327) = 2.33, $p$ = .507. At $\alpha = .05$, we fail to reject the null hypothesis and conclude that there is not enough evidence to suggest that homosexual and heterosexual people show different patterns of attachment styles.
+
+`r solend()`
 
 
 :::frame
@@ -101,9 +242,6 @@ Once you've finished, don't forget to:
 
 
 :::
-
-
-
 
 
 
