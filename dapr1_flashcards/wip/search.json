@@ -845,5 +845,89 @@
       "More resources",
       "Confidence Intervals in Meta-analysis"
     ]
+  },
+  {
+    "objectID": "block3/indep-t.html",
+    "href": "block3/indep-t.html",
+    "title": "Independent-samples t-test",
+    "section": "",
+    "text": "RQ: Do first-generation university students report significantly different mean levels of academic self-efficacy compared to continuing-generation students?\nHere’s what the first six rows of the data looks like:\n\nhead(ase_data)\n\n# A tibble: 6 × 3\n  student_num generation   ase\n        &lt;int&gt; &lt;chr&gt;      &lt;dbl&gt;\n1           2 First         47\n2           3 Continuing    44\n3           4 Continuing    20\n4           5 Continuing    38\n5           6 First         16\n6           7 Continuing    33\n\n\nA higher ASE score represents better academic self-efficacy.\nHere’s how we might plot this data (if you’re not sure what part of the code does, delete it or comment it out and try running what’s leftover to see what changes):\n\nase_data |&gt;\n  ggplot(aes(x = generation, y = ase)) +\n  geom_violin() +\n  geom_jitter(height = 0, alpha = 0.5) +\n  stat_summary(fun = mean, geom = 'point', size = 5) +\n  labs(\n    y = 'Academic Self-Efficacy score',\n    x = 'Generation'\n  )"
+  },
+  {
+    "objectID": "block3/indep-t.html#example-rq-and-data",
+    "href": "block3/indep-t.html#example-rq-and-data",
+    "title": "Independent-samples t-test",
+    "section": "",
+    "text": "RQ: Do first-generation university students report significantly different mean levels of academic self-efficacy compared to continuing-generation students?\nHere’s what the first six rows of the data looks like:\n\nhead(ase_data)\n\n# A tibble: 6 × 3\n  student_num generation   ase\n        &lt;int&gt; &lt;chr&gt;      &lt;dbl&gt;\n1           2 First         47\n2           3 Continuing    44\n3           4 Continuing    20\n4           5 Continuing    38\n5           6 First         16\n6           7 Continuing    33\n\n\nA higher ASE score represents better academic self-efficacy.\nHere’s how we might plot this data (if you’re not sure what part of the code does, delete it or comment it out and try running what’s leftover to see what changes):\n\nase_data |&gt;\n  ggplot(aes(x = generation, y = ase)) +\n  geom_violin() +\n  geom_jitter(height = 0, alpha = 0.5) +\n  stat_summary(fun = mean, geom = 'point', size = 5) +\n  labs(\n    y = 'Academic Self-Efficacy score',\n    x = 'Generation'\n  )"
+  },
+  {
+    "objectID": "block3/indep-t.html#define-hypotheses",
+    "href": "block3/indep-t.html#define-hypotheses",
+    "title": "Independent-samples t-test",
+    "section": "Define hypotheses",
+    "text": "Define hypotheses\nThe null hypothesis is that there’s no difference between the mean ASE scores of continuing-generation students and first-generation students. Formally:\n\\[\nH_0 : \\mu_\\text{Continuing} = \\mu_\\text{First}\n\\]\nBased on our research question, our alternative hypothesis is directional: we want to know whether first-generation students have lower ASE than continuing-generation students. Or, flipping these around into alphabetical order (which we’ll need to do in t.test() below), we want to know whether continuing gneeration students have greater ASE than first-generation students. Formally:\n\\[\nH_1 : \\mu_\\text{Continuing} &gt; \\mu_\\text{First}\n\\]\nTo write these hypotheses in plain text in your R script, you can write:\n\n# H0: mu_Continuing = mu_First\n# H1: mu_Continuing &lt; mu_First\n\nThe useful symbols for your alternative hypothesis are &lt; (less than), &gt; (greater than), and != (not equal to)."
+  },
+  {
+    "objectID": "block3/indep-t.html#run-the-test",
+    "href": "block3/indep-t.html#run-the-test",
+    "title": "Independent-samples t-test",
+    "section": "Run the test",
+    "text": "Run the test\nUse the function t.test(), and give it five pieces of information:\n\nthe data we want to test, formatted as: &lt;dependent variable&gt; ~ &lt;grouping&gt; (usually we name a column of the data frame using dollar sign notation; see the Subset a dataframe flash card)\nmu = the difference we would expect between groups if the null hypothesis were true, that is, zero\nalternative = two.sided, less, or greater; the direction of the \\(H_1\\)\n\nTo choose between less or greater, think of the levels of the grouping variable in alphabetical order.\nFor example, the alternative hypothesis \\(\\mu_B &gt; \\mu_A\\) must be entered as alternative = 'less', because A (the alphabetically first level) is hypothesised to be less than B (the alphabetically second level).\n\nvar.equal = TRUE imposes the assumption of equal variance (see below).\nconf.level = 1 minus our \\(\\alpha\\) level; in Psychology, this will nearly always be .95.\n\n\nt.test(\n  ase_data$ase ~ ase_data$generation,\n  # asks: how is ASE different for each level of generation?\n  alternative = 'greater',\n  mu = 0,\n  var.equal = TRUE,\n  conf.level = .95\n)\n\n\n    Two Sample t-test\n\ndata:  ase_data$ase by ase_data$generation\nt = 1.22, df = 20, p-value = 0.12\nalternative hypothesis: true difference in means between group Continuing and group First is greater than 0\n95 percent confidence interval:\n -3.0441     Inf\nsample estimates:\nmean in group Continuing      mean in group First \n                  34.909                   27.545"
+  },
+  {
+    "objectID": "block3/indep-t.html#report-the-test",
+    "href": "block3/indep-t.html#report-the-test",
+    "title": "Independent-samples t-test",
+    "section": "Report the test",
+    "text": "Report the test\nFirst, compute some additional descriptive statistics that we’ll need for the report:\n\nase_data |&gt;\n  group_by(generation) |&gt;\n  summarise(\n    M  = mean(ase),\n    SD = sd(ase),\n    N  = n()\n  )\n\n# A tibble: 2 × 4\n  generation     M    SD     N\n  &lt;chr&gt;      &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;\n1 Continuing  34.9  14.6    11\n2 First       27.5  13.7    11\n\n\nNow we’re ready to write up.\n\nWe wanted to find out whether first-generation university students report lower Academic Self-Efficacy (ASE) compared to continuing-generation university students. We therefore conducted an independent-samples t-test with \\(\\alpha\\) = .05 to compare ASE scores in these two groups. Although the mean ASE score is lower for first-generation students (N = 11, M = 27.5, SD = 13.7) than for continuing-generation students (N = 11, M = 34.9, SD = 14.6), the t-test indicated no statistically significant difference between the two groups (t(20) = 1.22, p = .12, one-sided)."
+  },
+  {
+    "objectID": "block3/indep-t.html#check-assumptions-and-data-requirements",
+    "href": "block3/indep-t.html#check-assumptions-and-data-requirements",
+    "title": "Independent-samples t-test",
+    "section": "Check assumptions and data requirements",
+    "text": "Check assumptions and data requirements\n\n\n\n\n\n\n\nType of requirement / assumption\nWhat to check for an independent-samples t-test\n\n\n\n\nData requirements\nThe dependent variable is numeric.\n\n\nAssumption of independence\nThe obtained sample data are a random sample from the population of interest, both within and across groups.\n\n\nAssumption of normality\nEITHER the population follows a normal distributionOR the sample size \\(\\geq\\) 30.\n\n\nAssumption of equal variance\nThe population variance is the same for both groups.\n\n\n\n\nData requirements\nThe dependent variable should be interval, ratio, or integer data (that is, numeric).\nThe ase variable is indeed numeric:\n\nase_data$ase\n\n [1] 47 44 20 38 16 33 17 27 38 19 38 24 30 32 10  9 37 47 42  9 54 56\n\n\n\n\nAssumption of independence\nThe obtained sample data are a random sample from the population of interest, both within and across groups.\nThis is an issue of study design more than something we can check directly.\nBut we can still check the data for problems that indicate non-independence between groups:\n\nDoes each individual who contributed data belong to only one group? (In this case, yes.)\nDoes each individual have only one observation in the group they belong to? (In this case, yes.)\nWere people allocated to each group at random? (In this case, no!)\n\nEven if not: are we willing to assume that people were sampled randomly from the populations of either first-generation or continuing-generation students? (In this case, sure.)\n\n\n\n\nAssumption of normality\nEITHER the population for each group follows a normal distribution OR each group’s sample size ≥ 30.\n\nCheck sample size\n\nase_data |&gt;\n  group_by(generation) |&gt;\n  count()\n\n# A tibble: 2 × 2\n# Groups:   generation [2]\n  generation     n\n  &lt;chr&gt;      &lt;int&gt;\n1 Continuing    11\n2 First         11\n\n\nWe only have 11 observations per group—way less than 30. So we’ll need to rely on the other checks for normality.\n\n\nCheck normality with a Q-Q plot\nThe closer the points are to the diagonal line, the better the variable matches an ideal normal distribution.\n\nase_data |&gt;\n  ggplot(aes(sample = ase)) +\n  geom_qq() +\n  geom_qq_line() +\n  facet_wrap(~ generation) +\n  labs(\n    x = \"Theoretical quantiles\",\n    y = 'Sample quantiles'\n  ) \n\n\n\n\n\n\n\n\nBoth groups’ data matches the theoretical normal distribution quite well.\n\n\nCheck normality through Shapiro-Wilk test\nThe Shapiro-Wilk test is a hypothesis test where:\n\n\\(H_0\\): The population data follow a normal distribution\n\\(H_1\\): The population data do not follow a normal distribution\n\nWe don’t want to reject this H0, so we want a non-significant result!\n\nshapiro.test(ase_data$ase)\n\n\n    Shapiro-Wilk normality test\n\ndata:  ase_data$ase\nW = 0.958, p-value = 0.45\n\n\nTo report this test, you might say:\n\nWe performed a Shapiro-Wilk test against the null hypothesis of normality of the population data. Based on the sample, we could not reject the null hypothesis of normality in the population (W = 0.96, p = .45).\n\n\n\n\nAssumption of equal variance\nThe population variance is the same for both groups.\nWe test whether the population variances in the two groups are equal using an F-test.\nThe F-test is a hypothesis test where:\n\n\\(H_0\\): The population variances are equal\n\\(H_1\\): The population variances are not equal\n\nWe don’t want to reject this H0, so we want a non-significant result!\n\nvar.test(\n  ase_data$ase ~ ase_data$generation,\n  ratio = 1\n)\n\n\n    F test to compare two variances\n\ndata:  ase_data$ase by ase_data$generation\nF = 1.14, num df = 10, denom df = 10, p-value = 0.84\nalternative hypothesis: true ratio of variances is not equal to 1\n95 percent confidence interval:\n 0.30704 4.24167\nsample estimates:\nratio of variances \n            1.1412 \n\n\nTo report this test, you might say:\n\nWe ran an F-test against the null hypothesis that the populations that each group was sampled from have equal variance. Based on the sample, we could not reject the null hypothesis of equal variances in the population (F(10, 10) = 1.14, 𝑝 = .84).\n\n\n\n\n\n\n\nCautionWhat if I do reject the null hypothesis here?\n\n\n\n\n\nIf you do end up rejecting the H0 here, then in t.test(), change var.equal = TRUE to var.equal = FALSE to run a Welch’s t-test instead. This is a different kind of t-test that relaxes the assumption of equal variance. Otherwise, its interpretation is just the same."
+  },
+  {
+    "objectID": "block3/indep-t.html#calculate-effect-size",
+    "href": "block3/indep-t.html#calculate-effect-size",
+    "title": "Independent-samples t-test",
+    "section": "Calculate effect size",
+    "text": "Calculate effect size\nFor t-tests, the appropriate measure of standardised effect size is Cohen’s D.\nTo compute this in R, first attach the effectsize package:\n\nlibrary(effectsize)\n\nThis package gives us the function cohens_d(). Give it the exact same arguments you’d give t.test() (see above):\n\ncohens_d(\n  ase_data$ase ~ ase_data$generation,\n  alternative = 'greater',\n  mu = 0,\n  var.equal = TRUE,\n  conf.level = .95\n)\n\nCohen's d |       95% CI\n------------------------\n0.52      | [-0.20, Inf]\n\n- Estimated using pooled SD.\n- One-sided CIs: upper bound fixed at [Inf].\n\n\n\nInterpreting Cohen’s D\n\nSmall or weak effect: around 0.2 (whether positive or negative)\nMedium or moderate effect: around 0.5 (whether positive or negative)\nLarge or strong effect: around 0.8 or greater (whether positive or negative)\n\n\n\nReporting effect size\nIn addition to the information reported above, you might write something like\n\nWith a Cohen’s D of 0.52, this difference represents a moderate effect."
+  },
+  {
+    "objectID": "block3/z.html#define-hypotheses",
+    "href": "block3/z.html#define-hypotheses",
+    "title": "Test",
+    "section": "Define hypotheses",
+    "text": "Define hypotheses"
+  },
+  {
+    "objectID": "block3/z.html#run-the-test",
+    "href": "block3/z.html#run-the-test",
+    "title": "Test",
+    "section": "Run the test",
+    "text": "Run the test"
+  },
+  {
+    "objectID": "block3/z.html#report-the-test",
+    "href": "block3/z.html#report-the-test",
+    "title": "Test",
+    "section": "Report the test",
+    "text": "Report the test"
+  },
+  {
+    "objectID": "block3/z.html#check-assumptions-and-data-requirements",
+    "href": "block3/z.html#check-assumptions-and-data-requirements",
+    "title": "Test",
+    "section": "Check assumptions and data requirements",
+    "text": "Check assumptions and data requirements"
+  },
+  {
+    "objectID": "block3/z.html#calculate-effect-size",
+    "href": "block3/z.html#calculate-effect-size",
+    "title": "Test",
+    "section": "Calculate effect size",
+    "text": "Calculate effect size\n\nInterpreting [measure]\n\n\nReporting effect size"
   }
 ]
