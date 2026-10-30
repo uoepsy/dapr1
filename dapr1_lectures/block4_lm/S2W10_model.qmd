@@ -168,21 +168,26 @@ __Question__
 
 __Design__  
 
-> We recruit 80 people and randomly allocate them to receiving between 0 to 7 days of sleep disruption. Upon waking up after their final night of allocated disrupted sleep, participants were given a series of problems to solve. The number of problems and time taken were combined to create an overall score for each participant.
+> We recruit 80 people and randomly allocate them to receiving between 0 to 7 nights of sleep disruption. Upon waking up after their final night of allocated disrupted sleep, participants were given a series of problems to solve. The number of problems and time taken were combined to create an overall score for each participant.
 
 ## Example 1 - Disrupted Nights (3)
 __Question__  
 
 > How does an additional night of interrupted sleep affect problem solving ability?
 
-**Model:**  
+__Design__  
+
+> People randomly assigned to 0, 1, 2, ..., 7 nights of sleep disruption. 
+
+__Model__  
 $\color{red}{\text{ProblemSolvingScore}} = \color{blue}{b_0 + b_1 \cdot \text{NightsDisrupted}} + \color{black}{\varepsilon}$
 
 ::::{.columns .fragment}
 :::{.column width="50%"}
-**Coefficient:**  
+__Coefficient__  
 
 - $b_1$ = change in $\color{red}{\text{ProblemSolvingScore}}$ when $\color{blue}{\text{NightsDisrupted}}$ increases by 1.   
+
 :::
 :::{.column width="50%"}
 ```{r}
@@ -261,38 +266,154 @@ is not always a good way to estimate
 Comparing scores for person i (7 nights) vs Person i (0 nights)  
 :::
 
+## 
+
+- What we're interested in: 
+    - $\text{Score}_i^{\text{nights disrupted}=x+1} - \text{Score}_i^{\text{nights disrupted}=x}$
+
+- What we're getting: 
+    - $\text{Score}^{\text{nights disrupted}=x+1} - \text{Score}^{\text{nights disrupted}=x}$
 
 ## Example 2 - Sleep Interruption 
 
+```{r}
+#| echo: false
+set.seed(65683728)
+xbin = sample(c("Normal","Interrupted"),80,T,prob=c(.6,.4))
+eg2sleep <- tibble(
+  condition = xbin,
+  psolve = (50 + 7.5 * (condition=="Normal")) + 
+    residuals(lm(rnorm(80,0,7) ~ xbin))
+)
+set.seed(356)
+eg2sleep <- slice_sample(eg2sleep, prop=1)
+```
+__Question__  
+
+> How does having interrupted (vs "normal") sleep affect problem solving ability?
+
+:::{.fragment}
+__Target Quantity__  
+What happens to someone's score when they are in the "interrupted" group compared to if they were in the "normal" group.  
+
+e.g., person $i$:  
+
+$$
+\text{Score}_i^{\text{Condition}='Interrupted'} - \text{Score}_i^{\text{Condition}='Normal'}
+$$
+:::
+
+## Example 2 - Sleep Interruption (2)
+
+__Question__  
+
+> How does having interrupted (vs "normal") sleep affect problem solving ability?
+
+__Design__  
+
+> We recruit 80 people and randomly allocate them into two groups: we either let them sleep normally ("Normal" group), or we interrupt their sleep every hour ("Interrupted" group). Upon waking, participants were given a series of problems to solve. The number of problems and time taken were combined to create an overall score for each participant.
+
+## Example 2 - Sleep Interruption (3)
+__Question__  
+
+> How does having interrupted (vs "normal") sleep affect problem solving ability?
+
+__Design__  
+
+> People randomly assigned to "Normal" or "Interrupted" conditions.  
+
+__Model__  
+$\color{red}{\text{ProblemSolvingScore}} = \color{blue}{b_0 + b_1 \cdot (\underbrace{\text{Condition="Interrupted"}}_{\text{1 if 'Interrupted'}\\\text{0 otherwise}})} + \color{black}{\varepsilon}$
+
+::::{.columns .fragment}
+:::{.column width="50%"}
+__Coefficient__  
+
+- $b_1$ = change in $\color{red}{\text{ProblemSolvingScore}}$ when moving from the "Normal" condition to the "Interrupted" condition. 
+
+:::
+:::{.column width="50%"}
+```{r}
+#| echo: false
+eg2sleep <- eg2sleep |> mutate(
+  condition=factor(condition, levels=c("Normal","Interrupted"))
+)
+fitw = lm(psolve~condition,eg2sleep)
+set.seed(3455)
+eg2sleep |> 
+  ggplot(aes(x=condition, y=psolve))+
+  geom_jitter(col = "tomato", size = 3, alpha = .5, height = 0, width = .1) +
+  scale_x_discrete(labels = c("0\nNormal","1\nInterrupted"))+
+  geom_point(x=1,y=coef(fitw)[1],col="#0000FF",size=5)+
+  geom_segment(x=1,xend=2,y=coef(fitw)[1],yend=coef(fitw)[1],
+               lty="dashed",col="#0000FF",lwd=2)+
+  geom_segment(x=2,xend=2,y=coef(fitw)[1],yend=sum(coef(fitw)),
+               lty="dashed",col="#0000FF",lwd=2)+
+  geom_abline(intercept=coef(fitw)[1]-coef(fitw)[2],slope=coef(fitw)[2],
+              col="blue",alpha=.3)+
+  annotate(geom="label",x=0.9,y=58.5,label="b[0]", parse = TRUE,
+           size = 7, col="blue")+
+  annotate(geom="label",x=2.05,y=53.75,label="b[1]", parse = TRUE,
+           size = 7, col="blue")+
+  theme_quarto(title_font_size = 28)
+```
+:::
+::::
+
+## 
+
+- What we're interested in: 
+    $\text{Score}_i^{\text{Condition}='Interrupted'} - \text{Score}_i^{\text{Condition}='Normal'}$
+
+- What we're getting: 
+    
+
+we want group B to look like what group A _would_ look like _if_ we saw them in group B.  
+
+randomisation!  
 
 
-## Example 2 - Sleep Quality
+## Example 3 - Sleep Quality
 
 ```{r}
 #| echo: false
 set.seed(65683728)
 n <- 80
-drink = sample(c("No","Yes"),n,TRUE,prob=c(.4,.6))
-xbin = ifelse(drink=="Yes",
-              sample(c("Good", "Bad"), n, replace = TRUE, prob = c(0.3, 0.7)),
-              sample(c("Good", "Bad"), n, replace = TRUE, prob = c(0.8, 0.2)))
-sleep_good = as.numeric(xbin == "Good")
-drinkeff = ifelse(drink=="Yes",-4,4)
-eg2sleep <- tibble(
-  person = unlist(lapply(26:20, \(x) paste0(LETTERS[x],LETTERS)))[1:80],
-  sleep_quality = xbin,
-  drank = drink,
-  psolve = 50 + 7.5 * sleep_good + 
-              residuals(lm(drinkeff ~ sleep_good)) +
-              residuals(lm(rnorm(n, 0, 7) ~ sleep_good))
-) |> slice_sample(prop = 1) |>
-  mutate(sleep_quality = factor(sleep_quality,
-                                levels=c("Good","Bad")))
+  drink = sample(c("No","Yes"),n,TRUE,prob=c(.4,.6))
+  xbin = ifelse(drink=="Yes",
+                sample(c("Good", "Bad"), n, replace = TRUE, prob = c(0.2, 0.8)),
+                sample(c("Good", "Bad"), n, replace = TRUE, prob = c(0.8, 0.2)))
+  sleep_good <- as.numeric(xbin == "Good")
+  drink_yes  <- as.numeric(drink == "Yes")
+  
+  raw_noise <- rnorm(n, 0, 7)
+  noise <- numeric(n)
+  noise[drink == "No"]  <- residuals(lm(raw_noise ~ sleep_good, subset = (drink == "No")))
+  noise[drink == "Yes"] <- residuals(lm(raw_noise ~ sleep_good, subset = (drink == "Yes")))
+  bd <- -8 
+  b_scond <- 5 - bd * coef(lm(drink_yes ~ sleep_good))[2]
+  eg3sleep <- tibble(
+    person = unlist(lapply(26:20, \(x) paste0(LETTERS[x], LETTERS)))[1:80],
+    sleep_quality = xbin,
+    drank = drink,
+    psolve = 55 + b_scond * sleep_good + bd * drink_yes + noise
+  ) |> 
+    mutate(sleep_quality = factor(sleep_quality, levels = c("Bad", "Good")))
+
+coef(lm(psolve~sleep_quality,eg3sleep[eg3sleep$drank=="Yes",]))
+
+ggplot(eg3sleep, aes(x=sleep_quality,y=psolve,col=drank))+
+  geom_jitter(height=0,width=.2)+
+  stat_summary(geom="pointrange",position=position_nudge(x=.25))
+
+ggplot(eg3sleep, aes(x=sleep_quality,y=psolve))+
+  geom_jitter(height=0,width=.2)+
+  stat_summary(geom="pointrange",position=position_nudge(x=.25))  
 ```
 
 __Question__  
 
-> How does having bad quality sleep affect problem solving ability?
+> How does having bad quality sleep affect problem solving ability?  
 
 :::{.fragment}
 **Target Quantity**  
@@ -303,31 +424,33 @@ e.g., person $i$:
 $$
 \text{Score}_i^{\text{Sleep Quality}=Bad} - \text{Score}_i^{\text{Sleep Quality}=Good}
 $$
+
 :::
 
-## Example 2 - Sleep Quality (2)
+## Example 3 - Sleep Quality (2)
 
 __Question__  
 
 > How does having bad quality sleep affect problem solving ability?
 
 __Design__  
-
 > We recruit 80 people and ask them to report whether they felt their sleep quality the previous night was "Good" or "Bad". They were given a series of problems to solve. The number of problems and time taken were combined to create an overall score for each participant.  
 
-## Example 2 - Sleep Quality (3)
+## Example 3 - Sleep Quality (3)
 
 __Question__  
 
 > How does having bad quality sleep affect problem solving ability?
 
+__Design__  
+> Measure people's reported sleep quality ("Good" v "Bad").  
 
-**Model:**  
+__Model__  
 $\color{red}{\text{ProblemSolvingScore}} = \color{blue}{b_0 + b_1 \cdot (\underbrace{\text{SleepQuality="Bad"}}_{\text{1 if 'Bad'}\\\text{0 otherwise}})} + \color{black}{\varepsilon}$
 
 ::::{.columns .fragment}
 :::{.column width="50%"}
-**Coefficient:**  
+__Coefficient__    
 
 - $b_1$ = change in $\color{red}{\text{ProblemSolvingScore}}$ when $\color{blue}{\text{SleepQuality}}$ moves from "Good" to "Bad"  
 
@@ -335,9 +458,9 @@ $\color{red}{\text{ProblemSolvingScore}} = \color{blue}{b_0 + b_1 \cdot (\underb
 :::{.column width="50%"}
 ```{r}
 #| echo: false
-fitw = lm(psolve ~ sleep_quality, eg2sleep)
+fitw = lm(psolve ~ sleep_quality, eg3sleep)
 set.seed(3455)
-eg2sleep |> 
+eg3sleep |> 
   ggplot(aes(x=sleep_quality, y=psolve))+
   geom_jitter(col="tomato",size = 3, alpha = .5, height = 0, width = .1) +
   scale_x_discrete(labels = c("0\nGood","1\nBad"))+
@@ -348,9 +471,9 @@ eg2sleep |>
                lty="dashed",col="#0000FF",lwd=2)+
   geom_abline(intercept=coef(fitw)[1]-coef(fitw)[2],slope=coef(fitw)[2],
               col="blue",alpha=.3)+
-  annotate(geom="label",x=0.95,y=51.5,label="b[0]", parse = TRUE,
+  annotate(geom="label",x=0.95,y=61.5,label="b[0]", parse = TRUE,
            size = 7, col="blue")+
-  annotate(geom="label",x=2.05,y=53.75,label="b[1]", parse = TRUE,
+  annotate(geom="label",x=2.05,y=57.5,label="b[1]", parse = TRUE,
            size = 7, col="blue")+
   theme_quarto(title_font_size = 28)
 ```
@@ -358,28 +481,31 @@ eg2sleep |>
 :::
 ::::
 
-## Example 2 - Sleep Quality (4)
+## 
+
+- What we're interested in: 
+ $\text{Score}_i^{\text{Sleep Quality}=Bad} - \text{Score}_i^{\text{Sleep Quality}=Good}$
+
+- What we're getting: 
+    
+
+we want group B to look like what group A _would_ look like _if_ we saw them in group B.  
+
+we're not randomising   
+
+## Example 3 - Sleep Quality (4)
 
 ```{r}
 #| echo: false
-fitw = lm(psolve ~ sleep_quality, eg2sleep)
+fitw = lm(psolve ~ sleep_quality, eg3sleep)
 set.seed(3455)
-eg2sleep |> 
+eg3sleep |> 
   ggplot(aes(x=sleep_quality, y=psolve))+
-  geom_jitter(col="tomato",size = 3, alpha = .5, height = 0, width = .1) +
+  geom_jitter(size = 3, alpha = .5, height = 0, width = .1) +
   scale_x_discrete(labels = c("0\nGood","1\nBad"))+
-  geom_point(x=1,y=coef(fitw)[1],col="#0000FF",size=5)+
-  geom_segment(x=1,xend=2,y=coef(fitw)[1],yend=coef(fitw)[1],
-               lty="dashed",col="#0000FF",lwd=2)+
-  geom_segment(x=2,xend=2,y=coef(fitw)[1],yend=sum(coef(fitw)),
-               lty="dashed",col="#0000FF",lwd=2)+
-  geom_abline(intercept=coef(fitw)[1]-coef(fitw)[2],slope=coef(fitw)[2],
-              col="blue",alpha=.3)+
-  annotate(geom="label",x=0.95,y=51.5,label="b[0]", parse = TRUE,
-           size = 7, col="blue")+
-  annotate(geom="label",x=2.05,y=53.75,label="b[1]", parse = TRUE,
-           size = 7, col="blue")+
-  theme_quarto(title_font_size = 28)
+  theme_quarto(title_font_size = 28)+
+  stat_summary(geom="pointrange")+
+  facet_wrap(~drank)
 ```
 
 
