@@ -14,7 +14,7 @@ library(gganimate)
 library(patchwork)
 source("_theme/helpers.R")
 source('_theme/theme_quarto.R')
-options(digits=3)
+options(digits=4)
 ```
 
 
@@ -80,7 +80,7 @@ course_table(block3_name,block4_name,block3_lecs,block4_lecs,week=7)
 ## This week
 
 1. Where my p-values at? (tests & CIs for the intercept and slope)
-3. The other bits.. 
+2. What happens when we change the scale of our variables? 
 
 # Where did we get to last week?
 
@@ -147,13 +147,7 @@ Coefficients:
 
 ```{r}
 #| echo: false
-set.seed(65683728)
-eg1sleep <- tibble(
-  n_disrupted = rep(0:7,e=10),
-  psolve = (58 - 1.5 * n_disrupted) + 
-    residuals(lm(rnorm(80,0,7) ~ rep(0:7,e=10)))
-) |> slice_sample(prop=1)
-
+source("egsleeps.R")
 ```
 
 
@@ -298,31 +292,32 @@ summary(sleep_mdl)
 <!-- - the $b_0$ and $b_1$ in $y = b_0 + b_1 \cdot x$ -->
 
 
-## Hypotheses for coefficient tests
+## Hypotheses tests for coefficients (1)
 
 **The intercept:**  
 $$H_0: b_0 = 0 \quad\quad\quad\quad H_1: b_0 \neq 0$$   
 
-Often not that interesting.  
-Why would we ever believe $H_0$ in first place?  
+**in our example**, $b_0 = 0$ is the hypothesis that "people with zero nights of sleep disruption will have an average score of zero on the problem solving task".  
 
 <br><br><br>
 
 :::{.fragment}
-**in our example**, $b_0 = 0$ is the hypothesis that "people with zero nights of sleep disruption will have an average score of zero on the problem solving task".  
+Often not that interesting.  
+Why would we ever believe $H_0$ in first place?  
 :::
 
-## what are the hypotheses being tested?  
+## Hypotheses tests for coefficients (2)
 
 **The slope:**  
 
 $$H_0: b_1 = 0 \quad\quad\quad\quad H_1: b_1 \neq 0$$   
-$b_1$ corresponds to the quantity we're interested in!  
+
+**in our example**, $b_1 = 0$ is the hypothesis that "as the number of nights of disrupted sleep increases by 1, the average score on the problem solving task won't change".  
 
 <br><br><br>
 
 :::{.fragment}
-**in our example**, $b_1 = 0$ is the hypothesis that "as the number of nights of disrupted sleep increases by 1, the average score on the problem solving task won't change".  
+$b_1$ corresponds to the quantity we're interested in!  
 :::
 
 ## under the null hypothesis
@@ -341,7 +336,7 @@ p <- ggplot(eg1sleep, aes(x = n_disrupted,y=psolve))+
   geom_abline(data = sims, aes(intercept = int, slope = slp), alpha=.05)+
   transition_states(sim_id, transition_length = 0, state_length = 1) +
   shadow_mark(past = TRUE, alpha = 0.2) +
-  ylim(35,75)
+  ylim(0,100)
 
 animp <- animate(p, nframes = 500,
         fps = 4, end_pause = 45, res=150,
@@ -360,7 +355,7 @@ ggplot(eg1sleep, aes(x = n_disrupted,y=psolve))+
   geom_abline(data = sims, aes(intercept = int, slope = slp), alpha=.05)+
   geom_abline(intercept=coef(sleep_mdl)[1],slope=coef(sleep_mdl)[2],
               col="blue",lwd=1)+
-  ylim(35,75)
+  ylim(0,100)
 
 
 ggsave(filename = "jk_sandbox/null_lines2.png",
@@ -413,7 +408,7 @@ p <- ggplot(eg1sleep, aes(x = n_disrupted,y=psolve))+
               col="blue",lwd=1)+
   transition_states(sim_id, transition_length = 0, state_length = 1) +
   shadow_mark(past = TRUE, alpha = 0.2) +
-  ylim(35,75)
+  ylim(0,100)
 
 animp <- animate(p, nframes = 500,
         fps = 4, end_pause = 45, res=150,
@@ -427,7 +422,7 @@ ggplot(eg1sleep, aes(x = n_disrupted,y=psolve))+
   geom_abline(intercept=coef(sleep_mdl)[1],
               slope=coef(sleep_mdl)[2],
               col="blue",lwd=1)+
-  ylim(35,75)
+  ylim(0,100)
 
 ggsave(filename = "jk_sandbox/ci_lines2.png",
   plot = last_plot(), width = 800 / 150,
@@ -442,8 +437,7 @@ Using that same estimated uncertainty:
 ```{r}
 #| eval: false
 ggplot(eg1sleep, aes(x = n_disrupted,y=psolve))+
-  geom_smooth(method = lm)+
-  ylim(35,75)
+  geom_smooth(method = lm)
 ```
 :::
 
@@ -468,8 +462,14 @@ confint(sleep_mdl)
 ```
 :::
 
+## Write up
 
-## What if I change the scale of X?  
+> We fit a simple linear regression model to estimate whether the number of nights of disrupted sleep would predict scores on a problem solving task. More sleep disruption significantly predicted poorer problem solving ($b = -2.0, SE = 0.73, t(78)=-2.76, p=.007$), with a 95% confidence interval of [-3.45, -0.55], indicating that for every additional night of disrupted sleep, scores on the puzzle solving task decreased on average by 2 points.
+
+
+# Changing scales  
+
+## What if we change the scale of variables?    
 
 ::::{.columns}
 :::{.column width="50%"}
@@ -484,10 +484,10 @@ head(eg1sleep)
 ```{r}
 #| echo: false
 ggplot(eg1sleep, aes(x = n_disrupted,y=psolve))+
-  geom_point(alpha=.5,size=3)+
+  geom_point(size=3,col="tomato1",alpha=.5)+
   geom_smooth(method = lm)+
   scale_x_continuous(breaks=0:7)+
-  ylim(35,75)+
+  ylim(0,100) +
   theme_quarto(title_font_size = 28)
 ```
 
@@ -505,7 +505,7 @@ summary(sleep_mdl)
 .pp(summary(sleep_mdl),l = list(0,c(8:12),0))
 ```
 
-## What if I change the scale of X?  
+## What if we change the scale of X?  
 
 ::::{.columns}
 :::{.column width="50%"}
@@ -522,10 +522,10 @@ head(eg1sleep)
 ```{r}
 #| echo: false
 ggplot(eg1sleep, aes(x = wks_disrupted,y=psolve))+
-  geom_point(alpha=.5,size=3)+
+  geom_point(size=3,col="tomato1",alpha=.5)+
   geom_smooth(method = lm)+
   scale_x_continuous(breaks=seq(0,1,.25))+
-  ylim(35,75)+
+  ylim(0,100) +
   theme_quarto(title_font_size = 28)
 ```
 
@@ -549,393 +549,138 @@ sleep_mdl2 <- lm(psolve ~ 1 + wks_disrupted, data = eg1sleep)
 :::
 
 
-## Write up
-
-> We fit a simple linear regression model to estimate whether the number of nights of disrupted sleep would predict scores on a problem solving task. <span style="opacity:.4">The model was statistically significant, F(1, 48) = 25.42, p < .001, accounting for 20% of the variance in problem solving scores ($R^2=0.201$).</span> More sleep disruption significantly predicted poorer problem solving ($b = -1.5, SE = 0.34, t(78)=-4.43, p<.001$), with a 95% confidence interval of [-2.17, -0.83], indicating that for every additional night of disrupted sleep, scores on the puzzle solving task decreased on average by 1.5 points.
-
-
-
-# the other bits
-
-
-## stuff at the bottom
-
-::::{.columns}
-:::{.column width="60%"}
-
-```{r}
-#| eval: false
-summary(sleep_mdl)
-```
-```{r}
-#| echo: false
-.pp(summary(sleep_mdl),l = list(c(1:2),c(4:5),0,c(8:9),0,0,0,0,0,0,16:19))
-```
-
-:::
-:::{.column style="width:40%;font-size:.7em;color:#cc3363"}
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-- Instead of individual parameters, it is about the model as a whole.  
-- Does the model account for why the outcome varies (values are sometimes high, sometimes low)? How much variation does it account for?  
-
-:::
-::::
-
-
-## warning - this is all pointless (for now) {.smaller}
-
-- For DAPR1, we're working with models that have just one predictor. 
-    - the "model as a whole" = just one line!  
-
-<br>
-
-- looking ahead to DAPR2: `outcome ~ predictor1 + predictor2`  
-    - it might on occasion be useful to ask if \{set of predictors\} explains stuff in Y. 
-
-
-<br>
-
-:::{.dapr1callout}
-We'll cover this stuff again next year, but we're going through it here because   
-
-- it gets printed out, so I'm sure some of you are curious   
-- when you hear about it next year, things might click a bit more/feel vaguely familiar!  
-
-!! This stuff will **not** be in any skills Qs in DAPR1 !!
-:::
-
-
-
-## All the variance in the outcome
-
-```{r}
-#| echo: false
-#| eval: false
-set.seed(346)
-p1 <- eg1sleep |>
-  mutate(
-         my = mean(psolve),
-         f1 = mean(psolve),
-         f2 = predict(sleep_mdl),
-         xjit = rnorm(n(),n_disrupted,.05)) |>
-  pivot_longer(f1:f2,names_to="frame",values_to="pred") |>
-  filter(frame=="f1") |>
-  ggplot(aes(x=xjit,y=psolve))+
-  geom_hline(yintercept = mean(eg1sleep$psolve),
-             col="blue",lwd=1,alpha=1,lty="dashed")+
-  # geom_abline(intercept=coef(sleep_mdl)[1],
-  #             slope=coef(sleep_mdl)[2],
-  #             col="blue",lwd=1)+
-  geom_segment(aes(x=xjit,xend=xjit,
-                   y=pred,yend=my),
-               col="black",lty="solid",lwd=.5)+
-  geom_segment(aes(x=xjit,xend=xjit,
-                   y=pred,yend=psolve),
-               col="tomato1",lty="longdash",lwd=.5)+
-  geom_point(size=3, alpha=.5)+
-  annotate("label",x=-1, y=mean(eg1sleep$psolve),label="Mean Y",
-           size=3,col="blue",hjust=.3) + 
-  labs(x="n_disrupted")
-
-ggsave(filename = "jk_sandbox/rssplot.png",
-  plot = last_plot(), width = 1000 / 150,
-  height = 700 / 150, dpi = 150)
-```
-
-![](jk_sandbox/rssplot.png)
-
-
-## aside: the mean is a model! 
+## What if we change the scale of Y?  
 
 ::::{.columns}
 :::{.column width="50%"}
-The simplest possible model.  
-
-- "intercept-only model":  
-- the best guess for any observation's value of Y is `mean(y)`
-
-  
 ```{r}
-sleep_mdl0 <- lm(psolve ~ 1, data = eg1sleep)
+eg1sleep <- eg1sleep |>
+  mutate( wks_disrupted = n_disrupted/7,
+          psolve2 = psolve/10 )
 
-sleep_mdl0
+head(eg1sleep)
 ```
+
 :::
-:::{.column width="50%" .fragment}
+:::{.column width="50%"}
+
 ```{r}
-eg1sleep |>
-  summarise(
-    meanpsolve = mean(psolve)
-  )
+#| echo: false
+ggplot(eg1sleep, aes(x = wks_disrupted,y=psolve2))+
+  geom_point(size=3,col="tomato1",alpha=.5)+
+  geom_smooth(method = lm)+
+  scale_x_continuous(breaks=seq(0,1,.25))+
+  ylim(0,10)+
+  theme_quarto(title_font_size = 28)
 ```
-:::
 
+:::
 ::::
 
 
-## explaining variance in the outcome
+```{r}
+#| eval: false
+sleep_mdl3 <- lm(psolve2 ~ 1 + wks_disrupted, data = eg1sleep)
+
+summary(sleep_mdl3)
+```
+
+:::{.fragment}
+```{r}
+#| echo: false
+sleep_mdl3 <- lm(psolve2 ~ 1 + wks_disrupted, data = eg1sleep)
+.pp(summary(sleep_mdl3),l = list(0,c(8:12),0))
+```
+:::
+
+
+## The model doesn't change, the estimated quantities do..  
 
 ```{r}
-#| include: false
 #| eval: false
-
-set.seed(346)
-p_anim <-
-  eg1sleep |>
+#| echo: false
+eg1sleep <- eg1sleep |> mutate(id = row_number())
+fitw = lm(psolve~n_disrupted,eg1sleep)
+segsw <- tibble(x1 = 0, x2 = x1+1) |> 
   mutate(
-         my = mean(psolve),
-         f1 = mean(psolve),
-         f2 = predict(sleep_mdl),
-         xjit = rnorm(n(),n_disrupted,.05)) |>
-  pivot_longer(f1:f2,names_to="frame",values_to="pred") |>
-  mutate(int = ifelse(frame=="f1",my,coef(sleep_mdl)[1]),
-         slp = ifelse(frame=="f1",0,coef(sleep_mdl)[2])) |>
-  #filter(frame=="f2") |>
-  ggplot(aes(x=xjit,y=psolve))+
-  geom_hline(yintercept = mean(eg1sleep$psolve),
-             col="blue",lwd=1,alpha=1,lty="dashed")+
-  geom_abline(aes(intercept=int,slope=slp),
-              col="blue",lwd=1)+
-  geom_segment(aes(x=xjit,xend=xjit,
-                   y=pred,yend=psolve),
-               col="tomato1",lty="longdash",lwd=.5)+
-  geom_segment(aes(x=xjit,xend=xjit,
-                   y=pred,yend=my),
-               col="black",lty="solid",lwd=.5)+
-  annotate("label",x=-1, y=mean(eg1sleep$psolve),label="Mean Y",
-           size=3,col="blue",hjust=0) + 
-  geom_point(size=3, alpha=.5)+
-  labs(x="n_disrupted") + 
-  transition_states(frame, transition_length = 2, state_length = 1)
+    y1 = map_dbl(x1,~(c(1,.)%*%coef(fitw))[1]),
+    y2 = map_dbl(x2,~(c(1,.)%*%coef(fitw))[1]),
+    ll = as.character(round(coef(fitw)[2],2))
+  )
+fitw2 = lm(psolve~I(n_disrupted/7),eg1sleep)
+segsw2 <- tibble(x1 = 0, x2 = x1+1) |> 
+  mutate(
+    y1 = map_dbl(x1,~(c(1,.)%*%coef(fitw2))[1]),
+    y2 = map_dbl(x2,~(c(1,.)%*%coef(fitw2))[1]),
+    ll = as.character(round(coef(fitw2)[2],2))
+  )
+fitw3 = lm(I(psolve/10)~I(n_disrupted/7),eg1sleep)
+segsw3 <- tibble(x1 = 0, x2 = x1+1) |> 
+  mutate(
+    y1 = map_dbl(x1,~(c(1,.)%*%coef(fitw3))[1]),
+    y2 = map_dbl(x2,~(c(1,.)%*%coef(fitw3))[1]),
+    ll = as.character(round(coef(fitw3)[2],3))
+  )
+dff <- bind_rows(
+  eg1sleep, 
+  eg1sleep |> mutate(n_disrupted = n_disrupted/7,
+                     psolve = psolve),
+  eg1sleep |> mutate(n_disrupted = n_disrupted/7,
+                      psolve = psolve/10),
+  .id = "frame"
+)
+segsw <- segsw |> mutate(seg_id = row_number())
+segsw2 <- segsw2 |> mutate(seg_id = row_number())
+segsw3 <- segsw3 |> mutate(seg_id = row_number())
 
-animp <- animate(p_anim, nframes = 180,
-        fps = 15, end_pause = 45, res=150,
+sdf <- bind_rows(
+  segsw, 
+  segsw2,
+  segsw3,
+  .id = "frame"
+)
+
+
+p_anim <- dff |> 
+  ggplot(aes(x=n_disrupted,y=psolve))+
+  geom_point( aes(group = id),size=5,col="tomato1",alpha=.5)+
+  stat_smooth(method=lm,color="#0000FF",lwd=1) +
+  geom_point(data = sdf |> filter(x1==0),
+             aes(x=0,y=y1),col="#0000FF",size=5)+
+  geom_segment(data = sdf, aes(x=x1,xend=x2,y=y1,yend=y1,group=seg_id),
+               lty="dashed",col="#0000FF")+
+  geom_segment(data = sdf, aes(x=x2,xend=x2,y=y1,yend=y2,group=seg_id),
+               lty="dashed",col="#0000FF") +
+  geom_label(data = sdf, 
+             aes(x = 0.8, y=(y1-1.5*abs(y2-y1)), label=ll),hjust=1) + 
+  geom_curve(data = sdf, 
+             aes(x = 0.8, y = (y1-1.5*abs(y2-y1)), 
+                 xend = 1, yend = (y1+(y2-y1)/2)),
+    arrow = arrow(length = unit(0.3, "cm"), 
+                  type = "closed"),
+    color = "black",
+    curvature = 0
+  ) +
+  theme_quarto(title_font_size = 28)+
+  labs(
+    x = "{ifelse(closest_state == 1, 'n_disrupted',
+            'n_disrupted/7')}",
+    y = "{ifelse(closest_state <= 1, 'psolve',
+            'psolve/10')}"
+  )+
+  transition_states(frame, transition_length = 2, state_length = 6) +
+  view_follow(fixed_x = FALSE, fixed_y = FALSE)
+
+animp <- animate(p_anim, nframes = 150,
+        fps = 15, end_pause = 15, res=150,
         width = 1000, height = 700, 
         renderer = gifski_renderer())
 
-anim_save("jk_sandbox/ssmodel.gif",animp)
+anim_save("jk_sandbox/line_scaling.gif", animp)
 ```
 
-:::{.r-stack}
+![](jk_sandbox/line_scaling.gif)
 
-![](jk_sandbox/rssplot.png)
-
-:::{.fragment}
-![](jk_sandbox/ssmodel.gif)
-:::
-:::
-
-- red lines = residual/unexplained  
-- black lines = model explained  
-
-## $R^2$
-
-
-::::{.columns}
-:::{.column width="60%"}
-
-```{r}
-#| eval: false
-summary(sleep_mdl)
-```
-```{r}
-#| echo: false
-.pp(summary(sleep_mdl),l = list(c(1:2),c(4:5),0,c(8:9),0,0,0,0,0,0,0,17,0))
-```
-
-:::
-:::{.column style="width:40%;font-size:.7em;color:#cc3363"}
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-
-the "proportion of variance in Y accounted for by X"  
-$\frac{\text{explained}}{\text{explained} + \text{unexplained}}$
-
-
-
-:::
-::::
-
-## Residual standard deviation
-
-::::{.columns}
-:::{.column width="60%"}
-
-```{r}
-#| eval: false
-summary(sleep_mdl)
-```
-```{r}
-#| echo: false
-.pp(summary(sleep_mdl),l = list(c(1:2),c(4:5),0,c(8:9),0,0,0,0,0,0,16,0,0))
-```
-
-:::
-:::{.column style="width:40%;font-size:.7em;color:#cc3363"}
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-standard deviation of all the residuals/leftover bits. 
-
-:::
-::::
-
-
-## degrees of freedom? ![](jk_sandbox/rabbit_blue.png){width=150px} 
-
-- We have 80 datapoints.  
-
-- We've used 2 things (an intercept and a slope across X) to explain some of the variance in Y
-
-- The leftover unexplained variance in Y is created by $n-2$ things.  
-
-- why $n-2$?  
-- we can place $n-2$ of the datapoints *absolutely anywhere*, and still get the same line by fixing the last 2 datapoints.  
-    - think "give me 5 numbers that add up to 100" --- once you've chosen the first 4 numbers, you have no free choice for the last one!  
-
-- this idea is referred to as "degrees of freedom"  
-
-
-```{r}
-#| echo: false
-#| eval: false
-#| fig-asp: .6
-#| fig-align: center
-
-## function to work out the "last two" points on for a given best fit
-## line, by working out the residuals for given x and y
-## (maths courtesy of Umberto Noè)
-require(patchwork)
-
-plot_dat <- function() {
-  # solve for y=5x+2
-  x1=1
-  x2=11
-  a_given=-7.5
-  b_given=3
-  
-  randline <- function (x) {
-    a<-runif(1,-5,5)
-    b<-runif(1,-3,7)
-    y<-a+b*x+runif(length(x),-20,20)
-  }
-  
-  x = sample(0:12,8)
-  y = randline(x)
-  x <- c(x,x1,x2)
-  
-  loss_function <- function(y_new) {
-    y_complete <- c(y, y_new[1], y_new[2])
-    fit <- lm(y_complete ~ x)
-    a_diff <- (fit$coefficients[1] - a_given)^2
-    b_diff <- (fit$coefficients[2] - b_given)^2
-    return(a_diff + b_diff)
-  }
-
-  # Use optimization to find y1 and y2
-  result <- optim(c(0, 0), loss_function)
-  
-  # Extract y1 and y2
-  y1 <- result$par[1]
-  y2 <- result$par[2]
-  
-  pd <- tibble(x=x,y=c(y,y1,y2),colour=c(rep("a",8),rep("b",2)))
-
-  return(pd)
-}
-
-pd1 <- plot_dat()
-pd2 <- plot_dat()
-pd3 <- plot_dat()
-pd4 <- plot_dat()
-
-yr<-range(c(pd1$y[pd1$colour=="a"],pd2$y[pd2$colour=="a"],pd3$y[pd3$colour=="a"],pd4$y[pd4$colour=="a"]))
-yr2<-range(c(pd1$y,pd2$y,pd3$y,pd4$y))
-
-
-do_p <- function(x) {
-x |> ggplot(aes(x=x,y=y)) +
-  geom_point(aes(colour=colour),size=3) +
-  xlim(c(0,15)) +
-    ylim(yr2) +
-  scale_colour_manual(values=c('a'='darkgrey','b'='red')) +
-  theme(legend.position = "none") +
-  geom_smooth(method="lm",se=FALSE)
-}
-
-p1 <- do_p(pd1)
-p2 <- do_p(pd2)
-p3 <- do_p(pd3)
-p4 <- do_p(pd4)
-(p1 + p2) / (p3 + p4)
-```
-
-## The F bit
-
-::::{.columns}
-:::{.column width="60%"}
-
-```{r}
-#| eval: false
-summary(sleep_mdl)
-```
-```{r}
-#| echo: false
-.pp(summary(sleep_mdl),l = list(c(1:2),c(4:5),0,c(8:9),0,0,0,0,0,0,0,0,18:19))
-```
-
-:::
-:::{.column style="width:40%;font-size:.7em;color:#cc3363"}
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-does the addition of the predictor to the model explain more variance than would expect by chance?  
-
-adding the predictor = adding 1 slope, and explaining some variance
-
-$\frac{\text{explained variance}/1}{\text{unexplained variance}/n-2}$
-
-:::
-::::
-
-
-## it's all the same! 
-
-::::{.columns}
-:::{.column width="60%"}
-
-```{r}
-#| eval: false
-summary(sleep_mdl)
-```
-```{r}
-#| echo: false
-.pp(summary(sleep_mdl),l = list(c(1:2),c(4:5),0,c(8:14),0,0,18:19))
-```
-
-:::
-:::{.column style="width:40%;font-size:.7em;color:#cc3363"}
-
-<br><br><br><br><br><br><br><br>
-
-as the slope moves away from being horizontal ($b_1=0$)..
-
-<br><br><br><br>
-
-it explains variance... 
-
-even the p-value is identical
-
-:::
-::::
-
-## pop quiz..
-
-<br><br>
-What is $R^2$ for `lm(y~1)`? 
 
 
 
