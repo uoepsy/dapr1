@@ -13,7 +13,7 @@ library(gganimate)
 library(patchwork)
 source("_theme/helpers.R")
 source('_theme/theme_quarto.R')
-options(digits=3)
+options(digits=4)
 ```
 
 
@@ -1017,14 +1017,7 @@ how?
 
 ```{r}
 #| echo: false
-set.seed(65683728)
-eg1sleep <- tibble(
-  person = unlist(lapply(1:5, \(x) paste0(LETTERS[x],LETTERS)))[1:80],
-  n_disrupted = rep(0:7,e=10),
-  psolve = (58 - 1.5 * n_disrupted) + 
-    residuals(lm(rnorm(80,0,7) ~ rep(0:7,e=10)))
-) |> slice_sample(prop=1)
-
+source("egsleeps.R")
 ```
 
 
@@ -1092,7 +1085,7 @@ $$
 **Our estimated model:**  
 $$
 \begin{align}
-\color{red}{\text{ProblemSolvingScore}} &= \,\,\,\color{blue}{58 \,\,\,- 1.5 \cdot \text{NightsDisrupted}} + \color{black}{\varepsilon}
+\color{red}{\text{ProblemSolvingScore}} &= \,\,\,\color{blue}{58 \,\,\,- 2 \cdot \text{NightsDisrupted}} + \color{black}{\varepsilon}
 \end{align}
 $$
 
@@ -1181,7 +1174,7 @@ $$
 **Our estimated model, for specific person $i$:**  
 $$
 \begin{align}
-\color{red}{\text{ProblemSolvingScore}_i} &= \,\,\,\color{blue}{58 \,\,\,- 1.5 \cdot \text{NightsDisrupted}_i} + \color{black}{\epsilon_i}
+\color{red}{\text{ProblemSolvingScore}_i} &= \,\,\,\color{blue}{58 \,\,\,- 2 \cdot \text{NightsDisrupted}_i} + \color{black}{\epsilon_i}
 \end{align}
 $$
 
@@ -1189,7 +1182,7 @@ $$
 **Our predicted value, for specific person $i$:**  
 $$
 \begin{align}
-\color{purple}{\widehat{\text{ProblemSolvingScore}}_i} &= \color{blue}{58 - 1.5 \cdot \text{NightsDisrupted}_i}  
+\color{purple}{\widehat{\text{ProblemSolvingScore}}_i} &= \color{blue}{58 - 2 \cdot \text{NightsDisrupted}_i}  
 \end{align}
 $$
 :::
@@ -1235,10 +1228,10 @@ eg1sleep |>
 For this poor participant who had 4 nights of disrupted sleep, we predict their score to be:  
 $$
 \begin{align}
- &= \color{blue}{58 - 1.5 \cdot \text{NightsDisrupted}_i} \\
-&= \color{blue}{58 - 1.5 \cdot 4} \\
-&= \color{blue}{58 - 6} \\
-&= \color{blue}{52} \\
+ &= \color{blue}{58 - 2 \cdot \text{NightsDisrupted}_i} \\
+&= \color{blue}{58 - 2 \cdot 4} \\
+&= \color{blue}{58 - 8} \\
+&= \color{blue}{50} \\
 \end{align}
 $$
 :::
@@ -1275,7 +1268,7 @@ $$
 
 
 
-## The How-to (in R)
+## The How-to: fitting a model
 
 ##### a new function:  
 
@@ -1327,7 +1320,7 @@ sleep_mdl
 :::
 ::::
 
-## The How-to - predictions
+## The How-to: predictions
 
 1. make a new little dataframe for values of $x$:
 ```{r}

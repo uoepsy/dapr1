@@ -15,6 +15,7 @@ source("_theme/helpers.R")
 source('_theme/theme_quarto.R')
 options(digits=4)
 options(scipen=4)
+source("egsleeps.R")
 ```
 
 
@@ -188,7 +189,7 @@ $$
 **Our estimated model:**  
 $$
 \begin{align}
-\color{red}{\text{ProblemSolvingScore}} &= \color{blue}{58 - 1.5 \cdot \text{NightsDisrupted}} + \color{black}{\varepsilon}
+\color{red}{\text{ProblemSolvingScore}} &= \color{blue}{58 - 2 \cdot \text{NightsDisrupted}} + \color{black}{\varepsilon}
 \end{align}
 $$
 :::
@@ -201,13 +202,7 @@ $$
 ```{r}
 #| echo: false
 #| fig-height: 8
-set.seed(65683728)
-eg1sleep <- tibble(
-  person = unlist(lapply(1:5, \(x) paste0(LETTERS[x],LETTERS)))[1:80],
-  n_disrupted = rep(0:7,e=10),
-  psolve = (58 - 1.5 * n_disrupted) + 
-    residuals(lm(rnorm(80,0,7) ~ rep(0:7,e=10)))
-) |> slice_sample(prop=1)
+
 
 
 fitw = lm(psolve~n_disrupted,eg1sleep)
@@ -303,20 +298,6 @@ $\color{red}{\text{ProblemSolvingScore}} = \,\,\,\color{blue}{b_0 \,\,\,+ b_1 \c
 
 ## Example 2
 
-```{r}
-#| echo: false
-set.seed(65683728)
-xbin = sample(c("Normal","Interrupted"),80,T,prob=c(.6,.4))
-eg2sleep <- tibble(
-  condition = xbin,
-  psolve = (50 + 7.5 * (condition=="Normal")) + 
-    residuals(lm(rnorm(80,0,7) ~ xbin))
-)
-set.seed(356)
-eg2sleep <- slice_sample(eg2sleep, prop=1)
-
-```
-
 ::::{.columns}
 :::{.column width="50%"}
 **Design:**  
@@ -383,28 +364,28 @@ eg2sleep |>
   )
 ```
 
-## with 3+, we need more
-#### (this doesn't come up again until DAPR2) 
+<!-- ## with 3+, we need more -->
+<!-- #### (this doesn't come up again until DAPR2)  -->
 
-```{r}
-#| echo: false
-set.seed(3588)
-xbin = sample(c("Normal","Interrupted-hourly","Interrupted-once"),60,T,prob=c(3,3,3))
-eg3sleep <- tibble(
-  condition = xbin,
-  psolve = (50 + 7.5 * (condition=="Normal")) + 
-    residuals(lm(rnorm(60,0,7) ~ xbin))
-) |> slice_sample(prop=1)
+<!-- ```{r} -->
+<!-- #| echo: false -->
+<!-- set.seed(3588) -->
+<!-- xbin = sample(c("Normal","Interrupted-hourly","Interrupted-once"),60,T,prob=c(3,3,3)) -->
+<!-- eg3sleep <- tibble( -->
+<!--   condition = xbin, -->
+<!--   psolve = (50 + 7.5 * (condition=="Normal")) +  -->
+<!--     residuals(lm(rnorm(60,0,7) ~ xbin)) -->
+<!-- ) |> slice_sample(prop=1) -->
 
-```
+<!-- ``` -->
 
-```{r}
-eg3sleep |> 
-  mutate(
-    isInt1 = ifelse(condition=="Interrupted-once", 1, 0),
-    isIntH = ifelse(condition=="Interrupted-hourly",1,0)
-  )
-```
+<!-- ```{r} -->
+<!-- eg3sleep |>  -->
+<!--   mutate( -->
+<!--     isInt1 = ifelse(condition=="Interrupted-once", 1, 0), -->
+<!--     isIntH = ifelse(condition=="Interrupted-hourly",1,0) -->
+<!--   ) -->
+<!-- ``` -->
 
 
 ## lm() does it for us!  
