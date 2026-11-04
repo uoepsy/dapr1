@@ -1,5 +1,5 @@
 ---
-title: "W14: Correlations"
+title: "W4: Correlations"
 format: html
 ---
 
@@ -38,33 +38,33 @@ params <- list(
 
 
 ```{r}
-rmp_data <- read_csv('https://uoepsy.github.io/data/ratemyprof_stars.csv')
+#| include: false
+# rmp_data <- read_csv('https://uoepsy.github.io/data/ratemyprof_stars.csv')
 
-# **RQ: When students rate instructors as higher difficulty, do they also tend to give those instructors lower star ratings?**
+# # **RQ: When students rate instructors as higher difficulty, do they also tend to give those instructors lower star ratings?**
 
-# a task promised in the lecture: recreate this plot yourself.
-# the main trick: will need to convert student_star into a factor for the fill to work right
-rmp_data |>
-  mutate(student_star = factor(student_star)) |>
-  ggplot(aes(x = student_difficult, fill = student_star)) +
-  geom_bar()
+# # a task promised in the lecture: recreate this plot yourself.
+# # the main trick: will need to convert student_star into a factor for the fill to work right
+# rmp_data |>
+#   mutate(student_star = factor(student_star)) |>
+#   ggplot(aes(x = student_difficult, fill = student_star)) +
+#   geom_bar()
 ```
 
-This example uses real data from [He (2020)](https://data.mendeley.com/datasets/fvtfjyvw7d/2){target="_blank"}.
-
-
----
+<!-- This example uses real data from [He (2020)](https://data.mendeley.com/datasets/fvtfjyvw7d/2){target="_blank"}. -->
 
 
 :::frame
-Pick someone new to be the driver this week. They will type the code. 
-The rest of you are navigators, you need to tell the driver where to go (i.e., what to type!).  
+Pick someone new to be the driver this week. If everyone in the group has already had a week as the driver, start going round again!  
+
+The driver will type the code. The rest of you are navigators, you need to tell the driver where to go (i.e., what to type!). 
 
 Driver instructions:
 
 1. Log in to the bigger screen at your table
-2. Open [RStudio Server](https://rstudio.ppls.ed.ac.uk){target="_blank"}
-3. Listen to your navigators
+2. Open RStudio Server. See the first drop-down in the [FAQs page](https://uoepsy.github.io/dapr1/2627/misc/faqs-dapr1.html){target="_blank"} for instructions
+3. Open a new .R script, and load the **tidyverse** package.
+4. Listen to your navigators
 
 Navigator instructions:
 
@@ -72,22 +72,173 @@ Navigator instructions:
 
 :::
 
-<!-- # q1 -->
+
+
+In this week's workshop you will work with a real dataset from [He (2020)](https://data.mendeley.com/datasets/fvtfjyvw7d/2){target="_blank"} containing instructor star ratings and difficulty ratings given by students on RateMyProfessor.com.
+
+You can access the dataset at <https://uoepsy.github.io/data/ratemyprof_stars.csv>. Before you start answering any questions, read the data into R.
+
+Using a 5% significance level, you will answer the following research question: 
+
+> When students rate instructors as higher difficulty, do they also tend to give those instructors lower star ratings?
+
+
+
 
 `r qbegin(qcounter())`
+<!-- Q1 plot data + write summary of pattern in plot -->
 
-TODO
+Visualise the association between how difficult the instructor is rated (`student_difficult` and the star rating given (`student_star`). Write a brief summary of what you observe.
 
-:::flash
-🗂️
-See [TODO](TODO){target="_blank"} flash card.
+:::{.callout-tip collapse="true"}
+
+#### Hints
+
+- Create a bar plot with `student_difficult` on the x-axis and the count of ratings on the y-axis, filled by `student_star`. 
+- You will need to convert `student_star` into a factor for the `fill` aesthetic to work correctly. You can do this directly into `aes()` as follows `aes(..., fill = factor(variable))`.
+
 :::
 
 `r qend()`
 `r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
-TODO
+
+```{r}
+library(tidyverse)
+rmp_data <- read_csv('https://uoepsy.github.io/data/ratemyprof_stars.csv')
+
+rmp_data |>
+  mutate(student_star = factor(student_star)) |>
+  ggplot(aes(x = student_difficult, fill = student_star)) +
+  geom_bar() +
+  labs(x = "Difficulty Rating", fill = "Star Rating")
+```
+
+Converting `student_star` into a factor inside of the `aes()` function leads to the same plot.
+
+```{r}
+rmp_data |>
+  ggplot(aes(x = student_difficult, fill = factor(student_star))) +
+  geom_bar() +
+  labs(x = "Difficulty Rating", fill = "Star Rating")
+```
+
+As the difficulty rating increases, the proportion of lower star ratings (e.g., 1 or 2 stars) tends to increase, while the proportion of higher star ratings (e.g., 4 or 5 stars) tends to decrease. This suggests a negative association between perceived difficulty and star rating.
+
 `r solend()`
 
+
+`r qbegin(qcounter())`
+<!-- Q2 justify appropriate test and define hypotheses -->
+
+Before running any test, it's important to choose the correct statistical test and define your hypotheses.
+
+1. What type of correlation is appropriate here and why?
+2. Define the null hypothesis ($H_0$) and alternative hypothesis ($H_1$) for your research question, using both plain English and mathematical symbols.
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+1. Think about data types. What type of data are needed for Pearson's correlation, and what is the type of your variables?
+2. Use the symbol $\rho_S$ to represent the Spearman population correlation coefficient.
+
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+1. The variable `student_difficult` is ordinal (Likert scale 1-5), not truly continuous interval/ratio data. Likert data often violate Pearson's assumptions of normality and linearity. Spearman's correlation is used in the presence of ordinal data, making it the appropriate choice here.
+
+2. Hypotheses:
+  
+    - Null Hypothesis ($H_0$): There is no association between instructor difficulty rating and star rating in the population.  
+      In symbols: $H_0$: $\rho_S = 0$
+    - Alternative Hypothesis ($H_1$): There is an association between instructor difficulty rating and star rating in the population.  
+      In symbols: $H_1$: $\rho_S \neq 0$
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q3 run spearman -->
+
+Test your hypotheses using the `cor.test()` function in R. 
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+- Use the argument `method = ...` to compute the correct correlation type.
+
+- You might see the warning message "Cannot compute exact p-value with ties". This is normal for Likert data, as multiple participants can give the same rating, creating "tied ranks". This is not an error, so you shouldn't worry about it.
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+```{r}
+cor.test(rmp_data$student_difficult, rmp_data$student_star, method = "spearman")
+```
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q4 check assumptions -->
+
+Check whether the data requirements / assumptions of the correlation test are met.
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+- Use `head()` or `glimpse()` to inspect the `student_difficult` and `student_star` variables.
+- Can each variable be sorted into a sensible order?
+
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+```{r}
+# Option 1 - head() shows a preview of the top 6 rows
+head(rmp_data)
+
+# Option 2 - glimpse() shows the structure of the dataset (variable names, types, and a preview of the data)
+glimpse(rmp_data)
+```
+
+The data requirements for Spearman's correlation are met. Student star rating is a numerical variable which can be ordered from lowest to highest. Instructor difficulty rating is a numerical coding of an ordinal variable so it can also be ordered. The requirements for Spearman's correlation are met.
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q5 write up / report -->
+
+Let's now practice how to report the results of a correlaiton test using APA style.
+
+Write up a few sentences that summarise your correlation test results. Also include the test results following APA style:
+
+- Spearman's ranked correlation = [correlation coefficient], $p$ = [p-value]
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+This is the write-up from the lecture slides as an example:
+
+> We wanted to find out whether students from higher-income families tend to achieve higher test scores than students from lower-income families.
+> However, a Shapiro-Wilk test indicated that our income variable deviated significantly from a normal distribution ($W$ = 1, $p$ < .001).
+> We therefore used Spearman's ranked correlation instead of Pearson's $r$ to test the correlation between income and test score.
+>
+> We found a weak positive correlation (Spearman's ranked correlation = .2, $p$ < .001).
+> This result suggests that higher family income is significantly associated with higher test scores, and lower family income is associated with lower test scores.
+
+:::
+
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+> We investigated whether students' ratings of instructor difficulty were significantly associated with star ratings. The variable types (ordinal and numerical) indicated that Pearson's correlation was not appropriate, so a Spearman's correlation test was performed. There was a significant negative correlation between difficulty rating and star rating, which was weak-to-moderate in magnitude (Spearman's ranked correlation = -.42, $p$ < .001). This suggests that as instructors are rated as more difficult, they tend to receive lower star ratings.
+
+`r solend()`
 
 
 :::frame
@@ -100,11 +251,4 @@ Once you've finished, don't forget to:
 
 
 :::
-
-
-
-
-
-
-
 
