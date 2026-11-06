@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>W14: Correlations – DAPR1 Workshops</title>
+<title>W4: Correlations – DAPR1 Workshops</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -121,6 +121,35 @@ if(f.classList.contains('jk-circle-right')) {
 </script>
 <link rel="stylesheet" href="https://uoepsy.github.io/assets/css/ccfooter.css">
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -177,6 +206,10 @@ if(f.classList.contains('jk-circle-right')) {
     <a class="dropdown-item" href="./06ex.html">
  <span class="dropdown-text">W7: Z-scores &amp; the Normal Distribution</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="./07ex.html">
+ <span class="dropdown-text">W8: Sampling Distributions &amp; Standard Error</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item">
@@ -206,7 +239,7 @@ if(f.classList.contains('jk-circle-right')) {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">W14: Correlations</h1>
+<h1 class="title">W4: Correlations</h1>
 </div>
 
 
@@ -240,33 +273,15 @@ WHEN RENDERING:
   - solutions will be available for previous blocks.  
   
 -->
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>rmp_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">'https://uoepsy.github.io/data/ratemyprof_stars.csv'</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># **RQ: When students rate instructors as higher difficulty, do they also tend to give those instructors lower star ratings?**</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># a task promised in the lecture: recreate this plot yourself.</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># the main trick: will need to convert student_star into a factor for the fill to work right</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>rmp_data <span class="sc">|&gt;</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">student_star =</span> <span class="fu">factor</span>(student_star)) <span class="sc">|&gt;</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> student_difficult, <span class="at">fill =</span> student_star)) <span class="sc">+</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="14ex_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>This example uses real data from <a href="https://data.mendeley.com/datasets/fvtfjyvw7d/2" target="_blank">He (2020)</a>.</p>
-<hr>
+<!-- This example uses real data from [He (2020)](https://data.mendeley.com/datasets/fvtfjyvw7d/2){target="_blank"}. -->
 <div class="frame">
-<p>Pick someone new to be the driver this week. They will type the code. The rest of you are navigators, you need to tell the driver where to go (i.e., what to type!).</p>
+<p>Pick someone new to be the driver this week. If everyone in the group has already had a week as the driver, start going round again!</p>
+<p>The driver will type the code. The rest of you are navigators, you need to tell the driver where to go (i.e., what to type!).</p>
 <p>Driver instructions:</p>
 <ol type="1">
 <li>Log in to the bigger screen at your table</li>
-<li>Open <a href="https://rstudio.ppls.ed.ac.uk" target="_blank">RStudio Server</a></li>
+<li>Open RStudio Server. See the first drop-down in the <a href="https://uoepsy.github.io/dapr1/2627/misc/faqs-dapr1.html" target="_blank">FAQs page</a> for instructions</li>
+<li>Open a new .R script, and load the <strong>tidyverse</strong> package.</li>
 <li>Listen to your navigators</li>
 </ol>
 <p>Navigator instructions:</p>
@@ -274,14 +289,36 @@ WHEN RENDERING:
 <li>Tell your driver where to go (i.e., what to type)!</li>
 </ol>
 </div>
-<!-- # q1 -->
+<p>In this week’s workshop you will work with a real dataset from <a href="https://data.mendeley.com/datasets/fvtfjyvw7d/2" target="_blank">He (2020)</a> containing instructor star ratings and difficulty ratings given by students on RateMyProfessor.com.</p>
+<p>You can access the dataset at <a href="https://uoepsy.github.io/data/ratemyprof_stars.csv" class="uri">https://uoepsy.github.io/data/ratemyprof_stars.csv</a>. Before you start answering any questions, read the data into R.</p>
+<p>Using a 5% significance level, you will answer the following research question:</p>
+<blockquote class="blockquote">
+<p>When students rate instructors as higher difficulty, do they also tend to give those instructors lower star ratings?</p>
+</blockquote>
 <div class="question-begin">
 Question 1
 </div>
 <div class="question-body">
-<p>TODO</p>
-<div class="flash">
-<p>🗂️ See <a href="TODO" target="_blank">TODO</a> flash card.</p>
+<!-- Q1 plot data + write summary of pattern in plot -->
+<p>Visualise the association between how difficult the instructor is rated (<code>student_difficult</code> and the star rating given (<code>student_star</code>). Write a brief summary of what you observe.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Hints
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li>Create a bar plot with <code>student_difficult</code> on the x-axis and the count of ratings on the y-axis, filled by <code>student_star</code>.</li>
+<li>You will need to convert <code>student_star</code> into a factor for the <code>fill</code> aesthetic to work correctly. You can do this directly into <code>aes()</code> as follows <code>aes(..., fill = factor(variable))</code>.</li>
+</ul>
+</div>
+</div>
 </div>
 </div>
 <p class="question-end">
@@ -292,7 +329,251 @@ Solution
 </button>
 </div>
 <div id="sol-body-1" class="solution-body proof solution" style="display: none;">
-<p><span class="proof-title"><em>Solution 1</em>. </span>TODO</p>
+<p><span class="proof-title"><em>Solution 1</em>. </span></p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>rmp_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">'https://uoepsy.github.io/data/ratemyprof_stars.csv'</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>rmp_data <span class="sc">|&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">student_star =</span> <span class="fu">factor</span>(student_star)) <span class="sc">|&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> student_difficult, <span class="at">fill =</span> student_star)) <span class="sc">+</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Difficulty Rating"</span>, <span class="at">fill =</span> <span class="st">"Star Rating"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="14ex_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Converting <code>student_star</code> into a factor inside of the <code>aes()</code> function leads to the same plot.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>rmp_data <span class="sc">|&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> student_difficult, <span class="at">fill =</span> <span class="fu">factor</span>(student_star))) <span class="sc">+</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Difficulty Rating"</span>, <span class="at">fill =</span> <span class="st">"Star Rating"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="14ex_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>As the difficulty rating increases, the proportion of lower star ratings (e.g., 1 or 2 stars) tends to increase, while the proportion of higher star ratings (e.g., 4 or 5 stars) tends to decrease. This suggests a negative association between perceived difficulty and star rating.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 2
+</div>
+<div class="question-body">
+<!-- Q2 justify appropriate test and define hypotheses -->
+<p>Before running any test, it’s important to choose the correct statistical test and define your hypotheses.</p>
+<ol type="1">
+<li>What type of correlation is appropriate here and why?</li>
+<li>Define the null hypothesis (<span class="math inline">\(H_0\)</span>) and alternative hypothesis (<span class="math inline">\(H_1\)</span>) for your research question, using both plain English and mathematical symbols.</li>
+</ol>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Hints
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li>Think about data types. What type of data are needed for Pearson’s correlation, and what is the type of your variables?</li>
+<li>Use the symbol <span class="math inline">\(\rho_S\)</span> to represent the Spearman population correlation coefficient.</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<button id="sol-start-2" class="jk-circle-right solution-icon clickable" onclick="toggle_visibility('sol-body-2', 'sol-start-2')">
+Solution
+</button>
+</div>
+<div id="sol-body-2" class="solution-body proof solution" style="display: none;">
+<p><span class="proof-title"><em>Solution 2</em>. </span></p>
+<ol type="1">
+<li><p>The variable <code>student_difficult</code> is ordinal (Likert scale 1-5), not truly continuous interval/ratio data. Likert data often violate Pearson’s assumptions of normality and linearity. Spearman’s correlation is used in the presence of ordinal data, making it the appropriate choice here.</p></li>
+<li><p>Hypotheses:</p>
+<ul>
+<li>Null Hypothesis (<span class="math inline">\(H_0\)</span>): There is no association between instructor difficulty rating and star rating in the population.<br>
+In symbols: <span class="math inline">\(H_0\)</span>: <span class="math inline">\(\rho_S = 0\)</span></li>
+<li>Alternative Hypothesis (<span class="math inline">\(H_1\)</span>): There is an association between instructor difficulty rating and star rating in the population.<br>
+In symbols: <span class="math inline">\(H_1\)</span>: <span class="math inline">\(\rho_S \neq 0\)</span></li>
+</ul></li>
+</ol>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 3
+</div>
+<div class="question-body">
+<!-- Q3 run spearman -->
+<p>Test your hypotheses using the <code>cor.test()</code> function in R.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Hints
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li><p>Use the argument <code>method = ...</code> to compute the correct correlation type.</p></li>
+<li><p>You might see the warning message “Cannot compute exact p-value with ties”. This is normal for Likert data, as multiple participants can give the same rating, creating “tied ranks”. This is not an error, so you shouldn’t worry about it.</p></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<button id="sol-start-3" class="jk-circle-right solution-icon clickable" onclick="toggle_visibility('sol-body-3', 'sol-start-3')">
+Solution
+</button>
+</div>
+<div id="sol-body-3" class="solution-body proof solution" style="display: none;">
+<p><span class="proof-title"><em>Solution 3</em>. </span></p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cor.test</span>(rmp_data<span class="sc">$</span>student_difficult, rmp_data<span class="sc">$</span>student_star, <span class="at">method =</span> <span class="st">"spearman"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Spearman's rank correlation rho
+
+data:  rmp_data$student_difficult and rmp_data$student_star
+S = 1.9e+12, p-value &lt;2e-16
+alternative hypothesis: true rho is not equal to 0
+sample estimates:
+     rho 
+-0.42461 </code></pre>
+</div>
+</div>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 4
+</div>
+<div class="question-body">
+<!-- Q4 check assumptions -->
+<p>Check whether the data requirements / assumptions of the correlation test are met.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Hints
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li>Use <code>head()</code> or <code>glimpse()</code> to inspect the <code>student_difficult</code> and <code>student_star</code> variables.</li>
+<li>Can each variable be sorted into a sensible order?</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<button id="sol-start-4" class="jk-circle-right solution-icon clickable" onclick="toggle_visibility('sol-body-4', 'sol-start-4')">
+Solution
+</button>
+</div>
+<div id="sol-body-4" class="solution-body proof solution" style="display: none;">
+<p><span class="proof-title"><em>Solution 4</em>. </span></p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Option 1 - head() shows a preview of the top 6 rows</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(rmp_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 2
+  student_star student_difficult
+         &lt;dbl&gt;             &lt;dbl&gt;
+1            5                 3
+2            5                 2
+3            4                 3
+4            5                 3
+5            5                 1
+6            5                 2</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Option 2 - glimpse() shows the structure of the dataset (variable names, types, and a preview of the data)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rmp_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 19,995
+Columns: 2
+$ student_star      &lt;dbl&gt; 5.0, 5.0, 4.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 4.…
+$ student_difficult &lt;dbl&gt; 3, 2, 3, 3, 1, 2, 2, 2, 1, 2, 2, 4, 2, 2, 4, 1, 3, 3…</code></pre>
+</div>
+</div>
+<p>The data requirements for Spearman’s correlation are met. Student star rating is a numerical variable which can be ordered from lowest to highest. Instructor difficulty rating is a numerical coding of an ordinal variable so it can also be ordered. The requirements for Spearman’s correlation are met.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 5
+</div>
+<div class="question-body">
+<!-- Q5 write up / report -->
+<p>Let’s now practice how to report the results of a correlaiton test using APA style.</p>
+<p>Write up a few sentences that summarise your correlation test results. Also include the test results following APA style:</p>
+<ul>
+<li>Spearman’s ranked correlation = [correlation coefficient], <span class="math inline">\(p\)</span> = [p-value]</li>
+</ul>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Hints
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>This is the write-up from the lecture slides as an example:</p>
+<blockquote class="blockquote">
+<p>We wanted to find out whether students from higher-income families tend to achieve higher test scores than students from lower-income families. However, a Shapiro-Wilk test indicated that our income variable deviated significantly from a normal distribution (<span class="math inline">\(W\)</span> = 1, <span class="math inline">\(p\)</span> &lt; .001). We therefore used Spearman’s ranked correlation instead of Pearson’s <span class="math inline">\(r\)</span> to test the correlation between income and test score.</p>
+<p>We found a weak positive correlation (Spearman’s ranked correlation = .2, <span class="math inline">\(p\)</span> &lt; .001). This result suggests that higher family income is significantly associated with higher test scores, and lower family income is associated with lower test scores.</p>
+</blockquote>
+</div>
+</div>
+</div>
+</div>
+<p class="question-end">
+</p>
+<div class="solution-begin">
+<button id="sol-start-5" class="jk-circle-right solution-icon clickable" onclick="toggle_visibility('sol-body-5', 'sol-start-5')">
+Solution
+</button>
+</div>
+<div id="sol-body-5" class="solution-body proof solution" style="display: none;">
+<p><span class="proof-title"><em>Solution 5</em>. </span></p>
+<blockquote class="blockquote">
+<p>We investigated whether students’ ratings of instructor difficulty were significantly associated with star ratings. The variable types (ordinal and numerical) indicated that Pearson’s correlation was not appropriate, so a Spearman’s correlation test was performed. There was a significant negative correlation between difficulty rating and star rating, which was weak-to-moderate in magnitude (Spearman’s ranked correlation = -.42, <span class="math inline">\(p\)</span> &lt; .001). This suggests that as instructors are rated as more difficult, they tend to receive lower star ratings.</p>
+</blockquote>
 </div>
 <p class="solution-end">
 </p>
