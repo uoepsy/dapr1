@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>W13: Chi-squared test of independence – DAPR1 Workshops</title>
+<title>W3: Chi-squared test of independence – DAPR1 Workshops</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -121,6 +121,35 @@ if(f.classList.contains('jk-circle-right')) {
 </script>
 <link rel="stylesheet" href="https://uoepsy.github.io/assets/css/ccfooter.css">
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -177,6 +206,10 @@ if(f.classList.contains('jk-circle-right')) {
     <a class="dropdown-item" href="./06ex.html">
  <span class="dropdown-text">W7: Z-scores &amp; the Normal Distribution</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="./07ex.html">
+ <span class="dropdown-text">W8: Sampling Distributions &amp; Standard Error</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item">
@@ -206,7 +239,7 @@ if(f.classList.contains('jk-circle-right')) {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">W13: Chi-squared test of independence</h1>
+<h1 class="title">W3: Chi-squared test of independence</h1>
 </div>
 
 
@@ -240,34 +273,15 @@ WHEN RENDERING:
   - solutions will be available for previous blocks.  
   
 -->
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>attach_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">'https://uoepsy.github.io/data/attachmentstyle_sexuality.csv'</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># **RQ: Do homosexual and heterosexual people show different patterns of attachment styles?**</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>attach_data <span class="sc">|&gt;</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> sexuality, <span class="at">fill =</span> sexuality)) <span class="sc">+</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> style, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">'none'</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="13ex_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>This example uses real data from <a href="https://onlinelibrary.wiley.com/doi/pdf/10.3109/00048679809073875" target="_blank">Ridge &amp; Feeney (1998)</a>.</p>
-<hr>
+<!-- This example uses real data from [Ridge & Feeney (1998)](https://onlinelibrary.wiley.com/doi/pdf/10.3109/00048679809073875){target="_blank"}. -->
 <div class="frame">
-<p>Pick someone new to be the driver this week. They will type the code. The rest of you are navigators, you need to tell the driver where to go (i.e., what to type!).</p>
+<p>Pick someone new to be the driver this week. If everyone in the group has already had a week as the driver, start going round again!</p>
+<p>The driver will type the code. The rest of you are navigators, you need to tell the driver where to go (i.e., what to type!).</p>
 <p>Driver instructions:</p>
 <ol type="1">
 <li>Log in to the bigger screen at your table</li>
-<li>Open <a href="https://rstudio.ppls.ed.ac.uk" target="_blank">RStudio Server</a></li>
+<li>Open RStudio Server. See the first drop-down in the <a href="https://uoepsy.github.io/dapr1/2627/misc/faqs-dapr1.html" target="_blank">FAQs page</a> for instructions</li>
+<li>Open a new .R script, and load the <strong>tidyverse</strong> package.</li>
 <li>Listen to your navigators</li>
 </ol>
 <p>Navigator instructions:</p>
@@ -275,20 +289,208 @@ WHEN RENDERING:
 <li>Tell your driver where to go (i.e., what to type)!</li>
 </ol>
 </div>
-<!-- # q1 -->
+<p>In this week’s workshop you will work with a real dataset from <a href="https://onlinelibrary.wiley.com/doi/pdf/10.3109/00048679809073875" target="_blank">Ridge &amp; Feeney (1998)</a>.</p>
+<p>You can access the dataset at <a href="https://uoepsy.github.io/data/attachmentstyle_sexuality.csv" class="uri">https://uoepsy.github.io/data/attachmentstyle_sexuality.csv</a>. Before you start answering any questions, read the data into R.</p>
+<p>Using a 5% significance level, you will answer the following research question:</p>
+<blockquote class="blockquote">
+<p>Is there a significant association between sexual orientation and attachment style?</p>
+</blockquote>
 <div class="question-begin">
 Question 1
 </div>
 <div class="question-body">
-<p>TODO</p>
+<!-- Q1 plot data + write summary of pattern in plot -->
+<p>Create a plot that visualises the association between the sexual orientation (<code>sexuality</code>) and attachment styles (<code>style</code>) variables in the data.</p>
+<p>Write a brief summary of what you observe.</p>
 <div class="flash">
-<p>🗂️ See <a href="TODO" target="_blank">TODO</a> flash card.</p>
+<p>TODO - Link to flashcard on plotting association between two categorical variables.</p>
 </div>
 </div>
 <p class="question-end">
 </p>
 <div style="display:none;">
-<p>TODO</p>
+<p>We can create a barplot of attachment styles, faceted by sexuality:</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>attach_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">'https://uoepsy.github.io/data/attachmentstyle_sexuality.csv'</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(attach_data, <span class="fu">aes</span>(<span class="at">x =</span> sexuality)) <span class="sc">+</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> style, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Sexual orientation"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="13ex_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>There is roughly an equal number of homosexual and heterosexual participants who are “Secure”. There are more homosexual than heterosexual poeple that are “Dismissing”, “Fearful”, and “Preoccupied”.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 2
+</div>
+<div class="question-body">
+<!-- Q2 specify hypotheses (verbally) -->
+<p>Write down the null hypothesis (<span class="math inline">\(H_0\)</span>) and the alternative hypothesis (<span class="math inline">\(H_1\)</span>) for your research question using plain English.</p>
+</div>
+<p class="question-end">
+</p>
+<div style="display:none;">
+<ul>
+<li>Null hypothesis (<span class="math inline">\(H_0\)</span>): Sexual orientation and attachment style are independent.</li>
+<li>Alternative hypothesis (<span class="math inline">\(H_1\)</span>): Sexual orientation and attachment style are not independent.</li>
+</ul>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 3
+</div>
+<div class="question-body">
+<!-- Q3 run chisq -->
+<p>Run a chi-squared (<span class="math inline">\(\chi^2\)</span>) test of independence in R.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Hints
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li>Use the <code>chisq.test()</code> R function to test the association between <code>sexuality</code> and <code>style</code>.</li>
+<li>Use the argument <code>correct = FALSE</code> to run the non-bias-adjusted version of the test.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="flash">
+<p>TODO - Link to <code>chisq.test()</code> flashcard</p>
+</div>
+</div>
+<p class="question-end">
+</p>
+<div style="display:none;">
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>chisq_result <span class="ot">&lt;-</span> <span class="fu">chisq.test</span>(attach_data<span class="sc">$</span>sexuality, attach_data<span class="sc">$</span>style, <span class="at">correct =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>chisq_result</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Pearson's Chi-squared test
+
+data:  attach_data$sexuality and attach_data$style
+X-squared = 2.33, df = 3, p-value = 0.51</code></pre>
+</div>
+</div>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 4
+</div>
+<div class="question-body">
+<!-- Q4 check assumptions -->
+<p>Check the data requirements and assumptions of the chi-squared test of independence.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Hints
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li><p>Data requirement 1. Both variables are categorical.</p>
+<ul>
+<li>Use <code>glimpse()</code> or <code>head()</code> to check this.</li>
+</ul></li>
+<li><p>Data requirement 2. All expected counts <span class="math inline">\(\ge\)</span> 5.</p>
+<ul>
+<li>You can extract the expected counts from your chi-squared test results using <code>&lt;chisquare results&gt;$expected</code>.</li>
+</ul></li>
+<li><p>Assumption of independence. The obtained sample data are a random sample from the population of interest.</p>
+<ul>
+<li>Think about the study design.</li>
+</ul></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<p class="question-end">
+</p>
+<div style="display:none;">
+<p>Data requirement 1. Both <code>sexuality</code> and <code>style</code> are categorical variables as shown below:</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(attach_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 327
+Columns: 2
+$ style     &lt;chr&gt; "Dismissing", "Dismissing", "Dismissing", "Dismissing", "Dis…
+$ sexuality &lt;chr&gt; "Hetero", "Hetero", "Hetero", "Hetero", "Hetero", "Hetero", …</code></pre>
+</div>
+</div>
+<p>Data requirement 2. The lowest expected count is 22.48, which is above the minimum threshold of 5.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>chisq_result<span class="sc">$</span>expected</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                     attach_data$style
+attach_data$sexuality Dismissing Fearful Preoccupied Secure
+               Hetero     31.193  34.404      22.477 61.927
+               Homo       36.807  40.596      26.523 73.073</code></pre>
+</div>
+</div>
+<p>Assumption of independence. Each participant only contributed one response to the survey and they contribute to one cell of the contingency table each.</p>
+</div>
+<p class="solution-end">
+</p>
+<div class="question-begin">
+Question 5
+</div>
+<div class="question-body">
+<!-- Q5 write up / report -->
+<p>Let’s now practice how to report the results of a chi-squared test of independence using APA style.</p>
+<p>The general format is:<br>
+<span class="math inline">\(\chi^2\)</span>([degrees of freedom], <span class="math inline">\(N\)</span> = [sample size]) = [chi-squared statistic], <span class="math inline">\(p\)</span> = [p-value]</p>
+<p>Write a brief summary of your findings using APA style. Ensure you communicate if you have rejected or not the null hypothesis and the significance level used.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Hints
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>This is the write-up from the lecture slides as an example:</p>
+<blockquote class="blockquote">
+<p>To find out whether occurrence frequencies of ADHD and ASD are independent in children, we performed a <span class="math inline">\(\chi^2\)</span> test of independence. We found a significant association between ADHD and ASD (<span class="math inline">\(\chi^2\)</span>(1, <span class="math inline">\(N\)</span> = 70,913) = 3270, <span class="math inline">\(p\)</span> &lt; .001). Therefore, at <span class="math inline">\(\alpha\)</span> = .05, we reject the H0 that ADHD and ASD are independent in children. Specifically, the test’s residuals indicate that ADHD and ASD co-occur in children more frequently than we’d expect.</p>
+</blockquote>
+</div>
+</div>
+</div>
+</div>
+<p class="question-end">
+</p>
+<div style="display:none;">
+<blockquote class="blockquote">
+<p>A chi-squared test of independence was conducted to examine whether attachment style differs by sexual orientation. The results indicated no significant association between sexual orientation and attachment style, <span class="math inline">\(\chi^2\)</span>(3, <span class="math inline">\(N\)</span> = 327) = 2.33, <span class="math inline">\(p\)</span> = .507. At <span class="math inline">\(\alpha = .05\)</span>, we fail to reject the null hypothesis and conclude that there is not enough evidence to suggest that homosexual and heterosexual people show different patterns of attachment styles.</p>
+</blockquote>
 </div>
 <p class="solution-end">
 </p>
