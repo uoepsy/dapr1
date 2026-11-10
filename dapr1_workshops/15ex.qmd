@@ -1,0 +1,284 @@
+---
+title: "W5: Effect size"
+format: html
+---
+
+<!--
+WHEN RENDERING: 
+
+- tutor-facing: 
+  - either use the build button, or render specific files. or in the terminal using `quarto render`
+  - resulting file will land in `docs/YEAR/workshops/tutors/`
+  - solutions will always be visible
+  
+- student-facing:
+  - set current_block: to the block we're in
+  - render in Terminal using either: 
+      - `quarto render --profile production`
+      - `quarto render FILE.qmd --profile production`
+  - resulting file will land in `docs/YEAR/workshops/`
+  - solutions will be available for previous blocks.  
+  
+-->
+
+```{r}
+#| include: false
+library(tidyverse)
+source('assets/dropdowns.R')
+source('assets/setup.R')
+
+vars <- readRDS("block_sols.rds")
+# set params manually rather than yaml params
+params <- list(
+  SHOW_SOLS = tryCatch({ vars$sols[[tools::file_path_sans_ext(knitr::current_input(dir=FALSE))]]},
+                       error = function(e) { TRUE } ),
+  TOGGLE = TRUE
+)
+```
+
+
+:::frame
+Pick someone new to be the driver this week. If everyone in the group has already had a week as the driver, start going round again!  
+
+The driver will type the code. The rest of you are navigators, you need to tell the driver where to go (i.e., what to type!). 
+
+Driver instructions:
+
+1. Log in to the bigger screen at your table
+2. Open RStudio Server. See the first drop-down in the [FAQs page](https://uoepsy.github.io/dapr1/2627/misc/faqs-dapr1.html){target="_blank"} for instructions
+3. Open a new .R script, and load the **tidyverse** package.
+4. Listen to your navigators
+
+Navigator instructions:
+
+1. Tell your driver where to go (i.e., what to type)!
+
+:::
+
+
+```{r}
+#| include: false
+
+# library(tidyverse)
+# set.seed(5678)
+# n <- 85
+# mu <- c(4.5, 70)
+# 
+# Sigma <- matrix(c(2.25, -7.2, -7.2, 144), nrow = 2)
+# sim_data <- MASS::mvrnorm(n = n, mu = mu, Sigma = Sigma)
+# 
+# social_media <- tibble(
+#   id = sprintf("S%02d", 1:n),
+#   screen_time = round(sim_data[, 1], 1),
+#   sleep_quality = round(pmax(0, pmin(100, sim_data[, 2])), 1)
+# )
+# cor(social_media$screen_time, social_media$sleep_quality)
+```
+
+The dataset available at <https://uoepsy.github.io/data/social_media.csv> contains data on social media use and sleep quality for a random sample of UK university students. The following variables are included:
+
+- `screen_time`: Hours spent on social media per day (continuous)
+- `sleep_quality`: Self-reported sleep quality score (out of 100, continuous)
+
+Before you start answering any questions, read the data into R.
+
+Using a 5% significance level, you will answer the following research question: 
+
+> Is there a linear relationship between the number of hours spent on social media per day and self-reported sleep quality scores among university students?
+
+
+`r qbegin(qcounter())`
+<!-- Q1 given RQ, choose appropriate test -->
+
+Which of the following statistical tests is the most appropriate to answer the research question? Discuss within your group and write in your R script your choice and why using comments (`#`).
+
+1. Independent samples t-test  
+2. One-sample t-test  
+3. Pearson's correlation  
+4. Chi-squared test of independence
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+Based on the variable types, we would choose 3. Pearson's correlation. Both variables (`screen_time` and `sleep_quality`) are continuous numeric variables, and we are interested in the strength and direction of their linear relationship.
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q2 run test (pearson's cor) -->
+
+Run the test in R. Both correlation and hypothesis test should be done as part of this question.
+
+:::{.callout-tip collapse="true"}
+#### Hints
+
+- Use the `cor.test()` function, with the default argument `method = "pearson"`.
+
+- The correlation is given by the part `sample estimates` of the output. Or you can compute it directly with the `cor()` function but this doesn't give you the hypothesis test.
+
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+```{r}
+library(tidyverse)
+social_media <- read_csv("https://uoepsy.github.io/data/social_media.csv")
+
+cor_res <- cor.test(social_media$screen_time, social_media$sleep_quality)
+cor_res
+```
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q3 check assumptions -->
+
+Check if the data requirements / assumptions of Pearson's correlation are met.
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+1. Continuous variables. Both variables should be continuous.
+
+2. No extreme outliers. There should be no data points that are far away from the others.
+
+3. Linearity assumption. Create a scatterplot of `screen_time` (x-axis) and `sleep_quality` (y-axis) with a linear trend line (`geom_smooth(method = 'lm', se = FALSE)`) and LOESS curve (`geom_smooth(method = 'loess', se = FALSE)`). If the relationship is linear the two lines should roughly match.
+
+4. Normality assumption. Check if each variable is roughly normally distributed using QQ-plots (`... + geom_qq() + geom_qq_line()`) or Shapiro-Wilk tests (`shapiro.test()`)
+
+5. Equal variance assumption. Check the plot for linearity to see if each variable's variance is equal across the range of the other variable.
+:::
+
+`r qend()`
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+1. Both variables are numeric and continuous, so this data requirement is met.
+
+2. The scatterplot shows no data points that are very far away from the others.
+
+```{r}
+ggplot(social_media, aes(x = screen_time, y = sleep_quality)) +
+  geom_point() +
+  labs(x = "Daily Screen Time (hours)", y = "Sleep Quality Score (0-100)")
+```
+
+
+3. The code below adds a solid blue straight line and a dashed red LOESS curve to the scatterplot:
+
+```{r}
+ggplot(social_media, aes(x = screen_time, y = sleep_quality)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = FALSE, colour = 'blue') +
+  geom_smooth(method = 'loess', se = FALSE, colour = 'red', linetype = 'dashed') +
+  labs(x = "Daily Screen Time (hours)", y = "Sleep Quality Score (0-100)")
+```
+
+The scatterplot shows a negative linear trend, i.e. the points have a decreasing trend where as daily screen time tends to increase, sleep quality tends to decrease. There LOESS curve and straight line are close enough to indicate linearity.
+
+
+4. Normality.
+
+```{r}
+# QQ-plots
+screen_plt <- ggplot(social_media, aes(sample = screen_time)) +
+  geom_qq() + 
+  geom_qq_line() +
+  labs(x = "Theoretical quantiles", y = "Sample quantiles",
+       title = "Screen time QQplot")
+
+sleep_plt <- ggplot(social_media, aes(sample = sleep_quality)) +
+  geom_qq() + 
+  geom_qq_line() +
+  labs(x = "Theoretical quantiles", y = "Sample quantiles",
+       title = "Sleep quality QQplot")
+
+# Load the patchwork library to put plots side by side using +
+library(patchwork)
+screen_plt + sleep_plt
+
+# Shapiro-Wilk tests
+shapiro.test(social_media$screen_time)
+shapiro.test(social_media$sleep_quality)
+```
+
+The Shapiro-Wilk tests for `screen_time` and `sleep_quality` give $p$-values of .26 and .69 respectively (both $> .05$), indicating that we do not reject the null hypothesis of normality. The QQ-plots also show good agreement between the sample quantiles and theoretical quantiles. The assumption of normality for Pearson's correlation is therefore met.
+
+5. Equal variance. Looking the linearity plot from (3), we can see that the spread of the points is roughly constant as we move along the x-axis, so this assumption is also met.
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q4 find cohen's D effect size -->
+
+For Pearson correlations, the correlation coefficient ($r$) itself is the effect size.
+
+Find the $r$ value from your `cor.test` output (or calculate it using `cor()`).
+
+Based on the lecture recommendations (copied below), how would you interpret the magnitude and direction of this effect? What does this mean in context of the study?
+
+| Effect Size | Magnitude |
+|:------------|:----------|
+| Weak        | .1 to .3  |
+| Moderate    | .3 to .5  |
+| Strong      | >.5       |
+
+`r qend()`
+
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+```{r}
+# Extracting r
+pearson_cor <- cor(social_media$screen_time, social_media$sleep_quality)
+pearson_cor
+```
+
+The correlation coefficient is $r$ = -.57.
+
+Because the absolute value (`r round(abs(pearson_cor), 2)`) is greater than .5, this represents a strong effect. The negative sign tells us the direction, i.e. as screen time increased, sleep quality tended to decrease.
+
+`r solend()`
+
+
+`r qbegin(qcounter())`
+<!-- Q5 write up / report -->
+
+Let's practice how to report the results of your correlation test in APA style.
+
+Write a brief summary of your results, making sure to include:
+
+- The research question
+- The sample size
+- The test statistic ($t$), degrees of freedom ($df$), $p$-value, and correlation.
+- The effect size ($r$) and its interpretation
+
+::: {.callout-tip collapse="true"}
+#### Hints
+
+You can follow this structure: 
+
+> A [test name] was conducted to examine [research question]. There was a [strength and direction] relationship between [variable1] and [variable2], $t(df)$ = [value], $p$ [value], $r$ = [value]. [User-friendly conclusion]. 
+
+:::
+
+`r qend()`
+
+`r solbegin(show=params$SHOW_SOLS, toggle=params$TOGGLE)`
+
+> A Pearson correlation test was conducted to examine the relationship between daily screen time and sleep quality scores in a sample of UK university students ($N$ = 85). There was a strong, negative linear relationship between the two variables, $t$(83) = -6.33, $p$ < .001, $r$ = -.57. As daily screen time increased, sleep quality scores tended to significantly decrease.
+
+`r solend()`
+
+
+:::frame
+__Finishing up__  
+
+Once you've finished, don't forget to: 
+
+1. Save your R script
+2. Post the R script to the group discussion space on Learn, to ensure that everyone has access to it! (For step-by-step instructions on how to do this, click [here](00serverfiles.html){target="_blank"})  
+
+
+:::
