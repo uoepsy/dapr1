@@ -10,7 +10,7 @@
   <meta name="generator" content="quarto-1.8.24">
 
   <meta name="author" content="Dr.&nbsp;Elizabeth Pankratz (elizabeth.pankratz@ed.ac.uk)">
-  <title>One-sample t-tests   and their assumptions</title>
+  <title>One-sample t-tests, and the assumptions we must make   to use them</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
@@ -216,7 +216,7 @@
     <div class="slides">
 
 <section id="title-slide" data-background-color="#0F4C81" class="quarto-title-block center">
-  <h1 class="title">One-sample t-tests <br> and their assumptions</h1>
+  <h1 class="title">One-sample t-tests, and the assumptions we must make <br> to use them</h1>
   <p class="subtitle">Data Analysis for Psychology in R 1 (2026/27)</p>
 
 <div class="quarto-title-authors">
@@ -254,13 +254,13 @@ Dr.&nbsp;Elizabeth Pankratz (elizabeth.pankratz@ed.ac.uk)
 <!-- - one-sample t-test -->
 </div>
 <div class="dapr1callout fragment">
-<p>What does this test require/assume to be true about the data that it models?</p>
+<p>If we want to use this test, what must we assume to be true about the data/the test?</p>
 <!-- 1. dependent variable is numeric; -->
 <!-- 1. variable is normally distributed OR sample size >= 30; -->
 <!-- 1. observations are sampled independently -->
 </div>
 <div class="dapr1callout fragment">
-<p>How do we check whether we’re satisfied with the test’s requirements/assumptions?</p>
+<p>How do we check whether it’s reasonable to make those assumptions?</p>
 <!-- 1. check that variable is on interval/ratio/integer scale -->
 <!-- 1. visually with plots (hist, dens, qq), statistically with Shapiro-Wilk -->
 <!-- 1. check that each data point comes from a separate source (e.g., a separate person) -->
@@ -385,17 +385,18 @@ Dr.&nbsp;Elizabeth Pankratz (elizabeth.pankratz@ed.ac.uk)
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="" aria-hidden="true" tabindex="-1"></a>lonely_data <span class="sc">|&gt;</span></span>
 <span id="cb6-2"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">1</span>, <span class="at">y =</span> loneliness)) <span class="sc">+</span></span>
 <span id="cb6-3"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_violin</span>() <span class="sc">+</span>     <span class="co"># add violin</span></span>
-<span id="cb6-4"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(        <span class="co"># add points with jitter (random horizontal offset)</span></span>
+<span id="cb6-4"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(        <span class="co"># add points with jitter (random offset)</span></span>
 <span id="cb6-5"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="fl">0.2</span>,      <span class="co"># how big is the max horizontal offset?</span></span>
-<span id="cb6-6"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.2</span>,      <span class="co"># make the points 20% opaque</span></span>
-<span id="cb6-7"><a href="" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span>     </span>
-<span id="cb6-8"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_summary</span>(<span class="at">fun =</span> mean, <span class="at">geom =</span> <span class="st">'point'</span>, <span class="at">size =</span> <span class="dv">5</span>) <span class="sc">+</span>  <span class="co"># add big point for mean</span></span>
-<span id="cb6-9"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the theme() bit below removes the uninformative x axis numbering</span></span>
-<span id="cb6-10"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb6-11"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.ticks.x =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb6-12"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb6-13"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_blank</span>()</span>
-<span id="cb6-14"><a href="" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-6"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">height =</span> <span class="dv">0</span>,       <span class="co"># ensure zero vertical offset, so y value correct</span></span>
+<span id="cb6-7"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.2</span>,      <span class="co"># make the points 20% opaque</span></span>
+<span id="cb6-8"><a href="" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span>     </span>
+<span id="cb6-9"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_summary</span>(<span class="at">fun =</span> mean, <span class="at">geom =</span> <span class="st">'point'</span>, <span class="at">size =</span> <span class="dv">5</span>) <span class="sc">+</span>  <span class="co"># add big point for mean</span></span>
+<span id="cb6-10"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the theme() bit below removes the uninformative x axis numbering</span></span>
+<span id="cb6-11"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb6-12"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.ticks.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb6-13"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb6-14"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb6-15"><a href="" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
@@ -491,18 +492,35 @@ H_1 : \mu &gt; 34
 <p>Assuming the H0 is true, how probable is it that we would obtain a test statistic at least as extreme as the one we calculated in Step 3?</p>
 </div></div>
 </section>
+<section id="write-hypotheses-in-plain-text-in-r-scripts" class="slide level2">
+<h2>Write hypotheses in plain text in R scripts</h2>
+<p><br></p>
+<p>The fancy formatting we use in the slides:</p>
+<p><span class="math display">\[
+H_0 : \mu = 34 \\
+H_1 : \mu &gt; 34
+\]</span></p>
+<p><br></p>
+<p>If you want to write these hypotheses in plain text in an R script, you can write them as follows:</p>
+<p><br></p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># H0: mu = 34</span></span>
+<span id="cb7-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># H1: mu &gt; 34</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
 <section id="run-steps-3-4-5-in-r" class="slide level2">
 <h2>Run Steps 3, 4, 5 in R</h2>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="" aria-hidden="true" tabindex="-1"></a>lonely_t <span class="ot">&lt;-</span> <span class="fu">t.test</span>(</span>
-<span id="cb7-2"><a href="" aria-hidden="true" tabindex="-1"></a>  lonely_data<span class="sc">$</span>loneliness,   <span class="co"># take the loneliness column of lonely_data</span></span>
-<span id="cb7-3"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="at">mu =</span> <span class="dv">34</span>,                  <span class="co"># compare it to the reference value of 34</span></span>
-<span id="cb7-4"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative =</span> <span class="st">"greater"</span>,  <span class="co"># alternative hypothesis: mu is *greater* than 34</span></span>
-<span id="cb7-5"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="at">conf.level =</span> .<span class="dv">95</span>          <span class="co"># confidence level is 1 minus alpha, so 1 – .05</span></span>
-<span id="cb7-6"><a href="" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="" aria-hidden="true" tabindex="-1"></a>lonely_t <span class="ot">&lt;-</span> <span class="fu">t.test</span>(</span>
+<span id="cb8-2"><a href="" aria-hidden="true" tabindex="-1"></a>  lonely_data<span class="sc">$</span>loneliness,   <span class="co"># take the loneliness column of lonely_data</span></span>
+<span id="cb8-3"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="at">mu =</span> <span class="dv">34</span>,                  <span class="co"># compare it to the reference value of 34</span></span>
+<span id="cb8-4"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative =</span> <span class="st">"greater"</span>,  <span class="co"># alternative hypothesis: mu is *greater* than 34</span></span>
+<span id="cb8-5"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="at">conf.level =</span> .<span class="dv">95</span>          <span class="co"># confidence level is 1 minus alpha, so 1 – .05</span></span>
+<span id="cb8-6"><a href="" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<div class="fragment">
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="" aria-hidden="true" tabindex="-1"></a>lonely_t</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="" aria-hidden="true" tabindex="-1"></a>lonely_t</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
     One Sample t-test
@@ -515,6 +533,7 @@ alternative hypothesis: true mean is greater than 34
 sample estimates:
 mean of x 
      40.3 </code></pre>
+</div>
 </div>
 </div>
 </section>
@@ -534,7 +553,7 @@ mean of x
 </div>
 </div>
 
-<img data-src="S2W1_onesamplet_files/figure-revealjs/unnamed-chunk-10-1.svg" class="quarto-figure quarto-figure-center r-stretch"></section>
+<img data-src="S2W1_onesamplet_files/figure-revealjs/unnamed-chunk-11-1.svg" class="quarto-figure quarto-figure-center r-stretch"></section>
 <section id="how-would-we-report-this-analysis" class="slide level2">
 <h2>How would we report this analysis?</h2>
 <p><br></p>
@@ -546,12 +565,28 @@ mean of x
 <p><span class="math inline">\(t\)</span>([degrees of freedom]) = [t-statistic], <span class="math inline">\(p\)</span> = [p-value], [one-tailed/two-tailed]</p>
 </section></section>
 <section>
-<section id="the-one-sample-t-test-is-only-valid-if-three-things-are-true" class="title-slide slide level1 center" data-background-color="#0F4C81">
-<h1>The one-sample t-test is only valid if three things are true</h1>
+<section id="to-use-the-one-sample-t-test-we-need-to-make-and-accept-some-assumptions" class="title-slide slide level1 center" data-background-color="#0F4C81">
+<h1>To use the one-sample t-test, we need to make and accept some assumptions</h1>
 
 </section>
-<section id="the-one-sample-t-test-is-only-valid-if-three-things-are-true-1" class="slide level2">
-<h2>The one-sample t-test is only valid if three things are true</h2>
+<section id="why-do-we-need-to-make-assumptions" class="slide level2">
+<h2>Why do we need to make assumptions?</h2>
+<p><br></p>
+
+<img data-src="figs/assump-dgp.svg" class="r-stretch"><p><br></p>
+<p>For example: A constraint of the one-sample t-test is that <strong>the variable we’re analysing must be numeric.</strong></p>
+<ul>
+<li>In other words: t-tests will treat <strong>any variable</strong> we give it as if it is numeric.</li>
+<li>And the results will <strong>only make sense</strong> if that variable really is numeric.</li>
+</ul>
+<p>We technically <em>can</em> analyse variables that look like numbers but aren’t numeric (e.g., Likert scale data).</p>
+<ul>
+<li>If we analyse Likert scale data using a t-test, then we are <strong>assuming that the variable is number-like enough</strong> to be analysed using this kind of test.</li>
+</ul>
+<p><strong>Before reporting a test, we should always check whether we’re willing to assume that the test’s constraints/requirements are met.</strong></p>
+</section>
+<section id="what-assumptions-must-we-make" class="slide level2">
+<h2>What assumptions must we make?</h2>
 <p><br></p>
 <div class="columns">
 <div class="column" style="width:30%;">
@@ -569,16 +604,16 @@ mean of x
 <div class="column" style="width:30%;">
 <p><strong>Assumption of normality:</strong></p>
 </div><div class="column" style="width:70%;">
-<p>EITHER the population follows a normal distribution <br> OR the sample size <span class="math inline">\(\geq\)</span> 30.</p>
+<p>The population of interest follows a normal distribution.</p>
 </div></div>
 <p><br></p>
-<p><strong>What if one or more of these things isn’t true?</strong></p>
+<p><strong>What if we don’t want to assume one or more of these things?</strong></p>
 <ul>
 <li>Then you shouldn’t use a one-sample t-test to analyse your data.</li>
 <li>Instead, use a test called the “Wilcoxon Signed-Rank Test”. (We aren’t covering it in DAPR, so you don’t need to know anything more about it than this!)</li>
 </ul>
 <p><br></p>
-<p><strong>How do we check each requirement/assumption?</strong></p>
+<p><strong>How do we check each requirement/constraint?</strong></p>
 </section>
 <section id="data-requirements-for-a-one-sample-t-test" class="slide level2">
 <h2>Data requirements for a one-sample t-test</h2>
@@ -589,7 +624,7 @@ mean of x
 <p><br></p>
 <p>Look at the data and make sure that the variable we’re analysing represents <strong>interval, ratio, or integer data.</strong></p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="" aria-hidden="true" tabindex="-1"></a>lonely_data</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="" aria-hidden="true" tabindex="-1"></a>lonely_data</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 487 x 2
    subj_ID    loneliness
@@ -609,7 +644,7 @@ mean of x
 </div>
 <p><br></p>
 <div class="dapr1callout hcenter">
-<p>Are you satisfied that this requirement is met?</p>
+<p>Are you willing to assume that the variable is sufficiently numeric?</p>
 <p><img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg"></p>
 </div>
 <!-- `loneliness` is integer data: it consists of whole numbers &nbsp; ✅ -->
@@ -621,14 +656,14 @@ mean of x
 <p><strong>The obtained sample data are a random sample from the population of interest.</strong></p>
 </div>
 <p><br></p>
-<p>Before generalising the conclusion of our test to some population, we need to first make sure that our sample was randomly selected from that population.</p>
-<p>This is more of a study design issue, not something we can test directly.</p>
+<p>In order to generalise the conclusion of our test to some population, we need to assume that our sample was randomly selected from that population.</p>
+<p>This is a study design issue, not something we can test directly.</p>
 <p>But we can at least double-check that each observation comes from a different person.</p>
 <p><br></p>
 <div class="columns">
 <div class="column" style="width:50%;">
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="" aria-hidden="true" tabindex="-1"></a>lonely_data <span class="sc">|&gt;</span> <span class="fu">head</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="" aria-hidden="true" tabindex="-1"></a>lonely_data <span class="sc">|&gt;</span> <span class="fu">head</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 6 x 2
   subj_ID    loneliness
@@ -644,7 +679,7 @@ mean of x
 </div><div class="column" style="width:50%;">
 <p><br> <br></p>
 <div class="dapr1callout hcenter">
-<p>Are you satisfied that this requirement is met?</p>
+<p>Are you willing to assume that our sample is sufficiently independent?</p>
 <p><img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg"></p>
 </div>
 </div></div>
@@ -656,66 +691,31 @@ mean of x
 <h2>Assumption of normality for a one-sample t-test</h2>
 <p><br></p>
 <div class="hcenter">
-<p><strong>EITHER the population follows a normal distribution OR the sample size <span class="math inline">\(\geq\)</span> 30.</strong></p>
+<p><strong>The population of interest follows a normal distribution.</strong></p>
 </div>
 <p><br></p>
-<p>Backstory: All our formulas for confidence intervals and hypothesis tests are built around the assumption that <strong>the sampling distribution of the sample mean</strong> is normally distributed.</p>
-<p><br></p>
-<p>When is the sample mean’s sampling distribution normally distributed?</p>
-<p><br></p>
-<p>When either one of these is true:</p>
+<!-- All our formulas for standard error, confidence intervals, and hypothesis tests are built around the constraint of normally distributed data. -->
+<p>We can’t know how the population is distributed, <strong>but if our sample is sufficiently normally distributed, then the population probably is too.</strong></p>
+<p>We check how close our sample comes to a normal distribution using a <strong>Q-Q plot.</strong></p>
 <ul>
-<li><strong>The population follows a normal distribution</strong> (no matter what size the sample is), or</li>
-<li><strong>Our sample size is greater than 30</strong> (no matter how the population data is distributed)
-<ul>
-<li>Why 30?</li>
-<li>Think back to the Central Limit Theorem in Semester 1: after we’ve sampled about 30 observations, the sampling distribution of sample means will become sufficiently normal</li>
-</ul></li>
+<li>Q-Q stands for “Quantile-Quantile” because we compare the quantiles of our variable’s distribution to the quantiles of the theoretically ideal normal distribution.</li>
+<li>The closer the points are to the diagonal line, the better the variable matches a perfect normal distribution.</li>
 </ul>
-</section>
-<section id="check-the-sample-size" class="slide level2">
-<h2>Check the sample size</h2>
-<p><br></p>
-<p>Check the sample size:</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(lonely_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 487</code></pre>
-</div>
-</div>
-<p><br></p>
-<div class="dapr1callout hcenter">
-<p>Are you satisfied that this assumption is met via a large enough sample size?</p>
-<p><img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg"></p>
-</div>
-<!-- **So the assumption of normality of the sampling distribution of sample means is met, because we have a large enough sample &nbsp; ✅ ** -->
-<!-- <br> -->
-<!-- But for illustration, let's look at how we'd check on the normality of the population. -->
-</section>
-<section id="one-way-to-check-the-population-distribution-plot-the-sample-1" class="slide level2">
-<h2>One way to check the population distribution: Plot the sample (1)</h2>
-<p>We don’t know how the population is distributed, <strong>but if our sample is approximately normally distributed, then the population probably is too.</strong></p>
 <div class="columns">
 <div class="column" style="width:50%;">
-<p><strong>Histogram:</strong></p>
+<p><br></p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="" aria-hidden="true" tabindex="-1"></a>lonely_data <span class="sc">|&gt;</span></span>
-<span id="cb17-2"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> loneliness)) <span class="sc">+</span></span>
-<span id="cb17-3"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="S2W1_onesamplet_files/figure-revealjs/unnamed-chunk-14-1.svg" class="quarto-figure quarto-figure-center"></p>
-</figure>
-</div>
-</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="" aria-hidden="true" tabindex="-1"></a>lonely_data <span class="sc">|&gt;</span></span>
+<span id="cb16-2"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">sample =</span> loneliness)) <span class="sc">+</span></span>
+<span id="cb16-3"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_qq</span>() <span class="sc">+</span></span>
+<span id="cb16-4"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_qq_line</span>() <span class="sc">+</span></span>
+<span id="cb16-5"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb16-6"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Theoretical quantiles"</span>,</span>
+<span id="cb16-7"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">'Sample quantiles'</span></span>
+<span id="cb16-8"><a href="" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div><div class="column" style="width:50%;">
-<p><strong>Density plot:</strong></p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="" aria-hidden="true" tabindex="-1"></a>lonely_data <span class="sc">|&gt;</span></span>
-<span id="cb18-2"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> loneliness)) <span class="sc">+</span></span>
-<span id="cb18-3"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure>
@@ -726,24 +726,25 @@ mean of x
 </div>
 </div></div>
 </section>
-<section id="one-way-to-check-the-population-distribution-plot-the-sample-2" class="slide level2">
-<h2>One way to check the population distribution: Plot the sample (2)</h2>
-<p>A plot specifically designed to check how closely a variable matches a normal distribution: <br> a <strong>Quantile-Quantile plot</strong> aka <strong>Q-Q plot.</strong></p>
-<p>The closer the points are to the diagonal line, the more normally-distributed the variable is.</p>
-<div class="columns">
-<div class="column" style="width:50%;">
+<section id="examples-of-different-q-q-plots" class="slide level2">
+<h2>Examples of different Q-Q plots</h2>
 <p><br></p>
+<div class="columns">
+<div class="column" style="width:30%;">
+<p><strong>Our sample:</strong></p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="" aria-hidden="true" tabindex="-1"></a>lonely_data <span class="sc">|&gt;</span></span>
-<span id="cb19-2"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">sample =</span> loneliness)) <span class="sc">+</span></span>
-<span id="cb19-3"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_qq</span>() <span class="sc">+</span></span>
-<span id="cb19-4"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_qq_line</span>() <span class="sc">+</span></span>
-<span id="cb19-5"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb19-6"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Theoretical quantiles"</span>,</span>
-<span id="cb19-7"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">'Sample quantiles'</span></span>
-<span id="cb19-8"><a href="" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="S2W1_onesamplet_files/figure-revealjs/unnamed-chunk-16-1.svg" class="quarto-figure quarto-figure-center"></p>
+</figure>
 </div>
-</div><div class="column" style="width:50%;">
+</div>
+</div>
+</div><div class="column" style="width:3%;">
+
+</div><div class="column" style="width:67%;">
+<p><strong>More worrisome Q-Q plots:</strong></p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
@@ -754,68 +755,11 @@ mean of x
 </div>
 </div>
 </div></div>
-</section>
-<section id="examples-of-worrisome-q-q-plots" class="slide level2">
-<h2>Examples of worrisome Q-Q plots</h2>
-
-<img data-src="S2W1_onesamplet_files/figure-revealjs/unnamed-chunk-18-1.svg" class="quarto-figure quarto-figure-center r-stretch"></section>
-<section id="another-way-to-check-normality-of-the-population-distribution-shapiro-wilk-test" class="slide level2">
-<h2>Another way to check normality of the population distribution: Shapiro-Wilk test</h2>
-<p>The Shapiro-Wilk test is a hypothesis test where:</p>
-<ul>
-<li><span class="math inline">\(H_0\)</span>: The population data follow a normal distribution</li>
-<li><span class="math inline">\(H_1\)</span>: The population data do not follow a normal distribution</li>
-</ul>
-<p>We don’t want to reject this H0, so <strong>we want a non-significant result!</strong></p>
 <p><br></p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">shapiro.test</span>(lonely_data<span class="sc">$</span>loneliness)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-    Shapiro-Wilk normality test
-
-data:  lonely_data$loneliness
-W = 1, p-value = 0.3</code></pre>
-</div>
-</div>
 <div class="dapr1callout hcenter">
-<p>Are you satisfied that this assumption is met via normality of the sample distribution?</p>
+<p>Are you willing to assume that our variable is sufficiently normally distributed?</p>
 <p><img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg"></p>
 </div>
-<p><br></p>
-</section>
-<section id="reporting-the-shapiro-wilk-test" class="slide level2">
-<h2>Reporting the Shapiro-Wilk test</h2>
-<p><br></p>
-<blockquote>
-<p>We performed a Shapiro-Wilk test against the null hypothesis of normality of the population data. Based on the sample, we could not reject the null hypothesis of normality in the population (<span class="math inline">\(W\)</span> = 1, <span class="math inline">\(p\)</span> = .3).</p>
-</blockquote>
-<p><br></p>
-<p>APA notation format for the Shapiro-Wilk test:</p>
-<p><span class="math inline">\(W\)</span> = [test statistic], <span class="math inline">\(p\)</span> = [p-value]</p>
-</section>
-<section id="recap-assumption-of-normality-for-a-one-sample-t-test" class="slide level2">
-<h2>Recap: Assumption of normality for a <br> one-sample t-test</h2>
-<p><br></p>
-<div class="hcenter">
-<p><strong>EITHER the population follows a normal distribution OR the sample size <span class="math inline">\(\geq\)</span> 30.</strong></p>
-</div>
-<p><br></p>
-<ul>
-<li>To check if the sample size is greater than 30:
-<ul>
-<li>Count the observations in your dataset</li>
-</ul></li>
-<li>To check if the population follows a normal distribution:
-<ul>
-<li>Plot the sample:
-<ul>
-<li>Histogram or density plot</li>
-<li>Q-Q plot</li>
-</ul></li>
-<li>Run a Shapiro-Wilk test (you want a non-significant result!)</li>
-</ul></li>
-</ul>
 </section></section>
 <section>
 <section id="whats-the-rest-of-block-3-about" class="title-slide slide level1 center" data-background-color="#0F4C81">
@@ -863,7 +807,7 @@ W = 1, p-value = 0.3</code></pre>
 </ul>
 </div>
 <div class="dapr1callout">
-<p><strong>What does this test require/assume to be true about the data that it models?</strong></p>
+<p><strong>If we want to use this test, what must we assume to be true about the data/the test?</strong></p>
 <ol type="1">
 <li>dependent variable is numeric;</li>
 <li>variable is normally distributed OR sample size <span class="math inline">\(\geq\)</span> 30;</li>
@@ -871,7 +815,7 @@ W = 1, p-value = 0.3</code></pre>
 </ol>
 </div>
 <div class="dapr1callout">
-<p><strong>How do we check whether we’re satisfied with the test’s requirements/assumptions?</strong></p>
+<p><strong>How do we check how reasonable it is to make those assumptions?</strong></p>
 <ol type="1">
 <li>check that variable is on interval/ratio/integer scale</li>
 <li>visually with plots (histogram, density plot, Q-Q plot), statistically with Shapiro-Wilk</li>

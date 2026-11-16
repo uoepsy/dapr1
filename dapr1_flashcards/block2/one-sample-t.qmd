@@ -117,14 +117,14 @@ t.test(
 We were able to reject this H0; remote workers have a significantly lower Work–Life Balance score of 37.2 on average ($t$(76) = –7, $p$ < .001, one-tailed).
 
 
-## For Block 3: Check assumptions and data requirements
+## For Block 3: Assumptions we must make
 
-
-| Type of requirement / assumption | What to check for a one-sample t-test                                          |
+| Type of constraint | What to check for a one-sample t-test                                          |
 | ------------------------------ | ------------------------------------------------------------------------------- |
 | Data requirements              | The variable is numeric.                                                        |
 | Assumption of independence     | The obtained sample data are a random sample from the population of interest.   |
-| Assumption of normality        | EITHER the population follows a normal distribution<br>OR the sample size $\geq$ 30. |
+| Assumption of normality        | The population of interest follows a normal distribution.
+ |
 
 ### Data requirements
 
@@ -154,26 +154,11 @@ Yes, looks good!
 
 ### Assumption of normality
 
-**EITHER the population follows a normal distribution OR the sample size is $\geq$ 30.**
+**The population of interest follows a normal distribution.**
 
-#### Check sample size
-
-If each row represents a different observation, then we can figure out the size of the sample by counting the number of rows in the dataframe.
-
-```{r}
-nrow(wlb_data)
-```
-
-We have 77 observations, which is greater than 30.
-This means that, by the Central Limit Theorem, the sampling distribution of sample means is sufficiently normal.
-So we can be satisfied that the assumption of normality is met.
-
-For illustration, here's how we'd check normality if we didn't have sufficient sample size:
-
-#### Check normality with a Q-Q plot
+We can check normality with a Q-Q plot.
 
 The closer the points are to the diagonal line, the better the variable matches an ideal normal distribution.
-
 
 ```{r}
 wlb_data |>
@@ -186,26 +171,10 @@ wlb_data |>
   )
 ```
 
-The match to the diagonal is overall not too bad here!
+The match to the diagonal is pretty good here!
 
+I'd be willing to assume sufficient normality.
 
-#### Check normality through Shapiro-Wilk test
-
-The Shapiro-Wilk test is a hypothesis test where:
-
-- $H_0$: The population data follow a normal distribution
-- $H_1$: The population data do not follow a normal distribution
-
-We don't want to reject this H0, so we want a non-significant result!
-
-```{r}
-shapiro.test(wlb_data$wlb)
-```
-
-To report this test, you might say:
-
-> We performed a Shapiro-Wilk test against the null hypothesis of normality of the population data. 
-Based on the sample, we could not reject the null hypothesis of normality in the population ($W$ = 1, $p$ = .6).
 
 
 ## For Block 3: Calculate effect size
@@ -237,8 +206,18 @@ cohens_d(
 - Large or strong effect: around 0.8 or greater (whether positive or negative)
 
 
-### Reporting effect size
 
-In addition to the information reported above, you might write something like
+## For Block 3: Example full write-up
 
-> With a Cohen's D of –0.80, this difference represents a large effect.
+> To find out whether remote workers experience work–life balance that's better (that is, lower) than the midpoint of the Work–Life Balance Scale, we ran a one-sided t-test against the null hypothesis that remote workers' Work–Life Balance score is, on average, equal to 45.
+>
+> This test requires that the dependent variable be numeric, and since Work–Life Balance scores are integer values, we are satisfied that this requirement is met.
+> This test also assumes independence: more specifically, that the sample data are sampled independently and at random from the population of interest.
+> Based on the study design, we are willing to assume independence.
+> Finally, the test assumes normality: that the population of interest follows a normal distribution.
+> Based on a Q-Q plot, in which the observations show a good match to an ideal normal distribution, we are willing to assume normality.
+>
+> Let us now address our research question.
+> We were able to reject the H0 that remote workers' Work–Life Balance score is equal to the scale midpoint of 45.
+> We found that remote workers have a significantly lower Work–Life Balance score of 37.2 on average ($t$(76) = –7, $p$ < .001, one-tailed).
+With a Cohen's D of –0.80, this difference represents a large effect.

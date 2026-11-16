@@ -163,14 +163,13 @@ t.test(
 ```
 
 
-## Check assumptions and data requirements
+## Assumptions we must make
 
-
-| Type of requirement / assumption | What to check for an independent-samples t-test                                          |
+| Type of constraint | What to check for an independent-samples t-test                                          |
 | ------------------------------ | ------------------------------------------------------------------------------- |
 | Data requirements              | The dependent variable is numeric.                                                        |
 | Assumption of independence     | The obtained sample data are a random sample from the population of interest, both within and across groups.   |
-| Assumption of normality        | EITHER the population follows a normal distribution<br>OR the sample size $\geq$ 30. |
+| Assumption of normality        | The population of interest follows a normal distribution. |
 | Assumption of equal variance     | The population variance is the same for both groups. |
 
 ### Data requirements
@@ -200,22 +199,9 @@ But we can still check the data for problems that indicate non-independence betw
 
 ### Assumption of normality
 
-**EITHER the population for each group follows a normal distribution OR each group’s sample size ≥ 30.**
+**The population of interest follows a normal distribution.**
 
-#### Check sample size
-
-```{r}
-ase_data |>
-  group_by(generation) |>
-  count()
-```
-
-We only have 11 observations per group—way less than 30.
-So we'll need to rely on the other checks for normality.
-
-#### Check normality with a Q-Q plot
-
-The closer the points are to the diagonal line, the better the variable matches an ideal normal distribution.
+Check with a Q-Q plot:
 
 ```{r}
 ase_data |>
@@ -230,21 +216,6 @@ ase_data |>
 ```
 
 Both groups' data matches the theoretical normal distribution quite well.
-
-
-#### Check normality through Shapiro-Wilk test
-
-The Shapiro-Wilk test is a hypothesis test where:
-
-- $H_0$: The population data follow a normal distribution
-- $H_1$: The population data do not follow a normal distribution
-
-We don’t want to reject this H0, so we want a non-significant result!
-
-```{r}
-shapiro.test(ase_data$ase)
-```
-
 
  
 ### Assumption of equal variance
@@ -280,8 +251,6 @@ Otherwise, its interpretation is just the same.
 :::
 
 
-
-
 ## Calculate effect size
 
 For t-tests, the appropriate measure of standardised effect size is Cohen's D.
@@ -312,7 +281,7 @@ cohens_d(
 - Large or strong effect: around 0.8 or greater (whether positive or negative)
 
 
-## Example write-up of assumptions and results
+## Example write-up
 
 First, compute some additional descriptive statistics that we'll need:
 
@@ -335,14 +304,16 @@ We therefore conducted an independent-samples t-test with $\alpha$ = .05 to comp
 > ASE scores can range from 9 to 63, and higher scores indicate greater academic self-efficacy.
 >
 > The independent-samples t-test's data requirements are met: the dependent variable is numeric.
-> We are also sufficiently satisfied that the assumptions of independence, normality, and equal variance are met. 
-> First, the study design adequately fulfills the assumption of independence.
-> Next, we ran a Shapiro-Wilk test against the null hypothesis of normality of the population data.
-> Based on the sample, we could not reject the null hypothesis of normality in the population (W = 0.96, p = .45).
+> We are also willing to assume that our data was independently sampled from a population that is normally-distributed and that has equal variance in both groups.
+> Based on the study design, our observations were sampled sufficiently independently.
+> And based on a Q-Q plot, our sample is sufficiently normally distributed.
+> Finally, 
 > Finally, we ran an F-test against the null hypothesis that the populations that each group was sampled from have equal variance.
 > Based on the sample, we could not reject the null hypothesis of equal variances in the population (F(10, 10) = 1.14, p = .84).
 >
 > Turning to the test results: although we observed a lower mean ASE score for first-generation students (N = 11, M = 27.5, SD = 13.7) than for continuing-generation students (N = 11, M = 34.9, SD = 14.6), the t-test indicated no statistically significant difference between the two groups (t(20) = 1.22, p = .12, one-sided).
-> With a Cohen's D of 0.52, this difference represents a moderate effect.
 
-<!-- TODO do good frequentists report Cohen's D even if t-test not sig? -->
+<br>
+
+(Note on why no Cohen's D here: we failed to reject H0 in this test, which means that potentially there's no actual effect which would have a size we could measure.
+So when we have a non-significant test result, we don't report Cohen's D.)

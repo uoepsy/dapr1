@@ -224,7 +224,7 @@
     "href": "block2/one-sample-t.html#for-block-3-calculate-effect-size",
     "title": "One-sample t-test",
     "section": "For Block 3: Calculate effect size",
-    "text": "For Block 3: Calculate effect size\nFor t-tests, the appropriate measure of standardised effect size is Cohen’s D.\nTo compute this in R, first attach the effectsize package:\n\nlibrary(effectsize)\n\nThis package gives us the function cohens_d(). Give it the exact same arguments you’d give t.test() (see summary above):\n\ncohens_d(\n  wlb_data$wlb,\n  mu = 45,\n  alternative = 'less',\n  conf.level = .95\n)\n\nCohen's d |        95% CI\n-------------------------\n-0.80     | [-Inf, -0.58]\n\n- Deviation from a difference of 45.\n- One-sided CIs: lower bound fixed at [-Inf].\n\n\n\nInterpreting Cohen’s D\n\nSmall or weak effect: around 0.2 (whether positive or negative)\nMedium or moderate effect: around 0.5 (whether positive or negative)\nLarge or strong effect: around 0.8 or greater (whether positive or negative)\n\n\n\nReporting effect size\nIn addition to the information reported above, you might write something like\n\nWith a Cohen’s D of –0.80, this difference represents a large effect.",
+    "text": "For Block 3: Calculate effect size\nFor t-tests, the appropriate measure of standardised effect size is Cohen’s D.\nTo compute this in R, first attach the effectsize package:\n\nlibrary(effectsize)\n\nThis package gives us the function cohens_d(). Give it the exact same arguments you’d give t.test() (see summary above):\n\ncohens_d(\n  wlb_data$wlb,\n  mu = 45,\n  alternative = 'less',\n  conf.level = .95\n)\n\nCohen's d |        95% CI\n-------------------------\n-0.80     | [-Inf, -0.58]\n\n- Deviation from a difference of 45.\n- One-sided CIs: lower bound fixed at [-Inf].\n\n\n\nInterpreting Cohen’s D\n\nSmall or weak effect: around 0.2 (whether positive or negative)\nMedium or moderate effect: around 0.5 (whether positive or negative)\nLarge or strong effect: around 0.8 or greater (whether positive or negative)",
     "crumbs": [
       "Block 2: Introduction to Inference",
       "One-sample t-test"
@@ -865,6 +865,28 @@
     "crumbs": [
       "More resources",
       "Formatting plots using ggplot2"
+    ]
+  },
+  {
+    "objectID": "block2/one-sample-t.html#for-block-3-assumptions-we-must-make",
+    "href": "block2/one-sample-t.html#for-block-3-assumptions-we-must-make",
+    "title": "One-sample t-test",
+    "section": "For Block 3: Assumptions we must make",
+    "text": "For Block 3: Assumptions we must make\n\n\n\n\n\n\n\nType of constraint\nWhat to check for a one-sample t-test\n\n\n\n\nData requirements\nThe variable is numeric.\n\n\nAssumption of independence\nThe obtained sample data are a random sample from the population of interest.\n\n\nAssumption of normality\nThe population of interest follows a normal distribution.\n\n\n\n\n\n\n\n\nData requirements\nThe variable we’re analysing should be interval, ratio, or integer data (that is, numeric).\nThe wlb variable is indeed numeric (specifically, it’s integer data!):\n\nwlb_data$wlb\n\n [1] 27 37 25 54 39 25 41 44 42 31 53 40 28 48 34 35 46 45 42 46 44 36 42 34 33\n[26] 17 29 40 51 34 40 34 18 30 30 34 48 44 33 32 43 42 27 27 39 44 34 46 40 28\n[51] 39 21 52 59 31 22 42 33 64 35 43 35 26 37 53 37 61 41 26 42 24 20 38 30 35\n[76] 36 28\n\n\n\n\nAssumption of independence\nThe obtained sample data should be a random sample from the population of interest.\nThis is an issue of study design more than something we can check directly.\nBut we can at least check that each person contributed only one data point:\n\nwlb_data |&gt; head()\n\n# A tibble: 6 x 2\n  worker_id   wlb\n  &lt;chr&gt;     &lt;dbl&gt;\n1 worker1      27\n2 worker2      37\n3 worker3      25\n4 worker4      54\n5 worker5      39\n6 worker6      25\n\n\nYes, looks good!\n\n\nAssumption of normality\nThe population of interest follows a normal distribution.\nWe can check normality with a Q-Q plot.\nThe closer the points are to the diagonal line, the better the variable matches an ideal normal distribution.\n\nwlb_data |&gt;\n  ggplot(aes(sample = wlb)) +  # notice it's \"sample\", not \"x\"!\n  geom_qq() +\n  geom_qq_line() +\n  labs(\n    x = \"Theoretical quantiles\",\n    y = 'Sample quantiles'\n  )\n\n\n\n\n\n\n\n\nThe match to the diagonal is pretty good here!\nI’d be willing to assume sufficient normality.",
+    "crumbs": [
+      "Block 2: Introduction to Inference",
+      "One-sample t-test"
+    ]
+  },
+  {
+    "objectID": "block2/one-sample-t.html#for-block-3-example-full-write-up",
+    "href": "block2/one-sample-t.html#for-block-3-example-full-write-up",
+    "title": "One-sample t-test",
+    "section": "For Block 3: Example full write-up",
+    "text": "For Block 3: Example full write-up\n\nTo find out whether remote workers experience work–life balance that’s better (that is, lower) than the midpoint of the Work–Life Balance Scale, we ran a one-sided t-test against the null hypothesis that remote workers’ Work–Life Balance score is, on average, equal to 45.\nThis test requires that the dependent variable be numeric, and since Work–Life Balance scores are integer values, we are satisfied that this requirement is met. This test also assumes independence: more specifically, that the sample data are sampled independently and at random from the population of interest. Based on the study design, we are willing to assume independence. Finally, the test assumes normality: that the population of interest follows a normal distribution. Based on a Q-Q plot, in which the observations show a good match to an ideal normal distribution, we are willing to assume normality.\nLet us now address our research question. We were able to reject the H0 that remote workers’ Work–Life Balance score is equal to the scale midpoint of 45. We found that remote workers have a significantly lower Work–Life Balance score of 37.2 on average (\\(t\\)(76) = –7, \\(p\\) &lt; .001, one-tailed). With a Cohen’s D of –0.80, this difference represents a large effect.",
+    "crumbs": [
+      "Block 2: Introduction to Inference",
+      "One-sample t-test"
     ]
   }
 ]
