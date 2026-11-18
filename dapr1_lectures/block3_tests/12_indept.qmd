@@ -188,9 +188,9 @@ $$
 
 **For the alternative hypothesis $H_1$, we need to decide:**
 
-- Is our RQ **directional?** (Do we expect a specific direction to the effect?) <img style="margin-bottom:0px; width: 1em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-10px; width: 1em;" src="figs/codicon--thumbsdown-filled.svg">
+- Is our RQ **directional?** (Do we expect a specific direction to the effect?) **In this case, yes.**
 
-- If our RQ is directional, which alternative hypothesis matches the direction of the effect we expect to see?
+- Since our RQ is directional, which alternative hypothesis matches the direction of the effect we expect to see?
 
 ::::{.columns}
 :::{.column width="50%"}
@@ -218,12 +218,11 @@ $$
 
 
 
-## How do we test our research question?
-
+## All the bits of information we need
 
 ::::{.columns}
 :::{.column width="33%"}
-**(1) The null hypothesis $H_0$**
+**The null hypothesis $H_0$:**
 :::
 :::{.column width="66%"}
 <!-- People with happy relationships will have the same average cortisol as people with unhappy relationships. -->
@@ -242,7 +241,7 @@ $$
 
 ::::{.columns}
 :::{.column width="33%"}
-**(2) The alternative hypothesis $H_1$**
+**The alternative hypothesis $H_1$:**
 :::
 :::{.column width="66%"}
 <!-- People with happy relationships will have lower average cortisol than people with unhappy relationships. -->
@@ -262,10 +261,10 @@ $$
 
 ::::{.columns}
 :::{.column width="33%"}
-**(3) The test statistic**
+**The test statistic:**
 :::
 :::{.column width="66%"}
-For testing differences between means, we can still use the t-statistic.
+For testing differences between means, we can still use the t-statistic and compare it to the t-distribution.
 
 - The t-statistic measures how many SEs away from zero the observed difference between means is.
 
@@ -277,7 +276,7 @@ For testing differences between means, we can still use the t-statistic.
 
 ::::{.columns}
 :::{.column width="33%"}
-**(4) The significance level $\alpha$**
+**The significance level $\alpha$:**
 :::
 :::{.column width="66%"}
 What % of the time do we accept that we will incorrectly reject the H0, even if it is actually true? (Typically $\alpha = .05$.)
@@ -288,7 +287,7 @@ What % of the time do we accept that we will incorrectly reject the H0, even if 
 
 ::::{.columns}
 :::{.column width="33%"}
-**(5) The p-value**
+**The p-value:**
 :::
 :::{.column width="66%"}
 Assuming the H0 is true, how probable is it that we would obtain a test statistic at least as extreme as the one we calculated in Step 3?
@@ -297,8 +296,6 @@ Assuming the H0 is true, how probable is it that we would obtain a test statisti
 
 
 ## Independent-samples t-test in R
-
-Runs Steps 3, 4, 5:
 
 ```{r}
 stress_t <- t.test(
@@ -514,24 +511,21 @@ Are you satisfied that this requirement is met?
 
 <br>
 
+Essentially this means: overall, the data was sampled randomly from the wider population of interest, and also people in each group were randomly sampled from their corresponding smaller populations.
+
 This is more of a study design issue, not something we can test directly. 
 
-But we can look at the data and double-check things like:
+But we can still check the data for problems that indicate non-independence between groups:
+
+<br>
 
 ::::{.columns}
 :::{.column width="55%"}
-<br>
 
 - Does each individual who contributed data belong to only one group? <img style="margin-bottom:0px; width: 1em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-10px; width: 1em;" src="figs/codicon--thumbsdown-filled.svg">
 
 - Does each individual have only one observation in the group they belong to? <img style="margin-bottom:0px; width: 1em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-10px; width: 1em;" src="figs/codicon--thumbsdown-filled.svg">
 
-- Were people allocated to each group at random? <img style="margin-bottom:0px; width: 1em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-10px; width: 1em;" src="figs/codicon--thumbsdown-filled.svg">
-
-  <!-- - In this case, they weren't!  -->
-  <!-- - People described their own relationships as "Happy" or "Unhappy", so in a way, they allocated themselves to groups. -->
-  <!-- - This might limit our conclusions: maybe people with higher cortisol tend to be in unhappy relationships? -->
-  <!-- - (Note: the actual study by Berry & Worthington did account for this, but our example does not!) -->
 :::
 :::{.column width="5%"}
 :::
@@ -545,67 +539,28 @@ stress_data |> head()
 :::
 ::::
 
+:::{.dapr1callout .hcenter}
+
+Are you willing to assume that our sample is sufficiently independent?
+
+<img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
+
+:::
+
 
 
 
 ## Normality assumption for the <br> independent-samples t-test
 
 :::hcenter
-**EITHER the population for each group follows a normal distribution OR each group’s sample size ≥ 30.**
+**The population for each group follows a normal distribution.**
 :::
 
 <br>
-
-The independent-samples t-test is designed on the premise that the sampling distributions of each group's sample means are normally distributed.
-
-The sampling distribution of both group's sample means is normal as long as either one of the conditions above is true!
-
-<br>
-
-First, let's quickly check the size of each group:
-
-```{r}
-stress_data |>
-  group_by(relationship) |>
-  count()
-```
-
-:::{.dapr1callout .hcenter}
-
-Are you satisfied that this assumption is met via sufficient sample size?
-
-<img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
-
-:::
-
-<!-- The groups both contain less than 30 observations, so we can't support the assumption of normality this way. -->
-
-
-## One way to check normality: Plot the sample
 
 We don't know how the population is distributed, **but if our sample is approximately normally distributed, then the population probably is too.**
 
-<br>
-
-::::{.columns}
-:::{.column width="42%"}
-```{r eval = F}
-stress_data |>
-  ggplot(aes(x = cortisol)) +
-  geom_density() +
-  facet_wrap(~ relationship)
-```
-:::
-:::{.column width="58%"}
-```{r echo=F, fig.width = 7, fig.height = 3}
-stress_data |>
-  ggplot(aes(x = cortisol)) +
-  geom_density() +
-  facet_wrap(~ relationship)
-```
-:::
-::::
-
+We can check by making a Q-Q plot and **faceting** it by group:
 
 ::::{.columns}
 :::{.column width="42%"}
@@ -623,7 +578,7 @@ stress_data |>
 
 :::
 :::{.column width="58%"}
-```{r echo=F, fig.width = 7, fig.height = 3}
+```{r echo=F, fig.width = 7, fig.height = 4}
 stress_data |>
   ggplot(aes(sample = cortisol)) +
   geom_qq() +
@@ -637,53 +592,13 @@ stress_data |>
 :::
 ::::
 
-
-## Another way to check normality: Shapiro-Wilk
-
-Use `filter()` then `pull()` to extract the `cortisol` data from each group separately.
-For example:
-
-```{r}
-stress_data |>
-  filter(relationship == 'Happy') |>
-  pull(cortisol)
-```
-
-
-<br>
-
-Pipe that data directly into `shapiro.test()`:
-
-::::{.columns}
-:::{.column width="50%"}
-```{r}
-stress_data |>
-  filter(relationship == 'Happy') |>
-  pull(cortisol) |>
-  shapiro.test()
-```
-:::
-:::{.column width="50%"}
-```{r}
-stress_data |>
-  filter(relationship == 'Unhappy') |>
-  pull(cortisol) |>
-  shapiro.test()
-```
-:::
-::::
-
-<br>
-
 :::{.dapr1callout .hcenter}
 
-Are you satisfied that this assumption is met via normal distribution of the sample?
+Are you willing to assume that our variables are sufficiently normally distributed?
 
 <img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
 
 :::
-
-<!-- We fail to reject the Shapiro-Wilk test's H0 that the population data is normally distributed &nbsp; ✅  -->
 
 
 
@@ -728,7 +643,7 @@ $$
 
 :::{.dapr1callout .hcenter}
 
-Are you satisfied that this assumption is met?
+Are you willing to assume that variances in the two groups are equal enough?
 
 <img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
 
