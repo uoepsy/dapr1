@@ -45,28 +45,41 @@ obs_sample_mean <- mean(iq_data$iq)
 
 ## This week's learning objectives
 
+<br>
+
+:::dapr1callout
+
 What is the basic logic behind Null Hypothesis Significance Testing (NHST)?
 
-- We imagine we're in a world where the effect we're interested in does not exist.
-- We use our observed data to figure out how likely it is that we're actually in that world.
-- If we decide that we're sufficiently unlikely to be in that world, we reject the null hypothesis.
+<!-- - We imagine we're in a world where the effect we're interested in does not exist. -->
+<!-- - We use our observed data to figure out how likely it is that we're actually in that world. -->
+<!-- - If we decide that we're sufficiently unlikely to be in that world, we reject the null hypothesis. -->
+
+:::
+
+:::{.dapr1callout .fragment}
 
 What are the five steps of doing NHST?
 
-- Based on your RQ, define the null and alternative hypotheses
-- Collect sample data and determine the appropriate comparison distribution (aka the null distribution)
-- Calculate the test statistic for our observed sample
-- Make a decision about whether or not to reject H0
-- Interpret this decision in the context of the RQ
+<!-- - Based on your RQ, define the null and alternative hypotheses -->
+<!-- - Collect sample data and determine the appropriate comparison distribution (aka the null distribution) -->
+<!-- - Calculate the test statistic for our observed sample -->
+<!-- - Make a decision about whether or not to reject H0 -->
+<!-- - Interpret this decision in the context of the RQ -->
+
+:::
+
+:::{.dapr1callout .fragment}
 
 What kinds of errors is it possible to make when doing NHST?
 
-- Your decision is either to reject the null or fail to reject the null, and you can either do this correctly or incorrectly.
-- If you incorrectly reject the null (i.e., you reject H0 when you actually shouldn't), this is a false positive, and we call it a Type I error. 
-  - When alpha = .05, you can expect to make a Type I error about 5% of the time.
-- If you incorrectly fail to reject the null (i.e., you fail to reject H0 when you actually should), this is a false negative, and we call it a Type II error. 
-  - Bonus: Type II error rate ties into a concept called "statistical power", which is the probability of correctly rejecting H0. More on power in your future statistical training!
+<!-- - Your decision is either to reject the null or fail to reject the null, and you can either do this correctly or incorrectly. -->
+<!-- - If you incorrectly reject the null (i.e., you reject H0 when you actually shouldn't), this is a false positive, and we call it a Type I error.  -->
+<!--   - When alpha = .05, you can expect to make a Type I error about 5% of the time. -->
+<!-- - If you incorrectly fail to reject the null (i.e., you fail to reject H0 when you actually should), this is a false negative, and we call it a Type II error.  -->
+<!--   - Bonus: Type II error rate ties into a concept called "statistical power", which is the probability of correctly rejecting H0. More on power in your future statistical training! -->
   
+:::
 
 # Every test starts with a research question (RQ)
 
@@ -226,27 +239,82 @@ p_iq_pop +
 - "Bilingual people don't have the same IQ as the general population" = our **alternative hypothesis,** written **H1.**
 
 
-## TODO Null and alternative hypotheses
+## Null and alternative hypotheses
 
-- in words
-- in fancy math text
-- in plain text
-- H1 links to RQ
+<br>
+
+**The null hypothesis (H0)** is always that any difference or effect we're interested in **does not exist.**
+
+- For this RQ, our H0 is that bilingual people and the general population have no difference in IQ.
+- In other words, the mean bilingual IQ $\mu$ (mu) is equal to the population mean of 100.
+
+::::{.columns}
+:::{.column width="50%"}
+- In fancy math notation:
+
+$$
+H_0 : \mu = 100
+$$
+:::
+:::{.column width="50%"}
+- In plain text (like you might write in your R scripts):
+
+:::{style="font-size:180%;"}
+```
+H0: mu = 100
+```
+:::
+
+:::
+::::
+
+<br>
+
+**The alternative hypothesis (H1)** is that the difference or effect we're interested in **does exist.**
+
+- For our RQ, our H1 is that bilingual people have a *greater* IQ than the general population.
+- In other words, the mean bilingual IQ $\mu$ is greater than the population mean of 100.
+
+::::{.columns}
+:::{.column width="50%"}
+- In fancy math notation:
+
+$$
+H_1 : \mu > 100
+$$
+:::
+:::{.column width="50%"}
+- In plain text:
+
+:::{style="font-size:180%;"}
+```
+H1: mu > 100
+```
+:::
+
+:::
+::::
+
+
+- If the RQ predicted lower IQ for bilingual people, then H1 would be $H_1 : \mu < 100$.
+- If the RQ predicted *different* IQ but didn't say in which direction, then H1 would be $H_1: \mu = 100$.
 
 
 # Null hypothesis ✅  <br> "significance testing" ⁉️
 
-## FIXME Let's set the scene first
+## Let's set the scene first
 
 <br>
 
-When we do NHST, our goal is to **find out how likely it is that we are in a world where the null hypothesis is true.**
+In NHST, our goal is to **find out how likely it is that we are in a world where the null hypothesis is true.**
 
 To do that, we must work out **what samples like ours WOULD look like IF the null hypothesis were true.**
 
 <br>
 
-So first: What does our sample actually look like?
+So first: What does our sample actually look like? 
+
+For this test, the most useful information about our sample is its mean.
 
 <br>
 
@@ -266,9 +334,11 @@ iq_data |>
 
 The mean IQ score of this sample is:
 
+```{r include=F}
+options(pillar.sigfig = 7)
+```
+
 ```{r}
-options(digits=22)  
-# FIXME rendered output rounds to nearest integer despite this option being set
 iq_data |>
   summarise(
     m = mean(iq)
@@ -340,7 +410,7 @@ So that we can **compare our observed sample mean to it and see how different ou
 <br>
 
 There is a name for **the distribution that sample means *would* have *if* the null hypothesis were true.**
-It is called the **"null distribution",** and sometimes also called the "comparison distribution".
+It is called the **"null distribution",** and sometimes also called the **"comparison distribution".**
 
 <br>
 
@@ -437,8 +507,9 @@ So what's **"unlikely enough"?**
 
 In Psychology, we usually want data like ours to have a less than 5% chance of coming from the null distribution.
 
-This means that **5% of the time, we'll be rejecting the H0 when actually we shouldn't.**
-That's the level of risk we're willing to accept.
+This means that **one time out of twenty, we'll be rejecting the H0 when actually we shouldn't.**
+
+One in twenty is the level of risk we're willing to accept.
 
 <br>
 
@@ -464,7 +535,7 @@ p_nulldist +
       ymin = 0,  ymax = n_dens),
     alpha = 0.3, fill = dapr1blue
     ) +
-  annotate("text",x=106, y=0.2, label="5%\nprobability", col=dapr1blue, hjust=1, size = 8)+
+  annotate("text",x=106, y=0.2, label="5%\nprobability", col=dapr1blue, hjust=1, size = 8, family = 'Source Sans 3')+
   geom_curve(aes(x=104, xend=103, y=0.15, yend=0.01), col=dapr1blue, size=0.5, curvature = -0.1, arrow = arrow(length = unit(0.1, "npc")), linewidth = 1.5)+
   NULL
 ```
@@ -488,8 +559,8 @@ p_nulldist +
     alpha = 0.3, fill = dapr1blue
     ) +
 
-  annotate("text",x=106, y=0.12, label="2.5%\nprobability", col=dapr1blue, hjust=1, size = 8)+
-  annotate("text",x=94, y=0.12, label="2.5%\nprobability", col=dapr1blue, hjust=0, size = 8)+
+  annotate("text",x=106, y=0.12, label="2.5%\nprobability", col=dapr1blue, hjust=1, size = 8, family = 'Source Sans 3')+
+  annotate("text",x=94, y=0.12, label="2.5%\nprobability", col=dapr1blue, hjust=0, size = 8, family = 'Source Sans 3')+
   
   geom_curve(aes(x=104, xend=103.3, y=0.07, yend=0.01), col=dapr1blue, size=0.5, curvature = -0.1, arrow = arrow(length = unit(0.1, "npc")), linewidth = 1.5)+
   geom_curve(aes(x=96, xend=96.7, y=0.07, yend=0.01), col=dapr1blue, size=0.5, curvature = 0.1, arrow = arrow(length = unit(0.1, "npc")), linewidth = 1.5)+
@@ -515,7 +586,7 @@ p_nulldist +
     alpha = 0.3, fill = dapr1blue
     ) +
   geom_vline(xintercept = obs_sample_mean, linewidth = 2, colour = 'tomato1') +
-  annotate("text", x=obs_sample_mean+0.5, y=0.18, label= paste0("observed\nsample\nmean:\n", obs_sample_mean), col="tomato1", hjust=0, size = 8)+
+  annotate("text", x=obs_sample_mean+0.5, y=0.18, label= paste0("observed\nsample\nmean:\n", obs_sample_mean), col="tomato1", hjust=0, size = 8, family = 'Source Sans 3')+
 
   NULL
 ```
@@ -599,7 +670,7 @@ p_stdnorm +
     fill = 'tomato1', alpha = 0.3
   ) +
 
-  annotate("text",x=4, y=0.2, label="2.9%\nprob.", col='tomato1', hjust=1, size = 8)+
+  annotate("text",x=4, y=0.2, label="2.9%\nprob.", col='tomato1', hjust=1, size = 8, family = 'Source Sans 3')+
   
   geom_curve(aes(x=3.5, xend=2.2, y=0.13, yend=0.02), col='tomato1', size=0.5, curvature = -0.1, arrow = arrow(length = unit(0.1, "npc")), linewidth = 1.5)+
   NULL
@@ -627,7 +698,7 @@ This p-value is below $\alpha$ = .05, so:
 - the result is statistically significant, and
 - we can reject H0.
 - **It does NOT mean that the H1 is proven true or that we can accept the H1!**
-- It also doesn't mean that the difference is *practically* significant, necessarily.
+- It also doesn't mean that the difference is *practically* significant, necessarily (more on this in future weeks).
 
 <br>
 
@@ -701,7 +772,7 @@ But remember that there's some risk involved in our statistical testing:
 
 <br>
 
-I think these might be the least useful names for any statistical concept.
+I think these are possibly the least useful names for any statistical concept that I know of.
 
 Here's how I remember which is which: using the story of the **boy who cried wolf.**
 
@@ -751,13 +822,99 @@ Here's how I remember which is which: using the story of the **boy who cried wol
 :::
 ::::
 
-## TODO real-world consequences ?
+## Is one "worse"? Depends on the scenario and your goals/judgements
+
+<br>
+
+**Scenario: Testing for COVID**
+
+::::{.columns}
+:::{.column width="48%"}
+- **False positive (Type I Error):** You tell a healthy person they have COVID, so they isolate unnecessarily
+:::
+:::{.column width="4%"}
+:::
+:::{.column width="48%"}
+- **False negative (Type II Error):** You tell a sick person they are healthy, which will result in them infecting others
+
+:::
+::::
+
+<br>
+
+**Scenario: A court case**
+
+::::{.columns}
+:::{.column width="48%"}
+- **False positive (Type I Error):** An innocent person is considered guilty and punished
+:::
+:::{.column width="4%"}
+:::
+:::{.column width="48%"}
+- **False negative (Type II Error):** A guilty person is considered innocent and goes free
+
+:::
+::::
+
+<br>
+
+**Scenario: Diagnosing diabetes**
+
+::::{.columns}
+:::{.column width="48%"}
+- **False positive (Type I Error):** A non-diabetic person is diagnosed with diabetes, resulting in pointless healthcare
+:::
+:::{.column width="4%"}
+:::
+:::{.column width="48%"}
+- **False negative (Type II Error):** A diabetic person is not diagnosed with diabetes, resulting in severe health problems
+
+:::
+::::
 
 
+## Revisiting this week's learning objectives
 
-# Back matter {.appendix}
+<br>
 
-## Learning objectives revisited
+:::dapr1callout
 
-TODO
+**What is the basic logic behind Null Hypothesis Significance Testing (NHST)?**
+
+- We imagine we're in a world where the effect we're interested in does not exist.
+- We use our observed data to figure out how likely it is that we're actually in that world.
+- If we decide that we're sufficiently unlikely to be in that world, we reject the null hypothesis.
+
+:::
+
+<br>
+
+:::{.dapr1callout}
+
+**What are the five steps of doing NHST?**
+
+1. Based on your RQ, define the null and alternative hypotheses.
+1. Collect sample data and determine the appropriate comparison distribution / null distribution.
+1. Calculate the test statistic for our observed sample (in our case, this was the z-score).
+1. Make a decision about whether or not to reject H0.
+1. Interpret this decision in the context of the RQ.
+
+:::
+
+## Revisiting this week's learning objectives {visibility='uncounted'}
+
+<br>
+
+:::{.dapr1callout}
+
+**What kinds of errors is it possible to make when doing NHST?**
+
+- Your decision is either to reject the null or fail to reject the null, and you can either do this correctly or incorrectly.
+- If you incorrectly reject the null (i.e., you reject H0 when you actually shouldn't), this is a false positive, and we call it a Type I error.
+  - When alpha = .05, you can expect to make a Type I error about 5% of the time.
+- If you incorrectly fail to reject the null (i.e., you fail to reject H0 when you actually should), this is a false negative, and we call it a Type II error.
+  - Bonus: Type II error rate ties into a concept called "statistical power", which is the probability of correctly rejecting H0. More on power in your future statistical training!
+  
+:::
+
 
