@@ -144,6 +144,8 @@ If `x` increases, then `y` increases.
 
 If `x` decreases, then `y` decreases.
 
+**Example: age and self-esteem.**
+
 :::
 :::{.column width="5%"}
 :::
@@ -170,6 +172,8 @@ df |>
 If `x` increases, then `y` decreases.
 
 If `x` decreases, then `y` increases.
+
+**Example: depression and wellbeing.**
 
 :::
 ::::
@@ -540,7 +544,7 @@ Pearson's $r$ = [correlation coefficient], $t$([degrees of freedom]) = [t-statis
 
 <br>
 
-**However, before writing our report and calling it a day, we need to check the test's assumptions.**
+**However, before writing our report and calling it a day, we need to check our assumptions about the test.**
 
 
 # To use Pearson, we need to make and accept some assumptions
@@ -686,10 +690,10 @@ Are you satisfied that this requirement is met?
 **The association between the variables is sufficiently linear.**
 :::
 
-Plot the data with two `geom_smooth()`s, and you want them to closely match: 
+Plot the data with two `geom_smooth()`s, and you want them to closely match. 
 
-- one with `method = 'lm'` (the straight line)
-- one with `method = 'loess'` (LOcally Estimated Scatterplot Smoothing, a wobbly line)
+- one smooth with `method = 'lm'` (the straight line)
+- one smooth with `method = 'loess'` (LOcally Estimated Scatterplot Smoothing, a wobbly line)
 
 ::::{.columns}
 :::{.column width="50%"}
@@ -732,7 +736,7 @@ ses_data |>
 
 :::{.dapr1callout .hcenter}
 
-Are you satisfied that this assumption is met?
+Are you satisfied that the association is linear enough?
 
 <img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
 
@@ -769,19 +773,17 @@ ses_data |>
 
 <br>
 
-```{r}
-shapiro.test(ses_data$Score)
-```
-:::
-::::
-
 :::{.dapr1callout .hcenter}
 
-Are you satisfied that this assumption is met for `Score`?
+Are you satisfied that `Score` is <br> normally distributed enough?
 
 <img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
 
 :::
+:::
+::::
+
+
 
 
 ## Assumption of normality for <br> Pearson's correlation (2): `Income`
@@ -812,19 +814,17 @@ ses_data |>
 
 <br>
 
-```{r}
-shapiro.test(ses_data$Income)
-```
-:::
-::::
-
 :::{.dapr1callout .hcenter}
 
-Are you satisfied that this assumption is met for `Income`?
+Are you satisfied that `Income` is <br> normally distributed enough?
 
 <img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
 
 :::
+:::
+::::
+
+
 
 
 ## Assumption of equal variance for <br> Pearson's correlation
@@ -876,14 +876,14 @@ ses_data |>
 
 :::{.dapr1callout .hcenter}
 
-Are you satisfied that this assumption is met?
+Are you satisfied that the variance is equal enough?
 
 <img style="margin-bottom:-10px; width: 2em;" src="figs/codicon--thumbsup-filled.svg"> <img style="margin-bottom:-20px; width: 2em;" src="figs/codicon--thumbsdown-filled.svg">
 
 :::
 
 
-# Because assumptions <br> weren't all met: <br> Spearman's correlation
+# If we aren't willing to make every assumption: <br> Spearman's correlation
 
 ## What is Spearman's correlation?
 
@@ -983,13 +983,13 @@ rmp_data |>
 
 You'll play with this data (and try to recreate this plot yourselves) in this week's workshop!
 
-But for now: **Because Spearman's correlation is more flexible, it can also handle cases where Pearson's assumptions weren't met.**
+But for now: **When we might not be willing to make all the assumptions for Pearson's correlation, we can use Spearman's (more flexible) correlation instead.**
 
 ## Testing our SES data with <br> Spearman's correlation
 
 <br>
 
-We saw that Pearson's correlation coefficient is represented by $r_S$.
+We saw that Pearson's correlation coefficient is represented by $r_P$.
 
 **Spearman's correlation coefficient is represented by $r_S$, or in plain text, `r_S`.**
 
@@ -1047,23 +1047,24 @@ Can we reject the H0 that Income and SAT score are uncorrelated?
 <br>
 
 > We wanted to find out whether students from higher-income families tend to achieve higher test scores than students from lower-income families.
-However, a Shapiro-Wilk test indicated that our income variable deviated significantly from a normal distribution ($W$ = 1, $p$ < .001).
-We therefore used Spearman's ranked correlation instead of Pearson's $r$ to test the correlation between income and test score.
+However, inspecting Q-Q plots indicated that our income variable deviated from a normal distribution (likely because it is bounded at zero and cannot take on negative values).
+We therefore used Spearman's ranked correlation instead of Pearson's correlation to test whether the correlation between income and test score is significantly different from zero.
 >
-> We found a weak positive correlation (Spearman's ranked correlation = .2, $p$ < .001).
-This result suggests that higher family income is significantly associated with higher test scores, and lower family income is associated with lower test scores.
+> We found a weak positive correlation ($r_S$ = .2, $p$ < .001).
+This result suggests that higher family income is significantly associated with higher test scores, while lower family income is associated with lower test scores.
 
 <br>
 
 APA notation format for reporting the key inferential values:
 
-Spearman's ranked correlation = [correlation coefficient], $p$ = [p-value]
+$r_S$ = [correlation coefficient], $p$ = [p-value]
+
+(or `r_S` if writing in plain text)
 
 
+# To use Spearman, we still need to make and accept one assumption
 
-# To use Spearman, we need to make and accept some assumptions
-
-## What assumptions must we make?
+## What assumption must we make?
 
 <br>
 
@@ -1129,6 +1130,13 @@ Are you satisfied that this requirement is met?
 
 :::
 ::::
+
+## You've learned all the basic tests!
+
+<br>
+
+![](figs/block3-4.svg){fig-align="center"}
+
 
 ## What questions do you have right now?
 
