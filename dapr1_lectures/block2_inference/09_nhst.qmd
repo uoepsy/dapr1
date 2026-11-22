@@ -47,7 +47,7 @@ obs_sample_mean <- mean(iq_data$iq)
 
 <br>
 
-:::dapr1callout
+:::{.dapr1callout .fragment}
 
 What is the basic logic behind Null Hypothesis Significance Testing (NHST)?
 
@@ -221,7 +221,7 @@ p_iq_pop +
 
 ::::{.columns}
 :::{.column width="50%"}
-If our observations from bilingual people are **unlikely** to come from the population distribution, then we might hypothesise that **it's unlikely for bilingual people to the same IQ as the general population.**
+If our observations from bilingual people are **unlikely** to come from the population distribution, then we might hypothesise that **it's unlikely for bilingual people to have the same IQ as the general population.**
 :::
 
 :::{.column width="50%"}
@@ -297,7 +297,7 @@ H1: mu > 100
 
 
 - If the RQ predicted lower IQ for bilingual people, then H1 would be $H_1 : \mu < 100$.
-- If the RQ predicted *different* IQ but didn't say in which direction, then H1 would be $H_1: \mu = 100$.
+- If the RQ predicted *different* IQ but didn't say in which direction, then H1 would be $H_1: \mu \neq 100$.
 
 
 # Null hypothesis ✅  <br> "significance testing" ⁉️
@@ -382,6 +382,7 @@ To do this, we can either:
 
 ::::{.columns}
 :::{.column width="40%"}
+**do simulation, if we have access to the population:**
 
 - take the population distribution
 - draw a bunch of samples of size 100 from it (the same size as our sample)
@@ -393,6 +394,7 @@ To do this, we can either:
 **OR**
 :::
 :::{.column width="40%"}
+**do math (useful for the future when we don't have access to the population!):**
 
 - use the formulae you've seen in previous weeks to precisely calculate the distribution of sample means we would expect to see if H0 were true
 :::
@@ -416,7 +418,7 @@ It is called the **"null distribution",** and sometimes also called the **"compa
 
 For this kind of analysis, the null distribution has the following properties:
 
-- **mean =** the population mean = the mean in our H0 = $\mu$
+- **mean =** the population mean = the mean in our H0 = $\mu$ = 100
 
 - **SD =** the standard error of the mean = the standard deviation of the sampling distribution of means = $\frac{\sigma}{\sqrt{n}}$
 
@@ -424,8 +426,6 @@ For this kind of analysis, the null distribution has the following properties:
 
 ::::{.columns}
 :::{.column width="40%"}
-The mean of the null distribution is **100.**
-
 We know the population SD $\sigma$ is 15, and we know we have a sample size $n$ of 100. So:
 
 $$
@@ -507,18 +507,9 @@ So what's **"unlikely enough"?**
 
 In Psychology, we usually want data like ours to have a less than 5% chance of coming from the null distribution.
 
-This means that **one time out of twenty, we'll be rejecting the H0 when actually we shouldn't.**
-
-One in twenty is the level of risk we're willing to accept.
-
-<br>
-
-This is another idea that's so important that it has a specific name:
-
-A 5% probability of incorrectly rejecting H0 = our **significance level** or **alpha level**, also written $\alpha$ = .05.
+**What sample means have a less than 5% chance of coming from the null distribution?**
 
 
-<br>
 
 ::::{.columns}
 :::{.column width="50%"}
@@ -573,6 +564,19 @@ p_nulldist +
 
 
 
+
+This means that **one time out of twenty, we'll be rejecting the H0 when actually we shouldn't.**
+
+One in twenty is the level of risk we're willing to accept.
+
+This is another idea that's so important that it has a specific name:
+
+A 5% probability of incorrectly rejecting H0 = our **significance level** or **alpha level**, also written $\alpha$ = .05.
+
+
+<br>
+
+
 # Let's actually do the test
 
 ## Compare our sample mean to the null distribution of sample means
@@ -601,21 +605,25 @@ But **how unlikely exactly?**
 
 ## How unlikely exactly is our sample mean?
 
-To figure this out, we will use `pnorm()` to compute the area under the normal distribution that's more extreme than our observed sample mean.
-
-In order to use `pnorm()`, we'll first convert our observed sample mean into a z-score.
-
-<br>
+To figure this out, we'll do what's called a **z-test.**
+In a z-test, we **compare our sample mean's z-score to the standard normal distribution** using `pnorm()`. 
+This test tells us the specific probability of seeing a sample mean like ours or one more extreme, assuming H0 is true.
 
 ::::{.columns}
 :::{.column width="40%"}
 
+The formula for a z-score in general:
+
 $$
-\begin{align}
-Z &= \frac{\bar{x} - M}{SD} \\[.5em]
-  &= \frac{\bar{x} - \mu}{\sigma / \sqrt{n}}
-\end{align}
+Z = \frac{x - M}{SD}
 $$
+
+The formula when we're getting the z-score of a sample mean:
+
+$$
+Z = \frac{\bar{x} - \mu}{\sigma / \sqrt{n}}
+$$
+
 
 We know that $\bar{x}$ = `r obs_sample_mean`, $\mu$ = 100, $\sigma$ = 15, and $n$ = 100, so:
 
@@ -678,10 +686,11 @@ p_stdnorm +
 ```
 
 
+This probability—the probability of observing data like ours or more extreme—is known as our test's **p-value.**
+
 :::
 ::::
 
-This probability—the probability of observing data like ours or more extreme—is known as our test's **p-value.**
 
 
 ## Interpreting p-values
@@ -733,7 +742,7 @@ At the 5% significance level, we performed a one-sample z-test of $H_0 : \mu$ = 
 ```
 Let mu denote the mean IQ score of bilingual people in the UK. At the 5% significance level, we performed a one-sample z-test of H0: mu = 100 against H1: mu > 100.
 
-The sample mean IQ score of bilingual people (M = 102.83, SD = 18.67) was significantly higher than the national average (z = 1.89, p = 0.29, one-sided).
+The sample mean IQ score of bilingual people (M = 102.83, SD = 18.67) was significantly higher than the national average (z = 1.89, p = .029, one-sided).
 ```
 
 :::
@@ -745,8 +754,9 @@ The sample mean IQ score of bilingual people (M = 102.83, SD = 18.67) was signif
 1. Based on your RQ, define the null and alternative hypotheses.
 1. Collect sample data and determine the appropriate comparison distribution / null distribution.
 1. Calculate the test statistic for our observed sample (in our case, this was the z-score).
-1. Make a decision about whether or not to reject H0.
+1. Make a decision about whether or not to reject H0 (based on $\alpha$ and $p$).
 1. Interpret this decision in the context of the RQ.
+
 
 # Are we making the right decision?
 
@@ -766,6 +776,103 @@ But remember that there's some risk involved in our statistical testing:
 <br>
 
 ![](figs/2x2.svg){fig-align="center"}
+
+
+
+## Is one "worse"? Depends on the scenario and your goals/judgements
+
+<br>
+
+
+**Scenario: A court case**
+
+::::{.columns}
+:::{.column width="48%"}
+- **False positive (Type I Error):** An innocent person is considered guilty and punished
+:::
+:::{.column width="4%"}
+:::
+:::{.column width="48%"}
+- **False negative (Type II Error):** A guilty person is considered innocent and goes free
+
+:::
+::::
+
+<br>
+
+**Scenario: Testing for COVID**
+
+::::{.columns}
+:::{.column width="48%"}
+- **False positive (Type I Error):** You tell a healthy person they have COVID, so they isolate unnecessarily
+:::
+:::{.column width="4%"}
+:::
+:::{.column width="48%"}
+- **False negative (Type II Error):** You tell a sick person they are healthy, which will result in them infecting others
+
+:::
+::::
+
+<br>
+
+
+## What questions do you have right now?
+
+<br>
+
+:::hcenter
+:::woo
+https://app.wooclap.com/events/QAQPYGZ/
+:::
+:::
+
+
+# Back matter {.appendix}
+
+## Revisiting this week's learning objectives
+
+<br>
+
+:::dapr1callout
+
+**What is the basic logic behind Null Hypothesis Significance Testing (NHST)?**
+
+- We imagine we're in a world where the effect we're interested in does not exist.
+- We use our observed data to figure out how likely it is that we're actually in that world.
+- If we decide that we're sufficiently unlikely to be in that world, we reject the null hypothesis.
+
+:::
+
+<br>
+
+:::{.dapr1callout}
+
+**What are the five steps of doing NHST?**
+
+1. Based on your RQ, define the null and alternative hypotheses.
+1. Collect sample data and determine the appropriate comparison distribution / null distribution.
+1. Calculate the test statistic for our observed sample (in our case, this was the z-score).
+1. Make a decision about whether or not to reject H0.
+1. Interpret this decision in the context of the RQ.
+
+:::
+
+## Revisiting this week's learning objectives {visibility='uncounted'}
+
+<br>
+
+:::{.dapr1callout}
+
+**What kinds of errors is it possible to make when doing NHST?**
+
+- Your decision is either to reject the null or fail to reject the null, and you can either do this correctly or incorrectly.
+- If you incorrectly reject the null (i.e., you reject H0 when you actually shouldn't), this is a false positive, and we call it a Type I error.
+  - When alpha = .05, you can expect to make a Type I error about 5% of the time.
+- If you incorrectly fail to reject the null (i.e., you fail to reject H0 when you actually should), this is a false negative, and we call it a Type II error.
+  - Bonus: Type II error rate ties into a concept called "statistical power", which is the probability of correctly rejecting H0. More on power in your future statistical training!
+  
+:::
 
 
 ## Type I error and Type II error
@@ -821,100 +928,3 @@ Here's how I remember which is which: using the story of the **boy who cried wol
 
 :::
 ::::
-
-## Is one "worse"? Depends on the scenario and your goals/judgements
-
-<br>
-
-**Scenario: Testing for COVID**
-
-::::{.columns}
-:::{.column width="48%"}
-- **False positive (Type I Error):** You tell a healthy person they have COVID, so they isolate unnecessarily
-:::
-:::{.column width="4%"}
-:::
-:::{.column width="48%"}
-- **False negative (Type II Error):** You tell a sick person they are healthy, which will result in them infecting others
-
-:::
-::::
-
-<br>
-
-**Scenario: A court case**
-
-::::{.columns}
-:::{.column width="48%"}
-- **False positive (Type I Error):** An innocent person is considered guilty and punished
-:::
-:::{.column width="4%"}
-:::
-:::{.column width="48%"}
-- **False negative (Type II Error):** A guilty person is considered innocent and goes free
-
-:::
-::::
-
-<br>
-
-**Scenario: Diagnosing diabetes**
-
-::::{.columns}
-:::{.column width="48%"}
-- **False positive (Type I Error):** A non-diabetic person is diagnosed with diabetes, resulting in pointless healthcare
-:::
-:::{.column width="4%"}
-:::
-:::{.column width="48%"}
-- **False negative (Type II Error):** A diabetic person is not diagnosed with diabetes, resulting in severe health problems
-
-:::
-::::
-
-
-## Revisiting this week's learning objectives
-
-<br>
-
-:::dapr1callout
-
-**What is the basic logic behind Null Hypothesis Significance Testing (NHST)?**
-
-- We imagine we're in a world where the effect we're interested in does not exist.
-- We use our observed data to figure out how likely it is that we're actually in that world.
-- If we decide that we're sufficiently unlikely to be in that world, we reject the null hypothesis.
-
-:::
-
-<br>
-
-:::{.dapr1callout}
-
-**What are the five steps of doing NHST?**
-
-1. Based on your RQ, define the null and alternative hypotheses.
-1. Collect sample data and determine the appropriate comparison distribution / null distribution.
-1. Calculate the test statistic for our observed sample (in our case, this was the z-score).
-1. Make a decision about whether or not to reject H0.
-1. Interpret this decision in the context of the RQ.
-
-:::
-
-## Revisiting this week's learning objectives {visibility='uncounted'}
-
-<br>
-
-:::{.dapr1callout}
-
-**What kinds of errors is it possible to make when doing NHST?**
-
-- Your decision is either to reject the null or fail to reject the null, and you can either do this correctly or incorrectly.
-- If you incorrectly reject the null (i.e., you reject H0 when you actually shouldn't), this is a false positive, and we call it a Type I error.
-  - When alpha = .05, you can expect to make a Type I error about 5% of the time.
-- If you incorrectly fail to reject the null (i.e., you fail to reject H0 when you actually should), this is a false negative, and we call it a Type II error.
-  - Bonus: Type II error rate ties into a concept called "statistical power", which is the probability of correctly rejecting H0. More on power in your future statistical training!
-  
-:::
-
-
