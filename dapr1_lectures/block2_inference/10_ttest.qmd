@@ -1,0 +1,168 @@
+---
+title: "The one-sample t-test"
+author: "Dr. Elizabeth Pankratz (elizabeth.pankratz@ed.ac.uk)"
+editor_options: 
+  chunk_output_type: inline
+format:
+  revealjs:
+    smaller: true
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(patchwork)
+
+dapr1blue <- '#0F4C81'
+
+source('_theme/theme_quarto.R')
+
+theme_update(
+  text = element_text(family = 'Source Sans 3'),
+  panel.grid.minor = element_blank(),
+  strip.background = element_blank(),
+  strip.text.x = element_text(size = 24)
+)
+```
+
+# Welcome back!
+
+## Warm-up
+
+<br>
+
+:::hcenter
+:::woo
+https://app.wooclap.com/events/SKTAABC/
+:::
+:::
+
+## This week's learning objectives
+
+
+
+
+# What's different between last week and this week?
+
+## What's different between last week and this week?
+
+::::{.columns}
+:::{.column width="45%"}
+
+**Last week:**
+
+- Our RQ asked whether [RESUME]
+- We knew the population that we wanted to 
+
+:::
+:::{.column width="10%"}
+:::
+:::{.column width="45%"}
+
+This week:
+
+
+:::
+::::
+
+
+
+
+# Back matter {.appendix}
+
+## Revisiting this week's learning objectives
+
+
+## Distributions from warm-up Wooclap (1)
+
+Uncollapse code for the basic standard normal distribution plot.
+
+```{r fig.width=7, fig.align='center', fig.height = 4}
+#| code-fold: true
+dapr1blue <- '#0F4C81'
+
+m <- 0
+sd <- 1
+nx <- seq(m-4*sd, m+4*sd, length.out = 1000)
+
+p_stdnorm <- tibble(
+  x = nx,
+  n_dens = dnorm(nx, m = m, sd = sd)
+) |>
+  ggplot(aes(x = x, y = n_dens)) +
+  geom_line(linewidth = 1.5, colour = dapr1blue) +
+  labs(
+    y = 'Density',
+    x = 'Standard normal distribution'
+  ) +
+  theme_classic() +
+  theme(
+    panel.grid = element_blank(),
+    text = element_text(family = 'Source Sans 3', size = 24),
+    axis.title = ggplot2::element_text(color = dapr1blue)
+  ) +
+  scale_x_continuous(breaks = seq(
+    (m - 4*sd), (m + 4*sd), by = sd)
+    ) +
+  NULL
+```
+
+Uncollapse code for the following plot with the z-statistic and shaded area.
+
+```{r fig.width=8, fig.align='center', fig.height = 4, warning = F}
+#| code-fold: true
+z <- 1.2
+p_stdnorm +
+  geom_ribbon(
+    aes(
+      x = ifelse(x >= z, x, NA),
+      ymin = 0,  ymax = n_dens),
+    alpha = 0.3, fill = dapr1blue
+    ) +
+  geom_vline(xintercept = z, colour = 'tomato1', linewidth = 2) +
+  NULL
+```
+
+
+## Distributions from warm-up Wooclap (2)
+
+```{r fig.width=8, fig.align='center', fig.height = 4, warning = F}
+#| code-fold: true
+z <- 0.5
+p_stdnorm +
+  geom_ribbon(
+    aes(
+      x = ifelse(x <= z, x, NA),
+      ymin = 0,  ymax = n_dens),
+    alpha = 0.3, fill = dapr1blue
+    ) +
+  geom_vline(xintercept = z, colour = 'tomato1', linewidth = 2) +
+  NULL
+```
+
+
+## Distributions from warm-up Wooclap (3)
+
+```{r fig.width=8, fig.align='center', fig.height = 4, warning = F}
+#| code-fold: true
+z <- abs(1.1)
+
+p_stdnorm +
+  geom_ribbon(
+    aes(
+      x = ifelse(x <= -z, x, NA),
+      ymin = 0,  ymax = n_dens),
+    alpha = 0.3, fill = dapr1blue
+    ) +
+  geom_ribbon(
+    aes(
+      x = ifelse(x >= z, x, NA),
+      ymin = 0,  ymax = n_dens),
+    alpha = 0.3, fill = dapr1blue
+    ) +
+  geom_vline(xintercept = -z, colour = 'tomato1', linewidth = 2, linetype = 'dashed') +
+  geom_vline(xintercept = z, colour = 'tomato1', linewidth = 2) +
+  NULL
+```
