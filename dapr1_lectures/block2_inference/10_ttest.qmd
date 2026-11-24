@@ -56,8 +56,7 @@ https://app.wooclap.com/events/SKTAABC/
 
 <br>
 
-```{r echo=F, fig.width=7, fig.height=3, fig.align = 'center'}
-#| out.width: 1100px
+```{r echo=F, fig.width=5, fig.height=3, fig.align = 'center'}
 
 mu <- 100
 sigma <- 15
@@ -92,6 +91,7 @@ p_iq_pop
 <br>
 <br>
 <br>
+<br>
 
 :::hcenter
 **???**
@@ -101,30 +101,267 @@ p_iq_pop
 ::::
 
 
-<br>
-
 ::::{.columns}
 :::{.column width="45%"}
 
 - Our RQ asked whether bilingual adults had a higher IQ than the general population.
 - We knew that in the population, IQ is normally distributed with mean of 100 and standard deviation of 15.
-- We used a **z-test** to compare our sample to this normally-distributed population.
+- This let us come up with the null distribution—what sample means **would** look like **if** H0 were true—based on properties of the population.
 
 :::
 :::{.column width="10%"}
 :::
 :::{.column width="45%"}
 
-- Real life is basically always like this: we can't access the population, and we don't know how to summarise it for sure.
-- There's a different kind of test we do in this scenario: the **t-test.**
+- Real life is basically always like this: we don't know the true population mean or how variable the population is.
+- So we can't use the population to figure out our null distribution.
+- **So how do we know what to compare our sample to?**
 
 :::
 ::::
 
 
-## What does the t-test do?
+## The answer: The t-distribution
+
+```{r echo=F, fig.width=8, fig.height=2.5}
+#| out.width: 1000px
+
+x <- seq(-6, 6, length.out = 1000)
+y <- dt(x, df = 2)
+z <- dnorm(x)
+df <- data.frame(x = x, y = y, z = z)
+
+p_t <- ggplot(df, aes(x = x, y = y)) +
+  geom_line(linewidth = 1, color = "seagreen4") +
+  geom_ribbon(aes(
+    x = x,
+    ymin = 0,
+    ymax = y
+  ), 
+  fill = 'seagreen4',
+  alpha = 0.3) +
+  labs(x = "t", y = "Density") +
+  theme_classic() +
+  theme(
+    text = element_text(family = 'Source Sans 3', size = 24),
+    axis.title = ggplot2::element_text(color = dapr1blue)
+  ) +
+  NULL
+
+p_t
+```
+
+It looks a lot like a normal distribution (overlaid in blue), but it's less pointy in the middle and fatter at the tails.
+
+```{r echo=F, fig.width=8, fig.height=2.5}
+#| out.width: 1000px
+p_t +
+  geom_ribbon(
+    aes(x = x, ymin = 0, ymax = z),
+    alpha = 0.4,
+    fill = dapr1blue
+  ) +
+  annotate(geom = 'text', y = 0.3, x = 4, label = 'normal distribution\nwith mean 0, SD 1',
+           colour = dapr1blue,
+           family = 'Source Sans 3',
+           size = 8) +
+   geom_curve(x=1.5, xend=0.2, y=0.37, yend=0.38, col=dapr1blue, curvature = 0.2, arrow = arrow(length = unit(0.1, "npc")), linewidth = 1.5) +
+  xlab(NULL) +
+  NULL
+```
+
+The fat tails put more probability on extreme values, so that we don't rule them out as much, since after all we don't know what the population might look like.
+
+## The t-distribution has different shapes
+
+All of these are t-distributions with different **degrees of freedom (df):**
+
+```{r echo=F, fig.width = 10, fig.height = 5}
+tibble(x = c(-5, 5)) |>
+  ggplot(aes(x = x)) +
+  stat_function(fun = dt, args = list(df = 2), colour = '#85DB8F', linewidth = 2) +
+  stat_function(fun = dt, args = list(df = 5), colour = '#5DB367', linewidth = 2) +
+  stat_function(fun = dt, args = list(df = 99), colour = '#528B59', linewidth = 2) +
+  labs(x = 't', y = 'Density') +
+  annotate(geom = 'text', x = 3, y = 0.38, label = 'df = 2 ', colour = '#85DB8F', size = 9, family = 'Source Sans 3', hjust = 0) +
+  annotate(geom = 'text', x = 3, y = 0.35, label = 'df = 5 ', colour = '#5DB367', size = 9, family = 'Source Sans 3', hjust = 0) +
+  annotate(geom = 'text', x = 3, y = 0.32, label = 'df = 99', colour = '#528B59', size = 9, family = 'Source Sans 3', hjust = 0) +
+  theme(panel.grid.minor = element_blank()) +
+  NULL
+```
+
+You don't need to know exactly what df is.
+Just know that **it's closely related related to sample size:**
+
+- if we have a sample size $n$ of 100, 
+- then we have 99 degrees of freedom.
+- **For tests involving t-distributions, the df is always $n - 1$.**
+
+So our sample size determines the shape of the t-distribution that we will use as our null distribution.
+
+Why does it work this way?
+Because the more data we have, the better a guess we can make about the population.
+
+
+# Let's do a t-test
+
+## Let's do a t-test
 
 <br>
+
+Recall from last week the five steps of NHST:
+
+1. Based on your RQ, define the null and alternative hypotheses.
+2. Collect sample data and determine the appropriate comparison distribution / null distribution.
+3. Calculate the test statistic for our observed sample.
+4. Make a decision about whether or not to reject H0.
+5. Interpret this decision in the context of the RQ.
+
+<br>
+
+We'll go through them one by one as we walk through the logic of a **one-sample t-test.**
+
+
+# Step 1: Based on RQ, define H0 and H1
+
+## Activity: Match RQs to the appropriate H1
+
+<br>
+
+:::hcenter
+:::woo
+https://app.wooclap.com/events/SKTAABC/
+:::
+:::
+
+<!-- TODO -->
+<!-- 	- match RQ to H1 format -->
+<!-- 	- "In healthy adults, is average body temperature greater than the standard reference value of 37C?" -->
+<!-- 	- "In healthy adults, is average body temperature less than the standard reference value of 37C?" -->
+<!-- 	- "In healthy adults, is average body temperature different from the standard reference value of 37C?" -->
+
+## Our RQ this week
+
+<br>
+
+**RQ: In healthy adults, is average body temperature different from the standard reference value of 37C?**
+
+<br>
+
+**The null hypothesis (H0)** is always that any difference or effect we're interested in **does not exist.**
+
+- So our H0 here is that average body temperature $\mu$ is equal to 37C.
+
+
+::::{.columns}
+:::{.column width="50%"}
+- In fancy math notation:
+
+$$
+H_0 : \mu = 37
+$$
+:::
+:::{.column width="50%"}
+- In plain text:
+
+:::{style="font-size:180%;"}
+```
+H0: mu = 37
+```
+:::
+
+:::
+::::
+
+
+**The alternative hypothesis (H1)** is that the difference or effect we're interested in **does exist.**
+
+- So our H1 here is that average body temperature is *not* equal to 37C.
+
+
+
+::::{.columns}
+:::{.column width="50%"}
+- In fancy math notation:
+
+$$
+H_1 : \mu \neq 37
+$$
+:::
+:::{.column width="50%"}
+- In plain text:
+
+:::{style="font-size:180%;"}
+```
+H0: mu != 37
+```
+:::
+
+:::
+::::
+
+
+
+#
+
+<!-- Step 2: Gather data and determine the appropriate null distribution. -->
+
+<!-- - read in + look at the data using `glimpse()`, also make a boxplot -->
+
+<!-- - the null distribution represents what data like ours WOUld look like IF H0 were true -->
+<!-- - so if the average body temp in the population were 37, but there's some variability around that value because people are a little bit different, what's the distribution of body temperatures that are likely vs unlikely in that world? -->
+<!-- - we know the value we're testing against (like last week) but we don't know how variable the population is (unlike last week), hence we gotta use the t-distribution -->
+<!-- - specifically, the t-distribution with n–1 df, so df = 49 [show plot] -->
+
+
+<!-- Step 3: Calculate the test statistic for our observed sample -->
+
+<!-- - in R, using `t.test()` -->
+<!-- - take our t-value from the test and overlay it on the null distribution from prev slide -->
+
+
+<!-- Step 4: Make a decision about whether or not to reject H0. -->
+
+<!-- - show of thumbs: is p below .05? -->
+<!-- - it is, so we reject H0  -->
+
+
+<!-- Step 5: Interpret this decision in the context of the RQ. -->
+
+<!-- - body temp is sig diff from standard ref value of 37C. -->
+<!-- - example APA-formatted write-up, always including 95% CI (not enough to say "we reject H0", we have to say what we think the value is) -->
+<!-- - note: this is statistically sig, but not practically sig – no one will rewrite the medical textbooks to say actually body temp is really 36.81 and not 37 -->
+
+
+## What questions do you have right now?
+
+<br>
+
+:::hcenter
+:::woo
+https://app.wooclap.com/events/SKTAABC/
+:::
+:::
+
+
+# Looking ahead
+
+## Looking ahead
+
+<br>
+
+**VERY IMPORTANT:** The day and time of DAPR1 lectures in Semester 2 is different from Semester 1.
+
+Starting on January 12, 2027, all Semester 2 lectures are on **Tuesdays from 13:10 to 14:00.**
+
+The location stays the same, and Elizabeth will be your lecturer for all of Block 3.
+
+<br>
+
+Thank you all for your hard work this semester.
+
+Umberto, Josiah, and I wish you a restful winter break and a lovely new year when it comes.
+
 
 
 
@@ -135,6 +372,7 @@ p_iq_pop
 # Back matter {.appendix}
 
 ## Revisiting this week's learning objectives
+
 
 
 ## Distributions from warm-up Wooclap (1)
