@@ -29,7 +29,7 @@ theme_update(
 
 # Welcome back!
 
-## Warm-up
+## Warm-up activity
 
 <br>
 
@@ -41,13 +41,21 @@ https://app.wooclap.com/events/SKTAABC/
 
 ## This week's learning objectives
 
+When we don't have access to the population we want to compare our sample to, how can we run a statistical analysis?
+
+- We rephrase our problem into a comparison between our sample and a specific hypothesised value.
+- Our null distribution becomes a t-distribution (which has slightly fatter tails, essentially meaning that we assign slightly greater probability to more extreme values).
+- The t-distribution looks more and more like a normal distribution, the bigger our sample is (and thus the more "degrees of freedom" the distribution has).
+
+What kind of statistical test lets us compare our sample to a specific hypothesised value?
+
+- A one-sample t-test.
 
 
 
-# What's different between last week and this week?
+# What do we do when we don't have access to the population?
 
-## What's different between last week and this week?
-
+## What do we do when we don't have access to the population?
 
 ::::{.columns}
 :::{.column width="45%"}
@@ -86,7 +94,7 @@ p_iq_pop
 :::
 :::{.column width="45%"}
 
-**From now on, we do not know the population that we want to compare any of our samples to.**
+**In real life, we'll basically never know the population that we want to compare any of our samples to.**
 
 <br>
 <br>
@@ -203,9 +211,9 @@ Why does it work this way?
 Because the more data we have, the better a guess we can make about the population.
 
 
-# Let's do a t-test
+# Let's see how the t-test works
 
-## Let's do a t-test
+## Let's see how the t-test works
 
 <br>
 
@@ -273,6 +281,7 @@ H0: mu = 37
 :::
 ::::
 
+<br>
 
 **The alternative hypothesis (H1)** is that the difference or effect we're interested in **does exist.**
 
@@ -302,54 +311,109 @@ H0: mu != 37
 
 
 
-# Step 2: Gather data, determine the appropriate null distribution
+# Step 2: Gather data and <br> determine the appropriate <br> null distribution
 
 ## This week's data: Body temperatures
 
 <br>
 
-[read in data]
+```{r message=F}
+temp_sample <- read_csv('https://uoepsy.github.io/data/BodyTemperatures.csv')
+```
 
 <br>
 
-[nrow: how many obs?]
+```{r message=F}
+glimpse(temp_sample)
+```
 
 <br>
 
-[glimpse data]
+```{r fig.width = 12, fig.height = 4}
+#| out.width: 1200px
+#| code-fold: true
+temp_sample |>
+  ggplot(aes(x = BodyTemp)) +
+  geom_density(linewidth = 0, fill = '#0F4C81')
+```
+
+**Our key question: How likely would it be to get a sample like this one, if H0 were true? (That is, if body temps were truly 37C on average?)**
+
+
+## If H0 were true, what would we expect to see?
+
+If H0 is true—if body temperatures in reality do have a mean of 37C—then:
+
+- The difference between our sample mean and the value 37 should be pretty small, close to zero.
+- But the sampling process is random, so we would also expect to observe some differences that are off to either side of zero.
+
+How much variability around zero should we expect, exactly, if the H0 is true?
 
 <br>
 
-[boxplot of data]
-
+**The answer to that question is the t-distribution:**
 
 <br>
 
-**Our key question: is this sample close to what we'd expect to see if H0 were true?**
+```{r echo=F, fig.width=10, fig.height=4}
+#| out.width: 1000px
+
+x <- seq(-6, 6, length.out = 1000)
+y <- dt(x, df = 49)
+z <- dnorm(x)
+df <- data.frame(x = x, y = y, z = z)
+
+p_t49 <- ggplot(df, aes(x = x, y = y)) +
+  geom_line(linewidth = 1, color = "seagreen4") +
+  geom_ribbon(aes(
+    x = x,
+    ymin = 0,
+    ymax = y
+  ), 
+  fill = 'seagreen4',
+  alpha = 0.3) +
+  labs(x = "t", y = "Density") +
+  theme_classic() +
+  theme(
+    text = element_text(family = 'Source Sans 3', size = 24),
+    axis.title = ggplot2::element_text(color = dapr1blue)
+  ) +
+  NULL
+
+p_t49 +
+  annotate(geom = 'text', x = 2.1, y = 0.2, label = 'df = (n minus 1) = 49 ', colour = 'seagreen4', size = 9, family = 'Source Sans 3', hjust = 0) +
+  NULL
+```
 
 
-## What would we expect to see if H0 were true?
+## So do we expect differences of $\pm$ 2-ish °C?
 
-A one-sample t-test measures the *difference* between our observed sample mean and some specific value stated in the RQ (here, it's 37C).
+<br>
 
-If H0 is true—if body temperatures in reality do have a mean of 37C—then the difference between our sample mean and the value 37 should be pretty small, close to zero:
+```{r echo=F, fig.width=10, fig.height=4}
+#| out.width: 1000px
+p_t49 +
+  annotate(geom = 'text', x = 2.1, y = 0.2, label = 'df = (n minus 1) = 49 ', colour = 'seagreen4', size = 9, family = 'Source Sans 3', hjust = 0) +
+  NULL
+```
 
-[plot with vline at zero]
+No—if H0 were true, we would expect differences of $\pm$ 2-ish **t-values.**
+
+- A t-value tells you **how many standard errors away from the hypothesised value** your sample mean is.
+- T-values are useful because they are **standardised** measures of difference (like a z-score).
+
+You don't need to know how to calculate a t-value yourself!
+
+R will **translate our observed sample mean into a t-value** and **compare** it to this t-distribution for us.
+
+But the way we compare t-values to this null distribution is basically the same as you've seen in previous weeks.
 
 
-We should expect some variability too, because people are a bit different from one another and also sampling is random.
-How much variability around zero should we expect, if the H0 is true?
-That's exactly what the t-distribution tells us:
+<!-- ## Activity: What t-values are likely vs. unlikely <br> if H0 is true? -->
 
-[same plot with t-distrib with df 49 I think TODO overlaid]
+<!-- <br> -->
 
-
-(The difference is measured not in degrees Celsius but in t-units.)
-
-
-## Activity: What t-values are likely vs. unlikely if H0 is true?
-
-[activity, woo ranking?: what kinds of t-statistics are likely or unlikely if H0 is true?]
+<!-- [activity, woo ranking?: what kinds of t-statistics are likely or unlikely if H0 is true?] -->
 
 
 
@@ -357,47 +421,190 @@ That's exactly what the t-distribution tells us:
 
 ## We'll let R calculate our sample's t-statistic
 
-[intro `t.test()`, explain anatomy]
+<br>
 
-<!-- Step 3: Calculate the test statistic for our observed sample -->
+We'll use the function `t.test()` and give it four arguments:
 
-## Our t-statistic vs. the null distribution
+```{r include=F}
+options(digits = 5)
+ttest <- t.test(
+  temp_sample$BodyTemp,       # which column of which dataframe do we want to test?
+  mu = 37,                    # what value do we want to compare it to?
+  alternative = 'two.sided',  # is our H1 'two.sided', 'greater', or 'less'?
+  conf.level = .95            # 1 minus our significance level of .05
+)
+```
 
-[take our t-value from the test and overlay it on the null distribution from prev slide]
+
+```{r eval=F}
+t.test(
+  temp_sample$BodyTemp,       # which column of which dataframe do we want to test?
+  mu = 37,                    # what value do we want to compare it to?
+  alternative = 'two.sided',  # is our H1 'two.sided', 'greater', or 'less'?
+  conf.level = .95            # 1 minus our significance level of .05
+)
+```
+
+
+## We'll let R calculate our sample's t-statistic {visibility='uncounted'}
+
+<br>
+
+We'll use the function `t.test()` and give it four arguments:
+
+```{r}
+t.test(
+  temp_sample$BodyTemp,       # which column of which dataframe do we want to test?
+  mu = 37,                    # what value do we want to compare it to?
+  alternative = 'two.sided',  # is our H1 'two.sided', 'greater', or 'less'?
+  conf.level = .95            # 1 minus our significance level of .05
+)
+```
+
+
+
+## Let's break down this output (1)
+
+<br>
+
+```{r echo=F}
+cat('', paste0(capture.output(
+  ttest
+), '\n')[4:5])
+```
+
+<br>
+
+Our sample's t-value is –3.14 (that means it's three-and-a-bit SEs below the hypothesised population mean of 37).
+
+The null distribution has 49 df (good sense check).
+
+The p-value tells us that, if H0 were true, the probability of observing a t-value of –3 or more extreme, or +3 or more extreme, is .003, or 0.3%.
+
+<br>
+<br>
+
+```{r echo=F, fig.width=8, fig.height=4, warning = F}
+#| out.width: 1000px
+tval <- -3.14
+p_t49 +
+  geom_vline(xintercept = -tval, colour = 'darkorchid', linewidth = 2, linetype = 'dashed') +
+  geom_vline(xintercept = tval, colour = 'darkorchid', linewidth = 2) +
+  geom_ribbon(
+    aes(
+      x = ifelse(x <= tval, x, NA),
+      ymin = 0,  ymax = y),
+    alpha = 0.5, fill = 'darkorchid'
+  ) +
+  geom_ribbon(
+    aes(
+      x = ifelse(x >= -tval, x, NA),
+      ymin = 0,  ymax = y),
+    alpha = 0.5, fill = 'darkorchid'
+  ) +
+  NULL
+```
+
+## Let's break down this output (2)
+
+<br>
+
+```{r echo=F}
+cat('', paste0(capture.output(
+  ttest
+), '\n')[6])
+```
+
+This line says in words what we wrote earlier as $\mu \neq 37$.
+
+A non-directional alternative hypothesis, because the RQ didn't specify a difference in one direction or the other.
+
+<br>
+
+```{r echo=F}
+cat('', paste0(capture.output(
+  ttest
+), '\n')[7:8])
+```
+
+This is the range of values within which we are 95% confident that the true population mean body temperature lies.
+(Careful: **not** the range of values that, with 95% probability, contains that true value.)
+
+<br>
+
+```{r echo=F}
+cat('', paste0(capture.output(
+  ttest
+), '\n')[9:11])
+```
+
+The mean body temperature observed in our sample is 36.8 degrees C.
+
+This is the value that's three SEs below the hypothesised population mean of 37.
 
 
 # Step 4: Make a decision about whether or not to reject H0
 
-## The info we have so far
+## Make a decision
 
-::::{.columns}
-:::{.column width="50%"}
-[ttest output]
-:::
-:::{.column width="50%"}
-[t-val overlaid on t-distrib]
-:::
-::::
+```{r echo=F}
+cat('', paste0(capture.output(
+  ttest
+), '\n'))
+```
 
-Significance level = alpha level = 5%
+```{r echo=F, fig.width=10, fig.height=3, warning = F}
+#| out.width: 1400px
+p_t49 +
+  geom_vline(xintercept = -tval, colour = 'darkorchid', linewidth = 2, linetype = 'dashed') +
+  geom_vline(xintercept = tval, colour = 'darkorchid', linewidth = 2) +
+  geom_ribbon(
+    aes(
+      x = ifelse(x <= tval, x, NA),
+      ymin = 0,  ymax = y),
+    alpha = 0.5, fill = 'darkorchid'
+  ) +
+  geom_ribbon(
+    aes(
+      x = ifelse(x >= -tval, x, NA),
+      ymin = 0,  ymax = y),
+    alpha = 0.5, fill = 'darkorchid'
+  ) +
+  NULL
+```
 
-p is below it, the prob of same or sth more extreme < 5% (specifically it's [whatever])
+Our significance level, or alpha level, is .05 (or 5%).
 
-so we reject H0 
+Recall: When $\alpha = .05$, we accept that we will reject H0, even when H0 is true, one time in twenty.
+
+**Our p-value .003 is below .05. This means our decision is to reject H0.**
+
 
 
 # Step 5: Interpret decision in the context of RQ
 
-## Our RQ
+## Interpret and report in the context of our RQ
 
+<br>
 
+**RQ: In healthy adults, is average body temperature different from the standard reference value of 37C?**
 
-<!-- Step 5: Interpret this decision in the context of the RQ. -->
+<br>
 
-<!-- - body temp is sig diff from standard ref value of 37C. -->
-<!-- - example APA-formatted write-up, always including 95% CI (not enough to say "we reject H0", we have to say what we think the value is) -->
-<!-- - note: this is statistically sig, but not practically sig – no one will rewrite the medical textbooks to say actually body temp is really 36.81 and not 37 -->
+APA-formatted write-up:
 
+> To investigate whether the mean body temperature of healthy humans (which we call $\mu$) differs from the commonly thought value of 37°C, we performed a one-sample t-test of $H_0 : \mu = 37$ against $H_1 : \mu \neq 37$ at the 5% significance level.
+>
+> The sample results (M = 36.81, SD = `r sd(temp_sample$BodyTemp) |> round(2)`) provided strong evidence against the null hypothesis ($t$(49) = –3, $p$ = .003, two-sided).
+> We therefore conclude that the mean body temperature of healthy humans differs from 37°C and, with 95% confidence, is between 36.69°C and 36.93°C.
+
+<br>
+
+Note that this difference is statistically significant, but it's not practically significant: no one will rewrite the medical textbooks to change 37 to 36.81!
+
+In Block 3, you'll learn a way to estimate how practically significant a difference might be.
+
+<br>
 
 **What questions do you have right now?**
 
@@ -408,15 +615,13 @@ https://app.wooclap.com/events/SKTAABC/
 :::
 
 
-# Looking ahead
-
-## Looking ahead
+## VERY IMPORTANT: Lectures in Sem 2
 
 <br>
 
-**VERY IMPORTANT:** The day and time of DAPR1 lectures in Semester 2 is different from Semester 1.
+The day and time of DAPR1 lectures in Semester 2 is different from Semester 1.
 
-Starting on January 12, 2027, all Semester 2 lectures are on **Tuesdays from 13:10 to 14:00.**
+**Starting on January 12, 2027, all Semester 2 lectures are on Tuesdays from 13:10 to 14:00.**
 
 The location stays the same, and Elizabeth will be your lecturer for all of Block 3.
 
@@ -429,13 +634,11 @@ Umberto, Josiah, and I wish you a restful winter break and a lovely new year whe
 
 
 
-
-
-
-
 # Back matter {.appendix}
 
 ## Revisiting this week's learning objectives
+
+
 
 
 
