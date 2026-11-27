@@ -41,16 +41,25 @@ https://app.wooclap.com/events/SKTAABC/
 
 ## This week's learning objectives
 
+<br>
+
+:::{.dapr1callout .fragment}
+
 When we don't have access to the population we want to compare our sample to, how can we run a statistical analysis?
 
-- We rephrase our problem into a comparison between our sample and a specific hypothesised value.
-- Our null distribution becomes a t-distribution (which has slightly fatter tails, essentially meaning that we assign slightly greater probability to more extreme values).
-- The t-distribution looks more and more like a normal distribution, the bigger our sample is (and thus the more "degrees of freedom" the distribution has).
+<!-- - We rephrase our problem into a comparison between our sample and a specific hypothesised value. -->
+<!-- - Our null distribution becomes a t-distribution (which has slightly fatter tails, essentially meaning that we assign slightly greater probability to more extreme values). -->
+<!-- - The t-distribution looks more and more like a normal distribution, the bigger our sample is (and thus the more "degrees of freedom" the distribution has). -->
+
+:::
+
+:::{.dapr1callout .fragment}
 
 What kind of statistical test lets us compare our sample to a specific hypothesised value?
 
-- A one-sample t-test.
+<!-- - A one-sample t-test. -->
 
+:::
 
 
 # What do we do when we don't have access to the population?
@@ -230,7 +239,7 @@ Recall from last week the five steps of NHST:
 We'll go through them one by one as we walk through the logic of a **one-sample t-test.**
 
 
-# Step 1: Based on RQ, define H0 and H1
+# Step 1: Based on RQ, <br> define H0 and H1
 
 ## Activity: Match RQs to the appropriate H1
 
@@ -332,12 +341,16 @@ glimpse(temp_sample)
 ```{r fig.width = 12, fig.height = 4}
 #| out.width: 1200px
 #| code-fold: true
+mean_temp <- mean(temp_sample$BodyTemp)
+
 temp_sample |>
   ggplot(aes(x = BodyTemp)) +
-  geom_density(linewidth = 0, fill = '#0F4C81')
+  geom_density(linewidth = 0, fill = '#0F4C81') +
+  geom_vline(xintercept = mean_temp, colour = 'tomato1', linewidth = 2) +
+  annotate(geom = 'label', x = mean_temp+0.05, y = 0.4, label = paste0('mean:\n', round(mean_temp, 2)), colour = 'tomato1', size = 8, hjust = 0, linewidth = 1)
 ```
 
-**Our key question: How likely would it be to get a sample like this one, if H0 were true? (That is, if body temps were truly 37C on average?)**
+**Our key question: How likely would it be to get a sample mean like this one, if H0 were true? (That is, if body temps were truly 37C on average?)**
 
 
 ## If H0 were true, what would we expect to see?
@@ -397,17 +410,16 @@ p_t49 +
   NULL
 ```
 
-No—if H0 were true, we would expect differences of $\pm$ 2-ish **t-values.**
+Not degrees Celsius—if H0 were true, we would expect differences of $\pm$ 2-ish **t-values.**
 
 - A t-value tells you **how many standard errors away from the hypothesised value** your sample mean is.
 - T-values are useful because they are **standardised** measures of difference (like a z-score).
 
 You don't need to know how to calculate a t-value yourself!
 
-R will **translate our observed sample mean into a t-value** and **compare** it to this t-distribution for us.
+R will **translate our observed sample mean into a t-value** and **compare** it to this t-distribution for us, using the function `t.test()`.
 
-But the way we compare t-values to this null distribution is basically the same as you've seen in previous weeks.
-
+<!-- But the way we compare t-values to this null distribution is basically the same as you've seen in previous weeks. -->
 
 <!-- ## Activity: What t-values are likely vs. unlikely <br> if H0 is true? -->
 
@@ -423,7 +435,7 @@ But the way we compare t-values to this null distribution is basically the same 
 
 <br>
 
-We'll use the function `t.test()` and give it four arguments:
+To use the function `t.test()`, we give it four arguments:
 
 ```{r include=F}
 options(digits = 5)
@@ -502,7 +514,7 @@ p_t49 +
       ymin = 0,  ymax = y),
     alpha = 0.5, fill = 'darkorchid'
   ) +
-  NULL
+  xlab('t, df = 49')
 ```
 
 ## Let's break down this output (2)
@@ -538,7 +550,7 @@ cat('', paste0(capture.output(
 ), '\n')[9:11])
 ```
 
-The mean body temperature observed in our sample is 36.8 degrees C.
+The mean body temperature observed in our sample is 36.81 degrees C.
 
 This is the value that's three SEs below the hypothesised population mean of 37.
 
@@ -570,7 +582,7 @@ p_t49 +
       ymin = 0,  ymax = y),
     alpha = 0.5, fill = 'darkorchid'
   ) +
-  NULL
+  xlab('t, df = 49')
 ```
 
 Our significance level, or alpha level, is .05 (or 5%).
@@ -638,7 +650,25 @@ Umberto, Josiah, and I wish you a restful winter break and a lovely new year whe
 
 ## Revisiting this week's learning objectives
 
+<br>
 
+:::{.dapr1callout}
+
+**When we don't have access to the population we want to compare our sample to, how can we run a statistical analysis?**
+
+- We rephrase our problem into a comparison between our sample and a specific hypothesised value.
+- Our null distribution becomes a t-distribution (which has slightly fatter tails, essentially meaning that we assign slightly greater probability to more extreme values. We do this because we don't have access to the population, so we don't have as much information that we could use to rule those extreme values out).
+- The t-distribution looks more and more like a normal distribution, the bigger our sample is (which should make some sense, because as we get more data, we can be more precise about what kinds of values are likely).
+
+:::
+
+:::{.dapr1callout}
+
+**What kind of statistical test lets us compare our sample to a specific hypothesised value?**
+
+- A one-sample t-test.
+
+:::
 
 
 
